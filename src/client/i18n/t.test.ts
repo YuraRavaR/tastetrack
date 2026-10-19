@@ -14,6 +14,19 @@ describe("English plurals", () => {
   });
 });
 
+describe("how many times a film was watched", () => {
+  it.each([
+    [0, "Not watched yet"],
+    [1, "Watched once"],
+    [2, "Watched 2 times"],
+    [5, "Watched 5 times"],
+    [11, "Watched 11 times"],
+    [21, "Watched 21 times"],
+  ])("%i → %s", (count, expected) => {
+    expect(t("itemHistory.timesExperienced", { count })).toBe(expected);
+  });
+});
+
 describe("Ratings", () => {
   it.each([
     [0.5, "0.5 stars"],

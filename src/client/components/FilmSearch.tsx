@@ -17,7 +17,7 @@ function keyOf({ externalReference: { source, id } }: CatalogSearchResult): stri
 }
 
 // Search as you type, with no button: results follow a short pause in typing. Any result can be
-// marked Watched, which records a Log Entry for it.
+// marked Watched, which records a Log Entry for it, as a Revisit by default if it is in the Log.
 export function FilmSearch() {
   const inputId = useId();
   const [query, setQuery] = useState("");
@@ -26,6 +26,8 @@ export function FilmSearch() {
   const [lastLogged, setLastLogged] = useState<CatalogSearchResult | null>(null);
   // Results logged since the search ran, which the search's own marks don't know about yet.
   const [loggedNow, setLoggedNow] = useState<ReadonlySet<string>>(new Set());
+
+  const inLog = (result: CatalogSearchResult) => result.inLog || loggedNow.has(keyOf(result));
 
   function logged(result: CatalogSearchResult) {
     setLogging(null);
@@ -75,13 +77,18 @@ export function FilmSearch() {
             <SearchResult
               key={keyOf(result)}
               result={result}
-              inLog={result.inLog || loggedNow.has(keyOf(result))}
+              inLog={inLog(result)}
               onExperienced={() => setLogging(result)}
             />
           ))}
         </ul>
       )}
-      <LogEntryDialog result={logging} onClose={() => setLogging(null)} onLogged={logged} />
+      <LogEntryDialog
+        result={logging}
+        inLog={logging !== null && inLog(logging)}
+        onClose={() => setLogging(null)}
+        onLogged={logged}
+      />
     </section>
   );
 }

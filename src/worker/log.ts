@@ -1,9 +1,25 @@
-// The logged-in User's Log: marking a Media Item Experienced, and reading the Log.
+// The logged-in User's Log: marking a Media Item Experienced, editing and deleting Log Entries, and
+// reading the Log and a Media Item's Item History.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { ErrorResponse, LogEntryResponse, LogResponse, NewLogEntryRequest } from "../shared/api";
+import {
+  ErrorResponse,
+  ItemHistoryResponse,
+  LogEntryEditRequest,
+  LogEntryParams,
+  LogEntryResponse,
+  LogResponse,
+  MediaItemParams,
+  NewLogEntryRequest,
+} from "../shared/api";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
-import { createLogEntry, userLog } from "./log/log-entries";
+import {
+  createLogEntry,
+  deleteLogEntry,
+  editLogEntry,
+  itemHistory,
+  userLog,
+} from "./log/log-entries";
 
 const experiencedRoute = createRoute({
   method: "post",
@@ -31,6 +47,64 @@ const experiencedRoute = createRoute({
   },
 });
 
+const unknownLogEntryResponse = {
+  content: { "application/json": { schema: ErrorResponse } },
+  description: "The User has no such Log Entry (`unknown_log_entry`)",
+};
+
+const editRoute = createRoute({
+  method: "patch",
+  path: "/log-entries/{logEntryId}",
+  summary: "Edit a Log Entry",
+  description:
+    "Changes only the fields given, by the same rules as a new Log Entry; a null date or Review " +
+    "clears it. The creation time never changes, so the entry keeps its place among same-day " +
+    "entries.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: {
+    params: LogEntryParams,
+    body: { content: { "application/json": { schema: LogEntryEditRequest } }, required: true },
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: LogEntryResponse } },
+      description: "The edited Log Entry",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "The request body is malformed or names a field that can't be edited, the Rating isn't " +
+        "0.5–5 in half stars, or the date isn't a calendar date, is before 1900-01-01 or after " +
+        "today in the User's time zone (`invalid_request`, `invalid_date`, `date_too_early`, " +
+        "`date_in_future`)",
+    },
+    401: unauthenticatedResponse,
+    404: unknownLogEntryResponse,
+  },
+});
+
+const deleteRoute = createRoute({
+  method: "delete",
+  path: "/log-entries/{logEntryId}",
+  summary: "Delete a Log Entry",
+  description:
+    "Deletes only the Log Entry. A Media Item left with no entries counts as not experienced and " +
+    "has no Current Rating.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: LogEntryParams },
+  responses: {
+    204: { description: "The Log Entry is deleted" },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Log Entry id isn't a positive integer (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
+    404: unknownLogEntryResponse,
+  },
+});
+
 const listRoute = createRoute({
   method: "get",
   path: "/log-entries",
@@ -49,6 +123,33 @@ const listRoute = createRoute({
   },
 });
 
+const historyRoute = createRoute({
+  method: "get",
+  path: "/catalog/items/{mediaItemId}/history",
+  summary: "Show the logged-in User's Item History of a Media Item, and its Current Rating",
+  description:
+    "Every Log Entry the User has for the Media Item, in Log Order. The Current Rating is the " +
+    "last one's Rating, so a backdated entry doesn't override it; with no entries it is null.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: MediaItemParams },
+  responses: {
+    200: {
+      content: { "application/json": { schema: ItemHistoryResponse } },
+      description: "The Item History, empty if the User hasn't experienced the Media Item",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Media Item id isn't a positive integer (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
+    404: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "There is no such Media Item (`unknown_media_item`)",
+    },
+  },
+});
+
 export const logRoutes = new OpenAPIHono<AppEnv>();
 
 logRoutes.openapi(experiencedRoute, async (c) => {
@@ -57,6 +158,33 @@ logRoutes.openapi(experiencedRoute, async (c) => {
   return c.json({ logEntry: created.logEntry }, 201);
 });
 
+logRoutes.openapi(editRoute, async (c) => {
+  const { logEntryId } = c.req.valid("param");
+  const edited = await editLogEntry(
+    c.var.db,
+    c.var.userId,
+    logEntryId,
+    c.req.valid("json"),
+    c.var.now,
+  );
+  if (edited.ok) return c.json({ logEntry: edited.logEntry }, 200);
+  if (edited.error === "unknown_log_entry") return c.json({ error: edited.error }, 404);
+  return c.json({ error: edited.error }, 400);
+});
+
+logRoutes.openapi(deleteRoute, async (c) => {
+  if (!(await deleteLogEntry(c.var.db, c.var.userId, c.req.valid("param").logEntryId))) {
+    return c.json({ error: "unknown_log_entry" }, 404);
+  }
+  return c.body(null, 204);
+});
+
 logRoutes.openapi(listRoute, async (c) => {
   return c.json({ logEntries: await userLog(c.var.db, c.var.userId) }, 200);
+});
+
+logRoutes.openapi(historyRoute, async (c) => {
+  const history = await itemHistory(c.var.db, c.var.userId, c.req.valid("param").mediaItemId);
+  if (!history) return c.json({ error: "unknown_media_item" }, 404);
+  return c.json(history, 200);
 });

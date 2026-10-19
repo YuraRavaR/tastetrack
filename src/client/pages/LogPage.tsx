@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router";
 import type { LogEntry } from "../../shared/api";
 import * as api from "../api";
 import { FilmTitle } from "../components/FilmTitle";
+import { LogEntryDetails } from "../components/LogEntryDetails";
 import { Poster } from "../components/Poster";
-import { RatingStars } from "../components/Rating";
-import { formatCalendarDate, t } from "../i18n/t";
+import { t } from "../i18n/t";
 
 type LogState =
   | { status: "loading" }
   | { status: "loaded"; entries: LogEntry[] }
   | { status: "failed" };
 
-// The User's Log, in Log Order as the API gives it.
+// The User's Log, in Log Order as the API gives it. Each film links to its Item History.
 export function LogPage() {
   const [log, setLog] = useState<LogState>({ status: "loading" });
 
@@ -61,13 +61,13 @@ function LogEntryItem({ entry }: { entry: LogEntry }) {
     <li className="flex gap-3 px-3 py-3">
       <Poster url={entry.mediaItem.metadata?.posterUrl ?? null} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <FilmTitle metadata={entry.mediaItem.metadata} />
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-sm">
-          <RatingStars rating={entry.rating} />
-          <span>{entry.date ? formatCalendarDate(entry.date) : t("logEntry.noDate")}</span>
-          {entry.revisit && <Badge variant="secondary">{t("logEntry.revisit")}</Badge>}
-        </div>
-        {entry.review && <p className="whitespace-pre-line break-words text-sm">{entry.review}</p>}
+        <Link
+          to={`/items/${entry.mediaItem.id}`}
+          className="underline-offset-4 hover:underline focus-visible:underline"
+        >
+          <FilmTitle metadata={entry.mediaItem.metadata} />
+        </Link>
+        <LogEntryDetails entry={entry} />
       </div>
     </li>
   );

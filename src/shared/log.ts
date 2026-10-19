@@ -1,5 +1,5 @@
-// The Log's rules: Ratings, Log Entry dates and Log Order. Pure functions with no I/O, shared by
-// the Worker, which enforces them, and the client, which keeps input within them.
+// The Log's rules: Ratings, Log Entry dates, Log Order and the Current Rating. Pure functions with
+// no I/O, shared by the Worker, which enforces them, and the client, which keeps input within them.
 
 // A Rating is 0.5 to 5 stars in half-star steps, the same for every Media Type. It is stored as
 // the number of half stars, 1 to 10, so there is no zero and no fraction.
@@ -97,4 +97,13 @@ export function inLogOrder<T extends LogOrdered>(entries: readonly T[]): T[] {
     }
     return a.createdAt.getTime() - b.createdAt.getTime();
   });
+}
+
+// The Current Rating: the Rating of the last of one Media Item's Log Entries in Log Order, so a
+// backdated entry never overrides a later opinion. Null without entries. The Rating is returned
+// as given, stored or in stars.
+export function currentRating(
+  entries: readonly (LogOrdered & { rating: number })[],
+): number | null {
+  return inLogOrder(entries).at(-1)?.rating ?? null;
 }

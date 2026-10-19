@@ -3,6 +3,7 @@ import { AuthProvider, RequireAuth } from "./auth";
 import { AppLayout } from "./components/AppLayout";
 import { HomePage } from "./pages/HomePage";
 import { InvitesPage } from "./pages/InvitesPage";
+import { ItemHistoryPage } from "./pages/ItemHistoryPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LogPage } from "./pages/LogPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -18,6 +19,7 @@ export function App() {
             <Route element={<RequireAuth />}>
               <Route index element={<HomePage />} />
               <Route path="/log" element={<LogPage />} />
+              <Route path="/items/:mediaItemId" element={<ItemHistoryPage />} />
               <Route path="/invites" element={<InvitesPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

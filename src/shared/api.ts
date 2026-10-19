@@ -221,6 +221,25 @@ export const NewLogEntryRequest = z
 
 export type NewLogEntryRequest = z.input<typeof NewLogEntryRequest>;
 
+// Only the fields given change; a null date or Review clears it. The Media Item can't change, and
+// the creation time never does, so an edited entry keeps its place among same-day entries.
+export const LogEntryEditRequest = z
+  .object({
+    rating: Rating.optional(),
+    date: LogDate.nullable().optional(),
+    timeZone: z.string().max(100).optional().openapi({ example: "Europe/Kyiv" }),
+    review: z.string().max(maxReviewLength).nullable().optional(),
+    revisit: z.boolean().optional(),
+  })
+  .strict()
+  .openapi("LogEntryEditRequest");
+
+export type LogEntryEditRequest = z.infer<typeof LogEntryEditRequest>;
+
+export const LogEntryParams = z.object({
+  logEntryId: z.coerce.number().int().positive().openapi({ example: 7 }),
+});
+
 export const LogEntry = z
   .object({
     id: z.int().openapi({ example: 7 }),
@@ -250,3 +269,19 @@ export const LogResponse = z
   .openapi("LogResponse");
 
 export type LogResponse = z.infer<typeof LogResponse>;
+
+export const MediaItemParams = z.object({
+  mediaItemId: z.coerce.number().int().positive().openapi({ example: 42 }),
+});
+
+// One User's Item History of a Media Item: every Log Entry for it in Log Order, and the Current
+// Rating, which is the last one's Rating. A film the User hasn't experienced has neither.
+export const ItemHistoryResponse = z
+  .object({
+    mediaItem: MediaItem,
+    logEntries: z.array(LogEntry),
+    currentRating: Rating.nullable(),
+  })
+  .openapi("ItemHistoryResponse");
+
+export type ItemHistoryResponse = z.infer<typeof ItemHistoryResponse>;
