@@ -11,6 +11,13 @@ Never commit or push to `main`. Every change, including docs, goes on its own br
 - Commit messages and PR titles follow Conventional Commits (`feat: ...`, `fix(scope): ...`); commitlint checks both in CI.
 - Hooks in `.githooks/` block commits on `main` and run commitlint on each commit message. Enable them once per clone with `git config core.hooksPath .githooks`.
 
+## UI conventions
+
+- Build UI from shadcn/ui components in `src/client/components/ui/`. Add missing ones with `pnpm dlx shadcn@latest add <name>`, then point any `cn` import at `@/lib/utils`.
+- Style with theme tokens only: semantic utilities such as `bg-primary`, `text-muted-foreground`, `border-border`, `rounded-lg`. Every colour, the radius and the font are defined once in `src/client/styles.css`; a new colour need becomes a new token there, in both light and dark.
+- Mobile first: write unprefixed classes for a phone screen, and add `sm:`/`md:` only to adapt upwards.
+- UI text goes through `t()` and the Ukrainian catalogue in `src/client/i18n/uk.ts`.
+
 ## Agent skills
 
 ### Issue tracker

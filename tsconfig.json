@@ -4,5 +4,9 @@
     { "path": "./tsconfig.worker.json" },
     { "path": "./tsconfig.client.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  // Read by the shadcn CLI, which doesn't follow project references.
+  "compilerOptions": {
+    "paths": { "@/*": ["./src/client/*"] }
+  }
 }

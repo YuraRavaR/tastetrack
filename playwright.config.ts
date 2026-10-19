@@ -54,6 +54,12 @@ export default defineConfig({
       testDir: "tests/smoke",
       use: { baseURL: hooksOffURL },
     },
+    // The Operator CLI against the local D1 of the hooks-on Worker, so local only.
+    {
+      name: "cli",
+      testDir: "tests/cli",
+      use: { baseURL: "http://localhost:8787" },
+    },
     {
       name: "e2e",
       testDir: "tests/e2e",

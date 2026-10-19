@@ -21,7 +21,7 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | `pnpm lint` | Biome: lint, formatting and import order (`pnpm lint:fix` applies fixes) |
 | `pnpm typecheck` | Type-check the Worker, the client, the tests and `scripts/` |
 | `pnpm test:unit` | Vitest: the domain core and the message catalogue |
-| `pnpm test:api` | Playwright API tests against local Wrangler, with test hooks on and off |
+| `pnpm test:api` | Playwright API tests against local Wrangler, with test hooks on and off, and the Operator CLI tests |
 | `pnpm test:e2e` | Playwright browser tests against local Wrangler |
 | `pnpm test:smoke` | The production smoke test: against local Wrangler with hooks off, or `BASE_URL` |
 | `pnpm test:deployed` | Playwright API and E2E tests against `BASE_URL`, e.g. staging |
@@ -29,14 +29,37 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | `pnpm db:generate --name <name>` | Generate a migration from `src/db/schema.ts` (never edit an applied one) |
 | `pnpm db:migrate:local` | Apply migrations to the local D1 |
 | `pnpm cf-typegen` | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
+| `pnpm operator create-user --env <env>` | Operator CLI: create a User in `local`, `staging` or `production` (see below) |
 
 The API serves its OpenAPI spec at `/api/openapi.json`.
 
+## Operator CLI
+
+The Operator acts on a deployment only through `scripts/operator.ts`, which runs `wrangler d1 execute` against the chosen environment's D1. To create the first User of an environment:
+
+```sh
+pnpm operator create-user --env local       # the local D1 that `pnpm dev` serves
+pnpm operator create-user --env staging     # needs Wrangler logged in to the Cloudflare account
+pnpm operator create-user --env production
+```
+
+It prompts for the Username and the password (twice, not echoed), hashes the password on your machine and sends only the hash, so no credentials end up in the repo or the shell history.
+
+## Sessions
+
+Logging in sets an HttpOnly `session` cookie (`Secure` over HTTPS, `SameSite=Lax`). The database keeps only the SHA-256 of the session token. A session is valid for 30 days from the User's last authenticated request, and logging out deletes it on the server.
+
 ## Test hooks
 
-`TEST_HOOKS=1` turns on test-only surfaces, such as the `X-D1-Query-Count` response header and the routes under `/api/test/`, which stay out of the OpenAPI spec and are a JSON 404 with hooks off. The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
+`TEST_HOOKS=1` turns on test-only surfaces, which stay out of the OpenAPI spec and are a JSON 404 or ignored with hooks off:
 
-The `smoke` Playwright project runs against the top-level config locally, and against production after every deploy, to prove the hooks stay off there.
+- the `X-D1-Query-Count` response header;
+- the `X-Test-Now` request header, an ISO time the Worker treats as now, so tests can step past session expiry;
+- the routes under `/api/test/`, including `POST /api/test/users`, which creates a User for API and E2E tests until registration with Invite Codes exists.
+
+The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
+
+The `cli` Playwright project runs the Operator CLI against local D1 only, so `pnpm test:deployed` leaves it out. The `smoke` Playwright project runs against the top-level config locally, and against production after every deploy, to prove the hooks stay off there.
 
 ### PBKDF2 spike
 
