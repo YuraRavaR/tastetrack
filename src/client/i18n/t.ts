@@ -1,5 +1,5 @@
 import { IntlMessageFormat, type PrimitiveType } from "intl-messageformat";
-import { uk, type MessageId } from "./uk";
+import { type MessageId, uk } from "./uk";
 
 const locale = "uk";
 const formats = new Map<MessageId, IntlMessageFormat>();

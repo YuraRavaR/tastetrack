@@ -1,0 +1,93 @@
+name: Staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Deploys run one at a time and are never cancelled halfway through a migration.
+concurrency:
+  group: staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_SEND_METRICS: "false"
+
+jobs:
+  deploy:
+    name: Migrate and deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check the Cloudflare secrets
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets for the staging environment."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+
+      - name: Build the app
+        run: pnpm build
+
+      # Migrations go first: they are forward-only and expand/contract (ADR-0009), so the
+      # running Worker keeps working against the migrated database.
+      - name: Apply D1 migrations
+        run: pnpm exec wrangler d1 migrations apply DB --remote --env staging
+
+      - name: Deploy the Worker
+        id: deploy
+        env:
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+        run: |
+          pnpm exec wrangler deploy --env staging
+          url=$(jq -r 'select(.type == "deploy") | .targets[0] // empty' "$WRANGLER_OUTPUT_FILE_PATH")
+          if [ -z "$url" ]; then
+            echo "::error::wrangler deploy reported no URL. Is workers.dev turned on for the staging Worker?"
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: API and E2E tests against staging
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ needs.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+        with:
+          playwright: "true"
+
+      # A new workers.dev hostname can take a minute or two to resolve after the first deploy.
+      - name: Wait for the deployment to answer
+        run: curl --fail --silent --show-error --retry 30 --retry-delay 5 --retry-all-errors "$BASE_URL/api/health"
+
+      - name: API and E2E tests
+        run: pnpm test:deployed
+
+      - name: Upload Playwright traces and report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-staging
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -39,8 +39,7 @@
         {
           "binding": "DB",
           "database_name": "tastetrack-staging",
-          // Placeholder until #4 creates the staging D1; a staging deploy fails until then.
-          "database_id": "00000000-0000-0000-0000-000000000001",
+          "database_id": "278bf6dd-95f1-48f1-a10b-3c4686ac00c0",
           "migrations_dir": "migrations"
         }
       ],
