@@ -6,7 +6,9 @@ import type {
   InviteCode,
   InviteCodeResponse,
   InviteCodesResponse,
+  ItemHistoryResponse,
   LogEntry,
+  LogEntryEditRequest,
   LogEntryResponse,
   LogResponse,
   MediaItem,
@@ -149,10 +151,15 @@ export type CreateLogEntryResult =
 
 const logEntryErrors = new Set<string>(["invalid_date", "date_too_early", "date_in_future"]);
 
-export async function createLogEntry(request: NewLogEntryRequest): Promise<CreateLogEntryResult> {
+// Sends a new or edited Log Entry, and reads back the entry or the reason it was refused.
+async function sendLogEntry(
+  url: string,
+  method: "POST" | "PATCH",
+  request: NewLogEntryRequest | LogEntryEditRequest,
+): Promise<CreateLogEntryResult> {
   try {
-    const response = await fetch("/api/log-entries", {
-      method: "POST",
+    const response = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     });
@@ -169,8 +176,37 @@ export async function createLogEntry(request: NewLogEntryRequest): Promise<Creat
   }
 }
 
+export function createLogEntry(request: NewLogEntryRequest): Promise<CreateLogEntryResult> {
+  return sendLogEntry("/api/log-entries", "POST", request);
+}
+
+export function editLogEntry(
+  logEntryId: number,
+  edit: LogEntryEditRequest,
+): Promise<CreateLogEntryResult> {
+  return sendLogEntry(`/api/log-entries/${logEntryId}`, "PATCH", edit);
+}
+
+// True once the Log Entry is gone, including when it already was.
+export async function deleteLogEntry(logEntryId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/log-entries/${logEntryId}`, { method: "DELETE" });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchLog(): Promise<LogEntry[]> {
   const response = await fetch("/api/log-entries");
   if (!response.ok) throw new Error(`Loading the Log failed: ${response.status}`);
   return ((await response.json()) as LogResponse).logEntries;
+}
+
+// A Media Item's Item History, or null when there is no such Media Item.
+export async function fetchItemHistory(mediaItemId: number): Promise<ItemHistoryResponse | null> {
+  const response = await fetch(`/api/catalog/items/${mediaItemId}/history`);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Loading the Item History failed: ${response.status}`);
+  return (await response.json()) as ItemHistoryResponse;
 }

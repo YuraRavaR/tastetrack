@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { inLogOrder, latestLogDate, logDateProblem, storedRating, toStars } from "./log";
+import {
+  currentRating,
+  inLogOrder,
+  latestLogDate,
+  logDateProblem,
+  storedRating,
+  toStars,
+} from "./log";
 
 describe("a Rating", () => {
   it.each([
@@ -123,5 +130,51 @@ describe("Log Order", () => {
     inLogOrder(entries);
 
     expect(names(entries)).toEqual(["b", "a"]);
+  });
+});
+
+describe("the Current Rating", () => {
+  function entry(rating: number, date: string | null, createdAt: string) {
+    return { rating, date, createdAt: new Date(createdAt) };
+  }
+
+  it("is none without Log Entries", () => {
+    expect(currentRating([])).toBeNull();
+  });
+
+  it("is the Rating of the latest-dated entry, not of the one logged last", () => {
+    const entries = [
+      entry(4, "2026-10-01", "2026-10-01T20:00:00Z"),
+      entry(2, "1999-03-31", "2026-10-02T20:00:00Z"),
+    ];
+
+    expect(currentRating(entries)).toBe(4);
+  });
+
+  it("comes from a dated entry over any undated one, however recently that was logged", () => {
+    const entries = [
+      entry(3, "2001-05-01", "2026-01-01T10:00:00Z"),
+      entry(5, null, "2026-10-01T10:00:00Z"),
+    ];
+
+    expect(currentRating(entries)).toBe(3);
+  });
+
+  it("among undated entries only, is the Rating of the one logged last", () => {
+    const entries = [
+      entry(1.5, null, "2026-10-02T10:00:00Z"),
+      entry(4.5, null, "2026-10-01T10:00:00Z"),
+    ];
+
+    expect(currentRating(entries)).toBe(1.5);
+  });
+
+  it("on a same-day tie, is the Rating of the entry logged last", () => {
+    const entries = [
+      entry(5, "2026-10-01", "2026-10-03T09:00:00Z"),
+      entry(2, "2026-10-01", "2026-10-03T08:00:00Z"),
+    ];
+
+    expect(currentRating(entries)).toBe(5);
   });
 });

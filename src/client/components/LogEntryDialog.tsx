@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { CatalogSearchResult } from "../../shared/api";
+import type { CatalogSearchResult, LogEntry } from "../../shared/api";
 import { earliestLogDate, latestLogDate, maxReviewLength } from "../../shared/log";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
@@ -22,29 +22,94 @@ import { RatingInput } from "./Rating";
 
 // Marks a search result Experienced: asks for a Rating, and optionally a date, a Review and
 // whether it is a Revisit, then adds the film to the catalog and records the Log Entry. `result`
-// is the film to log; the dialog is open while it is set.
+// is the film to log; the dialog is open while it is set. Revisit starts ticked when the User
+// already has a Log Entry for the film.
 export function LogEntryDialog({
   result,
+  inLog,
   onClose,
   onLogged,
 }: {
   result: CatalogSearchResult | null;
+  inLog: boolean;
   onClose: () => void;
   onLogged: (result: CatalogSearchResult) => void;
 }) {
+  async function save(fields: LogEntryFields): Promise<api.CreateLogEntryResult> {
+    if (!result) throw new Error("Saving a Log Entry with no film to log");
+    const mediaItem = await api.addToCatalog(result);
+    if (!mediaItem) return { ok: false, error: "unavailable" };
+    return api.createLogEntry({ mediaItemId: mediaItem.id, ...fields });
+  }
+
   return (
     <Dialog open={result !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         {result && (
           <LogEntryForm
             key={`${result.externalReference.source}:${result.externalReference.id}`}
-            result={result}
-            onLogged={onLogged}
+            title={t("logEntry.title", { film: filmLabel(result) })}
+            description={t("logEntry.description")}
+            initial={{ rating: null, date: "", review: "", revisit: inLog }}
+            save={save}
+            onSaved={() => onLogged(result)}
           />
         )}
       </DialogContent>
     </Dialog>
   );
+}
+
+// Edits any field of a Log Entry. `entry` is the one to edit; the dialog is open while it is set.
+export function EditLogEntryDialog({
+  entry,
+  onClose,
+  onSaved,
+}: {
+  entry: LogEntry | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const metadata = entry?.mediaItem.metadata;
+  return (
+    <Dialog open={entry !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        {entry && (
+          <LogEntryForm
+            key={entry.id}
+            title={t("logEntry.editTitle", {
+              film: metadata ? filmLabel(metadata) : t("film.unknown"),
+            })}
+            description={t("logEntry.editDescription")}
+            initial={{
+              rating: entry.rating,
+              date: entry.date ?? "",
+              review: entry.review ?? "",
+              revisit: entry.revisit,
+            }}
+            save={(fields) => api.editLogEntry(entry.id, fields)}
+            onSaved={onSaved}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// What the form sends: every field, with an empty date or Review as none.
+interface LogEntryFields {
+  rating: number;
+  date: string | null;
+  timeZone: string;
+  review: string | null;
+  revisit: boolean;
+}
+
+interface FormValues {
+  rating: number | null;
+  date: string;
+  review: string;
+  revisit: boolean;
 }
 
 type FormError = "rating" | api.LogEntryError;
@@ -58,11 +123,17 @@ const errorMessages = {
 } as const;
 
 function LogEntryForm({
-  result,
-  onLogged,
+  title,
+  description,
+  initial,
+  save,
+  onSaved,
 }: {
-  result: CatalogSearchResult;
-  onLogged: (result: CatalogSearchResult) => void;
+  title: string;
+  description: string;
+  initial: FormValues;
+  save: (fields: LogEntryFields) => Promise<api.CreateLogEntryResult>;
+  onSaved: () => void;
 }) {
   const ids = {
     date: useId(),
@@ -71,47 +142,43 @@ function LogEntryForm({
     revisit: useId(),
     revisitHint: useId(),
   };
-  const [rating, setRating] = useState<number | null>(null);
-  const [date, setDate] = useState("");
-  const [review, setReview] = useState("");
-  const [revisit, setRevisit] = useState(false);
+  const [rating, setRating] = useState(initial.rating);
+  const [date, setDate] = useState(initial.date);
+  const [review, setReview] = useState(initial.review);
+  const [revisit, setRevisit] = useState(initial.revisit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
   // Today where the User is, which is the latest date the Worker accepts from them.
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const latestDate = latestLogDate(new Date(), timeZone);
 
-  async function save(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     if (rating === null) {
       setError("rating");
       return;
     }
     setSaving(true);
-    const mediaItem = await api.addToCatalog(result);
-    const outcome = mediaItem
-      ? await api.createLogEntry({
-          mediaItemId: mediaItem.id,
-          rating,
-          date: date || null,
-          timeZone,
-          review: review.trim() || null,
-          revisit,
-        })
-      : ({ ok: false, error: "unavailable" } as const);
+    const outcome = await save({
+      rating,
+      date: date || null,
+      timeZone,
+      review: review.trim() || null,
+      revisit,
+    });
     setSaving(false);
     if (!outcome.ok) {
       setError(outcome.error);
       return;
     }
-    onLogged(result);
+    onSaved();
   }
 
   return (
-    <form onSubmit={save} noValidate className="flex flex-col gap-5">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-5">
       <DialogHeader>
-        <DialogTitle>{t("logEntry.title", { film: filmLabel(result) })}</DialogTitle>
-        <DialogDescription>{t("logEntry.description")}</DialogDescription>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       <RatingInput
         value={rating}

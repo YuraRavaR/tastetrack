@@ -3,8 +3,15 @@
 import { and, eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { logEntries, mediaItems, tmdbCache } from "../../db/schema";
-import type { LogEntry, MediaType, NewLogEntryRequest } from "../../shared/api";
+import type {
+  ItemHistoryResponse,
+  LogEntry,
+  LogEntryEditRequest,
+  MediaType,
+  NewLogEntryRequest,
+} from "../../shared/api";
 import {
+  currentRating,
   inLogOrder,
   type LogDateProblem,
   logDateProblem,
@@ -90,6 +97,56 @@ export async function createLogEntry(
   return { ok: true, logEntry: toLogEntry(row) };
 }
 
+export type LogEntryEditProblem = LogDateProblem | "invalid_rating" | "unknown_log_entry";
+
+export type EditedLogEntry =
+  | { ok: true; logEntry: LogEntry }
+  | { ok: false; error: LogEntryEditProblem };
+
+// Changes the fields `edit` gives of one of the User's Log Entries, by the same rules as a new
+// one. Its creation time stays, so it keeps its place among same-day entries. Another User's
+// entry is as unknown as one that doesn't exist.
+export async function editLogEntry(
+  db: DrizzleD1Database,
+  userId: number,
+  logEntryId: number,
+  edit: LogEntryEditRequest,
+  now: Date,
+): Promise<EditedLogEntry> {
+  const rating = edit.rating === undefined ? undefined : storedRating(edit.rating);
+  if (rating === null) return { ok: false, error: "invalid_rating" };
+  const dateProblem = edit.date && logDateProblem(edit.date, now, edit.timeZone);
+  if (dateProblem) return { ok: false, error: dateProblem };
+
+  const changes = {
+    rating,
+    date: edit.date,
+    review: edit.review === undefined ? undefined : edit.review?.trim() || null,
+    revisit: edit.revisit,
+  };
+  const own = and(eq(logEntries.id, logEntryId), eq(logEntries.userId, userId));
+  if (Object.values(changes).some((value) => value !== undefined)) {
+    await db.update(logEntries).set(changes).where(own);
+  }
+  const [row] = await selectLog(db).where(own);
+  if (!row) return { ok: false, error: "unknown_log_entry" };
+  return { ok: true, logEntry: toLogEntry(row) };
+}
+
+// Deletes one of the User's Log Entries, and nothing else: a Media Item left with no entries just
+// counts as not experienced. False when the User has no such entry.
+export async function deleteLogEntry(
+  db: DrizzleD1Database,
+  userId: number,
+  logEntryId: number,
+): Promise<boolean> {
+  const deleted = await db
+    .delete(logEntries)
+    .where(and(eq(logEntries.id, logEntryId), eq(logEntries.userId, userId)))
+    .returning({ id: logEntries.id });
+  return deleted.length > 0;
+}
+
 // D1 reports a broken foreign key as an error whose message, possibly on a wrapped cause, says so.
 function isForeignKeyViolation(error: unknown): boolean {
   for (let cause = error; cause instanceof Error; cause = cause.cause) {
@@ -102,6 +159,34 @@ function isForeignKeyViolation(error: unknown): boolean {
 export async function userLog(db: DrizzleD1Database, userId: number): Promise<LogEntry[]> {
   const rows = await selectLog(db).where(eq(logEntries.userId, userId)).orderBy(logEntries.id);
   return inLogOrder(rows).map(toLogEntry);
+}
+
+// The User's Item History of a Media Item, or null when there is no such Media Item. Two queries,
+// not a db.batch: D1 returns batched rows keyed by column name, so the join's two id columns would
+// collide.
+export async function itemHistory(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaItemId: number,
+): Promise<ItemHistoryResponse | null> {
+  const [[item], rows] = await Promise.all([
+    db
+      .select(mediaItemColumns)
+      .from(mediaItems)
+      .leftJoin(tmdbCache, cacheOfMediaItem)
+      .where(eq(mediaItems.id, mediaItemId)),
+    selectLog(db)
+      .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))
+      .orderBy(logEntries.id),
+  ]);
+  if (!item) return null;
+  const ordered = inLogOrder(rows);
+  const current = currentRating(ordered);
+  return {
+    mediaItem: toMediaItem(item),
+    logEntries: ordered.map(toLogEntry),
+    currentRating: current === null ? null : toStars(current),
+  };
 }
 
 // Which of these External Source ids of one Media Type the User has a Log Entry for.

@@ -74,6 +74,16 @@ export const en = {
   "logEntry.unavailable": "Couldn't save. Please try again.",
   "logEntry.saved": "Added {film} to your Log.",
   "logEntry.noDate": "No date",
+  "logEntry.edit": "Edit",
+  "logEntry.editTitle": "Edit your entry for {film}",
+  "logEntry.editDescription":
+    "Change the Rating, the date, the Review or whether it was a rewatch.",
+  "logEntry.delete": "Delete",
+  "logEntry.deleteTitle": "Delete this entry?",
+  "logEntry.deleteDescription":
+    "Your entry for {film} will be removed from your Log for good. This can't be undone.",
+  "logEntry.deleting": "Deleting…",
+  "logEntry.deleteFailed": "Couldn't delete. Please try again.",
   "log.nav": "Log",
   "log.title": "Your Log",
   "log.listLabel": "Log Entries",
@@ -81,6 +91,13 @@ export const en = {
   "log.empty": "Your Log is empty. Search for a film you've watched and mark it Watched.",
   "log.unavailable": "Couldn't load your Log. Please try again.",
   "log.view": "See your Log",
+  "itemHistory.loading": "Loading…",
+  "itemHistory.unavailable": "Couldn't load this film. Please try again.",
+  "itemHistory.notFound": "There's no such film.",
+  "itemHistory.timesExperienced":
+    "{count, plural, =0 {Not watched yet} one {Watched once} other {Watched # times}}",
+  "itemHistory.currentRating": "Current Rating",
+  "itemHistory.listLabel": "Item History",
   "film.unknown": "Film details unavailable",
   "attribution.tmdbLogo": "TMDB",
   "attribution.tmdb":

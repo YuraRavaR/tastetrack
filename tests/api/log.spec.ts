@@ -291,18 +291,24 @@ test("logging an unknown Media Item is a 400", async ({ request }) => {
   expect(await response.json()).toEqual({ error: "unknown_media_item" });
 });
 
-test("without a session, adding and the Log are a 401", async ({ request }) => {
+test("without a session, adding, the Log and Item History are a 401", async ({ request }) => {
   expect((await request.post("/api/catalog/items", { data: {} })).status()).toBe(401);
   expect((await request.post("/api/log-entries", { data: {} })).status()).toBe(401);
   expect((await request.get("/api/log-entries")).status()).toBe(401);
+  expect((await request.patch("/api/log-entries/1", { data: {} })).status()).toBe(401);
+  expect((await request.delete("/api/log-entries/1")).status()).toBe(401);
+  expect((await request.get("/api/catalog/items/1/history")).status()).toBe(401);
 });
 
-test("the OpenAPI spec describes adding and the Log", async ({ request }) => {
+test("the OpenAPI spec describes adding, the Log and Item History", async ({ request }) => {
   const spec = await (await request.get("/api/openapi.json")).json();
 
   expect(spec.paths["/api/catalog/items"].post.responses["201"]).toBeDefined();
   expect(spec.paths["/api/log-entries"].post.responses["400"]).toBeDefined();
   expect(spec.paths["/api/log-entries"].get.security).toEqual([{ session: [] }]);
+  expect(spec.paths["/api/log-entries/{logEntryId}"].patch.responses["404"]).toBeDefined();
+  expect(spec.paths["/api/log-entries/{logEntryId}"].delete.responses["204"]).toBeDefined();
+  expect(spec.paths["/api/catalog/items/{mediaItemId}/history"].get.responses["200"]).toBeDefined();
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.
@@ -322,6 +328,248 @@ test("the Log loads in the same number of queries for 1 entry as for 20", async 
 
   const one = await queriesForLogOf(request, 1);
   const twenty = await queriesForLogOf(other, 20);
+  await other.dispose();
+
+  expect(one).toMatch(/^\d+$/);
+  expect(twenty).toBe(one);
+});
+
+async function itemHistory(request: APIRequestContext, mediaItemId: number) {
+  const response = await request.get(`/api/catalog/items/${mediaItemId}/history`);
+  expect(response.status(), await response.text()).toBe(200);
+  return response.json();
+}
+
+async function addAliens(request: APIRequestContext) {
+  return add(request, await searchResult(request, "aliens", "679"));
+}
+
+test("a film's Item History has its Log Entries in Log Order, and the last one's Rating is current", async ({
+  request,
+}) => {
+  await logInNewUser(request);
+  const alienItem = await addAlien(request);
+  const aliensItem = await addAliens(request);
+  const latest = await postLogEntry(
+    request,
+    { mediaItemId: alienItem.id, rating: 4, date: "2026-10-01", review: "Still terrifying." },
+    at("2026-10-01T20:00:00Z"),
+  );
+  // Logged later, but backdated: it goes first and doesn't set the Current Rating.
+  const backdated = await postLogEntry(
+    request,
+    { mediaItemId: alienItem.id, rating: 2, date: "1999-03-31" },
+    at("2026-10-02T20:00:00Z"),
+  );
+  await postLogEntry(request, { mediaItemId: aliensItem.id, rating: 5 });
+
+  expect(await itemHistory(request, alienItem.id)).toEqual({
+    mediaItem: alienItem,
+    logEntries: [backdated, latest],
+    currentRating: 4,
+  });
+});
+
+test("the Item History of a film the User hasn't logged is empty, with no Current Rating", async ({
+  request,
+  playwright,
+}) => {
+  await logInNewUser(request);
+  const mediaItem = await addAlien(request);
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+  await logInNewUser(other);
+  await postLogEntry(other, { mediaItemId: mediaItem.id, rating: 5 });
+  await other.dispose();
+
+  expect(await itemHistory(request, mediaItem.id)).toEqual({
+    mediaItem,
+    logEntries: [],
+    currentRating: null,
+  });
+});
+
+test("the Item History of an unknown Media Item is a 404", async ({ request }) => {
+  await logInNewUser(request);
+
+  const response = await request.get("/api/catalog/items/2000000000/history");
+
+  expect(response.status()).toBe(404);
+  expect(await response.json()).toEqual({ error: "unknown_media_item" });
+});
+
+async function patchLogEntry(
+  request: APIRequestContext,
+  id: number,
+  data: object,
+  headers?: object,
+) {
+  const response = await request.patch(`/api/log-entries/${id}`, { data, headers: { ...headers } });
+  expect(response.status(), await response.text()).toBe(200);
+  return (await response.json()).logEntry;
+}
+
+test("every field of a Log Entry can be edited, and its creation time stays", async ({
+  request,
+}) => {
+  await logInNewUser(request);
+  const { id: mediaItemId } = await addAlien(request);
+  const logged = await postLogEntry(
+    request,
+    { mediaItemId, rating: 3, date: "2026-10-01", review: "Fine." },
+    at("2026-10-01T10:00:00Z"),
+  );
+
+  const edited = await patchLogEntry(
+    request,
+    logged.id,
+    { rating: 4.5, date: "1999-03-31", review: "  Still terrifying.  ", revisit: true },
+    at("2026-10-02T10:00:00Z"),
+  );
+
+  expect(edited).toEqual({
+    ...logged,
+    rating: 4.5,
+    date: "1999-03-31",
+    review: "Still terrifying.",
+    revisit: true,
+  });
+  // Clearing the date and the Review, and leaving out what doesn't change.
+  const cleared = await patchLogEntry(request, logged.id, { date: null, review: "" });
+  expect(cleared).toEqual({ ...edited, date: null, review: null });
+  expect(await theLog(request)).toEqual([cleared]);
+});
+
+test("editing a date or Rating updates Log Order and the Current Rating at once", async ({
+  request,
+}) => {
+  await logInNewUser(request);
+  const { id: mediaItemId } = await addAlien(request);
+  const entry = (review: string, rating: number, createdAt: string) =>
+    postLogEntry(request, { mediaItemId, rating, date: "2026-10-01", review }, at(createdAt));
+  const first = await entry("first", 2, "2026-10-01T10:00:00Z");
+  await entry("second", 3, "2026-10-01T11:00:00Z");
+  const third = await entry("third", 4, "2026-10-01T12:00:00Z");
+  const reviews = async () => (await theLog(request)).map((e: { review: string }) => e.review);
+
+  // Editing the Rating moves nothing among same-day entries, but the last entry's sets the
+  // Current Rating.
+  await patchLogEntry(request, first.id, { rating: 5 });
+  await patchLogEntry(request, third.id, { rating: 1 });
+  expect(await reviews()).toEqual(["first", "second", "third"]);
+  expect((await itemHistory(request, mediaItemId)).currentRating).toBe(1);
+
+  // Moving the first entry to a later day makes it last, and its Rating current.
+  await patchLogEntry(request, first.id, { date: "2026-10-02" });
+  expect(await reviews()).toEqual(["second", "third", "first"]);
+  expect((await itemHistory(request, mediaItemId)).currentRating).toBe(5);
+
+  // Moving it back puts it where it was: creation time still breaks the tie.
+  await patchLogEntry(request, first.id, { date: "2026-10-01" });
+  expect(await reviews()).toEqual(["first", "second", "third"]);
+  expect((await itemHistory(request, mediaItemId)).currentRating).toBe(1);
+});
+
+test("an edit is held to the same rules as a new Log Entry", async ({ request }) => {
+  await logInNewUser(request);
+  const { id: mediaItemId } = await addAlien(request);
+  const logged = await postLogEntry(request, { mediaItemId, rating: 3 });
+  const now = at("2026-10-19T22:30:00Z");
+  const patch = (data: object) =>
+    request.patch(`/api/log-entries/${logged.id}`, { data, headers: now });
+
+  expect((await patch({ date: "2026-10-20", timeZone: "Europe/Kyiv" })).status()).toBe(200);
+  for (const [data, error] of [
+    [{ date: "1899-12-31" }, "date_too_early"],
+    [{ date: "2026-10-20", timeZone: "America/Los_Angeles" }, "date_in_future"],
+    [{ date: "2026-02-30" }, "invalid_date"],
+    [{ rating: 0 }, "invalid_request"],
+    [{ rating: 3.7 }, "invalid_request"],
+    [{ rating: null }, "invalid_request"],
+    [{ revisit: "yes" }, "invalid_request"],
+    [{ mediaItemId: 1 }, "invalid_request"],
+  ] as const) {
+    const response = await patch(data);
+    expect(response.status(), JSON.stringify(data)).toBe(400);
+    expect(await response.json()).toEqual({ error });
+  }
+  expect((await theLog(request))[0]).toMatchObject({ rating: 3, date: "2026-10-20" });
+});
+
+test("deleting a Log Entry removes it, and the Current Rating falls back to the last one left", async ({
+  request,
+}) => {
+  await logInNewUser(request);
+  const { id: mediaItemId } = await addAlien(request);
+  const older = await postLogEntry(request, { mediaItemId, rating: 2, date: "1999-03-31" });
+  const newer = await postLogEntry(request, { mediaItemId, rating: 5, date: "2026-10-01" });
+
+  const response = await request.delete(`/api/log-entries/${newer.id}`);
+
+  expect(response.status()).toBe(204);
+  expect(await theLog(request)).toEqual([older]);
+  expect(await itemHistory(request, mediaItemId)).toMatchObject({
+    logEntries: [older],
+    currentRating: 2,
+  });
+});
+
+test("deleting a film's only Log Entry makes it not experienced, with no Current Rating", async ({
+  request,
+}) => {
+  await logInNewUser(request);
+  const { id: mediaItemId } = await addAlien(request);
+  const only = await postLogEntry(request, { mediaItemId, rating: 4 });
+
+  expect((await request.delete(`/api/log-entries/${only.id}`)).status()).toBe(204);
+
+  expect(await theLog(request)).toEqual([]);
+  expect(await itemHistory(request, mediaItemId)).toMatchObject({
+    logEntries: [],
+    currentRating: null,
+  });
+  expect((await searchResult(request, "alien", "348")).inLog).toBe(false);
+});
+
+test("another User's Log Entry, or one already deleted, can be neither edited nor deleted", async ({
+  request,
+  playwright,
+}) => {
+  await logInNewUser(request);
+  const { id: mediaItemId } = await addAlien(request);
+  const mine = await postLogEntry(request, { mediaItemId, rating: 4 });
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+  await logInNewUser(other);
+  const theirs = await postLogEntry(other, { mediaItemId, rating: 1 });
+  expect((await request.delete(`/api/log-entries/${mine.id}`)).status()).toBe(204);
+
+  for (const id of [theirs.id, mine.id, 2_000_000_000]) {
+    const edited = await request.patch(`/api/log-entries/${id}`, { data: { rating: 5 } });
+    expect(edited.status(), `editing ${id}`).toBe(404);
+    expect(await edited.json()).toEqual({ error: "unknown_log_entry" });
+    const deleted = await request.delete(`/api/log-entries/${id}`);
+    expect(deleted.status(), `deleting ${id}`).toBe(404);
+    expect(await deleted.json()).toEqual({ error: "unknown_log_entry" });
+  }
+  expect(await theLog(other)).toEqual([theirs]);
+  await other.dispose();
+});
+
+test("an Item History loads in the same number of queries for 1 entry as for 20", async ({
+  request,
+  playwright,
+}) => {
+  const queriesForHistoryOf = async (api: APIRequestContext, entries: number) => {
+    await logInNewUser(api);
+    const { id } = await addAlien(api);
+    for (let i = 0; i < entries; i += 1) await postLogEntry(api, { mediaItemId: id, rating: 3 });
+    const response = await api.get(`/api/catalog/items/${id}/history`);
+    expect(await response.json()).toMatchObject({ logEntries: { length: entries } });
+    return response.headers()["x-d1-query-count"];
+  };
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+
+  const one = await queriesForHistoryOf(request, 1);
+  const twenty = await queriesForHistoryOf(other, 20);
   await other.dispose();
 
   expect(one).toMatch(/^\d+$/);
