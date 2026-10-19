@@ -7,7 +7,7 @@ import { ErrorResponse, LoginRequest, type User, UserResponse } from "../shared/
 import { authenticate, logIn, logOut, sessionLifetimeMs } from "./accounts/accounts";
 import type { AppEnv } from "./env";
 
-export const SESSION_COOKIE = "session";
+const SESSION_COOKIE = "session";
 
 // Re-sent with every authenticated response, so the browser keeps it as long as the server does.
 function setSessionCookie(c: Context, token: string): void {

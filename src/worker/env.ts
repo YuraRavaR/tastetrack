@@ -7,7 +7,7 @@ export const QUERY_COUNT_HEADER = "X-D1-Query-Count";
 
 // With test hooks on, a request can set the time the Worker treats as now, so tests can step
 // past time-based rules such as session expiry without waiting.
-export const TEST_NOW_HEADER = "X-Test-Now";
+const TEST_NOW_HEADER = "X-Test-Now";
 
 export type AppEnv = {
   Bindings: Env;

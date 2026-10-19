@@ -37,6 +37,14 @@ test("the test User factory is a 404, with no D1 query count", async ({ request 
   expect(response.headers()["x-d1-query-count"]).toBeUndefined();
 });
 
+// With test hooks on, an unparseable test clock is a 400; with them off the header is ignored, so
+// no request can move the server's clock.
+test("the X-Test-Now header is ignored", async ({ request }) => {
+  const response = await request.get("/api/health", { headers: { "X-Test-Now": "not a time" } });
+
+  expect(response.status()).toBe(200);
+});
+
 test("the app is served", async ({ request }) => {
   const response = await request.get("/");
 

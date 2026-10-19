@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { LoginResult } from "../api";
 import { type LoginLocationState, useAuth } from "../auth";
 import { t } from "../i18n/t";
 
 export function LoginPage() {
   const { state, logIn } = useAuth();
   const location = useLocation();
-  const [error, setError] = useState<"invalid_credentials" | "unavailable" | null>(null);
+  const [error, setError] = useState<Extract<LoginResult, { ok: false }>["error"] | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   if (state.status === "authenticated") {

@@ -4,7 +4,7 @@ import { and, eq, gt, lte, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { sessions, users } from "../../db/schema";
 import type { User } from "../../shared/api";
-import { hashPassword, targetIterations, verifyPassword } from "./password";
+import { hashPassword, type PasswordHash, targetIterations, verifyPassword } from "./password";
 
 // A session lasts 30 days from the User's last activity.
 export const sessionLifetimeMs = 30 * 24 * 60 * 60 * 1000;
@@ -25,6 +25,14 @@ async function hashToken(token: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+function expiryFrom(now: Date): Date {
+  return new Date(now.getTime() + sessionLifetimeMs);
+}
+
+function passwordColumns({ hash, salt, iterations }: PasswordHash) {
+  return { passwordHash: hash, passwordSalt: salt, passwordIterations: iterations };
+}
+
 function byUsername(username: string) {
   return sql`lower(${users.username}) = lower(${username})`;
 }
@@ -42,14 +50,11 @@ export async function createUser(
   { username, password, passwordIterations }: NewUser,
   now: Date,
 ): Promise<User | null> {
-  const { hash, salt, iterations } = await hashPassword(password, passwordIterations);
   const [created] = await db
     .insert(users)
     .values({
       username,
-      passwordHash: hash,
-      passwordSalt: salt,
-      passwordIterations: iterations,
+      ...passwordColumns(await hashPassword(password, passwordIterations)),
       createdAt: now,
     })
     .onConflictDoNothing()
@@ -83,14 +88,9 @@ export async function logIn(
   if (!(await verifyPassword(password, stored))) return null;
 
   if (found.passwordIterations < targetIterations) {
-    const fresh = await hashPassword(password);
     await db
       .update(users)
-      .set({
-        passwordHash: fresh.hash,
-        passwordSalt: fresh.salt,
-        passwordIterations: fresh.iterations,
-      })
+      .set(passwordColumns(await hashPassword(password)))
       .where(eq(users.id, found.id));
   }
 
@@ -102,7 +102,7 @@ export async function logIn(
       tokenHash: await hashToken(token),
       userId: found.id,
       createdAt: now,
-      expiresAt: new Date(now.getTime() + sessionLifetimeMs),
+      expiresAt: expiryFrom(now),
     }),
   ]);
   return { user: { username: found.username }, token };
@@ -117,7 +117,7 @@ export async function authenticate(
 ): Promise<User | null> {
   const [session] = await db
     .update(sessions)
-    .set({ expiresAt: new Date(now.getTime() + sessionLifetimeMs) })
+    .set({ expiresAt: expiryFrom(now) })
     .where(and(eq(sessions.tokenHash, await hashToken(token)), gt(sessions.expiresAt, now)))
     .returning({ userId: sessions.userId });
   if (!session) return null;

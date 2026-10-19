@@ -14,7 +14,7 @@ Never commit or push to `main`. Every change, including docs, goes on its own br
 ## UI conventions
 
 - Build UI from shadcn/ui components in `src/client/components/ui/`. Add missing ones with `pnpm dlx shadcn@latest add <name>`, then point any `cn` import at `@/lib/utils`.
-- Style with theme tokens only: semantic utilities such as `bg-primary`, `text-muted-foreground`, `border-border`, `rounded-lg`. Every colour, the radius and the font are defined once in `src/client/styles.css`; a new colour need becomes a new token there, in both light and dark.
+- Style with theme tokens only: semantic utilities such as `bg-primary`, `text-muted-foreground`, `border-border`, `rounded-lg`, never palette colours (`text-red-600`, `text-white`), hex values or inline colour styles. Every colour, the radius and the font are defined once in `src/client/styles.css`; a new colour need becomes a new token there, in both light and dark.
 - Mobile first: write unprefixed classes for a phone screen, and add `sm:`/`md:` only to adapt upwards.
 - UI text goes through `t()` and the Ukrainian catalogue in `src/client/i18n/uk.ts`.
 
