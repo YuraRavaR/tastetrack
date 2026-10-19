@@ -6,10 +6,17 @@ import type {
   InviteCode,
   InviteCodeResponse,
   InviteCodesResponse,
+  LogEntry,
+  LogEntryResponse,
+  LogResponse,
+  MediaItem,
+  MediaItemResponse,
+  NewLogEntryRequest,
   RegisterRequest,
   User,
   UserResponse,
 } from "../shared/api";
+import type { LogDateProblem } from "../shared/log";
 
 // The logged-in User, or null without a live session.
 export async function fetchCurrentUser(): Promise<User | null> {
@@ -117,4 +124,53 @@ export async function searchCatalog(
   } catch {
     return { ok: false, error: signal.aborted ? "aborted" : "unavailable" };
   }
+}
+
+// Adds a search result's film to the catalog, or finds it there.
+export async function addToCatalog(result: CatalogSearchResult): Promise<MediaItem | null> {
+  try {
+    const response = await fetch("/api/catalog/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(result),
+    });
+    if (!response.ok) return null;
+    return ((await response.json()) as MediaItemResponse).mediaItem;
+  } catch {
+    return null;
+  }
+}
+
+export type LogEntryError = LogDateProblem | "unavailable";
+
+export type CreateLogEntryResult =
+  | { ok: true; logEntry: LogEntry }
+  | { ok: false; error: LogEntryError };
+
+const logEntryErrors = new Set<string>(["invalid_date", "date_too_early", "date_in_future"]);
+
+export async function createLogEntry(request: NewLogEntryRequest): Promise<CreateLogEntryResult> {
+  try {
+    const response = await fetch("/api/log-entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) {
+      return { ok: true, logEntry: ((await response.json()) as LogEntryResponse).logEntry };
+    }
+    const { error } = (await response.json()) as ErrorResponse;
+    return {
+      ok: false,
+      error: logEntryErrors.has(error) ? (error as LogEntryError) : "unavailable",
+    };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+export async function fetchLog(): Promise<LogEntry[]> {
+  const response = await fetch("/api/log-entries");
+  if (!response.ok) throw new Error(`Loading the Log failed: ${response.status}`);
+  return ((await response.json()) as LogResponse).logEntries;
 }

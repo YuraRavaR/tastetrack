@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import { callsRealTmdb } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker searches a TMDB fake with fixed data; on staging, the real TMDB. So these
@@ -26,6 +26,8 @@ test("an English query finds the film with its title, Original Title, year and p
     originalTitle: "Alien",
     year: 1979,
     posterUrl: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w92\/\w+\.jpg$/),
+    titleLanguage: "en",
+    inLog: false,
   });
 });
 
@@ -37,7 +39,12 @@ test("a Ukrainian query is answered in Ukrainian, with the Original Title alongs
   const results = await search(request, "чужий");
 
   expect(results).toContainEqual(
-    expect.objectContaining({ title: "Чужий", originalTitle: "Alien", year: 1979 }),
+    expect.objectContaining({
+      title: "Чужий",
+      originalTitle: "Alien",
+      year: 1979,
+      titleLanguage: "uk",
+    }),
   );
   expect(results).not.toContainEqual(expect.objectContaining({ title: "Alien" }));
 });
@@ -79,18 +86,8 @@ test("without a session, searching is a 401", async ({ request }) => {
   expect(response.status()).toBe(401);
 });
 
-// Real TMDB is searched on staging, and locally when .dev.vars sets TMDB_BASE_URL.
-function searchesRealTmdb(): boolean {
-  if (process.env.BASE_URL) return true;
-  try {
-    return /^TMDB_BASE_URL=/m.test(readFileSync(".dev.vars", "utf8"));
-  } catch {
-    return false;
-  }
-}
-
 test("when TMDB fails, searching is a 502", async ({ request }) => {
-  test.skip(searchesRealTmdb(), "Only the TMDB fake can be made to fail");
+  test.skip(callsRealTmdb(), "Only the TMDB fake can be made to fail");
   await logInNewUser(request);
 
   // The fake answers this query with a 503.

@@ -4,8 +4,8 @@ import tmdbLogo from "../assets/tmdb-logo.svg";
 import { useAuth } from "../auth";
 import { t } from "../i18n/t";
 
-// The frame of every page: a header with the app name and, once logged in, the User, the
-// Invites page and a logout action, above a single content column, and a footer crediting TMDB
+// The frame of every page: a header with the app name and, once logged in, the User, the Log and
+// Invites pages and a logout action, above a single content column, and a footer crediting TMDB
 // as its terms require (ADR-0004). Mobile first: the column fills a phone screen and stops
 // widening on larger ones.
 export function AppLayout() {
@@ -21,6 +21,9 @@ export function AppLayout() {
           {state.status === "authenticated" && (
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <span className="truncate text-muted-foreground text-sm">{state.user.username}</span>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/log">{t("log.nav")}</Link>
+              </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/invites">{t("invites.nav")}</Link>
               </Button>
