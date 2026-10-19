@@ -32,9 +32,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   // At most one retry. A test that passes only on retry is reported as flaky.
   retries: 1,
-  reporter: process.env.CI
-    ? [["list"], ["github"], ["html", { open: "never" }]]
-    : [["list"], ["html", { open: "never" }]],
+  reporter: [
+    ["list"],
+    ...(process.env.CI ? [["github"] as const] : []),
+    ["html", { open: "never" }],
+  ],
   use: {
     trace: "retain-on-failure",
   },

@@ -41,9 +41,9 @@ The `api-hooks-off` Playwright project runs against the top-level config to prov
 
 Commit messages and PR titles follow [Conventional Commits](https://www.conventionalcommits.org/), checked by commitlint in the `commit-msg` hook and in CI.
 
-- **Every PR** ([ci.yml](.github/workflows/ci.yml)): commitlint over the PR's commits and title, then lint, type checks, unit tests, and the API and E2E tests against local Wrangler.
+- **Every PR** ([ci.yml](.github/workflows/ci.yml), [pr-title.yml](.github/workflows/pr-title.yml)): commitlint over the PR's commits and title, then lint, type checks, unit tests, and the API and E2E tests against local Wrangler.
 - **Every merge to `main`** ([staging.yml](.github/workflows/staging.yml)): applies D1 migrations to the staging database, deploys the Worker with `--env staging` (test hooks on), then runs `pnpm test:deployed` against the deployed URL.
 
 Playwright keeps traces of failed attempts, including tests that passed only on retry. Both workflows upload them with the HTML report as a `playwright-*` artifact.
 
-The staging job needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets (on the `staging` environment or the repo), and the staging D1's `database_id` in `wrangler.jsonc`.
+The staging job needs the `CLOUDFLARE_API_TOKEN` (limited to this account's Workers and D1) and `CLOUDFLARE_ACCOUNT_ID` secrets, on the `staging` environment or the repo, and the staging D1's `database_id` in `wrangler.jsonc`. The staging deploy doesn't wait for CI, so make the CI checks required on `main` to keep a red PR from merging.

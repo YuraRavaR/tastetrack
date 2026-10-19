@@ -30,12 +30,6 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
 
-      # A squash merge uses the PR title as the commit message on main.
-      - name: Check the PR title
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint --verbose
-
   checks:
     name: Lint, types and tests
     runs-on: ubuntu-latest
