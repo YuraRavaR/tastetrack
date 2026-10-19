@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, t } from "./t";
+import { formatCalendarDate, formatDate, t } from "./t";
 
 describe("English plurals", () => {
   it.each([
@@ -11,6 +11,17 @@ describe("English plurals", () => {
     [21, "21 films"],
   ])("%i → %s", (count, expected) => {
     expect(t("films.count", { count })).toBe(expected);
+  });
+});
+
+describe("Ratings", () => {
+  it.each([
+    [0.5, "0.5 stars"],
+    [1, "1 star"],
+    [1.5, "1.5 stars"],
+    [5, "5 stars"],
+  ])("%s → %s", (stars, expected) => {
+    expect(t("rating.stars", { stars })).toBe(expected);
   });
 });
 
@@ -27,5 +38,16 @@ describe("dates", () => {
     ["2026-09-26T12:00:00Z", "26 Sep 2026"],
   ])("%s → %s, always with a three-letter month", (iso, expected) => {
     expect(formatDate(new Date(iso))).toBe(expected);
+  });
+});
+
+describe("calendar days", () => {
+  // The same day in every time zone, though midnight UTC is the day before west of Greenwich.
+  it.each([
+    ["2026-10-26", "26 Oct 2026"],
+    ["1900-01-01", "1 Jan 1900"],
+    ["2001-09-15", "15 Sep 2001"],
+  ])("%s → %s", (date, expected) => {
+    expect(formatCalendarDate(date)).toBe(expected);
   });
 });

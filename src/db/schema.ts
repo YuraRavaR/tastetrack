@@ -1,8 +1,10 @@
 import { sql } from "drizzle-orm";
 import {
   type AnySQLiteColumn,
+  check,
   index,
   integer,
+  primaryKey,
   sqliteTable,
   text,
   uniqueIndex,
@@ -65,4 +67,80 @@ export const inviteCodes = sqliteTable(
     usedAt: integer("used_at", { mode: "timestamp_ms" }),
   },
   (table) => [index("invite_codes_issuer_id_idx").on(table.issuerId)],
+);
+
+// A Media Item is a catalog-backed work, identified by its External Reference (External Source,
+// Media Type and the source's own id) and shared by all Users, or, later, a Manual Media Item,
+// which has no External Reference. Nothing else about a catalog-backed item is stored here: its
+// metadata lives only in the disposable cache below (ADR-0004). SQLite lets NULLs repeat in a
+// unique index, so the index constrains catalog-backed items alone.
+export const mediaItems = sqliteTable(
+  "media_items",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    mediaType: text("media_type", { enum: ["film"] }).notNull(),
+    externalSource: text("external_source", { enum: ["tmdb"] }),
+    externalId: text("external_id"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("media_items_external_reference_unique").on(
+      table.externalSource,
+      table.mediaType,
+      table.externalId,
+    ),
+    check(
+      "media_items_external_reference_whole",
+      sql`(${table.externalSource} is null) = (${table.externalId} is null)`,
+    ),
+  ],
+);
+
+// The disposable TMDB metadata cache (ADR-0004), keyed by External Reference; the External Source
+// is TMDB for every row. It can be wiped at any time without losing User data. A row filled from
+// a search result alone, when the details call failed, has no detailedAt and no runtime or genres.
+// ukrainianTitle is null when TMDB has no Ukrainian title. englishTitle is TMDB's English title,
+// which TMDB itself falls back to the Original Title for; it is null only in a row filled from a
+// search result that didn't run in English.
+export const tmdbCache = sqliteTable(
+  "tmdb_cache",
+  {
+    mediaType: text("media_type", { enum: ["film"] }).notNull(),
+    externalId: text("external_id").notNull(),
+    englishTitle: text("english_title"),
+    ukrainianTitle: text("ukrainian_title"),
+    originalTitle: text("original_title").notNull(),
+    year: integer("year"),
+    posterPath: text("poster_path"),
+    runtime: integer("runtime"),
+    genres: text("genres", { mode: "json" }).$type<string[]>(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    detailedAt: integer("detailed_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [primaryKey({ columns: [table.mediaType, table.externalId] })],
+);
+
+// One time a User experienced a Media Item. The Rating is stored in half stars, 1 to 10. The date
+// is an optional calendar day, YYYY-MM-DD. createdAt never changes, so it settles Log Order among
+// entries of the same day.
+export const logEntries = sqliteTable(
+  "log_entries",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    mediaItemId: integer("media_item_id")
+      .notNull()
+      .references(() => mediaItems.id, { onDelete: "cascade" }),
+    rating: integer("rating").notNull(),
+    date: text("date"),
+    review: text("review"),
+    revisit: integer("revisit", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    index("log_entries_user_media_item_idx").on(table.userId, table.mediaItemId),
+    check("log_entries_rating_range", sql`${table.rating} between 1 and 10`),
+  ],
 );

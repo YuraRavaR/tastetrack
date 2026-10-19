@@ -5,6 +5,7 @@ import { auth } from "./auth";
 import { catalogRoutes } from "./catalog";
 import { type AppEnv, withClock, withDatabase } from "./env";
 import { inviteCodeRoutes } from "./invite-codes";
+import { logRoutes } from "./log";
 import { testHooks } from "./test-hooks";
 
 const healthRoute = createRoute({
@@ -37,6 +38,7 @@ app.openapi(healthRoute, async (c) => {
 app.route("/", auth);
 app.route("/", inviteCodeRoutes);
 app.route("/", catalogRoutes);
+app.route("/", logRoutes);
 app.route("/test", testHooks);
 
 app.doc31("/openapi.json", {

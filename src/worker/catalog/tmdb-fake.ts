@@ -11,6 +11,8 @@ interface FakeFilm {
   poster_path: string | null;
   // Localized Titles by TMDB language. Like TMDB, a missing one comes back as the Original Title.
   titles: Partial<Record<SearchLanguage, string>>;
+  runtime: number;
+  genres: string[];
 }
 
 const films: FakeFilm[] = [
@@ -20,6 +22,8 @@ const films: FakeFilm[] = [
     release_date: "1979-05-25",
     poster_path: "/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
     titles: { "en-US": "Alien", "uk-UA": "Чужий" },
+    runtime: 117,
+    genres: ["Horror", "Science Fiction"],
   },
   {
     id: 679,
@@ -27,6 +31,8 @@ const films: FakeFilm[] = [
     release_date: "1986-07-18",
     poster_path: "/r1x5JGpyqZU8PYhbs4UcrO1Xb6x.jpg",
     titles: { "en-US": "Aliens", "uk-UA": "Чужі" },
+    runtime: 137,
+    genres: ["Action", "Thriller", "Science Fiction"],
   },
   {
     id: 194,
@@ -34,6 +40,8 @@ const films: FakeFilm[] = [
     release_date: "2001-04-25",
     poster_path: "/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
     titles: { "en-US": "Amélie", "uk-UA": "Амелі" },
+    runtime: 122,
+    genres: ["Comedy", "Romance"],
   },
   {
     id: 26782,
@@ -41,8 +49,22 @@ const films: FakeFilm[] = [
     release_date: "1965-10-18",
     poster_path: "/znV2lj6cbJGO7LZCAafXoDtvt2w.jpg",
     titles: { "en-US": "Shadows of Forgotten Ancestors", "uk-UA": "Тіні забутих предків" },
+    runtime: 97,
+    genres: ["Drama", "Romance"],
+  },
+  // Not a real film: the fake fails the details call for it the way TMDB does when it is down.
+  {
+    id: 999_000_001,
+    original_title: "TMDB Fake Details Failure",
+    release_date: "2020-01-01",
+    poster_path: null,
+    titles: { "en-US": "TMDB Fake Details Failure" },
+    runtime: 90,
+    genres: ["Drama"],
   },
 ];
+
+const detailsFailureId = 999_000_001;
 
 // Case and accents don't matter to TMDB's search: "amelie" finds "Amélie".
 function fold(text: string): string {
@@ -64,9 +86,11 @@ tmdbFake.use(async (c, next) => {
 // Searching for this makes the fake fail the way TMDB does when it is down.
 const failingQuery = "tmdb fake failure";
 
+const serviceOffline = { success: false, status_code: 9, status_message: "Service offline." };
+
 tmdbFake.get("/3/search/movie", (c) => {
   if (c.req.query("query") === failingQuery) {
-    return c.json({ success: false, status_code: 9, status_message: "Service offline." }, 503);
+    return c.json(serviceOffline, 503);
   }
   const query = fold(c.req.query("query") ?? "");
   const language: SearchLanguage = c.req.query("language") === "uk-UA" ? "uk-UA" : "en-US";
@@ -77,9 +101,42 @@ tmdbFake.get("/3/search/movie", (c) => {
         ),
       )
     : [];
-  const results = matches.map(({ titles, ...film }) => ({
-    ...film,
-    title: titles[language] ?? film.original_title,
+  const results = matches.map(({ id, original_title, release_date, poster_path, titles }) => ({
+    id,
+    original_title,
+    release_date,
+    poster_path,
+    title: titles[language] ?? original_title,
   }));
   return c.json({ page: 1, results, total_pages: 1, total_results: results.length });
+});
+
+// Like TMDB, details are in the requested language, falling back to the Original Title, and the
+// appended translations list only the languages the film really has a title in.
+tmdbFake.get("/3/movie/:id", (c) => {
+  const film = films.find((f) => String(f.id) === c.req.param("id"));
+  if (!film) {
+    return c.json(
+      { success: false, status_code: 34, status_message: "The resource could not be found." },
+      404,
+    );
+  }
+  if (film.id === detailsFailureId) return c.json(serviceOffline, 503);
+  const { titles, genres, ...details } = film;
+  const language: SearchLanguage = c.req.query("language") === "uk-UA" ? "uk-UA" : "en-US";
+  const withTranslations = c.req.query("append_to_response")?.split(",").includes("translations");
+  return c.json({
+    ...details,
+    title: titles[language] ?? film.original_title,
+    genres: genres.map((name, index) => ({ id: index + 1, name })),
+    ...(withTranslations && {
+      translations: {
+        translations: Object.entries(titles).map(([tag, title]) => ({
+          iso_3166_1: tag.slice(3),
+          iso_639_1: tag.slice(0, 2),
+          data: { title },
+        })),
+      },
+    }),
+  });
 });

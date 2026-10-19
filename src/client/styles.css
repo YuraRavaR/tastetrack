@@ -31,6 +31,8 @@
   --border: oklch(0.9 0.008 60);
   --input: oklch(0.88 0.008 60);
   --ring: oklch(0.5 0.17 25);
+  /* Dims the page behind a dialog. */
+  --overlay: oklch(0.2 0.01 50 / 50%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,6 +56,7 @@
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 16%);
     --ring: oklch(0.68 0.16 25);
+    --overlay: oklch(0 0 0 / 60%);
   }
 }
 
@@ -82,6 +85,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
 }
 
 @layer base {
