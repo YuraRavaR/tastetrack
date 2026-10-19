@@ -3,6 +3,7 @@ import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 import { createMiddleware } from "hono/factory";
 import { appMeta } from "../db/schema";
 import { type ErrorResponse, HealthResponse } from "../shared/api";
+import { simulateLogin } from "./pbkdf2-spike";
 import { countQueries } from "./query-count";
 
 export const QUERY_COUNT_HEADER = "X-D1-Query-Count";
@@ -46,6 +47,22 @@ app.use(withDatabase);
 app.openapi(healthRoute, async (c) => {
   await c.var.db.select().from(appMeta).limit(1);
   return c.json({ status: "ok", database: "ok" } as const, 200);
+});
+
+// Test-only routes live under /api/test and stay out of the OpenAPI spec. With test hooks off
+// they fall through to the JSON 404.
+app.use("/test/*", async (c, next) => {
+  if (!testHooksOn(c.env)) return c.notFound();
+  await next();
+});
+
+app.get("/test/pbkdf2", async (c) => {
+  const iterations = Number(c.req.query("iterations"));
+  if (!Number.isInteger(iterations) || iterations < 1) {
+    return c.json({ error: "invalid_iterations" } satisfies ErrorResponse, 400);
+  }
+  const derivedKey = await simulateLogin(c.var.db, iterations);
+  return c.json({ iterations, derivedKey }, 200);
 });
 
 app.doc31("/openapi.json", {
