@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local secrets and overrides. .dev.vars is git-ignored.
+# Test hooks are on locally by default (see wrangler.jsonc); set to 0 to turn them off.
+# TEST_HOOKS=0
