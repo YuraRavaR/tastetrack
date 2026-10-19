@@ -1,32 +1,9 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
-import { createMiddleware } from "hono/factory";
 import { appMeta } from "../db/schema";
 import { type ErrorResponse, HealthResponse } from "../shared/api";
-import { simulateLogin } from "./pbkdf2-spike";
-import { countQueries } from "./query-count";
-
-export const QUERY_COUNT_HEADER = "X-D1-Query-Count";
-
-type AppEnv = {
-  Bindings: Env;
-  Variables: { db: DrizzleD1Database };
-};
-
-function testHooksOn(env: Env): boolean {
-  return env.TEST_HOOKS === "1";
-}
-
-const withDatabase = createMiddleware<AppEnv>(async (c, next) => {
-  if (!testHooksOn(c.env)) {
-    c.set("db", drizzle(c.env.DB));
-    return next();
-  }
-  const counted = countQueries(c.env.DB);
-  c.set("db", drizzle(counted.db));
-  await next();
-  c.res.headers.set(QUERY_COUNT_HEADER, String(counted.count()));
-});
+import { auth } from "./auth";
+import { type AppEnv, withClock, withDatabase } from "./env";
+import { testHooks } from "./test-hooks";
 
 const healthRoute = createRoute({
   method: "get",
@@ -40,33 +17,23 @@ const healthRoute = createRoute({
   },
 });
 
-export const app = new OpenAPIHono<AppEnv>().basePath("/api");
+export const app = new OpenAPIHono<AppEnv>({
+  // A request the route's schema rejects gets the same error shape as every other failure.
+  defaultHook: (result, c) => {
+    if (!result.success) return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
+  },
+}).basePath("/api");
 
 app.use(withDatabase);
+app.use(withClock);
 
 app.openapi(healthRoute, async (c) => {
   await c.var.db.select().from(appMeta).limit(1);
   return c.json({ status: "ok", database: "ok" } as const, 200);
 });
 
-// Test-only routes live under /api/test and stay out of the OpenAPI spec. With test hooks off
-// they fall through to the JSON 404.
-app.use("/test/*", async (c, next) => {
-  if (!testHooksOn(c.env)) return c.notFound();
-  await next();
-});
-
-// Staging is public: well past the 10 ms budget, but not a way to burn CPU at will.
-const maxSpikeIterations = 1_000_000;
-
-app.get("/test/pbkdf2", async (c) => {
-  const iterations = Number(c.req.query("iterations"));
-  if (!Number.isInteger(iterations) || iterations < 1 || iterations > maxSpikeIterations) {
-    return c.json({ error: "invalid_iterations" } satisfies ErrorResponse, 400);
-  }
-  const derivedKey = await simulateLogin(c.var.db, iterations);
-  return c.json({ iterations, derivedKey }, 200);
-});
+app.route("/", auth);
+app.route("/test", testHooks);
 
 app.doc31("/openapi.json", {
   openapi: "3.1.0",

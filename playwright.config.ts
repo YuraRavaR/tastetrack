@@ -4,7 +4,8 @@ import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/te
 // `api` and `e2e` projects, production with `smoke`.
 const deployedURL = process.env.BASE_URL;
 
-const hooksOnURL = deployedURL ?? "http://localhost:8787";
+const localHooksOnURL = "http://localhost:8787";
+const hooksOnURL = deployedURL ?? localHooksOnURL;
 const hooksOffURL = deployedURL ?? "http://localhost:8788";
 
 // Web servers start in order, so the second reuses the first one's build. It keeps its own
@@ -53,6 +54,12 @@ export default defineConfig({
       name: "smoke",
       testDir: "tests/smoke",
       use: { baseURL: hooksOffURL },
+    },
+    // The Operator CLI against the local D1 of the hooks-on Worker, so local only.
+    {
+      name: "cli",
+      testDir: "tests/cli",
+      use: { baseURL: localHooksOnURL },
     },
     {
       name: "e2e",
