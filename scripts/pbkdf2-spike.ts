@@ -79,7 +79,8 @@ function percentile(sorted: number[], p: number): number | undefined {
 // The tail takes a few seconds to attach, so knock until it reports a request.
 async function waitForTail(): Promise<void> {
   for (let attempt = 0; attempt < 30; attempt += 1) {
-    await fetch(`${baseURL}/api/health`);
+    const response = await fetch(`${baseURL}/api/health`);
+    await response.arrayBuffer();
     await sleep(2000);
     if (events.length > 0) return;
   }
@@ -87,19 +88,24 @@ async function waitForTail(): Promise<void> {
 }
 
 try {
+  console.error("Waiting for wrangler tail to attach...");
   await waitForTail();
 
   const statusesByIterations = new Map<number, number[]>();
   for (const iterations of iterationCounts) {
     const statuses: number[] = [];
     statusesByIterations.set(iterations, statuses);
+    console.error(`${iterations} iterations: ${requestsPerCount} requests`);
     for (let i = 0; i < requestsPerCount; i += 1) {
       const response = await fetch(`${baseURL}/api/test/pbkdf2?iterations=${iterations}`);
       await response.arrayBuffer();
       statuses.push(response.status);
+      // Faster than this, wrangler tail drops into sampling and reports few of the requests.
+      await sleep(500);
     }
   }
   // Trace events arrive after their responses.
+  console.error("Waiting for the last trace events...");
   await sleep(10_000);
 
   const rows = iterationCounts.map((iterations) => {
@@ -128,5 +134,8 @@ try {
   });
   console.log(JSON.stringify(rows, null, 2));
 } finally {
+  // Killing pnpm leaves wrangler holding the pipe open, so let go of it too.
   tail.kill();
+  tail.stdout.destroy();
+  tail.unref();
 }
