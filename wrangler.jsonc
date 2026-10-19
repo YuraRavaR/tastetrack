@@ -16,7 +16,7 @@
     {
       "binding": "DB",
       "database_name": "tastetrack-local",
-      "database_id": "278bf6dd-95f1-48f1-a10b-3c4686ac00c0",
+      "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }
   ],
@@ -39,9 +39,7 @@
         {
           "binding": "DB",
           "database_name": "tastetrack-staging",
-          // Placeholder: replace with the id from `wrangler d1 create tastetrack-staging`.
-          // The staging deploy fails until it is a real database id.
-          "database_id": "00000000-0000-0000-0000-000000000001",
+          "database_id": "278bf6dd-95f1-48f1-a10b-3c4686ac00c0",
           "migrations_dir": "migrations"
         }
       ],
