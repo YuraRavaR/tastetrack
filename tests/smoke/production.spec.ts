@@ -20,11 +20,11 @@ test("the manual cron trigger is a 404, with no D1 query count", async ({ reques
 });
 
 // The PBKDF2 spike endpoint (issue #6) lives at this path when test hooks are on.
-test("the PBKDF2 spike endpoint is a 404", async ({ request }) => {
+test("the PBKDF2 spike endpoint is a 404, with no D1 query count", async ({ request }) => {
   const response = await request.get("/api/test/pbkdf2?iterations=1");
 
   expect(response.status()).toBe(404);
-  expect(await response.json()).toEqual({ error: "not_found" });
+  expect(response.headers()["x-d1-query-count"]).toBeUndefined();
 });
 
 test("the app is served", async ({ request }) => {

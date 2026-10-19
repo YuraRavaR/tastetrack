@@ -56,9 +56,12 @@ app.use("/test/*", async (c, next) => {
   await next();
 });
 
+// Staging is public: well past the 10 ms budget, but not a way to burn CPU at will.
+const maxSpikeIterations = 1_000_000;
+
 app.get("/test/pbkdf2", async (c) => {
   const iterations = Number(c.req.query("iterations"));
-  if (!Number.isInteger(iterations) || iterations < 1) {
+  if (!Number.isInteger(iterations) || iterations < 1 || iterations > maxSpikeIterations) {
     return c.json({ error: "invalid_iterations" } satisfies ErrorResponse, 400);
   }
   const derivedKey = await simulateLogin(c.var.db, iterations);

@@ -14,3 +14,11 @@ test("the PBKDF2 spike derives the RFC 7914 test vector key", async ({ request }
     derivedKey: "55ac046e56e3089fec1691c22544b605f94185216dde0465e68b9d57c20dacbc",
   });
 });
+
+// Staging is public, so the spike refuses counts that would burn far past any CPU budget.
+test("the PBKDF2 spike refuses more than a million iterations", async ({ request }) => {
+  const response = await request.get("/api/test/pbkdf2?iterations=1000001");
+
+  expect(response.status()).toBe(400);
+  expect(await response.json()).toEqual({ error: "invalid_iterations" });
+});

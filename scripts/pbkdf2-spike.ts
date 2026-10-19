@@ -13,17 +13,19 @@ interface TailEvent {
   cpuTime?: number;
   wallTime?: number;
   exceptions: { name: string; message: string }[];
+  // Hono catches a thrown error and console.errors it, so a runtime refusal lands here.
+  logs: { level: string; message: unknown[] }[];
   event: { request?: { url: string } } | null;
 }
 
 const defaultIterations = [1, 25_000, 50_000, 75_000, 100_000, 100_001, 125_000, 150_000, 200_000];
 
-const [baseURL, ...counts] = process.argv.slice(2);
+const [baseURL, ...iterationArgs] = process.argv.slice(2);
 if (!baseURL) {
   console.error("Usage: node scripts/pbkdf2-spike.ts <staging-url> [iterations ...]");
   process.exit(1);
 }
-const iterationCounts = counts.length > 0 ? counts.map(Number) : defaultIterations;
+const iterationCounts = iterationArgs.length > 0 ? iterationArgs.map(Number) : defaultIterations;
 const requestsPerCount = Number(process.env.REQUESTS ?? 20);
 
 // `wrangler tail --format json` prints each event as indented JSON that closes with a "}" line.
@@ -38,7 +40,11 @@ tail.stdout.setEncoding("utf8").on("data", (chunk: string) => {
   while (end !== -1) {
     const text = buffered.slice(buffered.indexOf("{"), end + 2);
     buffered = buffered.slice(end + 3);
-    events.push(JSON.parse(text));
+    try {
+      events.push(JSON.parse(text));
+    } catch {
+      console.error(`Skipped a tail event that isn't JSON: ${text.slice(0, 200)}`);
+    }
     end = buffered.indexOf("\n}\n");
   }
 });
@@ -50,6 +56,20 @@ function iterationsOf(event: TailEvent): number | undefined {
   if (!url) return undefined;
   const { pathname, searchParams } = new URL(url);
   return pathname === "/api/test/pbkdf2" ? Number(searchParams.get("iterations")) : undefined;
+}
+
+function tally<K>(keys: K[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const key of keys) counts[String(key)] = (counts[String(key)] ?? 0) + 1;
+  return counts;
+}
+
+// Ascending, leaving out events the tail sent without that timing.
+function sortedTimes(events: TailEvent[], field: "cpuTime" | "wallTime"): number[] {
+  return events
+    .map((event) => event[field])
+    .filter((ms) => ms !== undefined)
+    .sort((a, b) => a - b);
 }
 
 function percentile(sorted: number[], p: number): number | undefined {
@@ -69,14 +89,14 @@ async function waitForTail(): Promise<void> {
 try {
   await waitForTail();
 
-  const statuses = new Map<number, Map<number, number>>();
+  const statusesByIterations = new Map<number, number[]>();
   for (const iterations of iterationCounts) {
-    const counted = new Map<number, number>();
-    statuses.set(iterations, counted);
+    const statuses: number[] = [];
+    statusesByIterations.set(iterations, statuses);
     for (let i = 0; i < requestsPerCount; i += 1) {
       const response = await fetch(`${baseURL}/api/test/pbkdf2?iterations=${iterations}`);
       await response.arrayBuffer();
-      counted.set(response.status, (counted.get(response.status) ?? 0) + 1);
+      statuses.push(response.status);
     }
   }
   // Trace events arrive after their responses.
@@ -84,16 +104,21 @@ try {
 
   const rows = iterationCounts.map((iterations) => {
     const traced = events.filter((event) => iterationsOf(event) === iterations);
-    const cpu = traced.map((event) => event.cpuTime ?? Number.NaN).sort((a, b) => a - b);
-    const wall = traced.map((event) => event.wallTime ?? Number.NaN).sort((a, b) => a - b);
-    const outcomes = new Map<string, number>();
-    for (const event of traced) outcomes.set(event.outcome, (outcomes.get(event.outcome) ?? 0) + 1);
-    const errors = new Set(traced.flatMap((event) => event.exceptions.map((e) => e.message)));
+    const cpu = sortedTimes(traced, "cpuTime");
+    const wall = sortedTimes(traced, "wallTime");
+    const errors = new Set(
+      traced.flatMap((event) => [
+        ...event.exceptions.map((exception) => exception.message),
+        ...event.logs
+          .filter((log) => log.level === "error")
+          .map((log) => log.message.map(String).join(" ")),
+      ]),
+    );
     return {
       iterations,
-      statuses: Object.fromEntries(statuses.get(iterations) ?? []),
+      statuses: tally(statusesByIterations.get(iterations) ?? []),
       traced: traced.length,
-      outcomes: Object.fromEntries(outcomes),
+      outcomes: tally(traced.map((event) => event.outcome)),
       "cpu p50 ms": percentile(cpu, 50),
       "cpu p90 ms": percentile(cpu, 90),
       "cpu max ms": cpu.at(-1),
