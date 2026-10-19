@@ -33,11 +33,11 @@ A catalog-backed Media Item that its External Source no longer returns.
 _Avoid_: Deleted item, broken item, orphan
 
 **Localized Title**:
-A Media Item's title in the app's metadata language (Ukrainian, falling back to English), shown as the primary title.
+A catalog-backed Media Item's title in one of the two metadata languages, English or Ukrainian. The English one is shown as the primary title; the Ukrainian one, when the External Source has it and it differs, is shown as a secondary line.
 _Avoid_: Translated title, display title
 
 **Original Title**:
-A Media Item's title in its original language, always kept and shown as secondary to the Localized Title.
+A Media Item's title in its original language, always kept, shown alongside the English Localized Title and in its place when there is none.
 _Avoid_: Native title, English title
 
 **Custom Title** _(planned)_:
