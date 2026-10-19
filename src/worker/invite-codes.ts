@@ -2,13 +2,8 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { ErrorResponse, InviteCodeResponse, InviteCodesResponse } from "../shared/api";
 import { activeInviteCodes, issueInviteCode } from "./accounts/invite-codes";
-import { requireUser } from "./auth";
+import { requireUser, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
-
-const unauthenticatedResponse = {
-  content: { "application/json": { schema: ErrorResponse } },
-  description: "No live session",
-};
 
 const issueRoute = createRoute({
   method: "post",

@@ -3,7 +3,8 @@
 import { z } from "@hono/zod-openapi";
 import { Hono } from "hono";
 import { type ErrorResponse, Password, Username } from "../shared/api";
-import { createUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
+import { createUser, deleteUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
+import { tmdbFake } from "./catalog/tmdb-fake";
 import { type AppEnv, testHooksOn } from "./env";
 import { simulateLogin } from "./pbkdf2-spike";
 
@@ -43,6 +44,11 @@ testHooks.post("/users", async (c) => {
   return c.json({ user }, 201);
 });
 
+testHooks.delete("/users/:username", async (c) => {
+  if (!(await deleteUser(c.var.db, c.req.param("username")))) return c.notFound();
+  return c.body(null, 204);
+});
+
 testHooks.get("/users/:username/password-iterations", async (c) => {
   const iterations = await passwordIterationsOf(c.var.db, c.req.param("username"));
   if (iterations === null) return c.notFound();
@@ -54,3 +60,6 @@ testHooks.get("/users/:username/invited-by", async (c) => {
   if (invitedBy === undefined) return c.notFound();
   return c.json({ invitedBy }, 200);
 });
+
+// The TMDB fake that the `local` Worker searches (wrangler.jsonc).
+testHooks.route("/tmdb", tmdbFake);

@@ -45,6 +45,18 @@ export const en = {
   "invites.limit":
     "You already have {max} active Invite Codes. Wait for one to be used or to expire.",
   "invites.unavailable": "Couldn't reach the server. Please try again.",
+  "search.label": "Search films",
+  "search.placeholder": "Title in English or Ukrainian",
+  "search.resultsLabel": "Search results",
+  "search.searching": "Searching…",
+  "search.none": "No films found.",
+  "search.unavailable": "Couldn't search right now. Please try again.",
+  "attribution.tmdbLogo": "TMDB",
+  "attribution.tmdb":
+    "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
+  "film.labelWithOriginalAndYear": "{title} ({originalTitle}, {year})",
+  "film.labelWithOriginal": "{title} ({originalTitle})",
+  "film.labelWithYear": "{title} ({year})",
   "films.count": "{count, plural, one {# film} other {# films}}",
 } as const;
 

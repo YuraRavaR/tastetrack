@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { HealthResponse } from "../../shared/api";
+import { FilmSearch } from "../components/FilmSearch";
 import { t } from "../i18n/t";
 
 type HealthStatus = "checking" | "ok" | "unavailable";
@@ -22,11 +23,14 @@ export function HomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2">
-      <h1 className="font-semibold text-2xl tracking-tight">{t("app.tagline")}</h1>
-      <p role="status" className="text-muted-foreground text-sm">
-        {t(`health.${health}`)}
-      </p>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="font-semibold text-2xl tracking-tight">{t("app.tagline")}</h1>
+        <p role="status" className="text-muted-foreground text-sm">
+          {t(`health.${health}`)}
+        </p>
+      </div>
+      <FilmSearch />
     </div>
   );
 }

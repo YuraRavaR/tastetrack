@@ -1,7 +1,9 @@
 // The top level is production: `wrangler deploy` without `--env` ships it, so
 // TEST_HOOKS is absent here. Test hooks are switched on only in the `local` and
 // `staging` envs below. Envs don't inherit `vars` or bindings, so each env
-// repeats the bindings it needs.
+// repeats the bindings it needs. TMDB_BASE_URL is real TMDB everywhere except `local`, which
+// searches the TMDB fake among its own test hooks with a placeholder token. TMDB_ACCESS_TOKEN is
+// a secret on staging and production, set with `wrangler secret put` (see README).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tastetrack",
@@ -11,6 +13,9 @@
     "directory": "dist/client",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "TMDB_BASE_URL": "https://api.themoviedb.org/3"
   },
   "d1_databases": [
     {
@@ -31,7 +36,9 @@
         }
       ],
       "vars": {
-        "TEST_HOOKS": "1"
+        "TEST_HOOKS": "1",
+        "TMDB_BASE_URL": "http://localhost:8787/api/test/tmdb/3",
+        "TMDB_ACCESS_TOKEN": "fake-tmdb-token"
       }
     },
     "staging": {
@@ -44,7 +51,8 @@
         }
       ],
       "vars": {
-        "TEST_HOOKS": "1"
+        "TEST_HOOKS": "1",
+        "TMDB_BASE_URL": "https://api.themoviedb.org/3"
       }
     }
   }

@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
-import { createUser } from "../support/users";
+import { expect, test } from "@playwright/test";
+import { logInNewUser } from "../support/users";
 
 const day = 24 * 60 * 60 * 1000;
 
@@ -8,17 +8,10 @@ function at(time: number) {
   return { headers: { "X-Test-Now": new Date(time).toISOString() } };
 }
 
-async function logIn(request: APIRequestContext) {
-  const user = await createUser();
-  const login = await request.post("/api/auth/login", { data: user });
-  expect(login.status()).toBe(200);
-  return user;
-}
-
 test("a User generates an Invite Code valid for 7 days and sees it as active", async ({
   request,
 }) => {
-  await logIn(request);
+  await logInNewUser(request);
   const now = Date.now();
 
   const created = await request.post("/api/invite-codes", at(now));
@@ -33,7 +26,7 @@ test("a User generates an Invite Code valid for 7 days and sees it as active", a
 });
 
 test("a sixth active Invite Code is refused until one of the five expires", async ({ request }) => {
-  await logIn(request);
+  await logInNewUser(request);
   const now = Date.now();
   for (let i = 0; i < 5; i += 1) {
     expect((await request.post("/api/invite-codes", at(now))).status()).toBe(201);

@@ -2,6 +2,7 @@
 // spec) and the client (response types).
 import { z } from "@hono/zod-openapi";
 import { passwordLength, usernamePattern } from "./accounts";
+import { maxSearchQueryLength } from "./catalog";
 
 export const HealthResponse = z
   .object({
@@ -86,3 +87,47 @@ export const InviteCodesResponse = z
   .openapi("InviteCodesResponse");
 
 export type InviteCodesResponse = z.infer<typeof InviteCodesResponse>;
+
+// The catalog is searched through the External Source of each Media Type: TMDB for films.
+export const MediaType = z.enum(["film"]).openapi({ example: "film" });
+
+export type MediaType = z.infer<typeof MediaType>;
+
+export const CatalogSearchQuery = z.object({
+  mediaType: MediaType,
+  query: z.string().trim().min(1).max(maxSearchQueryLength).openapi({ example: "alien" }),
+});
+
+export const ExternalReference = z
+  .object({
+    source: z.literal("tmdb"),
+    mediaType: MediaType,
+    id: z.string().openapi({ example: "348" }),
+  })
+  .openapi("ExternalReference");
+
+export type ExternalReference = z.infer<typeof ExternalReference>;
+
+// The title is the Localized Title in the query's language, or the Original Title when the
+// External Source has none.
+export const CatalogSearchResult = z
+  .object({
+    externalReference: ExternalReference,
+    title: z.string().openapi({ example: "Чужий" }),
+    originalTitle: z.string().openapi({ example: "Alien" }),
+    year: z.int().nullable().openapi({ example: 1979 }),
+    posterUrl: z.url().nullable().openapi({
+      example: "https://image.tmdb.org/t/p/w92/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
+    }),
+  })
+  .openapi("CatalogSearchResult");
+
+export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
+
+export const CatalogSearchResponse = z
+  .object({
+    results: z.array(CatalogSearchResult),
+  })
+  .openapi("CatalogSearchResponse");
+
+export type CatalogSearchResponse = z.infer<typeof CatalogSearchResponse>;

@@ -10,7 +10,7 @@ test("a User generates an Invite Code and a friend registers with it", async ({ 
   await page.getByRole("button", { name: "Generate an Invite Code" }).click();
   const active = page.getByRole("list", { name: "Active Invite Codes" }).getByRole("listitem");
   await expect(active).toHaveCount(1);
-  await expect(active).toContainText(/Expires [A-Z][a-z]{2} \d{1,2}, \d{4}/);
+  await expect(active).toContainText(/Expires \d{1,2} [A-Z][a-z]{2} \d{4}/);
   const code = await active.getByRole("code").textContent();
   await page.getByRole("button", { name: "Log out" }).click();
 
