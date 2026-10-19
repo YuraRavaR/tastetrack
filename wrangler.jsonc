@@ -1,0 +1,52 @@
+// The top level is what `wrangler deploy` without `--env` ships, so it must be
+// production-safe: TEST_HOOKS is absent here. Test hooks are switched on only
+// in the `local` and `staging` envs below. Envs don't inherit `vars` or
+// bindings, so each env repeats the bindings it needs.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tastetrack",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tastetrack-local",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "env": {
+    "local": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "tastetrack-local",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        "TEST_HOOKS": "1"
+      }
+    },
+    "staging": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "tastetrack-staging",
+          // Placeholder until #4 creates the staging D1; a staging deploy fails until then.
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        "TEST_HOOKS": "1"
+      }
+    }
+  }
+}
