@@ -42,7 +42,7 @@ export function AppLayout() {
             rel="noreferrer"
             className="shrink-0"
           >
-            <img src={tmdbLogo} alt="TMDB" className="h-3 w-auto" />
+            <img src={tmdbLogo} alt={t("attribution.tmdbLogo")} className="h-3 w-auto" />
           </a>
           <p className="text-muted-foreground text-xs">{t("attribution.tmdb")}</p>
         </div>

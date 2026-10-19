@@ -1,13 +1,9 @@
+import { readFileSync } from "node:fs";
 import { type APIRequestContext, expect, test } from "@playwright/test";
-import { createUser } from "../support/users";
+import { logInNewUser } from "../support/users";
 
 // Locally the Worker searches a TMDB fake with fixed data; on staging, the real TMDB. So these
 // tests look only for well-known films, and check that they are among the results.
-
-async function logIn(request: APIRequestContext) {
-  const user = await createUser();
-  expect((await request.post("/api/auth/login", { data: user })).status()).toBe(200);
-}
 
 async function search(request: APIRequestContext, query: string) {
   const response = await request.get("/api/catalog/search", {
@@ -20,7 +16,7 @@ async function search(request: APIRequestContext, query: string) {
 test("an English query finds the film with its title, Original Title, year and poster", async ({
   request,
 }) => {
-  await logIn(request);
+  await logInNewUser(request);
 
   const results = await search(request, "alien");
 
@@ -36,7 +32,7 @@ test("an English query finds the film with its title, Original Title, year and p
 test("a Ukrainian query is answered in Ukrainian, with the Original Title alongside", async ({
   request,
 }) => {
-  await logIn(request);
+  await logInNewUser(request);
 
   const results = await search(request, "чужий");
 
@@ -47,7 +43,7 @@ test("a Ukrainian query is answered in Ukrainian, with the Original Title alongs
 });
 
 test("searching by the Original Title finds the film, titled in English", async ({ request }) => {
-  await logIn(request);
+  await logInNewUser(request);
 
   const results = await search(request, "Le Fabuleux Destin d'Amélie Poulain");
 
@@ -61,7 +57,7 @@ test("searching by the Original Title finds the film, titled in English", async 
 });
 
 test("an empty or overlong query, or an unknown Media Type, is a 400", async ({ request }) => {
-  await logIn(request);
+  await logInNewUser(request);
 
   for (const params of <Record<string, string>[]>[
     { mediaType: "film", query: "   " },
@@ -83,9 +79,19 @@ test("without a session, searching is a 401", async ({ request }) => {
   expect(response.status()).toBe(401);
 });
 
+// Real TMDB is searched on staging, and locally when .dev.vars sets TMDB_BASE_URL.
+function searchesRealTmdb(): boolean {
+  if (process.env.BASE_URL) return true;
+  try {
+    return /^TMDB_BASE_URL=/m.test(readFileSync(".dev.vars", "utf8"));
+  } catch {
+    return false;
+  }
+}
+
 test("when TMDB fails, searching is a 502", async ({ request }) => {
-  test.skip(!!process.env.BASE_URL, "Only the local TMDB fake can be made to fail");
-  await logIn(request);
+  test.skip(searchesRealTmdb(), "Only the TMDB fake can be made to fail");
+  await logInNewUser(request);
 
   // The fake answers this query with a 503.
   const response = await request.get("/api/catalog/search", {

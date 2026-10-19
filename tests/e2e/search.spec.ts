@@ -1,15 +1,10 @@
-import { expect, type Page, test } from "@playwright/test";
-import { createUser } from "../support/users";
+import { expect, test } from "@playwright/test";
+import { logInNewUser } from "../support/users";
 
 // Locally the Worker searches a TMDB fake; on staging, the real TMDB. Both know these films.
 
-async function logIn(page: Page) {
-  const user = await createUser();
-  expect((await page.request.post("/api/auth/login", { data: user })).status()).toBe(200);
-}
-
 test("a User searches films as they type, in English or Ukrainian", async ({ page }) => {
-  await logIn(page);
+  await logInNewUser(page.request);
   await page.goto("/");
   const search = page.getByRole("searchbox", { name: "Search films" });
   const results = page.getByRole("list", { name: "Search results" });
@@ -24,7 +19,7 @@ test("a User searches films as they type, in English or Ukrainian", async ({ pag
 });
 
 test("typing a title makes one search once the User pauses", async ({ page }) => {
-  await logIn(page);
+  await logInNewUser(page.request);
   await page.goto("/");
   const searched: string[] = [];
   page.on("request", (request) => {

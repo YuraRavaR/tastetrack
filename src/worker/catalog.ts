@@ -1,7 +1,8 @@
 // Searching the catalog: the External Source of the Media Type, TMDB for films.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { CatalogSearchQuery, CatalogSearchResponse, ErrorResponse } from "../shared/api";
-import { requireUser } from "./auth";
+import { maxSearchQueryLength } from "../shared/catalog";
+import { requireUser, unauthenticatedResponse } from "./auth";
 import { searchFilms, TmdbUnavailable } from "./catalog/tmdb";
 import type { AppEnv } from "./env";
 
@@ -22,12 +23,9 @@ const searchRoute = createRoute({
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
-      description: "The query is empty or longer than 100 characters, or the Media Type unknown",
+      description: `The query is empty or longer than ${maxSearchQueryLength} characters, or the Media Type unknown`,
     },
-    401: {
-      content: { "application/json": { schema: ErrorResponse } },
-      description: "No live session",
-    },
+    401: unauthenticatedResponse,
     502: {
       content: { "application/json": { schema: ErrorResponse } },
       description: "The External Source didn't answer (`catalog_unavailable`)",

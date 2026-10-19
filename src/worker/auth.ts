@@ -28,6 +28,12 @@ function setSessionCookie(c: Context, token: string): void {
 
 const unauthenticated = { error: "unauthenticated" } satisfies ErrorResponse;
 
+// The 401 that every route behind requireUser documents.
+export const unauthenticatedResponse = {
+  content: { "application/json": { schema: ErrorResponse } },
+  description: "No live session",
+};
+
 // Refuses the request with a 401 unless it carries a live session, and makes `c.var.user` the
 // session's User and `c.var.userId` their id.
 export const requireUser = createMiddleware<AppEnv & { Variables: { user: User; userId: number } }>(

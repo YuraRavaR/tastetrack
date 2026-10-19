@@ -51,6 +51,7 @@ export const en = {
   "search.searching": "Searching…",
   "search.none": "No films found.",
   "search.unavailable": "Couldn't search right now. Please try again.",
+  "attribution.tmdbLogo": "TMDB",
   "attribution.tmdb":
     "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
   "film.labelWithOriginalAndYear": "{title} ({originalTitle}, {year})",

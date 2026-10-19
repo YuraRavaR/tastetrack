@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CatalogSearchResult } from "../../shared/api";
+import { maxSearchQueryLength } from "../../shared/catalog";
 import { filmLabel } from "../catalog/film-label";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { t } from "../i18n/t";
@@ -21,7 +22,7 @@ export function FilmSearch() {
           id={inputId}
           type="search"
           autoComplete="off"
-          maxLength={100}
+          maxLength={maxSearchQueryLength}
           placeholder={t("search.placeholder")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}

@@ -2,14 +2,15 @@
 // instead of real TMDB (wrangler.jsonc). It answers like TMDB for the calls we make and the films
 // below, which mirror real TMDB data so the same tests pass here and against TMDB on staging.
 import { Hono } from "hono";
+import type { SearchLanguage } from "./search-language";
 
 interface FakeFilm {
   id: number;
   original_title: string;
   release_date: string;
   poster_path: string | null;
-  // Localized Titles by TMDB language; a missing one comes back empty, as TMDB has no fallback.
-  titles: Partial<Record<"en-US" | "uk-UA", string>>;
+  // Localized Titles by TMDB language. Like TMDB, a missing one comes back as the Original Title.
+  titles: Partial<Record<SearchLanguage, string>>;
 }
 
 const films: FakeFilm[] = [
@@ -35,10 +36,10 @@ const films: FakeFilm[] = [
     titles: { "en-US": "Amélie", "uk-UA": "Амелі" },
   },
   {
-    id: 48035,
+    id: 26782,
     original_title: "Тіні забутих предків",
-    release_date: "1965-09-04",
-    poster_path: null,
+    release_date: "1965-10-18",
+    poster_path: "/znV2lj6cbJGO7LZCAafXoDtvt2w.jpg",
     titles: { "en-US": "Shadows of Forgotten Ancestors", "uk-UA": "Тіні забутих предків" },
   },
 ];
@@ -68,7 +69,7 @@ tmdbFake.get("/3/search/movie", (c) => {
     return c.json({ success: false, status_code: 9, status_message: "Service offline." }, 503);
   }
   const query = fold(c.req.query("query") ?? "");
-  const language = c.req.query("language") === "uk-UA" ? "uk-UA" : "en-US";
+  const language: SearchLanguage = c.req.query("language") === "uk-UA" ? "uk-UA" : "en-US";
   const matches = query
     ? films.filter((film) =>
         [film.original_title, ...Object.values(film.titles)].some((title) =>
@@ -78,7 +79,7 @@ tmdbFake.get("/3/search/movie", (c) => {
     : [];
   const results = matches.map(({ titles, ...film }) => ({
     ...film,
-    title: titles[language] ?? "",
+    title: titles[language] ?? film.original_title,
   }));
   return c.json({ page: 1, results, total_pages: 1, total_results: results.length });
 });

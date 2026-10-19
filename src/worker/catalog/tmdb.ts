@@ -36,7 +36,8 @@ function toResult(film: TmdbFilm): CatalogSearchResult {
   const year = Number.parseInt(film.release_date?.slice(0, 4) ?? "", 10);
   return {
     externalReference: { source: "tmdb", mediaType: "film", id: String(film.id) },
-    // TMDB has no language fallback, so a missing translation can come back empty.
+    // TMDB titles a film it has no translation for with its Original Title; an empty or missing
+    // title is treated the same way, in case that ever changes.
     title: film.title?.trim() || film.original_title,
     originalTitle: film.original_title,
     year: Number.isNaN(year) ? null : year,

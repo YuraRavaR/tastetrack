@@ -2,6 +2,7 @@
 // spec) and the client (response types).
 import { z } from "@hono/zod-openapi";
 import { passwordLength, usernamePattern } from "./accounts";
+import { maxSearchQueryLength } from "./catalog";
 
 export const HealthResponse = z
   .object({
@@ -94,7 +95,7 @@ export type MediaType = z.infer<typeof MediaType>;
 
 export const CatalogSearchQuery = z.object({
   mediaType: MediaType,
-  query: z.string().trim().min(1).max(100).openapi({ example: "alien" }),
+  query: z.string().trim().min(1).max(maxSearchQueryLength).openapi({ example: "alien" }),
 });
 
 export const ExternalReference = z
