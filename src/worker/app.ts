@@ -50,7 +50,10 @@ app.openapi(healthRoute, async (c) => {
 
 app.doc31("/openapi.json", {
   openapi: "3.1.0",
-  info: { title: "TasteTrack API", version: "0.0.0" },
+  info: {
+    title: "TasteTrack API",
+    version: "0.0.0", // x-release-please-version
+  },
 });
 
 app.notFound((c) => c.json({ error: "not_found" } satisfies ErrorResponse, 404));

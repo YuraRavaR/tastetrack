@@ -1,7 +1,7 @@
-// The top level is what `wrangler deploy` without `--env` ships, so it must be
-// production-safe: TEST_HOOKS is absent here. Test hooks are switched on only
-// in the `local` and `staging` envs below. Envs don't inherit `vars` or
-// bindings, so each env repeats the bindings it needs.
+// The top level is production: `wrangler deploy` without `--env` ships it, so
+// TEST_HOOKS is absent here. Test hooks are switched on only in the `local` and
+// `staging` envs below. Envs don't inherit `vars` or bindings, so each env
+// repeats the bindings it needs.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tastetrack",
@@ -15,8 +15,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "tastetrack-local",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_name": "tastetrack-production",
+      "database_id": "dbbae3f8-e6a6-4053-afb4-2b7b327d5a93",
       "migrations_dir": "migrations"
     }
   ],
