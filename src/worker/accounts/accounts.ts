@@ -2,8 +2,15 @@
 // about passwords and session lifetime lives here.
 import { and, eq, gt, lte, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { sessions, users } from "../../db/schema";
-import type { User } from "../../shared/api";
+import { alias } from "drizzle-orm/sqlite-core";
+import { inviteCodes, sessions, users } from "../../db/schema";
+import type { RegisterRequest, User } from "../../shared/api";
+import {
+  activeAt,
+  type InviteCodeProblem,
+  inviteCodeProblem,
+  normalizeInviteCode,
+} from "./invite-codes";
 import { hashPassword, type PasswordHash, targetIterations, verifyPassword } from "./password";
 
 // A session lasts 30 days from the User's last activity.
@@ -94,18 +101,92 @@ export async function logIn(
       .where(eq(users.id, found.id));
   }
 
+  const token = await startSession(db, found.id, now);
+  return { user: { username: found.username }, token };
+}
+
+// Returns the new session's token.
+async function startSession(db: DrizzleD1Database, userId: number, now: Date): Promise<string> {
   const token = newToken();
   // Expired sessions are cleared here, so each User's stay bounded without a cron.
   await db.batch([
-    db.delete(sessions).where(and(eq(sessions.userId, found.id), lte(sessions.expiresAt, now))),
+    db.delete(sessions).where(and(eq(sessions.userId, userId), lte(sessions.expiresAt, now))),
     db.insert(sessions).values({
       tokenHash: await hashToken(token),
-      userId: found.id,
+      userId,
       createdAt: now,
       expiresAt: expiryFrom(now),
     }),
   ]);
-  return { user: { username: found.username }, token };
+  return token;
+}
+
+export type Registration =
+  | { ok: true; loggedIn: LoggedIn }
+  | { ok: false; error: InviteCodeProblem | "username_taken" };
+
+// Creates the User, marks the Invite Code used and logs the new User in. The code is checked
+// first, so a bad one costs no hashing and only someone holding a good one learns whether a
+// Username is taken. Creating the User and using the code are then one transaction: the insert
+// copies the issuer from the code only while the code is still active, so two registrations
+// racing for one code can't both succeed, and a taken Username rolls the whole thing back,
+// leaving the code unused.
+export async function register(
+  db: DrizzleD1Database,
+  { inviteCode, username, password }: RegisterRequest,
+  now: Date,
+): Promise<Registration> {
+  const code = normalizeInviteCode(inviteCode);
+  const problem = await inviteCodeProblem(db, code, now);
+  if (problem) return { ok: false, error: problem };
+
+  const hash = await hashPassword(password);
+  const byCode = and(eq(inviteCodes.code, code), activeAt(now));
+  let created: { id: number } | undefined;
+  try {
+    [[created]] = await db.batch([
+      // Insert-select lists every column in table order; a null id takes the next one.
+      db
+        .insert(users)
+        .select(
+          db
+            .select({
+              id: sql<number>`null`.as("id"),
+              username: sql<string>`${username}`.as("username"),
+              passwordHash: sql<string>`${hash.hash}`.as("password_hash"),
+              passwordSalt: sql<string>`${hash.salt}`.as("password_salt"),
+              passwordIterations: sql<number>`${hash.iterations}`.as("password_iterations"),
+              invitedBy: inviteCodes.issuerId,
+              createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+            })
+            .from(inviteCodes)
+            .where(byCode),
+        )
+        .returning({ id: users.id }),
+      db.update(inviteCodes).set({ usedAt: now }).where(byCode),
+    ]);
+  } catch (error) {
+    if (isUniqueViolation(error)) return { ok: false, error: "username_taken" };
+    throw error;
+  }
+  // Someone else registered with the code since it was checked.
+  if (!created) return { ok: false, error: "invite_code_used" };
+  const token = await startSession(db, created.id, now);
+  return { ok: true, loggedIn: { user: { username }, token } };
+}
+
+// D1 reports a broken unique index as an error whose message, possibly on a wrapped cause, names
+// the constraint.
+function isUniqueViolation(error: unknown): boolean {
+  for (let cause = error; cause instanceof Error; cause = cause.cause) {
+    if (cause.message.includes("UNIQUE constraint failed")) return true;
+  }
+  return false;
+}
+
+export interface Authenticated {
+  userId: number;
+  user: User;
 }
 
 // Returns the session's User, or null if the session is unknown, ended or expired. Each call
@@ -114,7 +195,7 @@ export async function authenticate(
   db: DrizzleD1Database,
   token: string,
   now: Date,
-): Promise<User | null> {
+): Promise<Authenticated | null> {
   const [session] = await db
     .update(sessions)
     .set({ expiresAt: expiryFrom(now) })
@@ -125,7 +206,7 @@ export async function authenticate(
     .select({ username: users.username })
     .from(users)
     .where(eq(users.id, session.userId));
-  return user ?? null;
+  return user ? { userId: session.userId, user } : null;
 }
 
 export async function logOut(db: DrizzleD1Database, token: string): Promise<void> {
@@ -142,4 +223,19 @@ export async function passwordIterationsOf(
     .from(users)
     .where(byUsername(username));
   return found?.iterations ?? null;
+}
+
+// For the test hooks only: the Username of the User who invited this one, null if they registered
+// without an Invite Code or their inviter is gone, or undefined for an unknown Username.
+export async function inviterOf(
+  db: DrizzleD1Database,
+  username: string,
+): Promise<string | null | undefined> {
+  const inviters = alias(users, "inviters");
+  const [found] = await db
+    .select({ inviter: inviters.username })
+    .from(users)
+    .leftJoin(inviters, eq(users.invitedBy, inviters.id))
+    .where(byUsername(username));
+  return found ? found.inviter : undefined;
 }

@@ -5,23 +5,23 @@ test("a logged-out visitor is sent to the login page", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveURL("/login");
-  await expect(page.getByRole("heading", { name: "Вхід" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
 });
 
 test("a User logs in, lands where they were going, and logs out", async ({ page }) => {
-  const user = await createUser(page.request);
+  const user = await createUser();
   await page.goto("/some/page");
   await expect(page).toHaveURL("/login");
 
-  await page.getByLabel("Ім'я користувача").fill(user.username);
-  await page.getByLabel("Пароль").fill(user.password);
-  await page.getByRole("button", { name: "Увійти" }).click();
+  await page.getByLabel("Username").fill(user.username);
+  await page.getByLabel("Password").fill(user.password);
+  await page.getByRole("button", { name: "Log in" }).click();
 
   // An unknown page sends a logged-in User home.
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("banner")).toContainText(user.username);
 
-  await page.getByRole("button", { name: "Вийти" }).click();
+  await page.getByRole("button", { name: "Log out" }).click();
 
   await expect(page).toHaveURL("/login");
   await page.reload();
@@ -29,13 +29,13 @@ test("a User logs in, lands where they were going, and logs out", async ({ page 
 });
 
 test("a wrong password shows an error and stays on the login page", async ({ page }) => {
-  const user = await createUser(page.request);
+  const user = await createUser();
   await page.goto("/login");
 
-  await page.getByLabel("Ім'я користувача").fill(user.username);
-  await page.getByLabel("Пароль").fill("not the password");
-  await page.getByRole("button", { name: "Увійти" }).click();
+  await page.getByLabel("Username").fill(user.username);
+  await page.getByLabel("Password").fill("not the password");
+  await page.getByRole("button", { name: "Log in" }).click();
 
-  await expect(page.getByRole("alert")).toHaveText("Неправильне ім'я користувача або пароль");
+  await expect(page.getByRole("alert")).toHaveText("Wrong Username or password");
   await expect(page).toHaveURL("/login");
 });

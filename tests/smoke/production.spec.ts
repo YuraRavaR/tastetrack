@@ -27,8 +27,9 @@ test("the PBKDF2 spike endpoint is a 404, with no D1 query count", async ({ requ
   expect(response.headers()["x-d1-query-count"]).toBeUndefined();
 });
 
-// Creates Users without an Invite Code for API and E2E tests when test hooks are on.
-test("the test User factory is a 404, with no D1 query count", async ({ request }) => {
+// Creates seed Users, without an Invite Code, when test hooks are on. A 404 here means no seed
+// User can exist in production.
+test("the seed User route is a 404, with no D1 query count", async ({ request }) => {
   const response = await request.post("/api/test/users", {
     data: { username: "smoke_test", password: "a long enough password" },
   });

@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { Navigate, useLocation } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ export function LoginPage() {
           <h1 className="text-xl">{t("login.title")}</h1>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
         <form className="flex flex-col gap-4" onSubmit={submit}>
           <div className="flex flex-col gap-2">
             <Label htmlFor="username">{t("login.username")}</Label>
@@ -69,6 +69,12 @@ export function LoginPage() {
             {t(submitting ? "login.submitting" : "login.submit")}
           </Button>
         </form>
+        <p className="text-center text-muted-foreground text-sm">
+          {t("login.registerPrompt")}{" "}
+          <Link to="/register" className="text-primary underline-offset-4 hover:underline">
+            {t("login.registerLink")}
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );

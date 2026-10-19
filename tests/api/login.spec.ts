@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
-import { createUser, uniqueUsername } from "../support/users";
+import { createSeedUser, createUser, uniqueUsername } from "../support/users";
 
 const day = 24 * 60 * 60 * 1000;
 
@@ -19,7 +19,7 @@ async function me(request: APIRequestContext, options = {}) {
 }
 
 test("a User logs in with their Username and password", async ({ request }) => {
-  const user = await createUser(request);
+  const user = await createUser();
 
   const login = await request.post("/api/auth/login", { data: user });
 
@@ -31,7 +31,7 @@ test("a User logs in with their Username and password", async ({ request }) => {
 });
 
 test("the Username matches in any letter case", async ({ request }) => {
-  const user = await createUser(request);
+  const user = await createUser();
 
   const login = await request.post("/api/auth/login", {
     data: { username: user.username.toUpperCase(), password: user.password },
@@ -42,7 +42,7 @@ test("the Username matches in any letter case", async ({ request }) => {
 });
 
 test("an unknown Username and a wrong password get the same error", async ({ request }) => {
-  const user = await createUser(request);
+  const user = await createUser();
 
   const wrongPassword = await request.post("/api/auth/login", {
     data: { username: user.username, password: "not the password" },
@@ -66,7 +66,7 @@ test("without a session, the current User is a 401", async ({ request }) => {
 });
 
 test("a session stays valid for 30 days from the last activity", async ({ request }) => {
-  const user = await createUser(request);
+  const user = await createUser();
   const start = Date.now();
   await request.post("/api/auth/login", { data: user, ...at(start) });
 
@@ -77,7 +77,7 @@ test("a session stays valid for 30 days from the last activity", async ({ reques
 });
 
 test("a session with no activity ends 30 days after login", async ({ request }) => {
-  const user = await createUser(request);
+  const user = await createUser();
   const start = Date.now();
   await request.post("/api/auth/login", { data: user, ...at(start) });
 
@@ -86,7 +86,7 @@ test("a session with no activity ends 30 days after login", async ({ request }) 
 });
 
 test("logging out ends the session on the server", async ({ request }) => {
-  const user = await createUser(request);
+  const user = await createUser();
   const login = await request.post("/api/auth/login", { data: user });
   const token = sessionCookieOf(login.headers()["set-cookie"]);
 
@@ -100,7 +100,7 @@ test("logging out ends the session on the server", async ({ request }) => {
 });
 
 test("logging out ends only that session", async ({ request, playwright, baseURL }) => {
-  const user = await createUser(request);
+  const user = await createUser();
   const otherDevice = await playwright.request.newContext({ baseURL });
   await request.post("/api/auth/login", { data: user });
   await otherDevice.post("/api/auth/login", { data: user });
@@ -112,7 +112,7 @@ test("logging out ends only that session", async ({ request, playwright, baseURL
 });
 
 test("a login re-hashes a password hash below the iteration target", async ({ request }) => {
-  const user = await createUser(request, { passwordIterations: 1000 });
+  const user = await createSeedUser(request, { passwordIterations: 1000 });
   const iterations = `/api/test/users/${user.username}/password-iterations`;
   expect(await (await request.get(iterations)).json()).toEqual({ iterations: 1000 });
 

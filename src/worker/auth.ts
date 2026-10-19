@@ -1,10 +1,16 @@
-// Login, logout and the current User, over a session cookie.
+// Registration, login, logout and the current User, over a session cookie.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
-import { ErrorResponse, LoginRequest, type User, UserResponse } from "../shared/api";
-import { authenticate, logIn, logOut, sessionLifetimeMs } from "./accounts/accounts";
+import {
+  ErrorResponse,
+  LoginRequest,
+  RegisterRequest,
+  type User,
+  UserResponse,
+} from "../shared/api";
+import { authenticate, logIn, logOut, register, sessionLifetimeMs } from "./accounts/accounts";
 import type { AppEnv } from "./env";
 
 const SESSION_COOKIE = "session";
@@ -23,17 +29,43 @@ function setSessionCookie(c: Context, token: string): void {
 const unauthenticated = { error: "unauthenticated" } satisfies ErrorResponse;
 
 // Refuses the request with a 401 unless it carries a live session, and makes `c.var.user` the
-// session's User.
-export const requireUser = createMiddleware<AppEnv & { Variables: { user: User } }>(
+// session's User and `c.var.userId` their id.
+export const requireUser = createMiddleware<AppEnv & { Variables: { user: User; userId: number } }>(
   async (c, next) => {
     const token = getCookie(c, SESSION_COOKIE);
-    const user = token ? await authenticate(c.var.db, token, c.var.now) : null;
-    if (!token || !user) return c.json(unauthenticated, 401);
-    c.set("user", user);
+    const authenticated = token ? await authenticate(c.var.db, token, c.var.now) : null;
+    if (!token || !authenticated) return c.json(unauthenticated, 401);
+    c.set("user", authenticated.user);
+    c.set("userId", authenticated.userId);
     setSessionCookie(c, token);
     await next();
   },
 );
+
+const registerRoute = createRoute({
+  method: "post",
+  path: "/auth/register",
+  summary: "Register a new User with an Invite Code, starting a session",
+  request: {
+    body: { content: { "application/json": { schema: RegisterRequest } }, required: true },
+  },
+  responses: {
+    201: {
+      content: { "application/json": { schema: UserResponse } },
+      description: "Registered and logged in; the response sets the session cookie",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "The request body is malformed, or the Invite Code is unknown, used or expired " +
+        "(`invite_code_unknown`, `invite_code_used`, `invite_code_expired`)",
+    },
+    409: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Username is taken, in any letter case (`username_taken`)",
+    },
+  },
+});
 
 const loginRoute = createRoute({
   method: "post",
@@ -91,6 +123,16 @@ auth.openAPIRegistry.registerComponent("securitySchemes", "session", {
   type: "apiKey",
   in: "cookie",
   name: SESSION_COOKIE,
+});
+
+auth.openapi(registerRoute, async (c) => {
+  const registration = await register(c.var.db, c.req.valid("json"), c.var.now);
+  if (!registration.ok) {
+    const { error } = registration;
+    return error === "username_taken" ? c.json({ error }, 409) : c.json({ error }, 400);
+  }
+  setSessionCookie(c, registration.loggedIn.token);
+  return c.json({ user: registration.loggedIn.user }, 201);
 });
 
 auth.openapi(loginRoute, async (c) => {
