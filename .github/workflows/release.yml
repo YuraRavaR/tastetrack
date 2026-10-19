@@ -1,0 +1,43 @@
+name: Release
+
+# release-please keeps a release PR open with the next version and changelog, worked out from
+# the Conventional Commits on main. Merging it tags the release, and this workflow then hands
+# the tag to the production deploy. A tag pushed with GITHUB_TOKEN triggers no other workflow,
+# so the deploy is called from here rather than on a tag push.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: Release PR and tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    concurrency:
+      group: release-please
+      cancel-in-progress: false
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          # The required checks never run on a PR opened with GITHUB_TOKEN, so the release PR
+          # could not be merged. RELEASE_PLEASE_TOKEN is a token that does trigger them.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+
+  production:
+    name: Production
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    uses: ./.github/workflows/production.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+    secrets: inherit

@@ -1,10 +1,11 @@
 import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/test";
 
-// Set BASE_URL to test a deployed environment, such as staging, instead of local Wrangler.
+// Set BASE_URL to test a deployed environment instead of local Wrangler: staging with the
+// `api` and `e2e` projects, production with `smoke`.
 const deployedURL = process.env.BASE_URL;
 
 const hooksOnURL = deployedURL ?? "http://localhost:8787";
-const hooksOffURL = "http://localhost:8788";
+const hooksOffURL = deployedURL ?? "http://localhost:8788";
 
 // Web servers start in order, so the second reuses the first one's build. It keeps its own
 // local D1 state: two `wrangler dev` processes can't share one.
@@ -44,21 +45,15 @@ export default defineConfig({
     {
       name: "api",
       testDir: "tests/api",
-      testIgnore: "**/*.hooks-off.spec.ts",
       use: { baseURL: hooksOnURL },
     },
-    // The top-level Wrangler config, which is what a deploy without `--env` ships. It only
-    // runs locally: every deployed environment we test has hooks on.
-    ...(deployedURL
-      ? []
-      : [
-          {
-            name: "api-hooks-off",
-            testDir: "tests/api",
-            testMatch: "**/*.hooks-off.spec.ts",
-            use: { baseURL: hooksOffURL },
-          },
-        ]),
+    // Test hooks off. Locally this is the top-level Wrangler config, which is what production
+    // deploys, so the production smoke test passes on every PR before it runs after a release.
+    {
+      name: "smoke",
+      testDir: "tests/smoke",
+      use: { baseURL: hooksOffURL },
+    },
     {
       name: "e2e",
       testDir: "tests/e2e",

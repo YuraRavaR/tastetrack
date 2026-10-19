@@ -23,6 +23,7 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | `pnpm test:unit` | Vitest: the domain core and the message catalogue |
 | `pnpm test:api` | Playwright API tests against local Wrangler, with test hooks on and off |
 | `pnpm test:e2e` | Playwright browser tests against local Wrangler |
+| `pnpm test:smoke` | The production smoke test: against local Wrangler with hooks off, or `BASE_URL` |
 | `pnpm test:deployed` | Playwright API and E2E tests against `BASE_URL`, e.g. staging |
 | `pnpm test` | All of the local test suites |
 | `pnpm db:generate --name <name>` | Generate a migration from `src/db/schema.ts` (never edit an applied one) |
@@ -33,16 +34,18 @@ The API serves its OpenAPI spec at `/api/openapi.json`.
 
 ## Test hooks
 
-`TEST_HOOKS=1` turns on test-only surfaces, such as the `X-D1-Query-Count` response header. The top level of `wrangler.jsonc` leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
+`TEST_HOOKS=1` turns on test-only surfaces, such as the `X-D1-Query-Count` response header. The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
 
-The `api-hooks-off` Playwright project runs against the top-level config to prove the hooks stay off there.
+The `smoke` Playwright project runs against the top-level config locally, and against production after every deploy, to prove the hooks stay off there.
 
-## CI and staging
+## CI, staging and production
 
-Commit messages and PR titles follow [Conventional Commits](https://www.conventionalcommits.org/), checked by commitlint in the `commit-msg` hook and in CI.
+Commit messages and PR titles follow [Conventional Commits](https://www.conventionalcommits.org/), checked by commitlint in the `commit-msg` hook and in CI. They drive the version and the changelog.
 
-- **Every PR** ([ci.yml](.github/workflows/ci.yml), [pr-title.yml](.github/workflows/pr-title.yml)): commitlint over the PR's commits and title, then lint, type checks, unit tests, and the API and E2E tests against local Wrangler.
+- **Every PR** ([ci.yml](.github/workflows/ci.yml), [pr-title.yml](.github/workflows/pr-title.yml)): commitlint over the PR's commits and title, then lint, type checks, unit tests, and the API, smoke and E2E tests against local Wrangler.
 - **Every merge to `main`** ([staging.yml](.github/workflows/staging.yml)): applies D1 migrations to the staging database, deploys the Worker with `--env staging` (test hooks on), then runs `pnpm test:deployed` against the deployed URL.
+- **Every merge to `main`** ([release.yml](.github/workflows/release.yml)): release-please updates the release PR. Merging that PR tags a release, which deploys to production after manual approval ([production.yml](.github/workflows/production.yml)), then runs the smoke test against it. See [docs/production.md](docs/production.md), including the D1 export the Operator takes before approving.
+- **Weekly** ([dependabot.yml](.github/dependabot.yml)): Dependabot opens PRs for npm and GitHub Actions updates, grouping minor and patch bumps.
 
 Playwright keeps traces of failed attempts, including tests that passed only on retry. Both workflows upload them with the HTML report as a `playwright-*` artifact.
 

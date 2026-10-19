@@ -1,0 +1,127 @@
+name: Production
+
+# Deploys a release tag to production once a reviewer approves it on the `production`
+# environment. release.yml calls this for every new release. Run it by hand to redeploy a tag,
+# for example to roll back to the previous release. See docs/production.md.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag to deploy, e.g. v1.2.0
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to deploy, e.g. v1.2.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_SEND_METRICS: "false"
+
+jobs:
+  deploy:
+    name: Migrate and deploy
+    runs-on: ubuntu-latest
+    # Waits here for a reviewer's approval. The Operator takes the D1 export before approving.
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    # Deploys run one at a time and are never cancelled halfway through a migration.
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      TAG: ${{ inputs.tag }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check the tag and the Cloudflare secrets
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$TAG' is not a release tag such as v1.2.0."
+            exit 1
+          fi
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets for the production environment."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+
+      - uses: ./.github/actions/setup
+
+      # The top level of wrangler.jsonc is production. Its comments are whole lines only.
+      - name: Check the production D1 id
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const text = fs.readFileSync("wrangler.jsonc", "utf8").replace(/^\s*\/\/.*$/gm, "");
+            const id = JSON.parse(text).d1_databases[0].database_id;
+            if (/^[0-]+$/.test(id)) {
+              console.log("::error::Set the production D1 database_id at the top level of wrangler.jsonc.");
+              process.exit(1);
+            }
+          '
+
+      - name: Build the app
+        run: pnpm build
+
+      # Migrations go first: they are forward-only and expand/contract (ADR-0009), so the
+      # running Worker keeps working against the migrated database.
+      - name: Apply D1 migrations
+        run: pnpm exec wrangler d1 migrations apply DB --remote
+
+      # No --env: the top level of wrangler.jsonc, which has no test hooks.
+      - name: Deploy the Worker
+        id: deploy
+        env:
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+        run: |
+          pnpm exec wrangler deploy
+          url=$(jq -r 'select(.type == "deploy") | .targets[0] // empty' "$WRANGLER_OUTPUT_FILE_PATH")
+          if [ -z "$url" ]; then
+            echo "::error::wrangler deploy reported no URL. Is workers.dev turned on for the production Worker?"
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+  smoke:
+    name: Smoke test against production
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ needs.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+
+      # The smoke tests make API requests only, so no browser is installed.
+      - uses: ./.github/actions/setup
+
+      # A new workers.dev hostname can take a minute or two to resolve after the first deploy.
+      - name: Wait for the deployment to answer
+        run: curl --fail --silent --show-error --retry 30 --retry-delay 5 --retry-all-errors "$BASE_URL/api/health"
+
+      - name: Smoke test
+        run: pnpm test:smoke
+
+      - name: Upload Playwright traces and report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-production
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
