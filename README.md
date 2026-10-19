@@ -19,7 +19,7 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | --- | --- |
 | `pnpm dev` | Build the React app and serve it and the API from one local Worker |
 | `pnpm lint` | Biome: lint, formatting and import order (`pnpm lint:fix` applies fixes) |
-| `pnpm typecheck` | Type-check the Worker, the client and the tests |
+| `pnpm typecheck` | Type-check the Worker, the client, the tests and `scripts/` |
 | `pnpm test:unit` | Vitest: the domain core and the message catalogue |
 | `pnpm test:api` | Playwright API tests against local Wrangler, with test hooks on and off |
 | `pnpm test:e2e` | Playwright browser tests against local Wrangler |
@@ -34,9 +34,13 @@ The API serves its OpenAPI spec at `/api/openapi.json`.
 
 ## Test hooks
 
-`TEST_HOOKS=1` turns on test-only surfaces, such as the `X-D1-Query-Count` response header. The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
+`TEST_HOOKS=1` turns on test-only surfaces, such as the `X-D1-Query-Count` response header and the routes under `/api/test/`, which stay out of the OpenAPI spec and are a JSON 404 with hooks off. The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
 
 The `smoke` Playwright project runs against the top-level config locally, and against production after every deploy, to prove the hooks stay off there.
+
+### PBKDF2 spike
+
+`GET /api/test/pbkdf2?iterations=N` runs one simulated login with N PBKDF2-SHA256 iterations. Local Wrangler doesn't enforce CPU limits, so the iteration target in ADR-0007 is measured on staging: with Wrangler logged in to the staging account, `node scripts/pbkdf2-spike.ts <staging-url> [iterations ...]` tails the staging Worker and prints the CPU time per iteration count.
 
 ## CI, staging and production
 
