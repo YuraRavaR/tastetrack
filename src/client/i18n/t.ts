@@ -15,10 +15,16 @@ export function t(id: MessageId, values?: Record<string, PrimitiveType>): string
   return String(format.format(values));
 }
 
-// British English orders a date day, month, year rather than the US month, day, year.
-const dateFormat = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" });
+// Day, month, year with the US English three-letter month: British English would order it the
+// same way but writes September as "Sept".
+const dateFormat = new Intl.DateTimeFormat(locale, {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
 
 // A calendar date in the viewer's time zone, e.g. "26 Oct 2026".
 export function formatDate(date: Date): string {
-  return dateFormat.format(date);
+  const parts = Object.fromEntries(dateFormat.formatToParts(date).map((p) => [p.type, p.value]));
+  return `${parts.day} ${parts.month} ${parts.year}`;
 }
