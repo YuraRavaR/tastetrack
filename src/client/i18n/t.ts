@@ -1,6 +1,8 @@
 import { IntlMessageFormat, type PrimitiveType } from "intl-messageformat";
 import { en, type MessageId } from "./en";
 
+export type { MessageId };
+
 const locale = "en";
 const formats = new Map<MessageId, IntlMessageFormat>();
 

@@ -9,7 +9,7 @@ test("a logged-out visitor is sent to the login page", async ({ page }) => {
 });
 
 test("a User logs in, lands where they were going, and logs out", async ({ page }) => {
-  const user = await createUser(page.request);
+  const user = await createUser();
   await page.goto("/some/page");
   await expect(page).toHaveURL("/login");
 
@@ -29,7 +29,7 @@ test("a User logs in, lands where they were going, and logs out", async ({ page 
 });
 
 test("a wrong password shows an error and stays on the login page", async ({ page }) => {
-  const user = await createUser(page.request);
+  const user = await createUser();
   await page.goto("/login");
 
   await page.getByLabel("Username").fill(user.username);

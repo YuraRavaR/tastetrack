@@ -55,7 +55,9 @@ Logging in sets an HttpOnly `session` cookie (`Secure` over HTTPS, `SameSite=Lax
 
 - the `X-D1-Query-Count` response header;
 - the `X-Test-Now` request header, an ISO time the Worker treats as now, so tests can step past session expiry;
-- the routes under `/api/test/`, including `POST /api/test/users`, which creates a User for API and E2E tests until registration with Invite Codes exists.
+- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, and read-outs of what the API never reports, such as a User's password iterations and who invited them.
+
+Test seed Users therefore exist only in local and staging. The factories in `tests/support/users.ts` give each Playwright worker one seed User, which issues an Invite Code for every other test User; those register through the public API like real ones, each with a unique Username, so tests share no mutable fixtures.
 
 The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
 

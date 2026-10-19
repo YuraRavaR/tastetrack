@@ -3,6 +3,7 @@ import { appMeta } from "../db/schema";
 import { type ErrorResponse, HealthResponse } from "../shared/api";
 import { auth } from "./auth";
 import { type AppEnv, withClock, withDatabase } from "./env";
+import { inviteCodeRoutes } from "./invite-codes";
 import { testHooks } from "./test-hooks";
 
 const healthRoute = createRoute({
@@ -33,6 +34,7 @@ app.openapi(healthRoute, async (c) => {
 });
 
 app.route("/", auth);
+app.route("/", inviteCodeRoutes);
 app.route("/test", testHooks);
 
 app.doc31("/openapi.json", {

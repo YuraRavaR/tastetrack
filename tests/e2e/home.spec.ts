@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { createUser } from "../support/users";
 
 test("the home page shows a logged-in User the server is up", async ({ page }) => {
-  const user = await createUser(page.request);
+  const user = await createUser();
   await page.request.post("/api/auth/login", { data: user });
 
   await page.goto("/");

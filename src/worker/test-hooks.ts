@@ -3,7 +3,7 @@
 import { z } from "@hono/zod-openapi";
 import { Hono } from "hono";
 import { type ErrorResponse, Password, Username } from "../shared/api";
-import { createUser, passwordIterationsOf } from "./accounts/accounts";
+import { createUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
 import { type AppEnv, testHooksOn } from "./env";
 import { simulateLogin } from "./pbkdf2-spike";
 
@@ -26,8 +26,9 @@ testHooks.get("/pbkdf2", async (c) => {
   return c.json({ iterations, derivedKey }, 200);
 });
 
-// Stands in for registration until Invite Codes exist (issue #8), so API and E2E tests can make
-// their own Users in local and staging.
+// Creates seed Users, who need no Invite Code. Test factories use one per worker to issue the
+// Invite Codes that every other test User registers with. Test hooks are off in production, so
+// seed Users exist only in local and staging.
 const NewTestUser = z.object({
   username: Username,
   password: Password,
@@ -46,4 +47,10 @@ testHooks.get("/users/:username/password-iterations", async (c) => {
   const iterations = await passwordIterationsOf(c.var.db, c.req.param("username"));
   if (iterations === null) return c.notFound();
   return c.json({ iterations }, 200);
+});
+
+testHooks.get("/users/:username/invited-by", async (c) => {
+  const invitedBy = await inviterOf(c.var.db, c.req.param("username"));
+  if (invitedBy === undefined) return c.notFound();
+  return c.json({ invitedBy }, 200);
 });

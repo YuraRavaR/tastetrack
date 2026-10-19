@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, use, useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
-import type { User } from "../shared/api";
+import type { RegisterRequest, User } from "../shared/api";
 import * as api from "./api";
 import { t } from "./i18n/t";
 
@@ -12,6 +12,7 @@ type AuthState =
 interface Auth {
   state: AuthState;
   logIn(username: string, password: string): Promise<api.LoginResult>;
+  register(request: RegisterRequest): Promise<api.RegisterResult>;
   logOut(): Promise<void>;
 }
 
@@ -38,6 +39,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     state,
     async logIn(username, password) {
       const result = await api.logIn(username, password);
+      if (result.ok) setState({ status: "authenticated", user: result.user });
+      return result;
+    },
+    async register(request) {
+      const result = await api.register(request);
       if (result.ok) setState({ status: "authenticated", user: result.user });
       return result;
     },
