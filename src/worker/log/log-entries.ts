@@ -97,6 +97,11 @@ export async function createLogEntry(
   return { ok: true, logEntry: toLogEntry(row) };
 }
 
+// One of the User's own Log Entries: another User's is as unknown as one that doesn't exist.
+function ownLogEntry(userId: number, logEntryId: number) {
+  return and(eq(logEntries.id, logEntryId), eq(logEntries.userId, userId));
+}
+
 export type LogEntryEditProblem = LogDateProblem | "invalid_rating" | "unknown_log_entry";
 
 export type EditedLogEntry =
@@ -104,8 +109,7 @@ export type EditedLogEntry =
   | { ok: false; error: LogEntryEditProblem };
 
 // Changes the fields `edit` gives of one of the User's Log Entries, by the same rules as a new
-// one. Its creation time stays, so it keeps its place among same-day entries. Another User's
-// entry is as unknown as one that doesn't exist.
+// one. Its creation time stays, so it keeps its place among same-day entries.
 export async function editLogEntry(
   db: DrizzleD1Database,
   userId: number,
@@ -124,7 +128,7 @@ export async function editLogEntry(
     review: edit.review === undefined ? undefined : edit.review?.trim() || null,
     revisit: edit.revisit,
   };
-  const own = and(eq(logEntries.id, logEntryId), eq(logEntries.userId, userId));
+  const own = ownLogEntry(userId, logEntryId);
   if (Object.values(changes).some((value) => value !== undefined)) {
     await db.update(logEntries).set(changes).where(own);
   }
@@ -142,7 +146,7 @@ export async function deleteLogEntry(
 ): Promise<boolean> {
   const deleted = await db
     .delete(logEntries)
-    .where(and(eq(logEntries.id, logEntryId), eq(logEntries.userId, userId)))
+    .where(ownLogEntry(userId, logEntryId))
     .returning({ id: logEntries.id });
   return deleted.length > 0;
 }
@@ -180,11 +184,10 @@ export async function itemHistory(
       .orderBy(logEntries.id),
   ]);
   if (!item) return null;
-  const ordered = inLogOrder(rows);
-  const current = currentRating(ordered);
+  const current = currentRating(rows);
   return {
     mediaItem: toMediaItem(item),
-    logEntries: ordered.map(toLogEntry),
+    logEntries: inLogOrder(rows).map(toLogEntry),
     currentRating: current === null ? null : toStars(current),
   };
 }

@@ -35,7 +35,7 @@ export function LogEntryDialog({
   onClose: () => void;
   onLogged: (result: CatalogSearchResult) => void;
 }) {
-  async function save(fields: LogEntryFields): Promise<api.CreateLogEntryResult> {
+  async function save(fields: LogEntryFields): Promise<api.SaveLogEntryResult> {
     if (!result) throw new Error("Saving a Log Entry with no film to log");
     const mediaItem = await api.addToCatalog(result);
     if (!mediaItem) return { ok: false, error: "unavailable" };
@@ -132,7 +132,7 @@ function LogEntryForm({
   title: string;
   description: string;
   initial: FormValues;
-  save: (fields: LogEntryFields) => Promise<api.CreateLogEntryResult>;
+  save: (fields: LogEntryFields) => Promise<api.SaveLogEntryResult>;
   onSaved: () => void;
 }) {
   const ids = {

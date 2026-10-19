@@ -145,7 +145,7 @@ export async function addToCatalog(result: CatalogSearchResult): Promise<MediaIt
 
 export type LogEntryError = LogDateProblem | "unavailable";
 
-export type CreateLogEntryResult =
+export type SaveLogEntryResult =
   | { ok: true; logEntry: LogEntry }
   | { ok: false; error: LogEntryError };
 
@@ -156,7 +156,7 @@ async function sendLogEntry(
   url: string,
   method: "POST" | "PATCH",
   request: NewLogEntryRequest | LogEntryEditRequest,
-): Promise<CreateLogEntryResult> {
+): Promise<SaveLogEntryResult> {
   try {
     const response = await fetch(url, {
       method,
@@ -176,14 +176,14 @@ async function sendLogEntry(
   }
 }
 
-export function createLogEntry(request: NewLogEntryRequest): Promise<CreateLogEntryResult> {
+export function createLogEntry(request: NewLogEntryRequest): Promise<SaveLogEntryResult> {
   return sendLogEntry("/api/log-entries", "POST", request);
 }
 
 export function editLogEntry(
   logEntryId: number,
   edit: LogEntryEditRequest,
-): Promise<CreateLogEntryResult> {
+): Promise<SaveLogEntryResult> {
   return sendLogEntry(`/api/log-entries/${logEntryId}`, "PATCH", edit);
 }
 
