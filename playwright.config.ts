@@ -19,7 +19,7 @@ export default defineConfig({
       use: { baseURL: hooksOnURL },
     },
     {
-      // The same Worker with test hooks off, as in production.
+      // The top-level Wrangler config, which is what a deploy without `--env` ships.
       name: "api-hooks-off",
       testDir: "tests/api",
       testMatch: "**/*.hooks-off.spec.ts",
@@ -36,7 +36,8 @@ export default defineConfig({
   webServer: [
     {
       command:
-        "pnpm build && pnpm db:migrate:local && wrangler dev --port 8787 --inspector-port 9230 --show-interactive-dev-session=false",
+        "pnpm build && pnpm db:migrate:local && " +
+        "wrangler dev --env local --port 8787 --inspector-port 9230 --show-interactive-dev-session=false",
       url: `${hooksOnURL}/api/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
@@ -45,7 +46,7 @@ export default defineConfig({
       command:
         "wrangler d1 migrations apply DB --local --persist-to .wrangler/state-hooks-off && " +
         "wrangler dev --port 8788 --inspector-port 9231 --persist-to .wrangler/state-hooks-off " +
-        "--var TEST_HOOKS:0 --show-interactive-dev-session=false",
+        "--show-interactive-dev-session=false",
       url: `${hooksOffURL}/api/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

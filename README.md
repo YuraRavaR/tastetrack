@@ -30,4 +30,6 @@ The API serves its OpenAPI spec at `/api/openapi.json`.
 
 ## Test hooks
 
-`TEST_HOOKS=1` turns on test-only surfaces, such as the `X-D1-Query-Count` response header. It is on locally (set in `wrangler.jsonc`) and must never be set in production. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
+`TEST_HOOKS=1` turns on test-only surfaces, such as the `X-D1-Query-Count` response header. The top level of `wrangler.jsonc` leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
+
+The `api-hooks-off` Playwright project runs against the top-level config to prove the hooks stay off there.

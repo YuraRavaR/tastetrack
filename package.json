@@ -7,12 +7,12 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "pnpm build && pnpm db:migrate:local && wrangler dev",
+    "dev": "pnpm build && pnpm db:migrate:local && wrangler dev --env local",
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.worker.json && tsc -p tsconfig.client.json && tsc -p tsconfig.node.json",
     "cf-typegen": "wrangler types --strict-vars=false",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local --env local",
     "test:unit": "vitest run",
     "test:api": "playwright test --project=api --project=api-hooks-off",
     "test:e2e": "playwright test --project=e2e",
