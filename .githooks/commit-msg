@@ -1,0 +1,4 @@
+#!/bin/sh
+# Check the commit message against Conventional Commits. CI runs the same check on every PR.
+
+exec pnpm exec commitlint --edit "$1"

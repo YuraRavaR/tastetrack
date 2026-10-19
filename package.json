@@ -10,12 +10,15 @@
     "dev": "pnpm build && pnpm db:migrate:local && wrangler dev --env local",
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.worker.json && tsc -p tsconfig.client.json && tsc -p tsconfig.node.json",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "cf-typegen": "wrangler types --strict-vars=false",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply DB --local --env local",
     "test:unit": "vitest run",
     "test:api": "playwright test --project=api --project=api-hooks-off",
     "test:e2e": "playwright test --project=e2e",
+    "test:deployed": "playwright test --project=api --project=e2e",
     "test": "pnpm test:unit && playwright test"
   },
   "dependencies": {
@@ -28,6 +31,9 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
     "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",

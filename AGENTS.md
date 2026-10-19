@@ -8,7 +8,8 @@ Never commit or push to `main`. Every change, including docs, goes on its own br
 - Branch types: `feat/`, `fix/`, `docs/`, `chore/`, `test/`, `refactor/`. Add the issue number when there is one, e.g. `feat/12-log-entry-form`.
 - Open the PR with `gh pr create`, link the issue with `Closes #<n>` in the body.
 - If you find yourself on `main` with uncommitted work, create a branch first (`git switch -c ...`); the work moves with you.
-- A pre-commit hook in `.githooks/` blocks commits on `main`. Enable it once per clone with `git config core.hooksPath .githooks`.
+- Commit messages and PR titles follow Conventional Commits (`feat: ...`, `fix(scope): ...`); commitlint checks both in CI.
+- Hooks in `.githooks/` block commits on `main` and run commitlint on each commit message. Enable them once per clone with `git config core.hooksPath .githooks`.
 
 ## Agent skills
 

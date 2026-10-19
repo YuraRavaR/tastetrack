@@ -39,7 +39,8 @@
         {
           "binding": "DB",
           "database_name": "tastetrack-staging",
-          // Placeholder until #4 creates the staging D1; a staging deploy fails until then.
+          // Placeholder: replace with the id from `wrangler d1 create tastetrack-staging`.
+          // The staging deploy fails until it is a real database id.
           "database_id": "00000000-0000-0000-0000-000000000001",
           "migrations_dir": "migrations"
         }
