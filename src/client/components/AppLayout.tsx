@@ -1,11 +1,13 @@
 import { Link, Outlet } from "react-router";
 import { Button } from "@/components/ui/button";
+import tmdbLogo from "../assets/tmdb-logo.svg";
 import { useAuth } from "../auth";
 import { t } from "../i18n/t";
 
 // The frame of every page: a header with the app name and, once logged in, the User, the
-// Invites page and a logout action, above a single content column. Mobile first: the column fills a phone screen
-// and stops widening on larger ones.
+// Invites page and a logout action, above a single content column, and a footer crediting TMDB
+// as its terms require (ADR-0004). Mobile first: the column fills a phone screen and stops
+// widening on larger ones.
 export function AppLayout() {
   const { state, logOut } = useAuth();
 
@@ -32,6 +34,19 @@ export function AppLayout() {
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
         <Outlet />
       </main>
+      <footer className="border-t">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:gap-4">
+          <a
+            href="https://www.themoviedb.org/"
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0"
+          >
+            <img src={tmdbLogo} alt="TMDB" className="h-3 w-auto" />
+          </a>
+          <p className="text-muted-foreground text-xs">{t("attribution.tmdb")}</p>
+        </div>
+      </footer>
     </div>
   );
 }

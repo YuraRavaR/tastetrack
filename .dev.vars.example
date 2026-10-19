@@ -1,3 +1,8 @@
 # Copy to .dev.vars for local secrets and overrides. .dev.vars is git-ignored.
 # Test hooks are on in the `local` env (see wrangler.jsonc); set to 0 to turn them off.
 # TEST_HOOKS=0
+
+# The `local` env searches a TMDB fake (see wrangler.jsonc). To search the real TMDB locally,
+# set both of these; the token is TMDB's "API Read Access Token".
+# TMDB_BASE_URL=https://api.themoviedb.org/3
+# TMDB_ACCESS_TOKEN=

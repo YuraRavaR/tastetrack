@@ -49,13 +49,24 @@ It prompts for the Username and the password (twice, not echoed), hashes the pas
 
 Logging in sets an HttpOnly `session` cookie (`Secure` over HTTPS, `SameSite=Lax`). The database keeps only the SHA-256 of the session token. A session is valid for 30 days from the User's last authenticated request, and logging out deletes it on the server.
 
+## TMDB
+
+Film search calls TMDB (ADR-0004) at `TMDB_BASE_URL`, set per env in `wrangler.jsonc`, with the secret `TMDB_ACCESS_TOKEN`: TMDB's "API Read Access Token" (Settings → API), sent as a bearer token. Staging and production use the real TMDB, so each needs the secret once:
+
+```sh
+pnpm exec wrangler secret put TMDB_ACCESS_TOKEN --env staging
+pnpm exec wrangler secret put TMDB_ACCESS_TOKEN               # production
+```
+
+The `local` env searches a TMDB fake with fixed data (`src/worker/catalog/tmdb-fake.ts`), mounted among the test hooks at `/api/test/tmdb`, with a placeholder token, so local development, the tests and CI need no TMDB account. To search the real TMDB locally, set `TMDB_BASE_URL` and `TMDB_ACCESS_TOKEN` in `.dev.vars` (see `.dev.vars.example`). The API tests pass against both: they look only for well-known films that the fake mirrors.
+
 ## Test hooks
 
 `TEST_HOOKS=1` turns on test-only surfaces, which stay out of the OpenAPI spec and are a JSON 404 or ignored with hooks off:
 
 - the `X-D1-Query-Count` response header;
 - the `X-Test-Now` request header, an ISO time the Worker treats as now, so tests can step past session expiry;
-- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, and read-outs of what the API never reports, such as a User's password iterations and who invited them.
+- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `DELETE /api/test/users/:username`, which removes one until Users can remove their own accounts, read-outs of what the API never reports, such as a User's password iterations and who invited them, and the TMDB fake.
 
 Test seed Users therefore exist only in local and staging. The factories in `tests/support/users.ts` give each Playwright worker one seed User, which issues an Invite Code for every other test User; those register through the public API like real ones, each with a unique Username, so tests share no mutable fixtures.
 

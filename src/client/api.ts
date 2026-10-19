@@ -1,5 +1,7 @@
 // Calls to the Worker's API. The session travels in an HttpOnly cookie, so nothing here holds it.
 import type {
+  CatalogSearchResponse,
+  CatalogSearchResult,
   ErrorResponse,
   InviteCode,
   InviteCodeResponse,
@@ -96,5 +98,23 @@ export async function generateInviteCode(): Promise<GenerateInviteCodeResult> {
     return { ok: false, error: response.status === 409 ? "limit" : "unavailable" };
   } catch {
     return { ok: false, error: "unavailable" };
+  }
+}
+
+export type CatalogSearchOutcome =
+  | { ok: true; results: CatalogSearchResult[] }
+  | { ok: false; error: "aborted" | "unavailable" };
+
+export async function searchCatalog(
+  query: string,
+  signal: AbortSignal,
+): Promise<CatalogSearchOutcome> {
+  const params = new URLSearchParams({ mediaType: "film", query });
+  try {
+    const response = await fetch(`/api/catalog/search?${params}`, { signal });
+    if (!response.ok) return { ok: false, error: "unavailable" };
+    return { ok: true, results: ((await response.json()) as CatalogSearchResponse).results };
+  } catch {
+    return { ok: false, error: signal.aborted ? "aborted" : "unavailable" };
   }
 }
