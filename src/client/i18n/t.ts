@@ -15,9 +15,10 @@ export function t(id: MessageId, values?: Record<string, PrimitiveType>): string
   return String(format.format(values));
 }
 
-const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
+// British English orders a date day, month, year rather than the US month, day, year.
+const dateFormat = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" });
 
-// A calendar date in the viewer's time zone, e.g. "Oct 26, 2026".
+// A calendar date in the viewer's time zone, e.g. "26 Oct 2026".
 export function formatDate(date: Date): string {
   return dateFormat.format(date);
 }

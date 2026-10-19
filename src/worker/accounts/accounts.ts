@@ -239,3 +239,11 @@ export async function inviterOf(
     .where(byUsername(username));
   return found ? found.inviter : undefined;
 }
+
+// For the test hooks only, until Users can remove their accounts: deletes the User, which ends
+// their sessions and Invite Codes and clears them as the inviter of anyone they invited. Returns
+// false for an unknown Username.
+export async function deleteUser(db: DrizzleD1Database, username: string): Promise<boolean> {
+  const deleted = await db.delete(users).where(byUsername(username)).returning({ id: users.id });
+  return deleted.length > 0;
+}

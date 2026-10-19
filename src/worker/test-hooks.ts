@@ -3,7 +3,7 @@
 import { z } from "@hono/zod-openapi";
 import { Hono } from "hono";
 import { type ErrorResponse, Password, Username } from "../shared/api";
-import { createUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
+import { createUser, deleteUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
 import { type AppEnv, testHooksOn } from "./env";
 import { simulateLogin } from "./pbkdf2-spike";
 
@@ -41,6 +41,11 @@ testHooks.post("/users", async (c) => {
   const user = await createUser(c.var.db, body.data, c.var.now);
   if (!user) return c.json({ error: "username_taken" } satisfies ErrorResponse, 409);
   return c.json({ user }, 201);
+});
+
+testHooks.delete("/users/:username", async (c) => {
+  if (!(await deleteUser(c.var.db, c.req.param("username")))) return c.notFound();
+  return c.body(null, 204);
 });
 
 testHooks.get("/users/:username/password-iterations", async (c) => {

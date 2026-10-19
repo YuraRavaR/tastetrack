@@ -16,7 +16,7 @@ describe("English plurals", () => {
 
 describe("dates", () => {
   // Midday UTC, so the date is the same in every time zone the tests might run in.
-  it("are written in English with the month's short name", () => {
-    expect(formatDate(new Date("2026-10-26T12:00:00Z"))).toBe("Oct 26, 2026");
+  it("are written day, short month name, year", () => {
+    expect(formatDate(new Date("2026-10-26T12:00:00Z"))).toBe("26 Oct 2026");
   });
 });
