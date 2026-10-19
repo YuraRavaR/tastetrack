@@ -6,10 +6,11 @@ export interface OperatorResult {
   stderr: string;
 }
 
-// Runs the Operator CLI with `answers` piped to its prompts, one per line.
+// Runs the Operator CLI, as `pnpm operator` does but without pnpm's banner, with `answers` piped
+// to its prompts, one per line.
 export function runOperator(args: string[], answers: string[]): Promise<OperatorResult> {
   return new Promise((resolve, reject) => {
-    const child = spawn("node", ["scripts/operator.ts", ...args], {
+    const child = spawn("node", ["--import", "tsx", "scripts/operator.ts", ...args], {
       stdio: ["pipe", "pipe", "pipe"],
     });
     let stdout = "";
