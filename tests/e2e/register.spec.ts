@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { createUser, uniqueUsername } from "../support/users";
 
-test("a User generates an Invite Code and a friend registers with it", async ({ page }) => {
+test("a User generates an Invite Code and a friend registers with it", { tag: "@smoke" }, async ({
+  page,
+}) => {
   const inviter = await createUser();
   await page.request.post("/api/auth/login", { data: inviter });
 

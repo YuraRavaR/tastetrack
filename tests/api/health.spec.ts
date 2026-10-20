@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("health reports the Worker and its database as ok", async ({ request }) => {
+test("health reports the Worker and its database as ok", { tag: "@smoke" }, async ({ request }) => {
   const response = await request.get("/api/health");
 
   expect(response.status()).toBe(200);

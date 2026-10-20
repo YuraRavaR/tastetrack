@@ -3,9 +3,9 @@ import { logInNewUser } from "../support/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien.
 
-test("a User marks a search result Watched, rates it and finds it in their Log", async ({
-  page,
-}) => {
+test("a User marks a search result Watched, rates it and finds it in their Log", {
+  tag: "@smoke",
+}, async ({ page }) => {
   await logInNewUser(page.request);
   await page.goto("/");
   await page.getByRole("searchbox", { name: "Search films" }).fill("alien");
@@ -76,9 +76,9 @@ async function logAlien(api: APIRequestContext, entries: object[]) {
   }
 }
 
-test("a User opens a film's Item History from the Log, edits an entry and deletes entries", async ({
-  page,
-}) => {
+test("a User opens a film's Item History from the Log, edits an entry and deletes entries", {
+  tag: "@smoke",
+}, async ({ page }) => {
   await logInNewUser(page.request);
   await logAlien(page.request, [
     { rating: 3, date: "2001-09-15", review: "First time." },

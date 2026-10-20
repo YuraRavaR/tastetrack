@@ -15,7 +15,9 @@ async function search(page: Page, query: string) {
   await page.getByRole("searchbox", { name: "Search films" }).fill(query);
 }
 
-test("a User plans films from search, then orders and notes their Watchlist", async ({ page }) => {
+test("a User plans films from search, then orders and notes their Watchlist", {
+  tag: "@smoke",
+}, async ({ page }) => {
   await logInNewUser(page.request);
   await page.goto("/");
   await search(page, "alien");

@@ -62,7 +62,7 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
   test:
-    name: API and E2E tests against staging
+    name: Smoke tests against staging
     needs: deploy
     runs-on: ubuntu-latest
     env:
@@ -78,7 +78,9 @@ jobs:
       - name: Wait for the deployment to answer
         run: curl --fail --silent --show-error --retry 30 --retry-delay 5 --retry-all-errors "$BASE_URL/api/health"
 
-      - name: API and E2E tests
+      # Only the @smoke tests: staging shares the account's D1 write budget with production
+      # (ADR-0006). The full suite runs in CI against local D1.
+      - name: API and E2E smoke tests
         run: pnpm test:deployed
 
       - name: Upload Playwright traces and report

@@ -11,6 +11,10 @@ Never commit or push to `main`. Every change, including docs, goes on its own br
 - Commit messages and PR titles follow Conventional Commits (`feat: ...`, `fix(scope): ...`); commitlint checks both in CI.
 - Hooks in `.githooks/` block commits on `main` and run commitlint on each commit message. Enable them once per clone with `git config core.hooksPath .githooks`.
 
+## Deployed environments
+
+Staging and production share one D1 free-tier write budget per Cloudflare account (100,000 rows written a day); once it is spent, writes fail in production too. Tests against a deployed URL (`BASE_URL` set) must be smoke-only and write little: only tests tagged `@smoke` run there, and a `@smoke` test never fills Lists or the Watchlist in bulk. Tag a new test `@smoke` only when it covers a key journey no other smoke test does. Cron Triggers run in production only. See ADR-0006.
+
 ## UI conventions
 
 - Build UI from shadcn/ui components in `src/client/components/ui/`. Add missing ones with `pnpm dlx shadcn@latest add <name>`, then point any `cn` import at `@/lib/utils`.

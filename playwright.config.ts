@@ -4,6 +4,12 @@ import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/te
 // `api` and `e2e` projects, production with `smoke`.
 const deployedURL = process.env.BASE_URL;
 
+// A deployed environment runs only the tests tagged @smoke: a few key journeys that write little.
+// Every deployed environment on the account shares one D1 free-tier budget of 100,000 rows
+// written a day, which the full suite's bulk fills would spend (ADR-0006). The full suite runs
+// against local D1.
+const deployedGrep = deployedURL ? /@smoke/ : undefined;
+
 const localHooksOnURL = "http://localhost:8787";
 const hooksOnURL = deployedURL ?? localHooksOnURL;
 const hooksOffURL = deployedURL ?? "http://localhost:8788";
@@ -46,6 +52,7 @@ export default defineConfig({
     {
       name: "api",
       testDir: "tests/api",
+      grep: deployedGrep,
       use: { baseURL: hooksOnURL },
     },
     // Test hooks off. Locally this is the top-level Wrangler config, which is what production
@@ -64,6 +71,7 @@ export default defineConfig({
     {
       name: "e2e",
       testDir: "tests/e2e",
+      grep: deployedGrep,
       use: { ...devices["Desktop Chrome"], baseURL: hooksOnURL },
     },
   ],

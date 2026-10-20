@@ -4,10 +4,9 @@ import { logInNewUser } from "../support/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens.
 
-test("a User shares a List, and someone logged out opens its Share Link", async ({
-  page,
-  browser,
-}) => {
+test("a User shares a List, and someone logged out opens its Share Link", {
+  tag: "@smoke",
+}, async ({ page, browser }) => {
   const owner = await logInNewUser(page.request);
   const created = await page.request.post("/api/lists", {
     data: { name: "Space horror", description: "Lights off.", mediaType: "film" },
