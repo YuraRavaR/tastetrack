@@ -82,8 +82,10 @@ export async function plan(
     throw new Error(`User ${userId} has no Backlog for ${request.mediaItemId}`);
 
   // The item is inserted only while the Backlog has room, and only once.
-  const items = sql`(select count(*) from ${listItems} where list_id = ${backlogId})`;
-  const end = sql`(select coalesce(max(position), -1) + 1 from ${listItems} where list_id = ${backlogId})`;
+  const itemCount = sql`(select count(*) from ${listItems} where list_id = ${backlogId})`;
+  const nextPosition = sql`(
+    select coalesce(max(position), -1) + 1 from ${listItems} where list_id = ${backlogId}
+  )`;
   const [inserted, [existing]] = await db.batch([
     db
       .insert(listItems)
@@ -94,12 +96,12 @@ export async function plan(
             id: sql<number>`null`.as("id"),
             listId: lists.id,
             mediaItemId: sql<number>`${request.mediaItemId}`.as("media_item_id"),
-            position: sql<number>`${end}`.as("position"),
+            position: sql<number>`${nextPosition}`.as("position"),
             note: sql<string | null>`${request.note?.trim() || null}`.as("note"),
             createdAt: sql<number>`${now.getTime()}`.as("created_at"),
           })
           .from(lists)
-          .where(and(eq(lists.id, backlogId), sql`${items} < ${maxListItems}`)),
+          .where(and(eq(lists.id, backlogId), sql`${itemCount} < ${maxListItems}`)),
       )
       .onConflictDoNothing()
       .returning({ id: listItems.id }),

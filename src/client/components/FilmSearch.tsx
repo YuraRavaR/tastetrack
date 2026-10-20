@@ -20,7 +20,7 @@ function keyOf({ externalReference: { source, id } }: CatalogSearchResult): stri
 }
 
 // What the status line says after the User's last action on a result.
-type Notice =
+type LastAction =
   | {
       kind: "logged";
       result: CatalogSearchResult;
@@ -40,7 +40,7 @@ export function FilmSearch() {
   const [query, setQuery] = useState("");
   const search = useCatalogSearch(query);
   const [logging, setLogging] = useState<CatalogSearchResult | null>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const [planError, setPlanError] = useState<PlanError | null>(null);
   // Results logged since the search ran, which the search's own marks don't know about yet.
   const [loggedNow, setLoggedNow] = useState<ReadonlySet<string>>(new Set());
@@ -83,7 +83,7 @@ export function FilmSearch() {
   function logged(result: CatalogSearchResult, saved: api.SavedLogEntry) {
     setLogging(null);
     setPlanError(null);
-    setNotice({
+    setLastAction({
       kind: "logged",
       result,
       mediaItemId: saved.logEntry.mediaItem.id,
@@ -102,10 +102,10 @@ export function FilmSearch() {
       return;
     }
     markPlanned(result, true);
-    setNotice({ kind: "putBack", result });
+    setLastAction({ kind: "putBack", result });
   }
 
-  const takenOff = notice?.kind === "logged" ? notice.removedFromBacklog : null;
+  const takenOff = lastAction?.kind === "logged" ? lastAction.removedFromBacklog : null;
 
   return (
     <section className="flex flex-col gap-3">
@@ -126,24 +126,24 @@ export function FilmSearch() {
         {search.status === "done" && search.results.length === 0 && t("search.none")}
       </p>
       <div role="status" className="flex flex-col gap-1 text-sm empty:hidden">
-        {notice?.kind === "logged" && (
+        {lastAction?.kind === "logged" && (
           <>
             <p>
-              {t("logEntry.saved", { film: filmLabel(notice.result) })}{" "}
+              {t("logEntry.saved", { film: filmLabel(lastAction.result) })}{" "}
               <Link to="/log" className="text-primary underline-offset-4 hover:underline">
                 {t("log.view")}
               </Link>
             </p>
             {takenOff && (
               <UndoLine
-                message={t("backlog.takenOff", { film: filmLabel(notice.result) })}
-                onUndo={() => undo(notice.result, notice.mediaItemId, takenOff)}
+                message={t("backlog.takenOff", { film: filmLabel(lastAction.result) })}
+                onUndo={() => undo(lastAction.result, lastAction.mediaItemId, takenOff)}
               />
             )}
           </>
         )}
-        {notice?.kind === "putBack" && (
-          <p>{t("backlog.putBack", { film: filmLabel(notice.result) })}</p>
+        {lastAction?.kind === "putBack" && (
+          <p>{t("backlog.putBack", { film: filmLabel(lastAction.result) })}</p>
         )}
       </div>
       {planError && (

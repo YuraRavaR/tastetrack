@@ -130,12 +130,12 @@ export type Registration =
   | { ok: true; loggedIn: LoggedIn }
   | { ok: false; error: InviteCodeProblem | "username_taken" };
 
-// Creates the User with their Backlog, marks the Invite Code used and logs the new User in. The code is checked
-// first, so a bad one costs no hashing and only someone holding a good one learns whether a
-// Username is taken. Creating the User and using the code are then one transaction: the insert
-// copies the issuer from the code only while the code is still active, so two registrations
-// racing for one code can't both succeed, and a taken Username rolls the whole thing back,
-// leaving the code unused.
+// Creates the User with their Backlog, marks the Invite Code used and logs the new User in. The
+// code is checked first, so a bad one costs no hashing and only someone holding a good one learns
+// whether a Username is taken. Creating the User and using the code are then one transaction: the
+// insert copies the issuer from the code only while the code is still active, so two
+// registrations racing for one code can't both succeed, and a taken Username rolls the whole
+// thing back, leaving the code unused.
 export async function register(
   db: DrizzleD1Database,
   { inviteCode, username, password }: RegisterRequest,

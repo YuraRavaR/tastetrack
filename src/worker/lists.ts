@@ -82,10 +82,11 @@ const unknownListItemResponse = {
 const editRoute = createRoute({
   method: "patch",
   path: "/list-items/{listItemId}",
-  summary: "Move a List Item within its List",
+  summary: "Move a List Item within its List, or change its Note",
   description:
-    "Moves the List Item to the position given, counted from 0, shifting the items between; a " +
-    "position past the end moves it to the end.",
+    "Changes only the fields given. A position, counted from 0, moves the List Item there, " +
+    "shifting the items between; a position past the end moves it to the end. A null or empty " +
+    "Note clears it.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
