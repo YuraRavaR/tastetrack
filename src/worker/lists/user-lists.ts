@@ -3,7 +3,7 @@
 // domain core's (src/shared/lists.ts).
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, mediaItems, users } from "../../db/schema";
+import { listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
 import type {
   List,
   ListEditRequest,
@@ -23,6 +23,7 @@ import {
   selectListItems,
   toListItem,
 } from "./list-items";
+import { shareLinkOf } from "./share-links";
 
 const summaryColumns = {
   id: lists.id,
@@ -176,23 +177,33 @@ export async function deleteList(
   return deleted.length > 0;
 }
 
-// One of the User's own Lists and its items in order, in two queries however long it is; null
-// when the User has no such List.
+// One of the User's own Lists, its Share Link at `origin` while it has one, and its items in
+// order, in two queries however long it is; null when the User has no such List.
 export async function userList(
   db: DrizzleD1Database,
   userId: number,
   listId: number,
+  origin: string,
 ): Promise<List | null> {
   const own = ownList(userId, listId);
-  const [[list], rows] = await Promise.all([
-    db.select(summaryColumns).from(lists).where(own),
+  const [[found], rows] = await Promise.all([
+    db
+      .select({ ...summaryColumns, shareToken: shareLinks.token })
+      .from(lists)
+      .leftJoin(shareLinks, eq(shareLinks.listId, lists.id))
+      .where(own),
     selectListItems(db)
       .where(own)
       .orderBy(...listOrder),
   ]);
-  if (!list) return null;
+  if (!found) return null;
+  const { shareToken, ...list } = found;
   const { itemCount: _, ...summary } = toSummary({ ...list, itemCount: rows.length });
-  return { ...summary, items: rows.map(toListItem) };
+  return {
+    ...summary,
+    shareLink: shareToken === null ? null : shareLinkOf(shareToken, origin),
+    items: rows.map(toListItem),
+  };
 }
 
 export type AddedToList =

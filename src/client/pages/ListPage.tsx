@@ -10,6 +10,7 @@ import { DeleteListDialog } from "../components/DeleteListDialog";
 import { ListFormDialog } from "../components/ListFormDialog";
 import { ListItemRow, listItemLabel } from "../components/ListItemRow";
 import { NoteDialog } from "../components/NoteDialog";
+import { ShareLinkPanel } from "../components/ShareLinkPanel";
 import { UndoLine } from "../components/UndoLine";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
@@ -104,6 +105,11 @@ export function ListPage() {
                 {t("list.delete")}
               </Button>
             </div>
+            <ShareLinkPanel
+              listId={state.list.id}
+              shareLink={state.list.shareLink}
+              onChanged={reload}
+            />
           </div>
           <AddToListSearch list={state.list} onAdded={reload} />
           <div role="status" className="text-sm empty:hidden">

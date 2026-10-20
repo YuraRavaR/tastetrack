@@ -195,6 +195,19 @@ export const lists = sqliteTable(
   ],
 );
 
+// A List's Share Link: an unguessable token that shows the List to anyone holding it, without
+// login. A List has at most one, and has one exactly while its Visibility is link or higher.
+// Regenerating replaces the token and revoking deletes the row. The token is shown back to the
+// List's owner, so it is stored as issued, not hashed.
+export const shareLinks = sqliteTable("share_links", {
+  token: text("token").primaryKey(),
+  listId: integer("list_id")
+    .notNull()
+    .unique("share_links_list_id_unique")
+    .references(() => lists.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 // One Media Item's place in one List, with an optional Note. Items are in position order, with
 // the id breaking ties, so a gap left by a removed item changes nothing; reordering numbers the
 // whole List afresh from 0.

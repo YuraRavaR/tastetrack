@@ -1,5 +1,6 @@
 // The rules of Lists and the Backlog. Pure functions and plain values with no I/O, shared by the
 // Worker, which enforces them, and the client, which keeps input within them.
+import type { MediaType } from "./api";
 import { textKey } from "./text";
 
 // Who may see a List, from least to most: each level includes the ones before it. Every List
@@ -7,6 +8,12 @@ import { textKey } from "./text";
 export const visibilities = ["private", "friends", "link", "public"] as const;
 
 export type Visibility = (typeof visibilities)[number];
+
+// A List has a Share Link exactly while its Visibility is at one of these levels: creating the
+// link raises a List below them to link, and revoking it makes the List private again.
+export const sharedVisibilities = visibilities.slice(visibilities.indexOf("link"));
+
+export const unsharedVisibilities = visibilities.slice(0, visibilities.indexOf("link"));
 
 // A List, the Backlog included, holds at most this many items.
 export const maxListItems = 1_000;
@@ -39,10 +46,24 @@ export function sameListName(name: string, other: string): boolean {
   return listNameKey(name) === listNameKey(other);
 }
 
+// The UI's name for the Backlog of each Media Type (ADR-0005).
+const backlogNames: Record<MediaType, string> = { film: "Watchlist" };
+
 // Names a List can't have, so that it can't be mistaken for a Backlog: the UI's name for the
 // Backlog of each Media Type.
-const reservedListNames = ["Watchlist"].map(listNameKey);
+const reservedListNames = Object.values(backlogNames).map(listNameKey);
 
 export function isReservedListName(name: string): boolean {
   return reservedListNames.includes(listNameKey(name));
+}
+
+// What a shared List is called: its name, or for a Backlog, which has none, whose it is in the
+// UI's words for its Media Type: "Olena's Watchlist". The Worker puts it in the shared page's
+// <head> too, so both say the same.
+export function sharedListTitle(
+  name: string | null,
+  mediaType: MediaType,
+  ownerDisplayName: string,
+): string {
+  return name ?? `${ownerDisplayName}'s ${backlogNames[mediaType]}`;
 }

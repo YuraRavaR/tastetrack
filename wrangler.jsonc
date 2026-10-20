@@ -3,7 +3,9 @@
 // `staging` envs below. Envs don't inherit `vars` or bindings, so each env
 // repeats the bindings it needs. TMDB_BASE_URL is real TMDB everywhere except `local`, which
 // searches the TMDB fake among its own test hooks with a placeholder token. TMDB_ACCESS_TOKEN is
-// a secret on staging and production, set with `wrangler secret put` (see README).
+// a secret on staging and production, set with `wrangler secret put` (see README). The Worker
+// runs first for the API and for Share Link pages (/s/*), whose <head> it fills in on the app's
+// HTML from the ASSETS binding (ADR-0008); everything else is served as static assets.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tastetrack",
@@ -11,8 +13,9 @@
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "dist/client",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/s/*"]
   },
   "vars": {
     "TMDB_BASE_URL": "https://api.themoviedb.org/3"

@@ -2,7 +2,7 @@
 // made with the account. Route handlers only translate HTTP to these calls.
 import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, mediaItems, users } from "../../db/schema";
+import { listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
 import type { Backlog, ListItem, MediaType, PlanRequest } from "../../shared/api";
 import { visibleTo } from "../catalog/media-items";
 import {
@@ -15,6 +15,7 @@ import {
   selectListItems,
   toListItem,
 } from "./list-items";
+import { shareLinkOf } from "./share-links";
 
 // Makes the film Backlog of the User that `user` picks out, for the batch that creates the User,
 // so no User ever exists without one. A Backlog the User already has is left as it is.
@@ -45,21 +46,33 @@ function backlogOf(userId: number, mediaType: MediaType) {
   return and(eq(lists.userId, userId), eq(lists.kind, "backlog"), eq(lists.mediaType, mediaType));
 }
 
-// The User's Backlog of the Media Type, in order, in two queries however long it is.
+// The User's Backlog of the Media Type, its Share Link at `origin` while it has one, and its items
+// in order, in two queries however long it is.
 export async function userBacklog(
   db: DrizzleD1Database,
   userId: number,
   mediaType: MediaType,
+  origin: string,
 ): Promise<Backlog> {
   const own = backlogOf(userId, mediaType);
   const [[backlog], rows] = await Promise.all([
-    db.select({ id: lists.id }).from(lists).where(own),
+    db
+      .select({ id: lists.id, visibility: lists.visibility, shareToken: shareLinks.token })
+      .from(lists)
+      .leftJoin(shareLinks, eq(shareLinks.listId, lists.id))
+      .where(own),
     selectListItems(db)
       .where(own)
       .orderBy(...listOrder),
   ]);
   if (!backlog) throw new Error(`User ${userId} has no ${mediaType} Backlog`);
-  return { id: backlog.id, mediaType, items: rows.map(toListItem) };
+  return {
+    id: backlog.id,
+    mediaType,
+    visibility: backlog.visibility,
+    shareLink: backlog.shareToken === null ? null : shareLinkOf(backlog.shareToken, origin),
+    items: rows.map(toListItem),
+  };
 }
 
 export type Planned =

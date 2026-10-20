@@ -35,6 +35,10 @@ import type {
   PlanRequest,
   RegisterRequest,
   RemovedListItem,
+  SharedList,
+  SharedListResponse,
+  ShareLink,
+  ShareLinkResponse,
   User,
   UserResponse,
 } from "../shared/api";
@@ -465,4 +469,44 @@ export async function addToList(
   } catch {
     return { ok: false, error: "unavailable" };
   }
+}
+
+// Shares one of the User's Lists, the Backlog included, and reads back its Share Link: a new one,
+// or the one it already had. Null when it couldn't be shared.
+export async function createShareLink(listId: number): Promise<ShareLink | null> {
+  return sendShareLink(`/api/lists/${listId}/share-link`);
+}
+
+// Replaces the Share Link of one of the User's shared Lists; the old one stops working. Null when
+// it couldn't be replaced.
+export async function regenerateShareLink(listId: number): Promise<ShareLink | null> {
+  return sendShareLink(`/api/lists/${listId}/share-link/regenerate`);
+}
+
+async function sendShareLink(url: string): Promise<ShareLink | null> {
+  try {
+    const response = await fetch(url, { method: "POST" });
+    if (!response.ok) return null;
+    return ((await response.json()) as ShareLinkResponse).shareLink;
+  } catch {
+    return null;
+  }
+}
+
+// True once the List's Share Link is revoked, including when it already was.
+export async function revokeShareLink(listId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/lists/${listId}/share-link`, { method: "DELETE" });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+// The List behind a Share Link, as anyone may see it, or null when the link doesn't work.
+export async function fetchSharedList(token: string): Promise<SharedList | null> {
+  const response = await fetch(`/api/shared-lists/${encodeURIComponent(token)}`);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Loading the shared List failed: ${response.status}`);
+  return ((await response.json()) as SharedListResponse).sharedList;
 }

@@ -4,6 +4,7 @@ import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { ListItemRow, listItemLabel } from "../components/ListItemRow";
 import { NoteDialog } from "../components/NoteDialog";
+import { ShareLinkPanel } from "../components/ShareLinkPanel";
 import { UndoLine } from "../components/UndoLine";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
@@ -28,15 +29,13 @@ async function putBack({ mediaItem, position, note }: ListItem) {
   return outcome.error === "backlog_full" ? "full" : "unavailable";
 }
 
-// The User's Watchlist, the film Backlog, in their own order. Each film can be moved, noted or
-// removed, and a removal undone. After each change the page reloads, so the order is always the
-// Worker's.
+// The User's Watchlist, the film Backlog, in their own order, which they can share. Each film can
+// be moved, noted or removed, and a removal undone. After each change the page reloads, so the
+// order is always the Worker's.
 export function BacklogPage() {
   const [state, setState] = useState<BacklogState>({ status: "loading" });
-  const editing = useListItemEditing({
-    reload: async () => setState(await loadBacklog()),
-    putBack,
-  });
+  const reload = async () => setState(await loadBacklog());
+  const editing = useListItemEditing({ reload, putBack });
   const { removed, error } = editing;
 
   useEffect(() => {
@@ -59,6 +58,13 @@ export function BacklogPage() {
           </p>
         )}
       </div>
+      {state.status === "loaded" && (
+        <ShareLinkPanel
+          listId={state.backlog.id}
+          shareLink={state.backlog.shareLink}
+          onChanged={reload}
+        />
+      )}
       <div role="status" className="text-sm empty:hidden">
         {removed && (
           <UndoLine

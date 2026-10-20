@@ -54,6 +54,7 @@ test("a User creates a film List with a name and a description, private and empt
     description: "For October.",
     mediaType: "film",
     visibility: "private",
+    shareLink: null,
     items: [],
   });
   const lists = await (await request.get("/api/lists")).json();
