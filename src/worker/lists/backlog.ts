@@ -5,8 +5,16 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, users } from "../../db/schema";
 
 import type { Backlog, ListItem, MediaType, PlanRequest } from "../../shared/api";
-import { maxListItems } from "../../shared/lists";
-import { listIndex, listOrder, move, ownListItem, selectListItems, toListItem } from "./list-items";
+import {
+  appendListItem,
+  fillList,
+  listIndex,
+  listOrder,
+  move,
+  ownListItem,
+  selectListItems,
+  toListItem,
+} from "./list-items";
 
 // Makes the film Backlog of the User that `user` picks out, for the batch that creates the User,
 // so no User ever exists without one. A Backlog the User already has is left as it is.
@@ -21,6 +29,10 @@ export function createBacklog(db: DrizzleD1Database, user: SQL) {
           userId: users.id,
           kind: sql<"backlog">`'backlog'`.as("kind"),
           mediaType: sql<"film">`'film'`.as("media_type"),
+          name: sql<null>`null`.as("name"),
+          nameKey: sql<null>`null`.as("name_key"),
+          description: sql<null>`null`.as("description"),
+          visibility: sql<"private">`'private'`.as("visibility"),
           createdAt: users.createdAt,
         })
         .from(users)
@@ -81,36 +93,13 @@ export async function plan(
   if (backlogId === null)
     throw new Error(`User ${userId} has no Backlog for ${request.mediaItemId}`);
 
-  // The item is inserted only while the Backlog has room, and only once.
-  const itemCount = sql`(select count(*) from ${listItems} where list_id = ${backlogId})`;
-  const nextPosition = sql`(
-    select coalesce(max(position), -1) + 1 from ${listItems} where list_id = ${backlogId}
-  )`;
-  const [inserted, [existing]] = await db.batch([
-    db
-      .insert(listItems)
-      .select(
-        // Insert-select lists every column in table order; a null id takes the next one.
-        db
-          .select({
-            id: sql<number>`null`.as("id"),
-            listId: lists.id,
-            mediaItemId: sql<number>`${request.mediaItemId}`.as("media_item_id"),
-            position: sql<number>`${nextPosition}`.as("position"),
-            note: sql<string | null>`${request.note?.trim() || null}`.as("note"),
-            createdAt: sql<number>`${now.getTime()}`.as("created_at"),
-          })
-          .from(lists)
-          .where(and(eq(lists.id, backlogId), sql`${itemCount} < ${maxListItems}`)),
-      )
-      .onConflictDoNothing()
-      .returning({ id: listItems.id }),
-    db
-      .select({ id: listItems.id })
-      .from(listItems)
-      .where(and(eq(listItems.listId, backlogId), eq(listItems.mediaItemId, request.mediaItemId))),
-  ]);
-  const [created] = inserted;
+  const { created, existing } = await appendListItem(
+    db,
+    backlogId,
+    request.mediaItemId,
+    request.note,
+    now,
+  );
   if (!created && !existing) return { ok: false, error: "backlog_full" };
   if (created && request.position !== undefined) {
     await move(db, backlogId, created.id, request.position);
@@ -186,20 +175,5 @@ export async function fillBacklog(
       ),
     );
   if (!backlog) return false;
-  // The placeholders' ids share a prefix, so the index on External References finds them.
-  const prefix = `test-fill-${crypto.randomUUID()}-`;
-  await db.run(sql`
-    insert into media_items (media_type, external_source, external_id, created_at)
-    with recursive n(i) as (select 1 union all select i + 1 from n where i < ${count})
-    select 'film', 'tmdb', ${prefix} || i, ${now.getTime()} from n`);
-  await db.run(sql`
-    insert into list_items (list_id, media_item_id, position, note, created_at)
-    select ${backlog.id}, id,
-      (select coalesce(max(position), -1) from list_items where list_id = ${backlog.id})
-        + row_number() over (order by id),
-      null, ${now.getTime()}
-    from media_items
-    where external_source = 'tmdb' and media_type = 'film'
-      and external_id > ${prefix} and external_id < ${`${prefix}~`}`);
-  return true;
+  return fillList(db, backlog.id, count, now);
 }

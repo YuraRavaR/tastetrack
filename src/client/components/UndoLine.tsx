@@ -7,7 +7,7 @@ export function UndoLine({ message, onUndo }: { message: string; onUndo: () => v
     <p className="flex flex-wrap items-center gap-x-2">
       {message}
       <Button variant="link" size="sm" className="h-auto p-0" onClick={onUndo}>
-        {t("backlog.undo")}
+        {t("listItem.undo")}
       </Button>
     </p>
   );

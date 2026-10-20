@@ -9,15 +9,23 @@ import type {
   InviteCodeResponse,
   InviteCodesResponse,
   ItemHistoryResponse,
+  List,
+  ListEditRequest,
   ListItem,
   ListItemEditRequest,
   ListItemResponse,
+  ListResponse,
+  ListSummary,
+  ListSummaryResponse,
+  ListsResponse,
   LogEntry,
   LogEntryEditRequest,
   LogEntryResponse,
   LogResponse,
   MediaItem,
   MediaItemResponse,
+  NewListItemRequest,
+  NewListRequest,
   NewLogEntryRequest,
   NewLogEntryResponse,
   PlanRequest,
@@ -282,5 +290,97 @@ export async function removeListItem(listItemId: number): Promise<boolean> {
     return response.ok || response.status === 404;
   } catch {
     return false;
+  }
+}
+
+export async function fetchLists(): Promise<ListSummary[]> {
+  const response = await fetch("/api/lists");
+  if (!response.ok) throw new Error(`Loading the Lists failed: ${response.status}`);
+  return ((await response.json()) as ListsResponse).lists;
+}
+
+// One of the User's Lists, or null when they have no such List.
+export async function fetchList(listId: number): Promise<List | null> {
+  const response = await fetch(`/api/lists/${listId}`);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Loading the List failed: ${response.status}`);
+  return ((await response.json()) as ListResponse).list;
+}
+
+export type ListError = "list_name_reserved" | "list_name_taken" | "too_many_lists" | "unavailable";
+
+export type SaveListResult = { ok: true; list: ListSummary } | { ok: false; error: ListError };
+
+const listErrors = new Set<string>(["list_name_reserved", "list_name_taken", "too_many_lists"]);
+
+// Sends a new or edited List, and reads back the List or the reason it was refused.
+async function sendList(
+  url: string,
+  method: "POST" | "PATCH",
+  request: NewListRequest | ListEditRequest,
+): Promise<SaveListResult> {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) {
+      return { ok: true, list: ((await response.json()) as ListSummaryResponse).list };
+    }
+    const { error } = (await response.json()) as ErrorResponse;
+    return { ok: false, error: listErrors.has(error) ? (error as ListError) : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+export function createList(request: NewListRequest): Promise<SaveListResult> {
+  return sendList("/api/lists", "POST", request);
+}
+
+export function editList(listId: number, edit: ListEditRequest): Promise<SaveListResult> {
+  return sendList(`/api/lists/${listId}`, "PATCH", edit);
+}
+
+// True once the List is gone, including when it already was.
+export async function deleteList(listId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/lists/${listId}`, { method: "DELETE" });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+export type AddToListError = "already_in_list" | "list_full" | "unavailable";
+
+export type AddToListResult =
+  | { ok: true; listItem: ListItem }
+  | { ok: false; error: AddToListError };
+
+const addToListErrors = new Set<string>(["already_in_list", "list_full"]);
+
+// Adds a Media Item to a List, or puts a removed one back where it was with its Note.
+export async function addToList(
+  listId: number,
+  request: NewListItemRequest,
+): Promise<AddToListResult> {
+  try {
+    const response = await fetch(`/api/lists/${listId}/items`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) {
+      return { ok: true, listItem: ((await response.json()) as ListItemResponse).listItem };
+    }
+    const { error } = (await response.json()) as ErrorResponse;
+    return {
+      ok: false,
+      error: addToListErrors.has(error) ? (error as AddToListError) : "unavailable",
+    };
+  } catch {
+    return { ok: false, error: "unavailable" };
   }
 }

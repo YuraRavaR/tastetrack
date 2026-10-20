@@ -1,9 +1,7 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { fillBacklog } from "../support/backlog";
+import { alien, aliens, amelie, searchResult, titlesOf } from "../support/films";
 import { logInNewUser } from "../support/users";
-
-// Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So these tests
-// use only well-known films, and check only what both answer alike.
 
 async function theBacklog(request: APIRequestContext) {
   const response = await request.get("/api/backlog", { params: { mediaType: "film" } });
@@ -20,32 +18,6 @@ test("a new User has an empty film Backlog from registration", async ({ request 
     items: [],
   });
 });
-
-async function searchResult(request: APIRequestContext, query: string, id: string) {
-  const response = await request.get("/api/catalog/search", {
-    params: { mediaType: "film", query },
-  });
-  expect(response.status()).toBe(200);
-  const { results } = await response.json();
-  const result = results.find((r: { externalReference: { id: string } }) => {
-    return r.externalReference.id === id;
-  });
-  expect(result, `TMDB film ${id} among the results for "${query}"`).toBeDefined();
-  return result;
-}
-
-// A film's Media Item, as adding it from search makes or finds it.
-async function film(request: APIRequestContext, query: string, id: string) {
-  const response = await request.post("/api/catalog/items", {
-    data: await searchResult(request, query, id),
-  });
-  expect([200, 201]).toContain(response.status());
-  return (await response.json()).mediaItem;
-}
-
-const alien = (request: APIRequestContext) => film(request, "alien", "348");
-const aliens = (request: APIRequestContext) => film(request, "aliens", "679");
-const amelie = (request: APIRequestContext) => film(request, "amelie", "194");
 
 // Marks a Media Item Planned: its List Item in the Backlog.
 async function plan(request: APIRequestContext, data: object) {
@@ -104,12 +76,7 @@ async function patchListItem(request: APIRequestContext, id: number, data: objec
 }
 
 async function backlogTitles(request: APIRequestContext) {
-  const { items } = await theBacklog(request);
-  return items.map((item: { mediaItem: { externalReference: { id: string } } }) => {
-    return { "348": "Alien", "679": "Aliens", "194": "Amélie" }[
-      item.mediaItem.externalReference.id
-    ];
-  });
+  return titlesOf((await theBacklog(request)).items);
 }
 
 test("the User reorders the Backlog by hand", async ({ request }) => {

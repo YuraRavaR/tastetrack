@@ -3,7 +3,7 @@
 import { z } from "@hono/zod-openapi";
 import { passwordLength, usernamePattern } from "./accounts";
 import { maxSearchQueryLength } from "./catalog";
-import { maxNoteLength } from "./lists";
+import { maxListDescriptionLength, maxListNameLength, maxNoteLength, visibilities } from "./lists";
 import { maxReviewLength, ratingStars } from "./log";
 
 export const HealthResponse = z
@@ -381,3 +381,104 @@ export type ListItemEditRequest = z.infer<typeof ListItemEditRequest>;
 export const ListItemParams = z.object({
   listItemId: z.coerce.number().int().positive().openapi({ example: 12 }),
 });
+
+export const Visibility = z.enum(visibilities).openapi({ example: "private" });
+
+// A List's name is trimmed; two names that differ only in case are the same name. An empty
+// description counts as none.
+const ListName = z
+  .string()
+  .trim()
+  .min(1)
+  .max(maxListNameLength)
+  .openapi({ example: "Horror nights" });
+
+const ListDescription = z
+  .string()
+  .max(maxListDescriptionLength)
+  .openapi({ example: "Something to watch each Friday in October." });
+
+// The Media Type is set once, here.
+export const NewListRequest = z
+  .object({
+    name: ListName,
+    description: ListDescription.nullable().optional(),
+    mediaType: MediaType,
+  })
+  .openapi("NewListRequest");
+
+export type NewListRequest = z.input<typeof NewListRequest>;
+
+// Only the fields given change; a null or empty description clears it. The Media Type is set
+// once, when the List is made, and Visibility changes only through its Share Link.
+export const ListEditRequest = z
+  .object({
+    name: ListName.optional(),
+    description: ListDescription.nullable().optional(),
+  })
+  .strict()
+  .openapi("ListEditRequest");
+
+export type ListEditRequest = z.infer<typeof ListEditRequest>;
+
+// One of the User's own Lists without its items, and how many it holds.
+export const ListSummary = z
+  .object({
+    id: z.int().openapi({ example: 5 }),
+    name: z.string().openapi({ example: "Horror nights" }),
+    description: z.string().nullable().openapi({ example: "Something to watch each Friday." }),
+    mediaType: MediaType,
+    visibility: Visibility,
+    itemCount: z.int().min(0).openapi({ example: 3 }),
+  })
+  .openapi("ListSummary");
+
+export type ListSummary = z.infer<typeof ListSummary>;
+
+export const ListSummaryResponse = z
+  .object({
+    list: ListSummary,
+  })
+  .openapi("ListSummaryResponse");
+
+export type ListSummaryResponse = z.infer<typeof ListSummaryResponse>;
+
+export const ListsResponse = z
+  .object({
+    lists: z.array(ListSummary),
+  })
+  .openapi("ListsResponse");
+
+export type ListsResponse = z.infer<typeof ListsResponse>;
+
+// One of the User's own Lists with its List Items in order.
+export const List = ListSummary.omit({ itemCount: true })
+  .extend({ items: z.array(ListItem) })
+  .openapi("List");
+
+export type List = z.infer<typeof List>;
+
+export const ListResponse = z
+  .object({
+    list: List,
+  })
+  .openapi("ListResponse");
+
+export type ListResponse = z.infer<typeof ListResponse>;
+
+export const ListParams = z.object({
+  listId: z.coerce.number().int().positive().openapi({ example: 5 }),
+});
+
+// Adds a Media Item to one of the User's Lists at `position`, counted from 0, or at the end
+// without one: putting a removed item back where it was, with its Note, undoes the removal. An
+// empty Note counts as none.
+export const NewListItemRequest = z
+  .object({
+    mediaItemId: z.int().positive().openapi({ example: 42 }),
+    position: z.int().min(0).optional().openapi({ example: 0 }),
+    note: Note.nullable().optional(),
+  })
+  .openapi("NewListItemRequest");
+
+export type NewListItemRequest = z.infer<typeof NewListItemRequest>;

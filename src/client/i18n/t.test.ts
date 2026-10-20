@@ -14,6 +14,17 @@ describe("English plurals", () => {
   });
 });
 
+describe("how many Lists", () => {
+  it.each([
+    [0, "0 Lists"],
+    [1, "1 List"],
+    [2, "2 Lists"],
+    [100, "100 Lists"],
+  ])("%i → %s", (count, expected) => {
+    expect(t("lists.count", { count })).toBe(expected);
+  });
+});
+
 describe("how many times a film was watched", () => {
   it.each([
     [0, "Not watched yet"],
