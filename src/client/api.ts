@@ -1,5 +1,7 @@
 // Calls to the Worker's API. The session travels in an HttpOnly cookie, so nothing here holds it.
 import type {
+  Backlog,
+  BacklogResponse,
   CatalogSearchResponse,
   CatalogSearchResult,
   ErrorResponse,
@@ -7,6 +9,9 @@ import type {
   InviteCodeResponse,
   InviteCodesResponse,
   ItemHistoryResponse,
+  ListItem,
+  ListItemEditRequest,
+  ListItemResponse,
   LogEntry,
   LogEntryEditRequest,
   LogEntryResponse,
@@ -14,7 +19,10 @@ import type {
   MediaItem,
   MediaItemResponse,
   NewLogEntryRequest,
+  NewLogEntryResponse,
+  PlanRequest,
   RegisterRequest,
+  RemovedListItem,
   User,
   UserResponse,
 } from "../shared/api";
@@ -145,9 +153,15 @@ export async function addToCatalog(result: CatalogSearchResult): Promise<MediaIt
 
 export type LogEntryError = LogDateProblem | "unavailable";
 
-export type SaveLogEntryResult =
-  | { ok: true; logEntry: LogEntry }
-  | { ok: false; error: LogEntryError };
+// removedFromBacklog is where a new Log Entry's film was in the Backlog before logging took it
+// off; an edit never does, so it is null then.
+export interface SavedLogEntry {
+  ok: true;
+  logEntry: LogEntry;
+  removedFromBacklog: RemovedListItem | null;
+}
+
+export type SaveLogEntryResult = SavedLogEntry | { ok: false; error: LogEntryError };
 
 const logEntryErrors = new Set<string>(["invalid_date", "date_too_early", "date_in_future"]);
 
@@ -164,7 +178,12 @@ async function sendLogEntry(
       body: JSON.stringify(request),
     });
     if (response.ok) {
-      return { ok: true, logEntry: ((await response.json()) as LogEntryResponse).logEntry };
+      const body = (await response.json()) as LogEntryResponse & Partial<NewLogEntryResponse>;
+      return {
+        ok: true,
+        logEntry: body.logEntry,
+        removedFromBacklog: body.removedFromBacklog ?? null,
+      };
     }
     const { error } = (await response.json()) as ErrorResponse;
     return {
@@ -209,4 +228,59 @@ export async function fetchItemHistory(mediaItemId: number): Promise<ItemHistory
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Loading the Item History failed: ${response.status}`);
   return (await response.json()) as ItemHistoryResponse;
+}
+
+export async function fetchBacklog(): Promise<Backlog> {
+  const response = await fetch("/api/backlog?mediaType=film");
+  if (!response.ok) throw new Error(`Loading the Backlog failed: ${response.status}`);
+  return ((await response.json()) as BacklogResponse).backlog;
+}
+
+export type PlanResult =
+  | { ok: true; listItem: ListItem }
+  | { ok: false; error: "backlog_full" | "unavailable" };
+
+// Marks a Media Item Planned, or puts it back where it was with its Note to undo taking it off.
+export async function plan(request: PlanRequest): Promise<PlanResult> {
+  try {
+    const response = await fetch("/api/backlog/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) {
+      return { ok: true, listItem: ((await response.json()) as ListItemResponse).listItem };
+    }
+    return { ok: false, error: response.status === 409 ? "backlog_full" : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+// The edited List Item, or null when it couldn't be saved.
+export async function editListItem(
+  listItemId: number,
+  edit: ListItemEditRequest,
+): Promise<ListItem | null> {
+  try {
+    const response = await fetch(`/api/list-items/${listItemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(edit),
+    });
+    if (!response.ok) return null;
+    return ((await response.json()) as ListItemResponse).listItem;
+  } catch {
+    return null;
+  }
+}
+
+// True once the List Item is gone, including when it already was.
+export async function removeListItem(listItemId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/list-items/${listItemId}`, { method: "DELETE" });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
 }

@@ -1,8 +1,9 @@
 // A Drizzle database for Node scripts, backed by `wrangler d1 execute`, so the Operator CLI runs
 // the Worker's own data code against the D1 of any environment. It provides the part of a D1
-// binding that Drizzle uses for single statements (prepare, bind, then all / raw / first / run);
-// batches and transactions aren't supported. Wrangler takes no bound parameters, so each value
-// is inlined as an SQLite literal.
+// binding that Drizzle uses (prepare, bind, then all / raw / first / run, and batch), but not
+// transactions. Wrangler takes no bound parameters, so each value is inlined as an SQLite literal.
+// A batch goes as one command of several statements, which wrangler runs as one D1 batch, all or
+// nothing.
 import { spawn } from "node:child_process";
 import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 
@@ -69,18 +70,33 @@ function wrangler(
 
 // `target` is the wrangler arguments that pick the database, e.g. ["--env", "local", "--local"].
 export function wranglerDatabase(target: readonly string[]): DrizzleD1Database {
-  async function execute(sql: string): Promise<Row[]> {
-    const result = await wrangler(["d1", "execute", "DB", ...target, "--json", "--command", sql]);
+  // The rows of each statement, in order.
+  async function execute(statements: string[]): Promise<Row[][]> {
+    const command = statements.join(";\n");
+    const result = await wrangler([
+      "d1",
+      "execute",
+      "DB",
+      ...target,
+      "--json",
+      "--command",
+      command,
+    ]);
     if (result.code !== 0) {
       throw new WranglerError(`wrangler d1 execute failed:\n${result.stderr}${result.stdout}`);
     }
-    const [statement] = JSON.parse(result.stdout) as { results: Row[] }[];
-    return statement?.results ?? [];
+    return (JSON.parse(result.stdout) as { results: Row[] }[]).map((each) => each.results);
   }
 
+  type Statement = ReturnType<typeof statement>;
+
   function statement(sql: string, values: unknown[]) {
-    const all = async () => ({ results: await execute(inline(sql, values)), success: true });
+    const all = async () => {
+      const [results = []] = await execute([inline(sql, values)]);
+      return { results, success: true };
+    };
     return {
+      inlined: () => inline(sql, values),
       bind: (...bound: unknown[]) => statement(sql, bound),
       all,
       run: all,
@@ -96,8 +112,9 @@ export function wranglerDatabase(target: readonly string[]): DrizzleD1Database {
 
   const binding = {
     prepare: (sql: string) => statement(sql, []),
-    batch: () => {
-      throw new WranglerError("Batches aren't supported over wrangler d1 execute.");
+    batch: async (statements: Statement[]) => {
+      const results = await execute(statements.map((each) => each.inlined()));
+      return results.map((rows) => ({ results: rows, success: true }));
     },
   };
   return drizzle(binding as unknown as Parameters<typeof drizzle>[0]);

@@ -144,3 +144,49 @@ export const logEntries = sqliteTable(
     check("log_entries_rating_range", sql`${table.rating} between 1 and 10`),
   ],
 );
+
+// A List: an ordered collection of Media Items of one Media Type, owned by a User. The Backlog is
+// the system List of what the User plans to experience: every User has exactly one per Media Type,
+// made with their account. It has no name, since its name is the UI's word for its Media Type
+// ("Watchlist"), so there is nothing to rename.
+export const lists = sqliteTable(
+  "lists",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: ["backlog"] }).notNull(),
+    mediaType: text("media_type", { enum: ["film"] }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    index("lists_user_id_idx").on(table.userId),
+    uniqueIndex("lists_backlog_unique")
+      .on(table.userId, table.mediaType)
+      .where(sql`${table.kind} = 'backlog'`),
+  ],
+);
+
+// One Media Item's place in one List, with an optional Note. Items are in position order, with
+// the id breaking ties, so a gap left by a removed item changes nothing; reordering numbers the
+// whole List afresh from 0.
+export const listItems = sqliteTable(
+  "list_items",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    listId: integer("list_id")
+      .notNull()
+      .references(() => lists.id, { onDelete: "cascade" }),
+    mediaItemId: integer("media_item_id")
+      .notNull()
+      .references(() => mediaItems.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    note: text("note"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("list_items_list_media_item_unique").on(table.listId, table.mediaItemId),
+    index("list_items_media_item_id_idx").on(table.mediaItemId),
+  ],
+);

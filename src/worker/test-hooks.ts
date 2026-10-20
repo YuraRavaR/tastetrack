@@ -3,9 +3,11 @@
 import { z } from "@hono/zod-openapi";
 import { Hono } from "hono";
 import { type ErrorResponse, Password, Username } from "../shared/api";
+import { maxListItems } from "../shared/lists";
 import { createUser, deleteUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
 import { tmdbFake } from "./catalog/tmdb-fake";
 import { type AppEnv, testHooksOn } from "./env";
+import { fillBacklog } from "./lists/backlog";
 import { simulateLogin } from "./pbkdf2-spike";
 
 export const testHooks = new Hono<AppEnv>();
@@ -59,6 +61,19 @@ testHooks.get("/users/:username/invited-by", async (c) => {
   const invitedBy = await inviterOf(c.var.db, c.req.param("username"));
   if (invitedBy === undefined) return c.notFound();
   return c.json({ invitedBy }, 200);
+});
+
+// Plans placeholder films for a User, so tests reach the Backlog's limit without adding a
+// thousand films through search.
+const BacklogFill = z.object({ count: z.int().min(1).max(maxListItems) });
+
+testHooks.post("/users/:username/backlog", async (c) => {
+  const body = BacklogFill.safeParse(await c.req.json().catch(() => undefined));
+  if (!body.success) return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
+  if (!(await fillBacklog(c.var.db, c.req.param("username"), body.data.count, c.var.now))) {
+    return c.notFound();
+  }
+  return c.body(null, 204);
 });
 
 // The TMDB fake that the `local` Worker searches (wrangler.jsonc).

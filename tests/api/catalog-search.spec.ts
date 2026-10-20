@@ -28,6 +28,7 @@ test("an English query finds the film with its title, Original Title, year and p
     posterUrl: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w92\/\w+\.jpg$/),
     titleLanguage: "en",
     inLog: false,
+    inBacklog: false,
   });
 });
 
