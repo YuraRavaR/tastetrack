@@ -42,10 +42,11 @@ export function useListItemEditing({
     await reload();
   }
 
-  async function noted() {
+  // Closes the Note dialog once its Note is saved, and shows the Note.
+  async function noteSaved() {
     setNoting(null);
     await reload();
   }
 
-  return { noting, setNoting, noted, removed, error, setError, move, remove, undo };
+  return { noting, setNoting, noteSaved, removed, error, move, remove, undo };
 }

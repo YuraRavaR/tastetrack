@@ -36,6 +36,9 @@ describe("List names", () => {
     ["Ґанок і їжак", "ґАНОК І ЇЖАК"],
     // The same letter written precomposed and as a base letter plus an accent.
     ["Amélie", "Amélie"],
+    // Letters whose capitals are more than one letter, or that have more than one small form.
+    ["Straße", "STRASSE"],
+    ["ΟΔΟΣ", "οδοσ"],
   ])("%j is the same name as %j", (name, other) => {
     expect(sameListName(name, other)).toBe(true);
   });

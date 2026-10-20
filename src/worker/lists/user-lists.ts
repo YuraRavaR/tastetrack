@@ -31,22 +31,24 @@ const summaryColumns = {
   visibility: lists.visibility,
 };
 
-type SummaryRow = {
-  id: number;
-  name: string | null;
-  description: string | null;
-  mediaType: ListSummary["mediaType"];
-  visibility: ListSummary["visibility"];
-};
+// The User's Lists with how many items each holds, for `.where` on lists.
+function selectSummaries(db: DrizzleD1Database) {
+  return db
+    .select({ ...summaryColumns, itemCount: count(listItems.id) })
+    .from(lists)
+    .leftJoin(listItems, eq(listItems.listId, lists.id));
+}
 
-function toSummary(row: SummaryRow, itemCount: number): ListSummary {
+type SummaryRow = Awaited<ReturnType<typeof selectSummaries>>[number];
+
+function toSummary(row: SummaryRow): ListSummary {
   if (row.name === null) throw new Error(`List ${row.id} has no name`);
-  return { ...row, name: row.name, itemCount };
+  return { ...row, name: row.name };
 }
 
 // One of the User's own Lists, never the Backlog: that is reached only as the Backlog.
 function ownList(userId: number, listId: number) {
-  return and(eq(lists.id, listId), eq(lists.userId, userId), eq(lists.kind, "custom"));
+  return and(eq(lists.id, listId), eq(lists.userId, userId), eq(lists.kind, "list"));
 }
 
 // An empty description counts as none.
@@ -70,7 +72,7 @@ export async function createList(
   const nameKey = listNameKey(request.name);
   // The List is inserted only while the User has room, and only under a name of its own.
   const listCount = sql`(
-    select count(*) from ${lists} where user_id = ${userId} and kind = 'custom'
+    select count(*) from ${lists} where user_id = ${userId} and kind = 'list'
   )`;
   const [inserted, [taken]] = await db.batch([
     db
@@ -81,7 +83,7 @@ export async function createList(
           .select({
             id: sql<number>`null`.as("id"),
             userId: users.id,
-            kind: sql<"custom">`'custom'`.as("kind"),
+            kind: sql<"list">`'list'`.as("kind"),
             mediaType: sql<MediaType>`${request.mediaType}`.as("media_type"),
             name: sql<string>`${request.name}`.as("name"),
             nameKey: sql<string>`${nameKey}`.as("name_key"),
@@ -102,31 +104,17 @@ export async function createList(
       .where(and(eq(lists.userId, userId), eq(lists.nameKey, nameKey))),
   ]);
   const [created] = inserted;
-  if (created) return { ok: true, list: toSummary(created, 0) };
+  if (created) return { ok: true, list: toSummary({ ...created, itemCount: 0 }) };
   return { ok: false, error: taken ? "list_name_taken" : "too_many_lists" };
-}
-
-// The User's Lists with how many items each holds, for `.where` on lists.
-function selectSummaries(db: DrizzleD1Database) {
-  return db
-    .select({ ...summaryColumns, itemCount: count(listItems.id) })
-    .from(lists)
-    .leftJoin(listItems, eq(listItems.listId, lists.id));
-}
-
-type SummaryCountRow = Awaited<ReturnType<typeof selectSummaries>>[number];
-
-function toSummaryOf({ itemCount, ...row }: SummaryCountRow): ListSummary {
-  return toSummary(row, itemCount);
 }
 
 // The User's own Lists, oldest first, each with how many items it holds, in one query.
 export async function userLists(db: DrizzleD1Database, userId: number): Promise<ListSummary[]> {
   const rows = await selectSummaries(db)
-    .where(and(eq(lists.userId, userId), eq(lists.kind, "custom")))
+    .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
     .groupBy(lists.id)
     .orderBy(asc(lists.createdAt), asc(lists.id));
-  return rows.map(toSummaryOf);
+  return rows.map(toSummary);
 }
 
 export type EditedList =
@@ -152,7 +140,7 @@ export async function editList(
   };
   if (Object.keys(changes).length === 0) {
     const [list] = await summary;
-    return list ? { ok: true, list: toSummaryOf(list) } : { ok: false, error: "unknown_list" };
+    return list ? { ok: true, list: toSummary(list) } : { ok: false, error: "unknown_list" };
   }
   // The name changes only while no other List of the User's has it.
   const sameName =
@@ -173,7 +161,7 @@ export async function editList(
   ]);
   if (!list) return { ok: false, error: "unknown_list" };
   if (updated.length === 0) return { ok: false, error: "list_name_taken" };
-  return { ok: true, list: toSummaryOf(list) };
+  return { ok: true, list: toSummary(list) };
 }
 
 // Deletes one of the User's Lists with its List Items, and nothing else: their Media Items and
@@ -202,7 +190,7 @@ export async function userList(
       .orderBy(...listOrder),
   ]);
   if (!list) return null;
-  const { itemCount: _, ...summary } = toSummary(list, rows.length);
+  const { itemCount: _, ...summary } = toSummary({ ...list, itemCount: rows.length });
   return { ...summary, items: rows.map(toListItem) };
 }
 

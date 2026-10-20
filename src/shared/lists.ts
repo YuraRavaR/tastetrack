@@ -29,9 +29,11 @@ export const maxListNameLength = 100;
 export const maxListDescriptionLength = 1_000;
 
 // What makes two List names the same name: they match once trimmed, in one Unicode form and
-// regardless of case, in any alphabet. A User's Lists all have different keys.
+// regardless of case, in any alphabet. Going through capitals first folds letters with more than
+// one small form, or a capital of several letters, such as ß. A User's Lists all have different
+// keys.
 export function listNameKey(name: string): string {
-  return name.trim().normalize("NFC").toLowerCase();
+  return name.trim().normalize("NFC").toUpperCase().toLowerCase();
 }
 
 export function sameListName(name: string, other: string): boolean {

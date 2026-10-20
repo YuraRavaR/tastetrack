@@ -21,6 +21,7 @@ import { maxListItems, maxLists } from "../shared/lists";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
 import { plan, userBacklog } from "./lists/backlog";
+import { editListItem, removeListItem } from "./lists/list-items";
 import {
   addToList,
   createList,
@@ -28,8 +29,7 @@ import {
   editList,
   userList,
   userLists,
-} from "./lists/custom-lists";
-import { editListItem, removeListItem } from "./lists/list-items";
+} from "./lists/user-lists";
 
 const backlogRoute = createRoute({
   method: "get",
@@ -337,15 +337,25 @@ listRoutes.openapi(removeRoute, async (c) => {
   return c.body(null, 204);
 });
 
+// The status each refusal of a List or of adding to one answers with.
+const listErrorStatus = {
+  unknown_list: 404,
+  unknown_media_item: 400,
+  wrong_media_type: 400,
+  list_name_reserved: 400,
+  list_name_taken: 409,
+  too_many_lists: 409,
+  already_in_list: 409,
+  list_full: 409,
+} as const;
+
 listRoutes.openapi(listsRoute, async (c) => {
   return c.json({ lists: await userLists(c.var.db, c.var.userId) }, 200);
 });
 
 listRoutes.openapi(createListRoute, async (c) => {
   const created = await createList(c.var.db, c.var.userId, c.req.valid("json"), c.var.now);
-  if (!created.ok) {
-    return c.json({ error: created.error }, created.error === "list_name_reserved" ? 400 : 409);
-  }
+  if (!created.ok) return c.json({ error: created.error }, listErrorStatus[created.error]);
   return c.json({ list: created.list }, 201);
 });
 
@@ -358,7 +368,7 @@ listRoutes.openapi(listRoute, async (c) => {
 listRoutes.openapi(editListRoute, async (c) => {
   const { listId } = c.req.valid("param");
   const edited = await editList(c.var.db, c.var.userId, listId, c.req.valid("json"));
-  if (!edited.ok) return c.json({ error: edited.error }, editListStatus[edited.error]);
+  if (!edited.ok) return c.json({ error: edited.error }, listErrorStatus[edited.error]);
   return c.json({ list: edited.list }, 200);
 });
 
@@ -369,23 +379,9 @@ listRoutes.openapi(deleteListRoute, async (c) => {
   return c.body(null, 204);
 });
 
-const editListStatus = {
-  unknown_list: 404,
-  list_name_reserved: 400,
-  list_name_taken: 409,
-} as const;
-
-const addToListStatus = {
-  unknown_list: 404,
-  unknown_media_item: 400,
-  wrong_media_type: 400,
-  already_in_list: 409,
-  list_full: 409,
-} as const;
-
 listRoutes.openapi(addToListRoute, async (c) => {
   const { listId } = c.req.valid("param");
   const added = await addToList(c.var.db, c.var.userId, listId, c.req.valid("json"), c.var.now);
-  if (!added.ok) return c.json({ error: added.error }, addToListStatus[added.error]);
+  if (!added.ok) return c.json({ error: added.error }, listErrorStatus[added.error]);
   return c.json({ listItem: added.listItem }, 201);
 });

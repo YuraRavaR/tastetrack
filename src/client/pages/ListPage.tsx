@@ -139,11 +139,11 @@ export function ListPage() {
           <NoteDialog
             item={editing.noting}
             onClose={() => editing.setNoting(null)}
-            onSaved={editing.noted}
+            onSaved={editing.noteSaved}
           />
           <ListFormDialog
             open={editingList}
-            list={{ ...state.list, itemCount: state.list.items.length }}
+            list={state.list}
             onClose={() => setEditingList(false)}
             onSaved={async () => {
               setEditingList(false);

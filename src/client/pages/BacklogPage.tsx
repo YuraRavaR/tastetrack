@@ -104,7 +104,7 @@ export function BacklogPage() {
       <NoteDialog
         item={editing.noting}
         onClose={() => editing.setNoting(null)}
-        onSaved={editing.noted}
+        onSaved={editing.noteSaved}
       />
     </div>
   );

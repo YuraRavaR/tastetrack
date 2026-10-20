@@ -17,6 +17,9 @@ import { maxListDescriptionLength, maxListNameLength, maxLists } from "../../sha
 import * as api from "../api";
 import { t } from "../i18n/t";
 
+// The fields of a List that the form edits.
+type ListFields = Pick<ListSummary, "id" | "name" | "description">;
+
 // Makes a film List, or renames one and changes its description when `list` is given. The dialog
 // is open while `open` is set, and stays open until the List is saved.
 export function ListFormDialog({
@@ -26,7 +29,7 @@ export function ListFormDialog({
   onSaved,
 }: {
   open: boolean;
-  list?: ListSummary;
+  list?: ListFields;
   onClose: () => void;
   onSaved: (list: ListSummary) => void;
 }) {
@@ -50,7 +53,7 @@ function errorMessage(error: api.ListError): string {
   }
 }
 
-function ListForm({ list, onSaved }: { list?: ListSummary; onSaved: (list: ListSummary) => void }) {
+function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSummary) => void }) {
   const ids = { name: useId(), description: useId(), hint: useId(), error: useId() };
   const [name, setName] = useState(list?.name ?? "");
   const [description, setDescription] = useState(list?.description ?? "");
