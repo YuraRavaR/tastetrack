@@ -50,3 +50,7 @@ export const maxManualSearchResults = 20;
 
 // A User holds at most this many Manual Media Items.
 export const maxManualMediaItems = 1_000;
+
+// A page fetches the metadata of at most this many films missing from the TMDB cache, and shows
+// the rest as placeholders, which the client then loads this many at a time (ADR-0004).
+export const maxMetadataFills = 10;

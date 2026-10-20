@@ -7,6 +7,7 @@ import {
   filmGenres,
   filmRuntime,
   maxManualTitleLength,
+  maxMetadataFills,
   maxSearchQueryLength,
 } from "./catalog";
 import { maxListDescriptionLength, maxListNameLength, maxNoteLength, visibilities } from "./lists";
@@ -210,6 +211,25 @@ export const CatalogSearchResponse = z
   .openapi("CatalogSearchResponse");
 
 export type CatalogSearchResponse = z.infer<typeof CatalogSearchResponse>;
+
+// Media Items by id, for loading what a page showed as placeholders: 1 to `maxMetadataFills`
+// positive ids, comma-separated.
+export const MediaItemIdsQuery = z.object({
+  ids: z
+    .string()
+    .regex(/^\d+(,\d+)*$/)
+    .transform((ids) => ids.split(",").map(Number))
+    .pipe(z.array(z.int().positive()).min(1).max(maxMetadataFills))
+    .openapi({ type: "string", example: "42,43" }),
+});
+
+export const MediaItemsResponse = z
+  .object({
+    mediaItems: z.array(MediaItem),
+  })
+  .openapi("MediaItemsResponse");
+
+export type MediaItemsResponse = z.infer<typeof MediaItemsResponse>;
 
 export const MediaItemResponse = z
   .object({

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import type { SharedList } from "../../shared/api";
 import * as api from "../api";
+import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { FilmTitle } from "../components/FilmTitle";
 import { Poster } from "../components/Poster";
 import { t } from "../i18n/t";
@@ -27,6 +28,9 @@ async function loadSharedList(token: string): Promise<SharedListState> {
 export function SharedListPage() {
   const token = useParams().token ?? "";
   const [state, setState] = useState<SharedListState>({ status: "loading" });
+  const fill = useMetadataFill(
+    state.status === "loaded" ? state.list.items.map((item) => item.mediaItem) : [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -67,17 +71,20 @@ export function SharedListPage() {
         <p className="text-muted-foreground text-sm">{t("shared.empty")}</p>
       ) : (
         <ul aria-label={list.title} className="flex flex-col divide-y rounded-lg border">
-          {list.items.map((item) => (
-            <li key={item.position} className="flex gap-3 px-3 py-3">
-              <Poster url={item.mediaItem.metadata?.posterUrl ?? null} />
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <FilmTitle metadata={item.mediaItem.metadata} />
-                {item.note && (
-                  <p className="whitespace-pre-line break-words text-sm">{item.note}</p>
-                )}
-              </div>
-            </li>
-          ))}
+          {list.items.map((item) => {
+            const metadata = fill.filled(item.mediaItem).metadata;
+            return (
+              <li key={item.position} className="flex gap-3 px-3 py-3">
+                <Poster url={metadata?.posterUrl ?? null} />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <FilmTitle metadata={metadata} loading={fill.loading(item.mediaItem)} />
+                  {item.note && (
+                    <p className="whitespace-pre-line break-words text-sm">{item.note}</p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

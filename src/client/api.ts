@@ -27,6 +27,7 @@ import type {
   ManualSearchResult,
   MediaItem,
   MediaItemResponse,
+  MediaItemsResponse,
   NewListItemRequest,
   NewListRequest,
   NewLogEntryRequest,
@@ -165,6 +166,21 @@ export async function addToCatalog(result: CatalogSearchResult): Promise<MediaIt
     return ((await response.json()) as MediaItemResponse).mediaItem;
   } catch {
     return null;
+  }
+}
+
+// Catalog-backed Media Items by id, filled with the metadata the cache was missing where TMDB
+// answers; empty when they couldn't be loaded.
+export async function fetchMediaItems(ids: number[]): Promise<Map<number, MediaItem>> {
+  try {
+    const response = await fetch(
+      `/api/catalog/items?${new URLSearchParams({ ids: ids.join(",") })}`,
+    );
+    if (!response.ok) return new Map();
+    const { mediaItems } = (await response.json()) as MediaItemsResponse;
+    return new Map(mediaItems.map((mediaItem) => [mediaItem.id, mediaItem]));
+  } catch {
+    return new Map();
   }
 }
 

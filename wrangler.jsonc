@@ -5,7 +5,9 @@
 // searches the TMDB fake among its own test hooks with a placeholder token. TMDB_ACCESS_TOKEN is
 // a secret on staging and production, set with `wrangler secret put` (see README). The Worker
 // runs first for the API and for Share Link pages (/s/*), whose <head> it fills in on the app's
-// HTML from the ASSETS binding (ADR-0008); everything else is served as static assets.
+// HTML from the ASSETS binding (ADR-0008); everything else is served as static assets. The Cron
+// Trigger refreshes the TMDB cache every 15 minutes (ADR-0004); envs inherit it, and `wrangler
+// dev` doesn't run it, so local tests run it through the test hooks' manual trigger.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tastetrack",
@@ -16,6 +18,9 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*", "/s/*"]
+  },
+  "triggers": {
+    "crons": ["*/15 * * * *"]
   },
   "vars": {
     "TMDB_BASE_URL": "https://api.themoviedb.org/3"

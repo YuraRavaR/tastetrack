@@ -15,6 +15,7 @@ export function listItemLabel(item: ListItem): string {
 // One film of a List or the Watchlist, with its Note, and buttons to move, note or remove it.
 export function ListItemRow({
   item,
+  loading,
   first,
   last,
   onMove,
@@ -22,6 +23,8 @@ export function ListItemRow({
   onRemove,
 }: {
   item: ListItem;
+  // True while the page loads the film's metadata.
+  loading: boolean;
   first: boolean;
   last: boolean;
   onMove: (position: number) => void;
@@ -37,7 +40,7 @@ export function ListItemRow({
             to={`/items/${item.mediaItem.id}`}
             className="underline-offset-4 hover:underline focus-visible:underline"
           >
-            <FilmTitle metadata={item.mediaItem.metadata} />
+            <FilmTitle metadata={item.mediaItem.metadata} loading={loading} />
           </Link>
           {item.note && <p className="whitespace-pre-line break-words text-sm">{item.note}</p>}
         </div>
