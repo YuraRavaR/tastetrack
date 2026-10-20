@@ -12,6 +12,7 @@ import { requireUser, unauthenticatedResponse } from "./auth";
 import { addFromSearch } from "./catalog/media-items";
 import { searchFilms, type TmdbConfig, TmdbUnavailable } from "./catalog/tmdb";
 import type { AppEnv } from "./env";
+import { plannedExternalIds } from "./lists/backlog";
 import { loggedExternalIds } from "./log/log-entries";
 
 const searchRoute = createRoute({
@@ -21,7 +22,7 @@ const searchRoute = createRoute({
   description:
     "One TMDB search in the query's language: uk-UA when the query has a Cyrillic letter, " +
     "otherwise en-US. Results come in TMDB's order, titled in that language, and marked when " +
-    "the User has a Log Entry for them.",
+    "the User has a Log Entry for them and when they are in the User's Backlog.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: { query: CatalogSearchQuery },
@@ -88,16 +89,15 @@ catalogRoutes.openapi(searchRoute, async (c) => {
     console.error(error);
     return c.json({ error: "catalog_unavailable" }, 502);
   }
-  const logged = await loggedExternalIds(
-    c.var.db,
-    c.var.userId,
-    "tmdb",
-    mediaType,
-    matches.map((match) => match.externalReference.id),
-  );
+  const ids = matches.map((match) => match.externalReference.id);
+  const [logged, planned] = await Promise.all([
+    loggedExternalIds(c.var.db, c.var.userId, "tmdb", mediaType, ids),
+    plannedExternalIds(c.var.db, c.var.userId, "tmdb", mediaType, ids),
+  ]);
   const results = matches.map((match) => ({
     ...match,
     inLog: logged.has(match.externalReference.id),
+    inBacklog: planned.has(match.externalReference.id),
   }));
   return c.json({ results }, 200);
 });

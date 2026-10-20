@@ -21,6 +21,18 @@ test("the Operator creates a User who can then log in", async ({ request }) => {
   expect(login.status()).toBe(200);
 });
 
+test("the Operator's User has an empty film Backlog from the start", async ({ request }) => {
+  const username = uniqueUsername();
+  const password = "a long enough password";
+  await runOperator(["create-user", "--env", "local"], [username, password, password]);
+  await request.post("/api/auth/login", { data: { username, password } });
+
+  const response = await request.get("/api/backlog", { params: { mediaType: "film" } });
+
+  expect(response.status()).toBe(200);
+  expect((await response.json()).backlog).toMatchObject({ mediaType: "film", items: [] });
+});
+
 test("the Operator can't create a Username that is taken in any case", async () => {
   const username = uniqueUsername();
   const password = "a long enough password";

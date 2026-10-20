@@ -9,6 +9,7 @@ import type {
   LogEntryEditRequest,
   MediaType,
   NewLogEntryRequest,
+  RemovedListItem,
 } from "../../shared/api";
 import {
   currentRating,
@@ -19,6 +20,7 @@ import {
   toStars,
 } from "../../shared/log";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "../catalog/media-items";
+import { takeOffBacklog } from "../lists/backlog";
 
 const logEntryColumns = {
   id: logEntries.id,
@@ -58,12 +60,13 @@ export type NewLogEntry = Required<Omit<NewLogEntryRequest, "timeZone">> &
 export type LogEntryProblem = LogDateProblem | "invalid_rating" | "unknown_media_item";
 
 export type CreatedLogEntry =
-  | { ok: true; logEntry: LogEntry }
+  | { ok: true; logEntry: LogEntry; removedFromBacklog: RemovedListItem | null }
   | { ok: false; error: LogEntryProblem };
 
-// Records that the User experienced the Media Item. A first entry may be a Revisit, and an empty
-// Review counts as none. Every Media Item is catalog-backed and so open to every User for now;
-// Manual Media Items will need an owner check here.
+// Records that the User experienced the Media Item, and takes it off their Backlog in the same
+// batch; `removedFromBacklog` says where it was, so the client can offer to undo that. A first
+// entry may be a Revisit, and an empty Review counts as none. Every Media Item is catalog-backed
+// and so open to every User for now; Manual Media Items will need an owner check here.
 export async function createLogEntry(
   db: DrizzleD1Database,
   userId: number,
@@ -75,26 +78,32 @@ export async function createLogEntry(
   const dateProblem = request.date && logDateProblem(request.date, now, request.timeZone);
   if (dateProblem) return { ok: false, error: dateProblem };
 
-  const [inserted] = await db
-    .insert(logEntries)
-    .values({
-      userId,
-      mediaItemId: request.mediaItemId,
-      rating,
-      date: request.date,
-      review: request.review?.trim() || null,
-      revisit: request.revisit,
-      createdAt: now,
-    })
-    .returning({ id: logEntries.id })
+  const batch = await db
+    .batch([
+      db
+        .insert(logEntries)
+        .values({
+          userId,
+          mediaItemId: request.mediaItemId,
+          rating,
+          date: request.date,
+          review: request.review?.trim() || null,
+          revisit: request.revisit,
+          createdAt: now,
+        })
+        .returning({ id: logEntries.id }),
+      ...takeOffBacklog(db, userId, request.mediaItemId),
+    ])
     .catch((error: unknown) => {
-      if (isForeignKeyViolation(error)) return [];
+      if (isForeignKeyViolation(error)) return null;
       throw error;
     });
-  if (!inserted) return { ok: false, error: "unknown_media_item" };
+  if (!batch) return { ok: false, error: "unknown_media_item" };
+  const [[inserted], [removed]] = batch;
+  if (!inserted) throw new Error(`Logging ${request.mediaItemId} inserted nothing`);
   const [row] = await selectLog(db).where(eq(logEntries.id, inserted.id));
   if (!row) throw new Error(`Log Entry ${inserted.id} vanished`);
-  return { ok: true, logEntry: toLogEntry(row) };
+  return { ok: true, logEntry: toLogEntry(row), removedFromBacklog: removed ?? null };
 }
 
 // One of the User's own Log Entries: another User's is as unknown as one that doesn't exist.

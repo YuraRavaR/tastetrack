@@ -28,8 +28,8 @@ export function posterPathOf(url: string | null): string | null {
   return match ? (match[1] ?? null) : null;
 }
 
-// A search result before the User's own data, such as their Log, is added to it.
-export type CatalogSearchMatch = Omit<CatalogSearchResult, "inLog">;
+// A search result before the User's own data, their Log and Backlog, is added to it.
+export type CatalogSearchMatch = Omit<CatalogSearchResult, "inLog" | "inBacklog">;
 
 // Only the fields we use, so TMDB adding or dropping others doesn't break us.
 const TmdbFilm = z.object({

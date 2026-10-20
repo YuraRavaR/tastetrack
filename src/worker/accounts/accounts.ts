@@ -5,6 +5,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { alias } from "drizzle-orm/sqlite-core";
 import { inviteCodes, sessions, users } from "../../db/schema";
 import type { RegisterRequest, User } from "../../shared/api";
+import { createBacklog } from "../lists/backlog";
 import {
   activeAt,
   type InviteCodeProblem,
@@ -51,21 +52,25 @@ export interface NewUser {
   passwordIterations?: number;
 }
 
-// Returns null when the Username is taken, in any letter case.
+// Creates the User with their Backlog. Returns null when the Username is taken, in any letter
+// case.
 export async function createUser(
   db: DrizzleD1Database,
   { username, password, passwordIterations }: NewUser,
   now: Date,
 ): Promise<User | null> {
-  const [created] = await db
-    .insert(users)
-    .values({
-      username,
-      ...passwordColumns(await hashPassword(password, passwordIterations)),
-      createdAt: now,
-    })
-    .onConflictDoNothing()
-    .returning({ username: users.username });
+  const [[created]] = await db.batch([
+    db
+      .insert(users)
+      .values({
+        username,
+        ...passwordColumns(await hashPassword(password, passwordIterations)),
+        createdAt: now,
+      })
+      .onConflictDoNothing()
+      .returning({ username: users.username }),
+    createBacklog(db, byUsername(username)),
+  ]);
   return created ?? null;
 }
 
@@ -125,7 +130,7 @@ export type Registration =
   | { ok: true; loggedIn: LoggedIn }
   | { ok: false; error: InviteCodeProblem | "username_taken" };
 
-// Creates the User, marks the Invite Code used and logs the new User in. The code is checked
+// Creates the User with their Backlog, marks the Invite Code used and logs the new User in. The code is checked
 // first, so a bad one costs no hashing and only someone holding a good one learns whether a
 // Username is taken. Creating the User and using the code are then one transaction: the insert
 // copies the issuer from the code only while the code is still active, so two registrations
@@ -163,6 +168,7 @@ export async function register(
             .where(byCode),
         )
         .returning({ id: users.id }),
+      createBacklog(db, byUsername(username)),
       db.update(inviteCodes).set({ usedAt: now }).where(byCode),
     ]);
   } catch (error) {

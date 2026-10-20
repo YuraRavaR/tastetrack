@@ -21,9 +21,9 @@ import { t } from "../i18n/t";
 import { RatingInput } from "./Rating";
 
 // Marks a search result Experienced: asks for a Rating, and optionally a date, a Review and
-// whether it is a Revisit, then adds the film to the catalog and records the Log Entry. `result`
-// is the film to log; the dialog is open while it is set. Revisit starts ticked when the User
-// already has a Log Entry for the film.
+// whether it is a Revisit, then adds the film to the catalog and records the Log Entry, which
+// takes the film off the Backlog. `result` is the film to log; the dialog is open while it is
+// set. Revisit starts ticked when the User already has a Log Entry for the film.
 export function LogEntryDialog({
   result,
   inLog,
@@ -33,7 +33,7 @@ export function LogEntryDialog({
   result: CatalogSearchResult | null;
   inLog: boolean;
   onClose: () => void;
-  onLogged: (result: CatalogSearchResult) => void;
+  onLogged: (result: CatalogSearchResult, saved: api.SavedLogEntry) => void;
 }) {
   async function save(fields: LogEntryFields): Promise<api.SaveLogEntryResult> {
     if (!result) throw new Error("Saving a Log Entry with no film to log");
@@ -52,7 +52,7 @@ export function LogEntryDialog({
             description={t("logEntry.description")}
             initial={{ rating: null, date: "", review: "", revisit: inLog }}
             save={save}
-            onSaved={() => onLogged(result)}
+            onSaved={(saved) => onLogged(result, saved)}
           />
         )}
       </DialogContent>
@@ -133,7 +133,7 @@ function LogEntryForm({
   description: string;
   initial: FormValues;
   save: (fields: LogEntryFields) => Promise<api.SaveLogEntryResult>;
-  onSaved: () => void;
+  onSaved: (saved: api.SavedLogEntry) => void;
 }) {
   const ids = {
     date: useId(),
@@ -171,7 +171,7 @@ function LogEntryForm({
       setError(outcome.error);
       return;
     }
-    onSaved();
+    onSaved(outcome);
   }
 
   return (

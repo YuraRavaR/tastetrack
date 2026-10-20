@@ -10,6 +10,7 @@ import {
   LogResponse,
   MediaItemParams,
   NewLogEntryRequest,
+  NewLogEntryResponse,
 } from "../shared/api";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
@@ -25,6 +26,9 @@ const experiencedRoute = createRoute({
   method: "post",
   path: "/log-entries",
   summary: "Mark a Media Item Experienced, recording a Log Entry",
+  description:
+    "Also takes the Media Item off the User's Backlog, and says where it was and its Note, so " +
+    "that marking it Planned at that position with that Note undoes it.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -32,8 +36,8 @@ const experiencedRoute = createRoute({
   },
   responses: {
     201: {
-      content: { "application/json": { schema: LogEntryResponse } },
-      description: "The new Log Entry",
+      content: { "application/json": { schema: NewLogEntryResponse } },
+      description: "The new Log Entry, and where its Media Item was in the Backlog, if it was",
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
@@ -155,7 +159,8 @@ export const logRoutes = new OpenAPIHono<AppEnv>();
 logRoutes.openapi(experiencedRoute, async (c) => {
   const created = await createLogEntry(c.var.db, c.var.userId, c.req.valid("json"), c.var.now);
   if (!created.ok) return c.json({ error: created.error }, 400);
-  return c.json({ logEntry: created.logEntry }, 201);
+  const { logEntry, removedFromBacklog } = created;
+  return c.json({ logEntry, removedFromBacklog }, 201);
 });
 
 logRoutes.openapi(editRoute, async (c) => {
