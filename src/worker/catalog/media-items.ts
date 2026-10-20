@@ -1,6 +1,7 @@
-// Catalog-backed Media Items and their metadata in the disposable TMDB cache (ADR-0004). Only the
-// External Reference is User-facing data; everything read from the cache may be missing.
-import { and, eq } from "drizzle-orm";
+// Media Items as Users see them: catalog-backed ones with their metadata in the disposable TMDB
+// cache (ADR-0004), where only the External Reference is User-facing data and everything read
+// from the cache may be missing, and Manual Media Items with their own.
+import { and, eq, isNull, or } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { mediaItems, tmdbCache } from "../../db/schema";
 import type {
@@ -20,12 +21,25 @@ export const cacheOfMediaItem = and(
   eq(tmdbCache.externalId, mediaItems.externalId),
 );
 
+// The Media Items the User may see: every catalog-backed one, and their own Manual Media Items.
+// Another User's is as unknown as one that doesn't exist.
+export function visibleTo(userId: number) {
+  return or(isNull(mediaItems.ownerId), eq(mediaItems.ownerId, userId));
+}
+
 // The columns `toMediaItem` needs, from media_items left-joined with tmdb_cache.
 export const mediaItemColumns = {
   mediaItemId: mediaItems.id,
   mediaType: mediaItems.mediaType,
   externalSource: mediaItems.externalSource,
   externalId: mediaItems.externalId,
+  manual: {
+    title: mediaItems.title,
+    originalTitle: mediaItems.originalTitle,
+    year: mediaItems.year,
+    runtime: mediaItems.runtime,
+    genres: mediaItems.genres,
+  },
   cache: {
     englishTitle: tmdbCache.englishTitle,
     ukrainianTitle: tmdbCache.ukrainianTitle,
@@ -39,11 +53,18 @@ export const mediaItemColumns = {
 
 type CachedMetadata = Pick<CacheEntry, keyof (typeof mediaItemColumns)["cache"]>;
 
+type ManualMetadata = Pick<
+  typeof mediaItems.$inferSelect,
+  keyof (typeof mediaItemColumns)["manual"]
+>;
+
 interface MediaItemRow {
   mediaItemId: number;
   mediaType: "film";
   externalSource: "tmdb" | null;
   externalId: string | null;
+  // All null for a catalog-backed item.
+  manual: ManualMetadata;
   // Null when the cache has no entry for the item.
   cache: CachedMetadata | null;
 }
@@ -64,9 +85,31 @@ function toMetadata(cached: CachedMetadata): FilmMetadata {
   };
 }
 
+// A Manual Media Item shows the title its User gave, in any language, unchanged, with the title
+// standing in for an Original Title it doesn't have, as TMDB's does.
+function fromManual(id: number, manual: ManualMetadata): FilmMetadata {
+  if (manual.title === null) {
+    throw new Error(`Media Item ${id} has neither an External Reference nor a title`);
+  }
+  return {
+    title: manual.title,
+    originalTitle: manual.originalTitle ?? manual.title,
+    ukrainianTitle: null,
+    year: manual.year,
+    posterUrl: null,
+    runtime: manual.runtime,
+    genres: manual.genres ?? [],
+  };
+}
+
 export function toMediaItem(row: MediaItemRow): MediaItem {
   if (row.externalSource === null || row.externalId === null) {
-    throw new Error(`Media Item ${row.mediaItemId} has no External Reference`);
+    return {
+      id: row.mediaItemId,
+      mediaType: row.mediaType,
+      externalReference: null,
+      metadata: fromManual(row.mediaItemId, row.manual),
+    };
   }
   return {
     id: row.mediaItemId,

@@ -14,6 +14,7 @@ import type {
   NewListRequest,
 } from "../../shared/api";
 import { isReservedListName, listNameKey, maxLists } from "../../shared/lists";
+import { visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
   listOrder,
@@ -208,7 +209,8 @@ export type AddedToList =
 
 // Adds a Media Item to one of the User's Lists, at `position` when given and at the end
 // otherwise, with its Note. A Media Item already there is refused, and so is one of another Media
-// Type than the List's. A List holds at most `maxListItems`.
+// Type than the List's. A List holds at most `maxListItems`. Another User's Manual Media Item is
+// as unknown as one that doesn't exist.
 export async function addToList(
   db: DrizzleD1Database,
   userId: number,
@@ -219,7 +221,7 @@ export async function addToList(
   const [found] = await db
     .select({ listMediaType: lists.mediaType, mediaType: mediaItems.mediaType })
     .from(lists)
-    .leftJoin(mediaItems, eq(mediaItems.id, request.mediaItemId))
+    .leftJoin(mediaItems, and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId)))
     .where(ownList(userId, listId));
   if (!found) return { ok: false, error: "unknown_list" };
   if (found.mediaType === null) return { ok: false, error: "unknown_media_item" };

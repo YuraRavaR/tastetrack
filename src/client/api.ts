@@ -22,12 +22,16 @@ import type {
   LogEntryEditRequest,
   LogEntryResponse,
   LogResponse,
+  ManualMediaItemEditRequest,
+  ManualMediaItemResponse,
+  ManualSearchResult,
   MediaItem,
   MediaItemResponse,
   NewListItemRequest,
   NewListRequest,
   NewLogEntryRequest,
   NewLogEntryResponse,
+  NewManualMediaItemRequest,
   PlanRequest,
   RegisterRequest,
   RemovedListItem,
@@ -127,7 +131,7 @@ export async function generateInviteCode(): Promise<GenerateInviteCodeResult> {
 }
 
 export type CatalogSearchOutcome =
-  | { ok: true; results: CatalogSearchResult[] }
+  | { ok: true; manualResults: ManualSearchResult[]; results: CatalogSearchResult[] }
   | { ok: false; error: "aborted" | "unavailable" };
 
 export async function searchCatalog(
@@ -138,7 +142,8 @@ export async function searchCatalog(
   try {
     const response = await fetch(`/api/catalog/search?${params}`, { signal });
     if (!response.ok) return { ok: false, error: "unavailable" };
-    return { ok: true, results: ((await response.json()) as CatalogSearchResponse).results };
+    const { manualResults, results } = (await response.json()) as CatalogSearchResponse;
+    return { ok: true, manualResults, results };
   } catch {
     return { ok: false, error: signal.aborted ? "aborted" : "unavailable" };
   }
@@ -156,6 +161,83 @@ export async function addToCatalog(result: CatalogSearchResult): Promise<MediaIt
     return ((await response.json()) as MediaItemResponse).mediaItem;
   } catch {
     return null;
+  }
+}
+
+export type ManualMediaItemError =
+  | "possible_duplicate"
+  | "too_many_manual_media_items"
+  | "invalid_request"
+  | "unavailable";
+
+export type SaveManualMediaItemResult =
+  | { ok: true; mediaItem: MediaItem }
+  | { ok: false; error: ManualMediaItemError };
+
+const manualMediaItemErrors = new Set<string>([
+  "possible_duplicate",
+  "too_many_manual_media_items",
+  "invalid_request",
+]);
+
+// Sends a new or edited Manual Media Item, and reads back the item or the reason it was refused.
+async function sendManualMediaItem(
+  url: string,
+  method: "POST" | "PATCH",
+  request: NewManualMediaItemRequest | ManualMediaItemEditRequest,
+): Promise<SaveManualMediaItemResult> {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) {
+      return { ok: true, mediaItem: ((await response.json()) as MediaItemResponse).mediaItem };
+    }
+    const { error } = (await response.json()) as ErrorResponse;
+    return {
+      ok: false,
+      error: manualMediaItemErrors.has(error) ? (error as ManualMediaItemError) : "unavailable",
+    };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+export function createManualMediaItem(
+  request: NewManualMediaItemRequest,
+): Promise<SaveManualMediaItemResult> {
+  return sendManualMediaItem("/api/catalog/manual-items", "POST", request);
+}
+
+export function editManualMediaItem(
+  mediaItemId: number,
+  edit: ManualMediaItemEditRequest,
+): Promise<SaveManualMediaItemResult> {
+  return sendManualMediaItem(`/api/catalog/manual-items/${mediaItemId}`, "PATCH", edit);
+}
+
+// One of the User's Manual Media Items and what deleting it would delete, or null when they have
+// no such item.
+export async function fetchManualMediaItem(
+  mediaItemId: number,
+): Promise<ManualMediaItemResponse | null> {
+  const response = await fetch(`/api/catalog/manual-items/${mediaItemId}`);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Loading the Manual Media Item failed: ${response.status}`);
+  return (await response.json()) as ManualMediaItemResponse;
+}
+
+// True once the Manual Media Item is gone, including when it already was.
+export async function deleteManualMediaItem(mediaItemId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/catalog/manual-items/${mediaItemId}`, {
+      method: "DELETE",
+    });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
   }
 }
 

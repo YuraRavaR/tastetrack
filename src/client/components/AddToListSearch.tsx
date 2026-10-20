@@ -3,48 +3,52 @@ import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CatalogSearchResult, ExternalReference, List } from "../../shared/api";
+import type { List } from "../../shared/api";
 import { maxSearchQueryLength } from "../../shared/catalog";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
-import { filmLabel } from "../catalog/film-label";
+import {
+  type Found,
+  foundKey,
+  foundLabel,
+  foundPosterUrl,
+  mediaItemKey,
+  mediaItemOf,
+} from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { t } from "../i18n/t";
 import { Poster } from "./Poster";
 
-function keyOf({ source, id }: ExternalReference): string {
-  return `${source}:${id}`;
-}
-
-// Search as you type, as on the home page, where each film not yet in the List can be added to
-// its end. `onAdded` reloads the List, which then marks the film as in it.
+// Search as you type, as on the home page, the User's own Manual Media Items first, where each
+// film not yet in the List can be added to its end. `onAdded` reloads the List, which then marks
+// the film as in it.
 export function AddToListSearch({ list, onAdded }: { list: List; onAdded: () => Promise<void> }) {
   const inputId = useId();
   const [query, setQuery] = useState("");
   const search = useCatalogSearch(query);
   const [adding, setAdding] = useState<ReadonlySet<string>>(new Set());
   const [error, setError] = useState<api.AddToListError | null>(null);
-  const inList = new Set(list.items.map((item) => keyOf(item.mediaItem.externalReference)));
+  const inList = new Set(list.items.map((item) => mediaItemKey(item.mediaItem)));
 
-  function setAddingOf(result: CatalogSearchResult, busy: boolean) {
+  function setAddingOf(found: Found, busy: boolean) {
     setAdding((current) => {
       const next = new Set(current);
-      if (busy) next.add(keyOf(result.externalReference));
-      else next.delete(keyOf(result.externalReference));
+      if (busy) next.add(foundKey(found));
+      else next.delete(foundKey(found));
       return next;
     });
   }
 
-  async function add(result: CatalogSearchResult) {
+  async function add(found: Found) {
     setError(null);
-    setAddingOf(result, true);
-    const mediaItem = await api.addToCatalog(result);
+    setAddingOf(found, true);
+    const mediaItem = await mediaItemOf(found);
     const outcome = mediaItem
       ? await api.addToList(list.id, { mediaItemId: mediaItem.id })
       : ({ ok: false, error: "unavailable" } as const);
     if (!outcome.ok) setError(outcome.error);
     await onAdded();
-    setAddingOf(result, false);
+    setAddingOf(found, false);
   }
 
   return (
@@ -84,13 +88,13 @@ export function AddToListSearch({ list, onAdded }: { list: List; onAdded: () => 
           aria-label={t("search.resultsLabel")}
           className="flex flex-col divide-y rounded-lg border"
         >
-          {search.results.map((result) => {
-            const key = keyOf(result.externalReference);
+          {search.results.map((found) => {
+            const key = foundKey(found);
             return (
               <li key={key} className="flex items-center gap-3 px-3 py-2">
-                <Poster url={result.posterUrl} />
+                <Poster url={foundPosterUrl(found)} />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="break-words">{filmLabel(result)}</span>
+                  <span className="break-words">{foundLabel(found)}</span>
                   {inList.has(key) && (
                     <span className="flex items-center gap-1 text-muted-foreground text-sm">
                       <ListCheck aria-hidden className="size-4 text-primary" />
@@ -104,7 +108,7 @@ export function AddToListSearch({ list, onAdded }: { list: List; onAdded: () => 
                     size="sm"
                     className="shrink-0"
                     disabled={adding.has(key)}
-                    onClick={() => add(result)}
+                    onClick={() => add(found)}
                   >
                     {t("list.add")}
                   </Button>

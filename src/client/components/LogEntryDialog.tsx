@@ -13,46 +13,47 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { CatalogSearchResult, LogEntry } from "../../shared/api";
+import type { LogEntry } from "../../shared/api";
 import { earliestLogDate, latestLogDate, maxReviewLength } from "../../shared/log";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
+import { type Found, foundKey, foundLabel, mediaItemOf } from "../catalog/found";
 import { t } from "../i18n/t";
 import { RatingInput } from "./Rating";
 
-// Marks a search result Experienced: asks for a Rating, and optionally a date, a Review and
-// whether it is a Revisit, then adds the film to the catalog and records the Log Entry, which
-// takes the film off the Backlog. `result` is the film to log; the dialog is open while it is
-// set. Revisit starts ticked when the User already has a Log Entry for the film.
+// Marks a film search found Experienced: asks for a Rating, and optionally a date, a Review and
+// whether it is a Revisit, then adds a TMDB result to the catalog and records the Log Entry, which
+// takes the film off the Backlog. `found` is the film to log; the dialog is open while it is set.
+// Revisit starts ticked when the User already has a Log Entry for the film.
 export function LogEntryDialog({
-  result,
+  found,
   inLog,
   onClose,
   onLogged,
 }: {
-  result: CatalogSearchResult | null;
+  found: Found | null;
   inLog: boolean;
   onClose: () => void;
-  onLogged: (result: CatalogSearchResult, saved: api.SavedLogEntry) => void;
+  onLogged: (found: Found, saved: api.SavedLogEntry) => void;
 }) {
   async function save(fields: LogEntryFields): Promise<api.SaveLogEntryResult> {
-    if (!result) throw new Error("Saving a Log Entry with no film to log");
-    const mediaItem = await api.addToCatalog(result);
+    if (!found) throw new Error("Saving a Log Entry with no film to log");
+    const mediaItem = await mediaItemOf(found);
     if (!mediaItem) return { ok: false, error: "unavailable" };
     return api.createLogEntry({ mediaItemId: mediaItem.id, ...fields });
   }
 
   return (
-    <Dialog open={result !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={found !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
-        {result && (
+        {found && (
           <LogEntryForm
-            key={`${result.externalReference.source}:${result.externalReference.id}`}
-            title={t("logEntry.title", { film: filmLabel(result) })}
+            key={foundKey(found)}
+            title={t("logEntry.title", { film: foundLabel(found) })}
             description={t("logEntry.description")}
             initial={{ rating: null, date: "", review: "", revisit: inLog }}
             save={save}
-            onSaved={(saved) => onLogged(result, saved)}
+            onSaved={(saved) => onLogged(found, saved)}
           />
         )}
       </DialogContent>

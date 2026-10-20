@@ -43,6 +43,13 @@
       "when": 1792486420014,
       "tag": "0005_custom_lists",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792498424130,
+      "tag": "0006_manual_media_items",
+      "breakpoints": true
     }
   ]
 }

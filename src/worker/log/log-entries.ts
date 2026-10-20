@@ -1,6 +1,6 @@
 // Log Entries: the Experienced action and the Log. Route handlers only translate HTTP to these
 // calls; the rules themselves are the domain core's (src/shared/log.ts).
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { logEntries, mediaItems, tmdbCache } from "../../db/schema";
 import type {
@@ -19,7 +19,7 @@ import {
   storedRating,
   toStars,
 } from "../../shared/log";
-import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "../catalog/media-items";
+import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
 import { takeOffBacklog } from "../lists/backlog";
 
 const logEntryColumns = {
@@ -65,8 +65,8 @@ export type CreatedLogEntry =
 
 // Records that the User experienced the Media Item, and takes it off their Backlog in the same
 // batch; `removedFromBacklog` says where it was, so the client can offer to undo that. A first
-// entry may be a Revisit, and an empty Review counts as none. Every Media Item is catalog-backed
-// and so open to every User for now; Manual Media Items will need an owner check here.
+// entry may be a Revisit, and an empty Review counts as none. Another User's Manual Media Item is
+// as unknown as one that doesn't exist.
 export async function createLogEntry(
   db: DrizzleD1Database,
   userId: number,
@@ -78,29 +78,31 @@ export async function createLogEntry(
   const dateProblem = request.date && logDateProblem(request.date, now, request.timeZone);
   if (dateProblem) return { ok: false, error: dateProblem };
 
-  const batch = await db
-    .batch([
-      db
-        .insert(logEntries)
-        .values({
-          userId,
-          mediaItemId: request.mediaItemId,
-          rating,
-          date: request.date,
-          review: request.review?.trim() || null,
-          revisit: request.revisit,
-          createdAt: now,
-        })
-        .returning({ id: logEntries.id }),
-      ...takeOffBacklog(db, userId, request.mediaItemId),
-    ])
-    .catch((error: unknown) => {
-      if (isForeignKeyViolation(error)) return null;
-      throw error;
-    });
-  if (!batch) return { ok: false, error: "unknown_media_item" };
-  const [[inserted], [removed]] = batch;
-  if (!inserted) throw new Error(`Logging ${request.mediaItemId} inserted nothing`);
+  // The entry is inserted only for a Media Item the User may see. Nothing else could have put one
+  // they may not see in their Backlog, so taking it off alongside is safe either way.
+  const [[inserted], [removed]] = await db.batch([
+    db
+      .insert(logEntries)
+      .select(
+        // Insert-select lists every column in schema order; a null id takes the next one.
+        db
+          .select({
+            id: sql<number>`null`.as("id"),
+            userId: sql<number>`${userId}`.as("user_id"),
+            mediaItemId: mediaItems.id,
+            rating: sql<number>`${rating}`.as("rating"),
+            date: sql<string | null>`${request.date}`.as("date"),
+            review: sql<string | null>`${request.review?.trim() || null}`.as("review"),
+            revisit: sql<boolean>`${request.revisit ? 1 : 0}`.as("revisit"),
+            createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+          })
+          .from(mediaItems)
+          .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId))),
+      )
+      .returning({ id: logEntries.id }),
+    ...takeOffBacklog(db, userId, request.mediaItemId),
+  ]);
+  if (!inserted) return { ok: false, error: "unknown_media_item" };
   const [row] = await selectLog(db).where(eq(logEntries.id, inserted.id));
   if (!row) throw new Error(`Log Entry ${inserted.id} vanished`);
   return { ok: true, logEntry: toLogEntry(row), removedFromBacklog: removed ?? null };
@@ -160,23 +162,15 @@ export async function deleteLogEntry(
   return deleted.length > 0;
 }
 
-// D1 reports a broken foreign key as an error whose message, possibly on a wrapped cause, says so.
-function isForeignKeyViolation(error: unknown): boolean {
-  for (let cause = error; cause instanceof Error; cause = cause.cause) {
-    if (cause.message.includes("FOREIGN KEY constraint failed")) return true;
-  }
-  return false;
-}
-
 // The User's whole Log, in Log Order, in one query.
 export async function userLog(db: DrizzleD1Database, userId: number): Promise<LogEntry[]> {
   const rows = await selectLog(db).where(eq(logEntries.userId, userId)).orderBy(logEntries.id);
   return inLogOrder(rows).map(toLogEntry);
 }
 
-// The User's Item History of a Media Item, or null when there is no such Media Item. Two queries,
-// not a db.batch: D1 returns batched rows keyed by column name, so the join's two id columns would
-// collide.
+// The User's Item History of a Media Item, or null when there is no such Media Item they may see.
+// Two queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
+// columns would collide.
 export async function itemHistory(
   db: DrizzleD1Database,
   userId: number,
@@ -187,7 +181,7 @@ export async function itemHistory(
       .select(mediaItemColumns)
       .from(mediaItems)
       .leftJoin(tmdbCache, cacheOfMediaItem)
-      .where(eq(mediaItems.id, mediaItemId)),
+      .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId))),
     selectLog(db)
       .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))
       .orderBy(logEntries.id),

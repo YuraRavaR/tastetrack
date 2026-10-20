@@ -2,7 +2,13 @@
 // spec) and the client (response types).
 import { z } from "@hono/zod-openapi";
 import { passwordLength, usernamePattern } from "./accounts";
-import { maxSearchQueryLength } from "./catalog";
+import {
+  earliestFilmYear,
+  filmGenres,
+  filmRuntime,
+  maxManualTitleLength,
+  maxSearchQueryLength,
+} from "./catalog";
 import { maxListDescriptionLength, maxListNameLength, maxNoteLength, visibilities } from "./lists";
 import { maxReviewLength, ratingStars } from "./log";
 
@@ -130,14 +136,6 @@ export const CatalogSearchResult = z
 
 export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
 
-export const CatalogSearchResponse = z
-  .object({
-    results: z.array(CatalogSearchResult),
-  })
-  .openapi("CatalogSearchResponse");
-
-export type CatalogSearchResponse = z.infer<typeof CatalogSearchResponse>;
-
 // A search result as the client got it, to add its film to the catalog. The details call
 // replaces what it says; it stands in only when that call fails. inLog and inBacklog, if sent,
 // are ignored.
@@ -176,18 +174,42 @@ export const FilmMetadata = z
 
 export type FilmMetadata = z.infer<typeof FilmMetadata>;
 
-// A catalog-backed Media Item. Its metadata comes from the disposable cache, so it is null while
-// the cache has no entry for it.
+// A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
+// while the cache has no entry for it. A Manual Media Item has no External Reference, and its
+// metadata is what its User gave: never a poster or a Ukrainian title, and the title as its
+// Original Title when it has none.
 export const MediaItem = z
   .object({
     id: z.int().openapi({ example: 42 }),
     mediaType: MediaType,
-    externalReference: ExternalReference,
+    externalReference: ExternalReference.nullable(),
     metadata: FilmMetadata.nullable(),
   })
   .openapi("MediaItem");
 
 export type MediaItem = z.infer<typeof MediaItem>;
+
+// One of the User's own Manual Media Items that matches a search, marked like a search result.
+export const ManualSearchResult = z
+  .object({
+    mediaItem: MediaItem,
+    inLog: z.boolean(),
+    inBacklog: z.boolean(),
+  })
+  .openapi("ManualSearchResult");
+
+export type ManualSearchResult = z.infer<typeof ManualSearchResult>;
+
+// The User's own matching Manual Media Items, to be listed first, and the External Source's
+// results.
+export const CatalogSearchResponse = z
+  .object({
+    manualResults: z.array(ManualSearchResult),
+    results: z.array(CatalogSearchResult),
+  })
+  .openapi("CatalogSearchResponse");
+
+export type CatalogSearchResponse = z.infer<typeof CatalogSearchResponse>;
 
 export const MediaItemResponse = z
   .object({
@@ -196,6 +218,84 @@ export const MediaItemResponse = z
   .openapi("MediaItemResponse");
 
 export type MediaItemResponse = z.infer<typeof MediaItemResponse>;
+
+// What a User gives about a Manual Media Item. Titles are trimmed, and an empty Original Title
+// counts as none. A year after five years from now is refused too, by the Worker, which knows
+// when now is. Genres are TMDB's film genres, each at most once.
+const ManualTitle = z
+  .string()
+  .trim()
+  .min(1)
+  .max(maxManualTitleLength)
+  .openapi({ example: "Тіні забутих предків" });
+
+const ManualOriginalTitle = z
+  .string()
+  .trim()
+  .max(maxManualTitleLength)
+  .nullable()
+  .openapi({ example: "Shadows of Forgotten Ancestors" });
+
+const ManualYear = z.int().min(earliestFilmYear).nullable().openapi({ example: 1965 });
+
+const ManualRuntime = z
+  .int()
+  .min(filmRuntime.min)
+  .max(filmRuntime.max)
+  .nullable()
+  .openapi({ example: 97, description: "Minutes" });
+
+const ManualGenres = z
+  .array(z.enum(filmGenres))
+  .refine((genres) => new Set(genres).size === genres.length, "Each genre at most once")
+  .openapi({ example: ["Drama", "Romance"] });
+
+// A new Manual Media Item. One with the same title and year as another of the User's is refused
+// as a possible duplicate unless allowDuplicate says to make it anyway.
+export const NewManualMediaItemRequest = z
+  .object({
+    mediaType: MediaType,
+    title: ManualTitle,
+    originalTitle: ManualOriginalTitle.default(null),
+    year: ManualYear.default(null),
+    runtime: ManualRuntime.default(null),
+    genres: ManualGenres.default([]),
+    allowDuplicate: z.boolean().default(false),
+  })
+  .openapi("NewManualMediaItemRequest");
+
+export type NewManualMediaItemRequest = z.input<typeof NewManualMediaItemRequest>;
+
+export type NewManualMediaItem = z.output<typeof NewManualMediaItemRequest>;
+
+// Only the fields given change, by the same rules as a new one; a null or empty Original Title,
+// or a null year or runtime, clears it. The Media Type can't change.
+export const ManualMediaItemEditRequest = z
+  .object({
+    title: ManualTitle.optional(),
+    originalTitle: ManualOriginalTitle.optional(),
+    year: ManualYear.optional(),
+    runtime: ManualRuntime.optional(),
+    genres: ManualGenres.optional(),
+  })
+  .strict()
+  .openapi("ManualMediaItemEditRequest");
+
+export type ManualMediaItemEditRequest = z.infer<typeof ManualMediaItemEditRequest>;
+
+// A Manual Media Item, and what deleting it would delete with it: the User's Log Entries for it
+// and the List Items, the Backlog's included, it has.
+export const ManualMediaItemResponse = z
+  .object({
+    mediaItem: MediaItem,
+    usage: z.object({
+      logEntries: z.int().min(0).openapi({ example: 2 }),
+      listItems: z.int().min(0).openapi({ example: 1 }),
+    }),
+  })
+  .openapi("ManualMediaItemResponse");
+
+export type ManualMediaItemResponse = z.infer<typeof ManualMediaItemResponse>;
 
 const LogDate = z
   .string()

@@ -1,45 +1,54 @@
-import { Bookmark, CircleCheck } from "lucide-react";
+import { Bookmark, CircleCheck, PencilLine } from "lucide-react";
 import { useId, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CatalogSearchResult, RemovedListItem } from "../../shared/api";
+import type { RemovedListItem } from "../../shared/api";
 import { maxSearchQueryLength } from "../../shared/catalog";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
-import { filmLabel } from "../catalog/film-label";
+import {
+  type Found,
+  foundKey,
+  foundLabel,
+  foundManual,
+  foundPosterUrl,
+  mediaItemOf,
+} from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { t } from "../i18n/t";
 import { LogEntryDialog } from "./LogEntryDialog";
+import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
 import { Poster } from "./Poster";
 import { UndoLine } from "./UndoLine";
-
-function keyOf({ externalReference: { source, id } }: CatalogSearchResult): string {
-  return `${source}:${id}`;
-}
 
 // What the status line says after the User's last action on a result.
 type LastAction =
   | {
       kind: "logged";
-      result: CatalogSearchResult;
+      found: Found;
       mediaItemId: number;
       removedFromBacklog: RemovedListItem | null;
     }
-  | { kind: "putBack"; result: CatalogSearchResult };
+  | { kind: "putBack"; found: Found }
+  | { kind: "added"; found: Found };
 
 type PlanError = "backlog_full" | "unavailable";
 
-// Search as you type, with no button: results follow a short pause in typing. Any result can be
-// marked Watched, which records a Log Entry for it, as a Revisit by default if it is in the Log,
-// and takes it off the Watchlist with an undo. A result not on the Watchlist can be marked Want to
-// watch, which puts it there.
+// Search as you type, with no button: results follow a short pause in typing, the User's own
+// Manual Media Items first. Any result can be marked Watched, which records a Log Entry for it, as
+// a Revisit by default if it is in the Log, and takes it off the Watchlist with an undo. A result
+// not on the Watchlist can be marked Want to watch, which puts it there. Below the results, a film
+// search doesn't find can be added by hand, and then shows first.
 export function FilmSearch() {
   const inputId = useId();
   const [query, setQuery] = useState("");
   const search = useCatalogSearch(query);
-  const [logging, setLogging] = useState<CatalogSearchResult | null>(null);
+  const [logging, setLogging] = useState<Found | null>(null);
+  const [addingManually, setAddingManually] = useState(false);
+  // Films added by hand since the search ran, by the query they were added from.
+  const [added, setAdded] = useState<{ query: string; found: Found[] }>({ query: "", found: [] });
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const [planError, setPlanError] = useState<PlanError | null>(null);
   // Results logged since the search ran, which the search's own marks don't know about yet.
@@ -48,61 +57,79 @@ export function FilmSearch() {
   const [plannedNow, setPlannedNow] = useState<ReadonlyMap<string, boolean>>(new Map());
   const [planning, setPlanning] = useState<ReadonlySet<string>>(new Set());
 
-  const inLog = (result: CatalogSearchResult) => result.inLog || loggedNow.has(keyOf(result));
-  const inBacklog = (result: CatalogSearchResult) =>
-    plannedNow.get(keyOf(result)) ?? result.inBacklog;
+  const inLog = (found: Found) => found.inLog || loggedNow.has(foundKey(found));
+  const inBacklog = (found: Found) => plannedNow.get(foundKey(found)) ?? found.inBacklog;
 
-  function markPlanned(result: CatalogSearchResult, planned: boolean) {
-    setPlannedNow((current) => new Map(current).set(keyOf(result), planned));
+  const trimmed = query.trim();
+  const searched = new Set(search.results.map(foundKey));
+  const results = [
+    ...(added.query === trimmed
+      ? added.found.filter((found) => !searched.has(foundKey(found)))
+      : []),
+    ...search.results,
+  ];
+
+  function markPlanned(found: Found, planned: boolean) {
+    setPlannedNow((current) => new Map(current).set(foundKey(found), planned));
   }
 
-  function setPlanningOf(result: CatalogSearchResult, busy: boolean) {
+  function setPlanningOf(found: Found, busy: boolean) {
     setPlanning((current) => {
       const next = new Set(current);
-      if (busy) next.add(keyOf(result));
-      else next.delete(keyOf(result));
+      if (busy) next.add(foundKey(found));
+      else next.delete(foundKey(found));
       return next;
     });
   }
 
-  async function planned(result: CatalogSearchResult) {
+  async function planned(found: Found) {
     setPlanError(null);
-    setPlanningOf(result, true);
-    const mediaItem = await api.addToCatalog(result);
+    setPlanningOf(found, true);
+    const mediaItem = await mediaItemOf(found);
     const outcome = mediaItem
       ? await api.plan({ mediaItemId: mediaItem.id })
       : ({ ok: false, error: "unavailable" } as const);
-    setPlanningOf(result, false);
+    setPlanningOf(found, false);
     if (!outcome.ok) {
       setPlanError(outcome.error);
       return;
     }
-    markPlanned(result, true);
+    markPlanned(found, true);
   }
 
-  function logged(result: CatalogSearchResult, saved: api.SavedLogEntry) {
+  function logged(found: Found, saved: api.SavedLogEntry) {
     setLogging(null);
     setPlanError(null);
     setLastAction({
       kind: "logged",
-      result,
+      found,
       mediaItemId: saved.logEntry.mediaItem.id,
       removedFromBacklog: saved.removedFromBacklog,
     });
-    setLoggedNow((current) => new Set(current).add(keyOf(result)));
-    if (saved.removedFromBacklog) markPlanned(result, false);
+    setLoggedNow((current) => new Set(current).add(foundKey(found)));
+    if (saved.removedFromBacklog) markPlanned(found, false);
   }
 
   // Puts a logged film back on the Watchlist where it was, with its Note.
-  async function undo(result: CatalogSearchResult, mediaItemId: number, removed: RemovedListItem) {
+  async function undo(found: Found, mediaItemId: number, removed: RemovedListItem) {
     setPlanError(null);
     const outcome = await api.plan({ mediaItemId, ...removed });
     if (!outcome.ok) {
       setPlanError(outcome.error);
       return;
     }
-    markPlanned(result, true);
-    setLastAction({ kind: "putBack", result });
+    markPlanned(found, true);
+    setLastAction({ kind: "putBack", found });
+  }
+
+  function addedManually(found: Found) {
+    setAddingManually(false);
+    setPlanError(null);
+    setAdded((current) => ({
+      query: trimmed,
+      found: [found, ...(current.query === trimmed ? current.found : [])],
+    }));
+    setLastAction({ kind: "added", found });
   }
 
   const takenOff = lastAction?.kind === "logged" ? lastAction.removedFromBacklog : null;
@@ -129,21 +156,24 @@ export function FilmSearch() {
         {lastAction?.kind === "logged" && (
           <>
             <p>
-              {t("logEntry.saved", { film: filmLabel(lastAction.result) })}{" "}
+              {t("logEntry.saved", { film: foundLabel(lastAction.found) })}{" "}
               <Link to="/log" className="text-primary underline-offset-4 hover:underline">
                 {t("log.view")}
               </Link>
             </p>
             {takenOff && (
               <UndoLine
-                message={t("backlog.takenOff", { film: filmLabel(lastAction.result) })}
-                onUndo={() => undo(lastAction.result, lastAction.mediaItemId, takenOff)}
+                message={t("backlog.takenOff", { film: foundLabel(lastAction.found) })}
+                onUndo={() => undo(lastAction.found, lastAction.mediaItemId, takenOff)}
               />
             )}
           </>
         )}
         {lastAction?.kind === "putBack" && (
-          <p>{t("backlog.putBack", { film: filmLabel(lastAction.result) })}</p>
+          <p>{t("backlog.putBack", { film: foundLabel(lastAction.found) })}</p>
+        )}
+        {lastAction?.kind === "added" && (
+          <p>{t("manualItem.added", { film: foundLabel(lastAction.found) })}</p>
         )}
       </div>
       {planError && (
@@ -158,43 +188,57 @@ export function FilmSearch() {
           {t("search.unavailable")}
         </p>
       )}
-      {search.results.length > 0 && (
+      {results.length > 0 && (
         <ul
           aria-label={t("search.resultsLabel")}
           className="flex flex-col divide-y rounded-lg border"
         >
-          {search.results.map((result) => (
+          {results.map((found) => (
             <SearchResult
-              key={keyOf(result)}
-              result={result}
-              inLog={inLog(result)}
-              inBacklog={inBacklog(result)}
-              planning={planning.has(keyOf(result))}
-              onExperienced={() => setLogging(result)}
-              onPlanned={() => planned(result)}
+              key={foundKey(found)}
+              found={found}
+              inLog={inLog(found)}
+              inBacklog={inBacklog(found)}
+              planning={planning.has(foundKey(found))}
+              onExperienced={() => setLogging(found)}
+              onPlanned={() => planned(found)}
             />
           ))}
         </ul>
       )}
+      {search.status === "done" && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+          <span className="text-muted-foreground">{t("search.notFound")}</span>
+          <Button variant="outline" size="sm" onClick={() => setAddingManually(true)}>
+            {t("search.addManually")}
+          </Button>
+        </div>
+      )}
       <LogEntryDialog
-        result={logging}
+        found={logging}
         inLog={logging !== null && inLog(logging)}
         onClose={() => setLogging(null)}
         onLogged={logged}
+      />
+      <ManualMediaItemDialog
+        open={addingManually}
+        title={trimmed}
+        onClose={() => setAddingManually(false)}
+        onSaved={(mediaItem) => addedManually(foundManual(mediaItem))}
       />
     </section>
   );
 }
 
 function SearchResult({
-  result,
+  found,
   inLog,
   inBacklog,
   planning,
   onExperienced,
   onPlanned,
 }: {
-  result: CatalogSearchResult;
+  found: Found;
   inLog: boolean;
   inBacklog: boolean;
   planning: boolean;
@@ -204,9 +248,25 @@ function SearchResult({
   return (
     <li className="flex flex-col gap-2 px-3 py-2 sm:flex-row sm:items-center sm:gap-3">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Poster url={result.posterUrl} />
+        <Poster url={foundPosterUrl(found)} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="break-words">{filmLabel(result)}</span>
+          {found.kind === "manual" ? (
+            // A Manual Media Item's page is where it is edited or deleted, logged or not.
+            <Link
+              to={`/items/${found.mediaItem.id}`}
+              className="break-words underline-offset-4 hover:underline focus-visible:underline"
+            >
+              {foundLabel(found)}
+            </Link>
+          ) : (
+            <span className="break-words">{foundLabel(found)}</span>
+          )}
+          {found.kind === "manual" && (
+            <span className="flex items-center gap-1 text-muted-foreground text-sm">
+              <PencilLine aria-hidden className="size-4" />
+              {t("search.addedByYou")}
+            </span>
+          )}
           {inLog && (
             <span className="flex items-center gap-1 text-muted-foreground text-sm">
               <CircleCheck aria-hidden className="size-4 text-primary" />

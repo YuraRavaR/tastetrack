@@ -1,5 +1,6 @@
 // The rules of Lists and the Backlog. Pure functions and plain values with no I/O, shared by the
 // Worker, which enforces them, and the client, which keeps input within them.
+import { textKey } from "./text";
 
 // Who may see a List, from least to most: each level includes the ones before it. Every List
 // starts private.
@@ -28,12 +29,10 @@ export const maxLists = 100;
 export const maxListNameLength = 100;
 export const maxListDescriptionLength = 1_000;
 
-// What makes two List names the same name: they match once trimmed, in one Unicode form and
-// regardless of case, in any alphabet. Going through capitals first folds letters with more than
-// one small form, or a capital of several letters, such as ß. A User's Lists all have different
+// What makes two List names the same name (src/shared/text.ts). A User's Lists all have different
 // keys.
 export function listNameKey(name: string): string {
-  return name.trim().normalize("NFC").toUpperCase().toLowerCase();
+  return textKey(name);
 }
 
 export function sameListName(name: string, other: string): boolean {
