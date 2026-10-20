@@ -3,8 +3,8 @@
 import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, users } from "../../db/schema";
-
 import type { Backlog, ListItem, MediaType, PlanRequest } from "../../shared/api";
+import { visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
   fillList,
@@ -69,7 +69,8 @@ export type Planned =
 // Marks a Media Item Planned: adds it to the User's Backlog of its Media Type, at `position` when
 // given and at the end otherwise, with its Note. A Media Item already there keeps its place and
 // Note; `created` is false then. Planning a Media Item back where logging took it from, with its
-// Note, undoes that. A Backlog holds at most `maxListItems`.
+// Note, undoes that. A Backlog holds at most `maxListItems`. Another User's Manual Media Item is as
+// unknown as one that doesn't exist.
 export async function plan(
   db: DrizzleD1Database,
   userId: number,
@@ -87,7 +88,7 @@ export async function plan(
         eq(lists.mediaType, mediaItems.mediaType),
       ),
     )
-    .where(eq(mediaItems.id, request.mediaItemId));
+    .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId)));
   if (!found) return { ok: false, error: "unknown_media_item" };
   const { backlogId } = found;
   if (backlogId === null)

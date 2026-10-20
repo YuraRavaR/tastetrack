@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { ItemHistoryResponse, LogEntry } from "../../shared/api";
 import * as api from "../api";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
+import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { FilmTitle } from "../components/FilmTitle";
 import { LogEntryDetails } from "../components/LogEntryDetails";
 import { EditLogEntryDialog } from "../components/LogEntryDialog";
+import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
 import { Poster } from "../components/Poster";
 import { RatingStars } from "../components/Rating";
 import { t } from "../i18n/t";
@@ -29,12 +31,16 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 
 // One film's Item History: how many times the User watched it, its Current Rating, and every Log
 // Entry in Log Order, each of which can be edited or deleted. After either, the page reloads, so
-// the order and the Current Rating are always the Worker's.
+// the order and the Current Rating are always the Worker's. A film the User added manually can be
+// edited too, or deleted with everything that goes with it.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
+  const navigate = useNavigate();
   const [state, setState] = useState<HistoryState>({ status: "loading" });
   const [editing, setEditing] = useState<LogEntry | null>(null);
   const [deleting, setDeleting] = useState<LogEntry | null>(null);
+  const [editingFilm, setEditingFilm] = useState(false);
+  const [deletingFilm, setDeletingFilm] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +69,7 @@ export function ItemHistoryPage() {
   }
 
   const { mediaItem, logEntries, currentRating } = state.history;
+  const manual = mediaItem.externalReference === null;
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-4">
@@ -84,6 +91,19 @@ export function ItemHistoryPage() {
           )}
         </div>
       </div>
+      {manual && (
+        <div className="flex flex-col gap-3">
+          <p className="text-muted-foreground text-sm">{t("manualItem.addedByYou")}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditingFilm(true)}>
+              {t("manualItem.edit")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setDeletingFilm(true)}>
+              {t("manualItem.delete")}
+            </Button>
+          </div>
+        </div>
+      )}
       {logEntries.length > 0 && (
         <ul
           aria-label={t("itemHistory.listLabel")}
@@ -122,6 +142,25 @@ export function ItemHistoryPage() {
           await reload();
         }}
       />
+      {manual && (
+        <>
+          <ManualMediaItemDialog
+            open={editingFilm}
+            mediaItem={mediaItem}
+            onClose={() => setEditingFilm(false)}
+            onSaved={async () => {
+              setEditingFilm(false);
+              await reload();
+            }}
+          />
+          <DeleteManualMediaItemDialog
+            mediaItem={mediaItem}
+            open={deletingFilm}
+            onClose={() => setDeletingFilm(false)}
+            onDeleted={() => navigate("/log", { replace: true })}
+          />
+        </>
+      )}
     </div>
   );
 }

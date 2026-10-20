@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import type { CatalogSearchResult } from "../../shared/api";
 import * as api from "../api";
+import { type Found, foundIn } from "./found";
 
 // How long typing has to pause before a search runs.
 export const searchDelayMs = 400;
 
 export interface CatalogSearch {
   status: "idle" | "searching" | "done" | "failed";
-  // The latest results, kept while the next search runs so the list doesn't flicker.
-  results: CatalogSearchResult[];
+  // The latest results, the User's own Manual Media Items first, kept while the next search runs
+  // so the list doesn't flicker.
+  results: Found[];
 }
 
 const idle: CatalogSearch = { status: "idle", results: [] };
@@ -31,7 +32,7 @@ export function useCatalogSearch(query: string): CatalogSearch {
       if (controller.signal.aborted) return;
       setSearch(
         outcome.ok
-          ? { status: "done", results: outcome.results }
+          ? { status: "done", results: foundIn(outcome.manualResults, outcome.results) }
           : { status: "failed", results: [] },
       );
     }, searchDelayMs);

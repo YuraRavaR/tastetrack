@@ -71,10 +71,17 @@ export const inviteCodes = sqliteTable(
 );
 
 // A Media Item is a catalog-backed work, identified by its External Reference (External Source,
-// Media Type and the source's own id) and shared by all Users, or, later, a Manual Media Item,
-// which has no External Reference. Nothing else about a catalog-backed item is stored here: its
-// metadata lives only in the disposable cache below (ADR-0004). SQLite lets NULLs repeat in a
-// unique index, so the index constrains catalog-backed items alone.
+// Media Type and the source's own id) and shared by all Users, or a Manual Media Item, which has
+// no External Reference. Nothing else about a catalog-backed item is stored here: its metadata
+// lives only in the disposable cache below (ADR-0004). SQLite lets NULLs repeat in a unique index,
+// so the index constrains catalog-backed items alone.
+//
+// A Manual Media Item, and only one, has an owner and its own metadata: a title always, the rest
+// when its User gave them. Being manual follows from having no External Reference, with no flag of
+// its own. The keys are the titles as search and the same-title warning compare them
+// (src/shared/catalog.ts). These columns came after the table, so their rules are kept by the
+// Worker rather than a table check: adding one would rebuild the table, and on D1 dropping the old
+// one would cascade-delete every Log Entry and List Item.
 export const mediaItems = sqliteTable(
   "media_items",
   {
@@ -82,9 +89,18 @@ export const mediaItems = sqliteTable(
     mediaType: text("media_type", { enum: ["film"] }).notNull(),
     externalSource: text("external_source", { enum: ["tmdb"] }),
     externalId: text("external_id"),
+    ownerId: integer("owner_id").references(() => users.id, { onDelete: "cascade" }),
+    title: text("title"),
+    titleKey: text("title_key"),
+    originalTitle: text("original_title"),
+    originalTitleKey: text("original_title_key"),
+    year: integer("year"),
+    runtime: integer("runtime"),
+    genres: text("genres", { mode: "json" }).$type<string[]>(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => [
+    index("media_items_owner_id_idx").on(table.ownerId),
     uniqueIndex("media_items_external_reference_unique").on(
       table.externalSource,
       table.mediaType,

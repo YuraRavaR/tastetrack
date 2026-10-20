@@ -3,8 +3,10 @@
 import { z } from "@hono/zod-openapi";
 import { Hono } from "hono";
 import { type ErrorResponse, Password, Username } from "../shared/api";
+import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
 import { createUser, deleteUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
+import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { tmdbFake } from "./catalog/tmdb-fake";
 import { type AppEnv, testHooksOn } from "./env";
 import { fillBacklog } from "./lists/backlog";
@@ -84,6 +86,23 @@ testHooks.post("/lists/:listId/items", async (c) => {
     return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
   }
   if (!(await fillList(c.var.db, listId, body.data.count, c.var.now))) return c.notFound();
+  return c.body(null, 204);
+});
+
+// Adds placeholder Manual Media Items for a User, so tests reach the limit without making a
+// thousand one by one.
+const ManualFill = z.object({ count: z.int().min(1).max(maxManualMediaItems) });
+
+testHooks.post("/users/:username/manual-items", async (c) => {
+  const body = ManualFill.safeParse(await c.req.json().catch(() => undefined));
+  if (!body.success) return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
+  const filled = await fillManualMediaItems(
+    c.var.db,
+    c.req.param("username"),
+    body.data.count,
+    c.var.now,
+  );
+  if (!filled) return c.notFound();
   return c.body(null, 204);
 });
 
