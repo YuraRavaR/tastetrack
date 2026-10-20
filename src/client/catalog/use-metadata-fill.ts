@@ -23,11 +23,15 @@ export function useMetadataFill(mediaItems: readonly MediaItem[]): MetadataFill 
 
   useEffect(() => {
     let cancelled = false;
-    const ids = missing
-      .split(",")
-      .filter(Boolean)
-      .map(Number)
-      .filter((id) => !requested.current.has(id));
+    const all = missing.split(",").filter(Boolean).map(Number);
+    // The page already tried its first `maxMetadataFills` misses, in this order, and TMDB didn't
+    // answer for them, so asking again would only repeat those calls.
+    const tried = all.slice(0, maxMetadataFills).filter((id) => !requested.current.has(id));
+    for (const id of tried) requested.current.add(id);
+    if (tried.length > 0) {
+      setFound((before) => new Map([...before, ...tried.map((id) => [id, null] as const)]));
+    }
+    const ids = all.filter((id) => !requested.current.has(id));
     (async () => {
       for (let start = 0; start < ids.length && !cancelled; start += maxMetadataFills) {
         const batch = ids.slice(start, start + maxMetadataFills);
