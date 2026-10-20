@@ -95,9 +95,9 @@ const addRoute = createRoute({
 const createManualRoute = createRoute({
   method: "post",
   path: "/catalog/manual-items",
-  summary: "Add a film by hand, as a Manual Media Item",
+  summary: "Add a Media Item by hand, as a Manual Media Item",
   description:
-    "For films the External Source doesn't have. The Manual Media Item has no External " +
+    "For works the External Source doesn't have. The Manual Media Item has no External " +
     "Reference, belongs to the logged-in User and is visible to them alone. It needs a title, " +
     "and can have an Original Title, year, runtime and genres.",
   middleware: [requireUser] as const,

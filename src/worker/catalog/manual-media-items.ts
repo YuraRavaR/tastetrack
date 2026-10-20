@@ -1,6 +1,6 @@
-// Manual Media Items: films TMDB doesn't have, which a User adds by hand and alone can see. Route
-// handlers only translate HTTP to these calls; the rules for the values are the domain core's
-// (src/shared/catalog.ts).
+// Manual Media Items: works the External Source doesn't have, which a User adds by hand and alone
+// can see. Route handlers only translate HTTP to these calls; the rules for the values are the
+// domain core's (src/shared/catalog.ts).
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, logEntries, mediaItems, tmdbCache, users } from "../../db/schema";

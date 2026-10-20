@@ -431,3 +431,28 @@ test("the OpenAPI spec describes Manual Media Items", async ({ request }) => {
   expect(item.patch.responses["404"]).toBeDefined();
   expect(item.delete.responses["204"]).toBeDefined();
 });
+
+// ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.
+test("search takes the same number of queries for 1 matching Manual Media Item as for 25, and lists 20", async ({
+  request,
+  playwright,
+}) => {
+  const queriesFor = async (api: APIRequestContext, count: number) => {
+    const user = await logInNewUser(api);
+    await fillManualMediaItems(api, user, count);
+    const response = await api.get("/api/catalog/search", {
+      params: { mediaType: "film", query: "placeholder" },
+    });
+    const { manualResults } = await response.json();
+    expect(manualResults).toHaveLength(Math.min(count, 20));
+    return response.headers()["x-d1-query-count"];
+  };
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+
+  const one = await queriesFor(request, 1);
+  const many = await queriesFor(other, 25);
+  await other.dispose();
+
+  expect(one).toMatch(/^\d+$/);
+  expect(many).toBe(one);
+});

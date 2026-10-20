@@ -225,7 +225,7 @@ function ManualMediaItemForm({
                   onCheckedChange={(checked) => toggleGenre(genre, checked === true)}
                 />
                 <Label htmlFor={id} className="font-normal">
-                  {genre}
+                  {t(`genre.${genre}`)}
                 </Label>
               </div>
             );

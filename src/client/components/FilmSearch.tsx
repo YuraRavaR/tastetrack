@@ -250,7 +250,17 @@ function SearchResult({
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <Poster url={foundPosterUrl(found)} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="break-words">{foundLabel(found)}</span>
+          {found.kind === "manual" ? (
+            // A Manual Media Item's page is where it is edited or deleted, logged or not.
+            <Link
+              to={`/items/${found.mediaItem.id}`}
+              className="break-words underline-offset-4 hover:underline focus-visible:underline"
+            >
+              {foundLabel(found)}
+            </Link>
+          ) : (
+            <span className="break-words">{foundLabel(found)}</span>
+          )}
           {found.kind === "manual" && (
             <span className="flex items-center gap-1 text-muted-foreground text-sm">
               <PencilLine aria-hidden className="size-4" />
