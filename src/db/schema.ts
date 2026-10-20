@@ -9,6 +9,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
+import { visibilities } from "../shared/lists";
 
 // Deployment-wide settings as key/value pairs. The health check reads it to
 // prove the migrations have been applied.
@@ -148,7 +149,12 @@ export const logEntries = sqliteTable(
 // A List: an ordered collection of Media Items of one Media Type, owned by a User. The Backlog is
 // the system List of what the User plans to experience: every User has exactly one per Media Type,
 // made with their account. It has no name, since its name is the UI's word for its Media Type
-// ("Watchlist"), so there is nothing to rename.
+// ("Watchlist"), so there is nothing to rename. Every other List, of kind "list", has a name,
+// unique for its User by nameKey (src/shared/lists.ts), which SQLite's ASCII-only lower()
+// couldn't decide for Ukrainian names; the Backlog's null nameKey repeats freely in the unique
+// index. The Media Type is the List's, not a rule of the table: its items' Media Type is checked
+// as they are added, so a List may later change or mix types. Visibility is on the ordered scale
+// of src/shared/lists.ts, which sets its order: as text, SQL would sort it alphabetically.
 export const lists = sqliteTable(
   "lists",
   {
@@ -156,12 +162,17 @@ export const lists = sqliteTable(
     userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    kind: text("kind", { enum: ["backlog"] }).notNull(),
+    kind: text("kind", { enum: ["backlog", "list"] }).notNull(),
     mediaType: text("media_type", { enum: ["film"] }).notNull(),
+    name: text("name"),
+    nameKey: text("name_key"),
+    description: text("description"),
+    visibility: text("visibility", { enum: visibilities }).notNull().default("private"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => [
     index("lists_user_id_idx").on(table.userId),
+    uniqueIndex("lists_name_unique").on(table.userId, table.nameKey),
     uniqueIndex("lists_backlog_unique")
       .on(table.userId, table.mediaType)
       .where(sql`${table.kind} = 'backlog'`),

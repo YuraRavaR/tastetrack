@@ -1,0 +1,39 @@
+import { type APIRequestContext, expect } from "@playwright/test";
+
+// Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So tests use
+// only well-known films, and check only what both answer alike.
+
+export async function searchResult(request: APIRequestContext, query: string, id: string) {
+  const response = await request.get("/api/catalog/search", {
+    params: { mediaType: "film", query },
+  });
+  expect(response.status()).toBe(200);
+  const { results } = await response.json();
+  const result = results.find((r: { externalReference: { id: string } }) => {
+    return r.externalReference.id === id;
+  });
+  expect(result, `TMDB film ${id} among the results for "${query}"`).toBeDefined();
+  return result;
+}
+
+// A film's Media Item, as adding it from search makes or finds it.
+export async function film(request: APIRequestContext, query: string, id: string) {
+  const response = await request.post("/api/catalog/items", {
+    data: await searchResult(request, query, id),
+  });
+  expect([200, 201]).toContain(response.status());
+  return (await response.json()).mediaItem;
+}
+
+export const alien = (request: APIRequestContext) => film(request, "alien", "348");
+export const aliens = (request: APIRequestContext) => film(request, "aliens", "679");
+export const amelie = (request: APIRequestContext) => film(request, "amelie", "194");
+
+// The film titles of List Items, by the TMDB ids of the films above.
+export function titlesOf(items: { mediaItem: { externalReference: { id: string } } }[]) {
+  return items.map((item) => {
+    return { "348": "Alien", "679": "Aliens", "194": "Amélie" }[
+      item.mediaItem.externalReference.id
+    ];
+  });
+}

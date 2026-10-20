@@ -5,7 +5,7 @@ import { useAuth } from "../auth";
 import { t } from "../i18n/t";
 
 // The frame of every page: a header with the app name and, once logged in, the User, the Log,
-// Watchlist and Invites pages and a logout action, above a single content column, and a footer
+// Watchlist, Lists and Invites pages and a logout action, above a single content column, and a footer
 // crediting TMDB as its terms require (ADR-0004). Mobile first: the column fills a phone screen
 // and stops widening on larger ones, the header wraps rather than overflow, and the User's name
 // shows only where there is room.
@@ -29,6 +29,9 @@ export function AppLayout() {
               </Button>
               <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
                 <Link to="/watchlist">{t("backlog.nav")}</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
+                <Link to="/lists">{t("lists.nav")}</Link>
               </Button>
               <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
                 <Link to="/invites">{t("invites.nav")}</Link>

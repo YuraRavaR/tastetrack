@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moved } from "./lists";
+import { isReservedListName, moved, sameListName } from "./lists";
 
 describe("moving a List Item", () => {
   const list = ["a", "b", "c", "d"];
@@ -25,5 +25,37 @@ describe("moving a List Item", () => {
     moved(list, "d", 0);
 
     expect(list).toEqual(["a", "b", "c", "d"]);
+  });
+});
+
+describe("List names", () => {
+  it.each([
+    ["Horror", "horror"],
+    ["  Horror  ", "HORROR"],
+    ["Жахи", "ЖАХИ"],
+    ["Ґанок і їжак", "ґАНОК І ЇЖАК"],
+    // The same letter written precomposed and as a base letter plus an accent.
+    ["Amélie", "Amélie"],
+    // Letters whose capitals are more than one letter, or that have more than one small form.
+    ["Straße", "STRASSE"],
+    ["ΟΔΟΣ", "οδοσ"],
+  ])("%j is the same name as %j", (name, other) => {
+    expect(sameListName(name, other)).toBe(true);
+  });
+
+  it.each([
+    ["Horror", "Horrors"],
+    ["Жахи", "Жах"],
+    ["Watch list", "Watchlist"],
+  ])("%j is not the same name as %j", (name, other) => {
+    expect(sameListName(name, other)).toBe(false);
+  });
+
+  it.each(["Watchlist", "watchlist", "  WATCHLIST "])("%j is reserved", (name) => {
+    expect(isReservedListName(name)).toBe(true);
+  });
+
+  it.each(["My Watchlist", "Watch list", "Horror"])("%j is not reserved", (name) => {
+    expect(isReservedListName(name)).toBe(false);
   });
 });

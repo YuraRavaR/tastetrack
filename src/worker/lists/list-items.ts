@@ -5,7 +5,7 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, tmdbCache } from "../../db/schema";
 import type { ListItem, ListItemEditRequest } from "../../shared/api";
-import { moved } from "../../shared/lists";
+import { maxListItems, moved } from "../../shared/lists";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "../catalog/media-items";
 
 const listItemColumns = {
@@ -61,6 +61,49 @@ export async function ownListItem(
     .leftJoin(tmdbCache, cacheOfMediaItem)
     .where(and(eq(listItems.id, listItemId), eq(lists.userId, userId)));
   return row ? toListItem(row, row.index) : null;
+}
+
+// Adds a Media Item at the end of a List with its Note, an empty one counting as none, unless it
+// is there already or the List holds `maxListItems`. `created` is the new item; `existing` is the
+// one already there, so neither means the List is full.
+export async function appendListItem(
+  db: DrizzleD1Database,
+  listId: number,
+  mediaItemId: number,
+  note: string | null | undefined,
+  now: Date,
+): Promise<{ created?: { id: number }; existing?: { id: number } }> {
+  // The item is inserted only while the List has room, and only once.
+  const itemCount = sql`(select count(*) from ${listItems} where list_id = ${listId})`;
+  const nextPosition = sql`(
+    select coalesce(max(position), -1) + 1 from ${listItems} where list_id = ${listId}
+  )`;
+  const [inserted, [existing]] = await db.batch([
+    db
+      .insert(listItems)
+      .select(
+        // Insert-select lists every column in table order; a null id takes the next one.
+        db
+          .select({
+            id: sql<number>`null`.as("id"),
+            listId: lists.id,
+            mediaItemId: sql<number>`${mediaItemId}`.as("media_item_id"),
+            position: sql<number>`${nextPosition}`.as("position"),
+            note: sql<string | null>`${note?.trim() || null}`.as("note"),
+            createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+          })
+          .from(lists)
+          .where(and(eq(lists.id, listId), sql`${itemCount} < ${maxListItems}`)),
+      )
+      .onConflictDoNothing()
+      .returning({ id: listItems.id }),
+    db
+      .select({ id: listItems.id })
+      .from(listItems)
+      .where(and(eq(listItems.listId, listId), eq(listItems.mediaItemId, mediaItemId))),
+  ]);
+  const [created] = inserted;
+  return created ? { created } : { existing };
 }
 
 // Numbers the List's items afresh from 0 in the order `ids` gives. An item added since `ids` was
@@ -139,4 +182,33 @@ export async function removeListItem(
     )
     .returning({ id: listItems.id });
   return removed.length > 0;
+}
+
+// For the test hooks only: adds `count` placeholder films, which have no metadata, at the end of
+// the List, so a test can reach the limit without adding that many films. False for an unknown
+// List.
+export async function fillList(
+  db: DrizzleD1Database,
+  listId: number,
+  count: number,
+  now: Date,
+): Promise<boolean> {
+  const [list] = await db.select({ id: lists.id }).from(lists).where(eq(lists.id, listId));
+  if (!list) return false;
+  // The placeholders' ids share a prefix, so the index on External References finds them.
+  const prefix = `test-fill-${crypto.randomUUID()}-`;
+  await db.run(sql`
+    insert into media_items (media_type, external_source, external_id, created_at)
+    with recursive n(i) as (select 1 union all select i + 1 from n where i < ${count})
+    select 'film', 'tmdb', ${prefix} || i, ${now.getTime()} from n`);
+  await db.run(sql`
+    insert into list_items (list_id, media_item_id, position, note, created_at)
+    select ${listId}, id,
+      (select coalesce(max(position), -1) from list_items where list_id = ${listId})
+        + row_number() over (order by id),
+      null, ${now.getTime()}
+    from media_items
+    where external_source = 'tmdb' and media_type = 'film'
+      and external_id > ${prefix} and external_id < ${`${prefix}~`}`);
+  return true;
 }
