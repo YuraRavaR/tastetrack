@@ -6,6 +6,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { inviteCodes, sessions, users } from "../../db/schema";
 import type { RegisterRequest, User } from "../../shared/api";
 import { createBacklog } from "../lists/backlog";
+import { randomToken } from "../random-token";
 import {
   activeAt,
   type InviteCodeProblem,
@@ -18,14 +19,6 @@ import { hashPassword, type PasswordHash, targetIterations, verifyPassword } fro
 export const sessionLifetimeMs = 30 * 24 * 60 * 60 * 1000;
 
 const tokenBytes = 32;
-
-function newToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(tokenBytes));
-  return btoa(String.fromCharCode(...bytes))
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/=+$/, "");
-}
 
 // Sessions are stored by the SHA-256 of their token, so the table alone can't be replayed.
 async function hashToken(token: string): Promise<string> {
@@ -112,7 +105,7 @@ export async function logIn(
 
 // Returns the new session's token.
 async function startSession(db: DrizzleD1Database, userId: number, now: Date): Promise<string> {
-  const token = newToken();
+  const token = randomToken(tokenBytes);
   // Expired sessions are cleared here, so each User's stay bounded without a cron.
   await db.batch([
     db.delete(sessions).where(and(eq(sessions.userId, userId), lte(sessions.expiresAt, now))),

@@ -1,5 +1,6 @@
 // The logged-in User's Backlog and own Lists: reading them, marking Media Items Planned, making,
-// renaming and deleting Lists and adding to them, and reordering, noting and removing List Items.
+// renaming and deleting Lists and adding to them, reordering, noting and removing List Items, and
+// sharing any of them through a Share Link, which anyone can open without logging in.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   BacklogQuery,
@@ -16,12 +17,21 @@ import {
   NewListItemRequest,
   NewListRequest,
   PlanRequest,
+  SharedListResponse,
+  ShareLinkResponse,
+  ShareTokenParams,
 } from "../shared/api";
 import { maxListItems, maxLists } from "../shared/lists";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
 import { plan, userBacklog } from "./lists/backlog";
 import { editListItem, removeListItem } from "./lists/list-items";
+import {
+  createShareLink,
+  regenerateShareLink,
+  revokeShareLink,
+  sharedList,
+} from "./lists/share-links";
 import {
   addToList,
   createList,
@@ -309,11 +319,120 @@ const addToListRoute = createRoute({
   },
 });
 
+const unknownOwnListResponse = {
+  content: { "application/json": { schema: ErrorResponse } },
+  description: "The User has no such List, the Backlog included (`unknown_list`)",
+};
+
+const invalidListIdResponse = {
+  content: { "application/json": { schema: ErrorResponse } },
+  description: "The List id isn't a positive integer (`invalid_request`)",
+};
+
+const createShareLinkRoute = createRoute({
+  method: "post",
+  path: "/lists/{listId}/share-link",
+  summary: "Share one of the logged-in User's Lists, the Backlog included, through a Share Link",
+  description:
+    "Gives the List a Share Link, an unguessable URL that shows the List, its Notes and the " +
+    "owner's Display Name to anyone holding it, without login, and never their Ratings or Log " +
+    "Entries. The List's Visibility becomes `link`. A List has at most one Share Link, so a " +
+    "List that has one keeps it.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: ListParams },
+  responses: {
+    200: {
+      content: { "application/json": { schema: ShareLinkResponse } },
+      description: "The List was shared already, and keeps its Share Link",
+    },
+    201: {
+      content: { "application/json": { schema: ShareLinkResponse } },
+      description: "The List's new Share Link",
+    },
+    400: invalidListIdResponse,
+    401: unauthenticatedResponse,
+    404: unknownOwnListResponse,
+  },
+});
+
+const unknownShareLinkResponse = {
+  content: { "application/json": { schema: ErrorResponse } },
+  description:
+    "The User has no such List, the Backlog included, or it has no Share Link " +
+    "(`unknown_share_link`)",
+};
+
+const regenerateShareLinkRoute = createRoute({
+  method: "post",
+  path: "/lists/{listId}/share-link/regenerate",
+  summary: "Replace the Share Link of one of the logged-in User's shared Lists",
+  description:
+    "Gives the List a new Share Link; the old one stops working at once. The List stays shared.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: ListParams },
+  responses: {
+    200: {
+      content: { "application/json": { schema: ShareLinkResponse } },
+      description: "The List's new Share Link",
+    },
+    400: invalidListIdResponse,
+    401: unauthenticatedResponse,
+    404: unknownShareLinkResponse,
+  },
+});
+
+const revokeShareLinkRoute = createRoute({
+  method: "delete",
+  path: "/lists/{listId}/share-link",
+  summary: "Revoke the Share Link of one of the logged-in User's Lists",
+  description:
+    "Deletes the List's Share Link, which stops working at once, and makes the List private again.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: ListParams },
+  responses: {
+    204: { description: "The Share Link is revoked and the List is private" },
+    400: invalidListIdResponse,
+    401: unauthenticatedResponse,
+    404: unknownShareLinkResponse,
+  },
+});
+
+const sharedListRoute = createRoute({
+  method: "get",
+  path: "/shared-lists/{token}",
+  summary: "Show the List behind a Share Link, to anyone, without login",
+  description:
+    "The List's title, description, owner's Display Name and List Items with their Notes, in " +
+    "order. A shared Backlog is titled \"<Display Name>'s Watchlist\". Nothing of the owner's " +
+    "Log, Ratings included, is shown. Responses carry `X-Robots-Tag: noindex`.",
+  request: { params: ShareTokenParams },
+  responses: {
+    200: {
+      content: { "application/json": { schema: SharedListResponse } },
+      description: "The shared List",
+    },
+    404: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "The token is unknown, revoked or replaced; the three aren't told apart (`not_found`)",
+    },
+  },
+});
+
 export const listRoutes = new OpenAPIHono<AppEnv>();
+
+// Where the Worker was reached, for the URLs of Share Links.
+function originOf(url: string): string {
+  return new URL(url).origin;
+}
 
 listRoutes.openapi(backlogRoute, async (c) => {
   const { mediaType } = c.req.valid("query");
-  return c.json({ backlog: await userBacklog(c.var.db, c.var.userId, mediaType) }, 200);
+  const backlog = await userBacklog(c.var.db, c.var.userId, mediaType, originOf(c.req.url));
+  return c.json({ backlog }, 200);
 });
 
 listRoutes.openapi(planRoute, async (c) => {
@@ -360,7 +479,8 @@ listRoutes.openapi(createListRoute, async (c) => {
 });
 
 listRoutes.openapi(listRoute, async (c) => {
-  const list = await userList(c.var.db, c.var.userId, c.req.valid("param").listId);
+  const { listId } = c.req.valid("param");
+  const list = await userList(c.var.db, c.var.userId, listId, originOf(c.req.url));
   if (!list) return c.json({ error: "unknown_list" }, 404);
   return c.json({ list }, 200);
 });
@@ -384,4 +504,36 @@ listRoutes.openapi(addToListRoute, async (c) => {
   const added = await addToList(c.var.db, c.var.userId, listId, c.req.valid("json"), c.var.now);
   if (!added.ok) return c.json({ error: added.error }, listErrorStatus[added.error]);
   return c.json({ listItem: added.listItem }, 201);
+});
+
+listRoutes.openapi(createShareLinkRoute, async (c) => {
+  const { listId } = c.req.valid("param");
+  const origin = originOf(c.req.url);
+  const shared = await createShareLink(c.var.db, c.var.userId, listId, origin, c.var.now);
+  if (!shared) return c.json({ error: "unknown_list" }, 404);
+  return c.json({ shareLink: shared.shareLink }, shared.created ? 201 : 200);
+});
+
+listRoutes.openapi(regenerateShareLinkRoute, async (c) => {
+  const { listId } = c.req.valid("param");
+  const origin = originOf(c.req.url);
+  const shareLink = await regenerateShareLink(c.var.db, c.var.userId, listId, origin, c.var.now);
+  if (!shareLink) return c.json({ error: "unknown_share_link" }, 404);
+  return c.json({ shareLink }, 200);
+});
+
+listRoutes.openapi(revokeShareLinkRoute, async (c) => {
+  if (!(await revokeShareLink(c.var.db, c.var.userId, c.req.valid("param").listId))) {
+    return c.json({ error: "unknown_share_link" }, 404);
+  }
+  return c.body(null, 204);
+});
+
+// A token that is unknown, revoked or replaced gets the same 404 as any unknown path, so nobody
+// can tell whether a List is behind it.
+listRoutes.openapi(sharedListRoute, async (c) => {
+  c.header("X-Robots-Tag", "noindex");
+  const list = await sharedList(c.var.db, c.req.valid("param").token);
+  if (!list) return c.json({ error: "not_found" }, 404);
+  return c.json({ sharedList: list }, 200);
 });

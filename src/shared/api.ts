@@ -438,12 +438,35 @@ export const ListItem = z
 
 export type ListItem = z.infer<typeof ListItem>;
 
-// A User's Backlog of one Media Type, in order. It has no name: the UI calls a film Backlog the
-// Watchlist.
+export const Visibility = z.enum(visibilities).openapi({ example: "private" });
+
+// A List's Share Link, which shows it to anyone holding the URL, without login. The token is
+// random, so the URL says nothing about the List.
+export const ShareLink = z
+  .object({
+    token: z.string().openapi({ example: "q3Vb8kXo2LmN5pRt7wYz1A" }),
+    url: z.url().openapi({ example: "https://tastetrack.example/s/q3Vb8kXo2LmN5pRt7wYz1A" }),
+  })
+  .openapi("ShareLink");
+
+export type ShareLink = z.infer<typeof ShareLink>;
+
+export const ShareLinkResponse = z
+  .object({
+    shareLink: ShareLink,
+  })
+  .openapi("ShareLinkResponse");
+
+export type ShareLinkResponse = z.infer<typeof ShareLinkResponse>;
+
+// A User's Backlog of one Media Type, in order, and its Share Link while it has one. It has no
+// name: the UI calls a film Backlog the Watchlist.
 export const Backlog = z
   .object({
     id: z.int().openapi({ example: 3 }),
     mediaType: MediaType,
+    visibility: Visibility,
+    shareLink: ShareLink.nullable(),
     items: z.array(ListItem),
   })
   .openapi("Backlog");
@@ -481,8 +504,6 @@ export type ListItemEditRequest = z.infer<typeof ListItemEditRequest>;
 export const ListItemParams = z.object({
   listItemId: z.coerce.number().int().positive().openapi({ example: 12 }),
 });
-
-export const Visibility = z.enum(visibilities).openapi({ example: "private" });
 
 // A List's name is trimmed; two names that differ only in case are the same name. An empty
 // description counts as none.
@@ -551,9 +572,9 @@ export const ListsResponse = z
 
 export type ListsResponse = z.infer<typeof ListsResponse>;
 
-// One of the User's own Lists with its List Items in order.
+// One of the User's own Lists with its Share Link while it has one, and its List Items in order.
 export const List = ListSummary.omit({ itemCount: true })
-  .extend({ items: z.array(ListItem) })
+  .extend({ shareLink: ShareLink.nullable(), items: z.array(ListItem) })
   .openapi("List");
 
 export type List = z.infer<typeof List>;
@@ -582,3 +603,42 @@ export const NewListItemRequest = z
   .openapi("NewListItemRequest");
 
 export type NewListItemRequest = z.infer<typeof NewListItemRequest>;
+
+// Any token is looked up as it is, so a malformed one is just one that doesn't exist.
+export const ShareTokenParams = z.object({
+  token: z.string().openapi({ example: "q3Vb8kXo2LmN5pRt7wYz1A" }),
+});
+
+// A Media Item's place in a shared List, counted from 0, and its Note.
+export const SharedListItem = z
+  .object({
+    mediaItem: MediaItem,
+    position: z.int().min(0).openapi({ example: 0 }),
+    note: Note.nullable(),
+  })
+  .openapi("SharedListItem");
+
+export type SharedListItem = z.infer<typeof SharedListItem>;
+
+// A List as its Share Link shows it to anyone: its title, which for a Backlog is "<Display
+// Name>'s Watchlist", its description, its owner's Display Name and its List Items with their
+// Notes. Never the owner's Ratings or Log Entries.
+export const SharedList = z
+  .object({
+    title: z.string().openapi({ example: "Horror nights" }),
+    description: z.string().nullable().openapi({ example: "Something to watch each Friday." }),
+    mediaType: MediaType,
+    owner: z.object({ displayName: z.string().openapi({ example: "olena_k" }) }),
+    items: z.array(SharedListItem),
+  })
+  .openapi("SharedList");
+
+export type SharedList = z.infer<typeof SharedList>;
+
+export const SharedListResponse = z
+  .object({
+    sharedList: SharedList,
+  })
+  .openapi("SharedListResponse");
+
+export type SharedListResponse = z.infer<typeof SharedListResponse>;

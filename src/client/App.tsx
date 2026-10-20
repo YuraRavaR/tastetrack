@@ -10,6 +10,7 @@ import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LogPage } from "./pages/LogPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SharedListPage } from "./pages/SharedListPage";
 
 export function App() {
   return (
@@ -19,6 +20,7 @@ export function App() {
           <Route element={<AppLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/s/:token" element={<SharedListPage />} />
             <Route element={<RequireAuth />}>
               <Route index element={<HomePage />} />
               <Route path="/log" element={<LogPage />} />

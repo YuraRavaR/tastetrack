@@ -9,12 +9,14 @@ async function theBacklog(request: APIRequestContext) {
   return (await response.json()).backlog;
 }
 
-test("a new User has an empty film Backlog from registration", async ({ request }) => {
+test("a new User has an empty, private film Backlog from registration", async ({ request }) => {
   await logInNewUser(request);
 
   expect(await theBacklog(request)).toEqual({
     id: expect.any(Number),
     mediaType: "film",
+    visibility: "private",
+    shareLink: null,
     items: [],
   });
 });

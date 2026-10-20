@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ListSummary } from "../../shared/api";
 import * as api from "../api";
@@ -72,9 +73,14 @@ export function ListsPage() {
                   {list.description}
                 </p>
               )}
-              <p className="text-muted-foreground text-sm">
-                {t("films.count", { count: list.itemCount })}
-              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-muted-foreground text-sm">
+                  {t("films.count", { count: list.itemCount })}
+                </p>
+                {list.visibility !== "private" && (
+                  <Badge variant="secondary">{t("lists.shared")}</Badge>
+                )}
+              </div>
             </li>
           ))}
         </ul>
