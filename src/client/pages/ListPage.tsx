@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { List, ListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
+import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { AddToListSearch } from "../components/AddToListSearch";
 import { DeleteListDialog } from "../components/DeleteListDialog";
 import { ListFormDialog } from "../components/ListFormDialog";
@@ -50,6 +51,9 @@ export function ListPage() {
 
   const editing = useListItemEditing({ reload, putBack });
   const { removed, error } = editing;
+  const fill = useMetadataFill(
+    state.status === "loaded" ? state.list.items.map((item) => item.mediaItem) : [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -132,7 +136,8 @@ export function ListPage() {
               {state.list.items.map((item, index, items) => (
                 <ListItemRow
                   key={item.id}
-                  item={item}
+                  item={{ ...item, mediaItem: fill.filled(item.mediaItem) }}
+                  loading={fill.loading(item.mediaItem)}
                   first={index === 0}
                   last={index === items.length - 1}
                   onMove={(position) => editing.move(item, position)}

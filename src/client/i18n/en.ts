@@ -261,6 +261,7 @@ export const en = {
   "manualItem.deleting": "Deleting…",
   "manualItem.deleteFailed": "Couldn't delete. Please try again.",
   "film.unknown": "Film details unavailable",
+  "film.loading": "Loading film details…",
   "attribution.tmdbLogo": "TMDB",
   "attribution.tmdb":
     "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",

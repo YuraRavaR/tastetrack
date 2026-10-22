@@ -52,6 +52,16 @@ const films: FakeFilm[] = [
     runtime: 97,
     genres: ["Drama", "Romance"],
   },
+  // Its poster is left out, so the fake claims no poster path it can't vouch for.
+  {
+    id: 603,
+    original_title: "The Matrix",
+    release_date: "1999-03-30",
+    poster_path: null,
+    titles: { "en-US": "The Matrix", "uk-UA": "Матриця" },
+    runtime: 136,
+    genres: ["Action", "Science Fiction"],
+  },
   // Not a real film: the fake fails the details call for it the way TMDB does when it is down.
   {
     id: 999_000_001,

@@ -1,14 +1,17 @@
 // Test-only routes, mounted under /api/test. They stay out of the OpenAPI spec, and with test
 // hooks off the whole prefix falls through to the JSON 404.
 import { z } from "@hono/zod-openapi";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { tmdbCache } from "../db/schema";
 import { type ErrorResponse, Password, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
 import { createUser, deleteUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
+import { refreshCache } from "./catalog/cache-refresh";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { tmdbFake } from "./catalog/tmdb-fake";
-import { type AppEnv, testHooksOn } from "./env";
+import { type AppEnv, testHooksOn, tmdbConfig } from "./env";
 import { fillBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
 import { simulateLogin } from "./pbkdf2-spike";
@@ -103,6 +106,23 @@ testHooks.post("/users/:username/manual-items", async (c) => {
     c.var.now,
   );
   if (!filled) return c.notFound();
+  return c.body(null, 204);
+});
+
+// Runs the Cron Trigger's TMDB cache refresh now, at the request's time, so tests needn't wait
+// for the schedule.
+testHooks.post("/cron", async (c) => {
+  return c.json(await refreshCache(c.var.db, tmdbConfig(c.env), c.var.now), 200);
+});
+
+// Takes one film out of the TMDB cache, as the cron does once an entry expires, so tests can
+// see a page on a cold cache.
+testHooks.delete("/tmdb-cache/:mediaType/:externalId", async (c) => {
+  const { mediaType, externalId } = c.req.param();
+  if (mediaType !== "film") return c.notFound();
+  await c.var.db
+    .delete(tmdbCache)
+    .where(and(eq(tmdbCache.mediaType, mediaType), eq(tmdbCache.externalId, externalId)));
   return c.body(null, 204);
 });
 

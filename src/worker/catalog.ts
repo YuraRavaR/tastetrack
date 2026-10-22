@@ -7,14 +7,17 @@ import {
   ErrorResponse,
   ManualMediaItemEditRequest,
   ManualMediaItemResponse,
+  MediaItemIdsQuery,
   MediaItemParams,
   MediaItemResponse,
+  MediaItemsResponse,
   NewManualMediaItemRequest,
 } from "../shared/api";
 import {
   earliestFilmYear,
   maxManualMediaItems,
   maxManualSearchResults,
+  maxMetadataFills,
   maxSearchQueryLength,
 } from "../shared/catalog";
 import { requireUser, unauthenticatedResponse } from "./auth";
@@ -25,9 +28,9 @@ import {
   manualMediaItemUsage,
   manualSearch,
 } from "./catalog/manual-media-items";
-import { addFromSearch } from "./catalog/media-items";
-import { searchFilms, type TmdbConfig, TmdbUnavailable } from "./catalog/tmdb";
-import type { AppEnv } from "./env";
+import { addFromSearch, catalogMediaItems } from "./catalog/media-items";
+import { searchFilms, TmdbUnavailable } from "./catalog/tmdb";
+import { type AppEnv, tmdbConfig } from "./env";
 import { plannedExternalIds } from "./lists/backlog";
 import { loggedExternalIds } from "./log/log-entries";
 
@@ -89,6 +92,31 @@ const addRoute = createRoute({
       description: "The request body is malformed",
     },
     401: unauthenticatedResponse,
+  },
+});
+
+const itemsRoute = createRoute({
+  method: "get",
+  path: "/catalog/items",
+  summary: "Show catalog-backed Media Items by id, filling metadata the cache is missing",
+  description:
+    `A page fills the metadata of at most ${maxMetadataFills} films missing from the TMDB ` +
+    "cache and shows the rest without it; the client loads those here, up to " +
+    `${maxMetadataFills} at a time, each with one TMDB details call. A film TMDB doesn't ` +
+    "answer for keeps null metadata. Catalog-backed Media Items are no one's, so this needs no " +
+    "login; Manual Media Items, and ids that match nothing, are left out.",
+  request: { query: MediaItemIdsQuery },
+  responses: {
+    200: {
+      content: { "application/json": { schema: MediaItemsResponse } },
+      description: "The catalog-backed Media Items among the ids, in the order given",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        `The ids aren't 1 to ${maxMetadataFills} comma-separated positive integers ` +
+        "(`invalid_request`)",
+    },
   },
 });
 
@@ -213,10 +241,6 @@ const deleteManualRoute = createRoute({
   },
 });
 
-function tmdbConfig(env: Env): TmdbConfig {
-  return { baseUrl: env.TMDB_BASE_URL, accessToken: env.TMDB_ACCESS_TOKEN };
-}
-
 export const catalogRoutes = new OpenAPIHono<AppEnv>();
 
 catalogRoutes.openapi(searchRoute, async (c) => {
@@ -249,6 +273,12 @@ catalogRoutes.openapi(searchRoute, async (c) => {
 catalogRoutes.openapi(addRoute, async (c) => {
   const added = await addFromSearch(c.var.db, tmdbConfig(c.env), c.req.valid("json"), c.var.now);
   return c.json({ mediaItem: added.mediaItem }, added.created ? 201 : 200);
+});
+
+catalogRoutes.openapi(itemsRoute, async (c) => {
+  const { ids } = c.req.valid("query");
+  const mediaItems = await catalogMediaItems(c.var.db, tmdbConfig(c.env), ids, c.var.now);
+  return c.json({ mediaItems }, 200);
 });
 
 catalogRoutes.openapi(createManualRoute, async (c) => {

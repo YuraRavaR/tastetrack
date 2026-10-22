@@ -1,7 +1,7 @@
 // Media Items as Users see them: catalog-backed ones with their metadata in the disposable TMDB
 // cache (ADR-0004), where only the External Reference is User-facing data and everything read
 // from the cache may be missing, and Manual Media Items with their own.
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { mediaItems, tmdbCache } from "../../db/schema";
 import type {
@@ -10,7 +10,15 @@ import type {
   FilmMetadata,
   MediaItem,
 } from "../../shared/api";
-import { filmDetails, posterPathOf, posterUrl, type TmdbConfig, TmdbUnavailable } from "./tmdb";
+import { maxMetadataFills } from "../../shared/catalog";
+import {
+  type FilmDetails,
+  filmDetails,
+  posterPathOf,
+  posterUrl,
+  type TmdbConfig,
+  TmdbUnavailable,
+} from "./tmdb";
 
 type CacheEntry = typeof tmdbCache.$inferSelect;
 
@@ -142,6 +150,58 @@ function fromSearchResult(result: AddCatalogItemRequest): CachedMetadata {
   };
 }
 
+export interface FetchedDetails {
+  mediaType: "film";
+  externalId: string;
+  details: FilmDetails;
+}
+
+// One TMDB details call for each film, all at once. A film TMDB doesn't answer for is left out.
+export async function fetchDetails(
+  tmdb: TmdbConfig,
+  films: { mediaType: "film"; externalId: string }[],
+): Promise<FetchedDetails[]> {
+  const fetched = await Promise.all(
+    films.map(async ({ mediaType, externalId }) => {
+      try {
+        return { mediaType, externalId, details: await filmDetails(tmdb, externalId) };
+      } catch (error) {
+        if (!(error instanceof TmdbUnavailable)) throw error;
+        console.error(error);
+        return null;
+      }
+    }),
+  );
+  return fetched.filter((film) => film !== null);
+}
+
+// Writes the details fetched for any number of films into their cache entries, in one query:
+// the rows travel as one JSON parameter, since D1 allows only 100 bound parameters a query.
+export async function storeDetails(
+  db: DrizzleD1Database,
+  fetched: FetchedDetails[],
+  now: Date,
+): Promise<void> {
+  if (fetched.length === 0) return;
+  const rows = JSON.stringify(
+    fetched.map(({ mediaType, externalId, details }) => ({ mediaType, externalId, ...details })),
+  );
+  const at = now.getTime();
+  // An upsert from a select needs a where clause, or SQLite reads "on" as a join's.
+  await db.run(sql`
+    insert into ${tmdbCache} (media_type, external_id, english_title, ukrainian_title,
+      original_title, year, poster_path, runtime, genres, updated_at, detailed_at)
+    select value ->> 'mediaType', value ->> 'externalId', value ->> 'englishTitle',
+      value ->> 'ukrainianTitle', value ->> 'originalTitle', value ->> 'year',
+      value ->> 'posterPath', value ->> 'runtime', value -> 'genres', ${at}, ${at}
+    from json_each(${rows}) where true
+    on conflict (media_type, external_id) do update set
+      english_title = excluded.english_title, ukrainian_title = excluded.ukrainian_title,
+      original_title = excluded.original_title, year = excluded.year,
+      poster_path = excluded.poster_path, runtime = excluded.runtime, genres = excluded.genres,
+      updated_at = excluded.updated_at, detailed_at = excluded.detailed_at`);
+}
+
 export interface AddedMediaItem {
   mediaItem: MediaItem;
   // False when the Media Item already existed.
@@ -217,4 +277,52 @@ export async function addFromSearch(
     },
     created: inserted.length > 0,
   };
+}
+
+// Fills in place the metadata of the first `maxMetadataFills` catalog-backed Media Items, in the
+// order given, that came without it because the cache has no entry for them: one TMDB details call
+// each, all at once, and one query to write them all to the cache. The rest stay null for the
+// client to load by id, so a page's time and queries don't grow with how much the cache misses.
+export async function fillMissingMetadata(
+  db: DrizzleD1Database,
+  tmdb: TmdbConfig,
+  items: MediaItem[],
+  now: Date,
+): Promise<void> {
+  const missing = new Map<string, ExternalReference>();
+  for (const { externalReference, metadata } of items) {
+    if (missing.size === maxMetadataFills) break;
+    if (externalReference && !metadata) missing.set(externalReference.id, externalReference);
+  }
+  if (missing.size === 0) return;
+  const fetched = await fetchDetails(
+    tmdb,
+    [...missing.values()].map(({ mediaType, id }) => ({ mediaType, externalId: id })),
+  );
+  await storeDetails(db, fetched, now);
+  const details = new Map(fetched.map((film) => [film.externalId, film.details]));
+  for (const item of items) {
+    const filled = item.externalReference && details.get(item.externalReference.id);
+    if (filled) item.metadata = toMetadata(filled);
+  }
+}
+
+// The catalog-backed Media Items with these ids, in the order given, with their metadata filled
+// where the cache misses it. Anyone may see these, so Manual Media Items are left out, as are ids
+// that match nothing.
+export async function catalogMediaItems(
+  db: DrizzleD1Database,
+  tmdb: TmdbConfig,
+  ids: number[],
+  now: Date,
+): Promise<MediaItem[]> {
+  const rows = await db
+    .select(mediaItemColumns)
+    .from(mediaItems)
+    .leftJoin(tmdbCache, cacheOfMediaItem)
+    .where(and(inArray(mediaItems.id, ids), isNotNull(mediaItems.externalId)));
+  const byId = new Map(rows.map((row) => [row.mediaItemId, toMediaItem(row)]));
+  const items = [...new Set(ids)].flatMap((id) => byId.get(id) ?? []);
+  await fillMissingMetadata(db, tmdb, items, now);
+  return items;
 }

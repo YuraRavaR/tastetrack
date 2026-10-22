@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Backlog, ListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
+import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { ListItemRow, listItemLabel } from "../components/ListItemRow";
 import { NoteDialog } from "../components/NoteDialog";
 import { ShareLinkPanel } from "../components/ShareLinkPanel";
@@ -37,6 +38,9 @@ export function BacklogPage() {
   const reload = async () => setState(await loadBacklog());
   const editing = useListItemEditing({ reload, putBack });
   const { removed, error } = editing;
+  const fill = useMetadataFill(
+    state.status === "loaded" ? state.backlog.items.map((item) => item.mediaItem) : [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +101,8 @@ export function BacklogPage() {
           {state.backlog.items.map((item, index, items) => (
             <ListItemRow
               key={item.id}
-              item={item}
+              item={{ ...item, mediaItem: fill.filled(item.mediaItem) }}
+              loading={fill.loading(item.mediaItem)}
               first={index === 0}
               last={index === items.length - 1}
               onMove={(position) => editing.move(item, position)}
