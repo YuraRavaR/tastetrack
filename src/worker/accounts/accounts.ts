@@ -6,7 +6,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { inviteCodes, sessions, users } from "../../db/schema";
 import type { PasswordChangeRequest, RegisterRequest, User } from "../../shared/api";
 import { createBacklog } from "../lists/backlog";
-import { randomToken } from "../random-token";
+import { randomCode, randomToken } from "../random-token";
 import {
   activeAt,
   type InviteCodeProblem,
@@ -83,6 +83,8 @@ export async function createUser(
 export interface LoggedIn {
   user: User;
   token: string;
+  // The password is a temporary one the Operator issued, so the session can only set a new one.
+  passwordChangeRequired: boolean;
 }
 
 // Returns null for an unknown Username and a wrong password alike, after the same hashing work,
@@ -94,7 +96,12 @@ export async function logIn(
   now: Date,
 ): Promise<LoggedIn | null> {
   const [found] = await db
-    .select({ id: users.id, ...storedPassword, ...userColumns })
+    .select({
+      id: users.id,
+      ...storedPassword,
+      ...userColumns,
+      passwordChangeRequired: users.passwordChangeRequired,
+    })
     .from(users)
     .where(byUsername(username))
     .limit(1);
@@ -118,7 +125,11 @@ export async function logIn(
 
   const token = await startSession(db, found.id, checkedHash, now);
   if (!token) return null;
-  return { user: { username: found.username, displayName: found.displayName }, token };
+  return {
+    user: { username: found.username, displayName: found.displayName },
+    token,
+    passwordChangeRequired: found.passwordChangeRequired,
+  };
 }
 
 // Returns the new session's token, or null when the User's password hash is no longer
@@ -190,6 +201,7 @@ export async function register(
               invitedBy: inviteCodes.issuerId,
               createdAt: sql<number>`${now.getTime()}`.as("created_at"),
               displayName: sql<string | null>`null`.as("display_name"),
+              passwordChangeRequired: sql<boolean>`0`.as("password_change_required"),
             })
             .from(inviteCodes)
             .where(byCode),
@@ -206,7 +218,10 @@ export async function register(
   if (!created) return { ok: false, error: "invite_code_used" };
   const token = await startSession(db, created.id, hash.hash, now);
   if (!token) throw new Error("A User who just registered has no session");
-  return { ok: true, loggedIn: { user: { username, displayName: username }, token } };
+  return {
+    ok: true,
+    loggedIn: { user: { username, displayName: username }, token, passwordChangeRequired: false },
+  };
 }
 
 // D1 reports a broken unique index as an error whose message, possibly on a wrapped cause, names
@@ -221,6 +236,8 @@ function isUniqueViolation(error: unknown): boolean {
 export interface Authenticated {
   userId: number;
   user: User;
+  // The User logged in with a Temporary Password and hasn't set their own yet.
+  passwordChangeRequired: boolean;
 }
 
 // Returns the session's User, or null if the session is unknown, ended or expired. Each call
@@ -236,8 +253,13 @@ export async function authenticate(
     .where(and(eq(sessions.tokenHash, await hashToken(token)), gt(sessions.expiresAt, now)))
     .returning({ userId: sessions.userId });
   if (!session) return null;
-  const [user] = await db.select(userColumns).from(users).where(eq(users.id, session.userId));
-  return user ? { userId: session.userId, user } : null;
+  const [found] = await db
+    .select({ ...userColumns, passwordChangeRequired: users.passwordChangeRequired })
+    .from(users)
+    .where(eq(users.id, session.userId));
+  if (!found) return null;
+  const { passwordChangeRequired, ...user } = found;
+  return { userId: session.userId, user, passwordChangeRequired };
 }
 
 // Sets the User's Display Name; null or empty puts their Username back in its place. Null when
@@ -277,21 +299,103 @@ export async function changePassword(
       .set(passwordColumns(changed))
       .where(and(byId, eq(users.passwordHash, found.hash)))
       .returning({ id: users.id }),
-    // The new hash has a fresh salt, so it is the User's only if this change landed.
-    db.delete(sessions).where(
-      and(
-        inArray(
-          sessions.userId,
-          db
-            .select({ id: users.id })
-            .from(users)
-            .where(and(byId, eq(users.passwordHash, changed.hash))),
-        ),
-        ne(sessions.tokenHash, await hashToken(token)),
-      ),
-    ),
+    endOtherSessionsOnceChanged(db, userId, changed.hash, await hashToken(token)),
   ]);
   return updated.length > 0;
+}
+
+// Ends every session of the User's but the one whose token hashes to `keptTokenHash`, if their
+// password hash is now `changedHash`. A new hash has a fresh salt, so it is the User's only if the
+// change batched before this landed.
+function endOtherSessionsOnceChanged(
+  db: DrizzleD1Database,
+  userId: number,
+  changedHash: string,
+  keptTokenHash: string,
+) {
+  return db.delete(sessions).where(
+    and(
+      inArray(
+        sessions.userId,
+        db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(eq(users.id, userId), eq(users.passwordHash, changedHash))),
+      ),
+      ne(sessions.tokenHash, keptTokenHash),
+    ),
+  );
+}
+
+export type TemporaryPasswordReplacement =
+  | { ok: true }
+  | { ok: false; error: "password_change_not_required" | "temporary_password_reused" };
+
+// Sets the User's own password in place of the temporary one the Operator issued, which lifts
+// the restriction on their sessions, and ends every other session of theirs; the session of
+// `token` stays. The new hash replaces only the temporary one that was checked, so a second reset
+// meanwhile wins. A User who has no Temporary Password changes theirs with changePassword.
+export async function replaceTemporaryPassword(
+  db: DrizzleD1Database,
+  userId: number,
+  token: string,
+  newPassword: string,
+): Promise<TemporaryPasswordReplacement> {
+  const byId = eq(users.id, userId);
+  const [found] = await db
+    .select({ ...storedPassword, passwordChangeRequired: users.passwordChangeRequired })
+    .from(users)
+    .where(byId);
+  if (!found?.passwordChangeRequired) return { ok: false, error: "password_change_not_required" };
+  if (await verifyPassword(newPassword, found)) {
+    return { ok: false, error: "temporary_password_reused" };
+  }
+
+  const changed = await hashPassword(newPassword);
+  const [updated] = await db.batch([
+    db
+      .update(users)
+      .set({ ...passwordColumns(changed), passwordChangeRequired: false })
+      .where(and(byId, eq(users.passwordHash, found.hash), eq(users.passwordChangeRequired, true)))
+      .returning({ id: users.id }),
+    endOtherSessionsOnceChanged(db, userId, changed.hash, await hashToken(token)),
+  ]);
+  return updated.length > 0 ? { ok: true } : { ok: false, error: "password_change_not_required" };
+}
+
+// Four groups of four Crockford base32 characters: 80 random bits, easy to read out and type, and
+// long enough for the password rules.
+function newTemporaryPassword(): string {
+  return randomCode(16).match(/.{4}/g)?.join("-") ?? "";
+}
+
+// The Operator's reset for a User who forgot their password: gives them a new Temporary Password,
+// which they must replace with their own at their next login, and ends every session of theirs.
+// Returns the Temporary Password, to hand to the User, or null for an unknown Username.
+export async function resetPassword(
+  db: DrizzleD1Database,
+  username: string,
+): Promise<string | null> {
+  const temporaryPassword = newTemporaryPassword();
+  const [reset] = await db.batch([
+    db
+      .update(users)
+      .set({
+        ...passwordColumns(await hashPassword(temporaryPassword)),
+        passwordChangeRequired: true,
+      })
+      .where(byUsername(username))
+      .returning({ id: users.id }),
+    db
+      .delete(sessions)
+      .where(
+        inArray(
+          sessions.userId,
+          db.select({ id: users.id }).from(users).where(byUsername(username)),
+        ),
+      ),
+  ]);
+  return reset.length > 0 ? temporaryPassword : null;
 }
 
 export async function logOut(db: DrizzleD1Database, token: string): Promise<void> {

@@ -2,14 +2,17 @@
 // environment, never through the app.
 //
 //   pnpm operator create-user --env local|staging|production
+//   pnpm operator reset-password --env local|staging|production
 //
-// Prompts for the Username and the password (twice, not echoed), so no credentials end up in
-// the repo or the shell history. Answers can also be piped in, one per line. Staging and
-// production need Wrangler logged in to the Cloudflare account.
+// create-user prompts for the Username and the password (twice, not echoed), so no credentials
+// end up in the repo or the shell history. reset-password prompts for the Username and prints a
+// Temporary Password, once, for the Operator to hand to the User, who must replace it at their
+// next login. Answers can also be piped in, one per line. Staging and production need Wrangler
+// logged in to the Cloudflare account.
 import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
 import { Password, Username } from "../src/shared/api";
-import { createUser } from "../src/worker/accounts/accounts";
+import { createUser, resetPassword } from "../src/worker/accounts/accounts";
 import { WranglerError, wranglerDatabase } from "./wrangler-d1";
 
 // The wrangler arguments that reach each environment's database.
@@ -68,6 +71,23 @@ async function createUserCommand(environment: Environment): Promise<void> {
   console.log(`Created User ${username} in ${environment}.`);
 }
 
+// The Operator never chooses or learns the User's real password: the temporary one only lets the
+// User in to set their own, and every session of theirs ends now.
+async function resetPasswordCommand(environment: Environment): Promise<void> {
+  const username = await ask("Username: ");
+  const db = wranglerDatabase(environments[environment]);
+  const temporaryPassword = await resetPassword(db, username);
+  if (!temporaryPassword) throw new OperatorError("No User has that Username.");
+  console.log(`Reset the password of ${username} in ${environment}; all their sessions ended.`);
+  console.log(`Temporary Password: ${temporaryPassword}`);
+  console.log("Give it to them privately. At their next login they must set their own.");
+}
+
+const commands = {
+  "create-user": createUserCommand,
+  "reset-password": resetPasswordCommand,
+} as const;
+
 function parseEnvironment(args: string[]): Environment {
   const value = args[args.indexOf("--env") + 1];
   if (!args.includes("--env") || !value || !(value in environments)) {
@@ -76,12 +96,12 @@ function parseEnvironment(args: string[]): Environment {
   return value as Environment;
 }
 
-const usage = "Usage: pnpm operator create-user --env local|staging|production";
+const usage = "Usage: pnpm operator create-user|reset-password --env local|staging|production";
 
 try {
   const [command, ...args] = process.argv.slice(2);
-  if (command !== "create-user") throw new OperatorError(usage);
-  await createUserCommand(parseEnvironment(args));
+  if (!command || !(command in commands)) throw new OperatorError(usage);
+  await commands[command as keyof typeof commands](parseEnvironment(args));
 } catch (error) {
   if (!(error instanceof OperatorError || error instanceof WranglerError)) throw error;
   console.error(error.message);

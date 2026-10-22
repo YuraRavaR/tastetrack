@@ -7,7 +7,13 @@ import { tmdbCache } from "../db/schema";
 import { type ErrorResponse, Password, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
-import { createUser, deleteUser, inviterOf, passwordIterationsOf } from "./accounts/accounts";
+import {
+  createUser,
+  deleteUser,
+  inviterOf,
+  passwordIterationsOf,
+  resetPassword,
+} from "./accounts/accounts";
 import { refreshCache } from "./catalog/cache-refresh";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { tmdbFake } from "./catalog/tmdb-fake";
@@ -61,6 +67,14 @@ testHooks.get("/users/:username/password-iterations", async (c) => {
   const iterations = await passwordIterationsOf(c.var.db, c.req.param("username"));
   if (iterations === null) return c.notFound();
   return c.json({ iterations }, 200);
+});
+
+// Resets the User's password as the Operator CLI does, so API and E2E tests needn't run the CLI,
+// which reaches only local D1.
+testHooks.post("/users/:username/password-reset", async (c) => {
+  const temporaryPassword = await resetPassword(c.var.db, c.req.param("username"));
+  if (!temporaryPassword) return c.notFound();
+  return c.json({ temporaryPassword }, 200);
 });
 
 testHooks.get("/users/:username/invited-by", async (c) => {

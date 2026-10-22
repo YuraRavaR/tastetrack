@@ -6,6 +6,7 @@ import { createMiddleware } from "hono/factory";
 import {
   ErrorResponse,
   LoginRequest,
+  LoginResponse,
   RegisterRequest,
   type User,
   UserResponse,
@@ -34,20 +35,36 @@ export const unauthenticatedResponse = {
   description: "No live session",
 };
 
+export const passwordChangeRequired = {
+  error: "password_change_required",
+} satisfies ErrorResponse;
+
 // Refuses the request with a 401 unless it carries a live session, and makes `c.var.user` the
-// session's User, `c.var.userId` their id and `c.var.sessionToken` the session's token.
-export const requireUser = createMiddleware<
-  AppEnv & { Variables: { user: User; userId: number; sessionToken: string } }
->(async (c, next) => {
-  const token = getCookie(c, SESSION_COOKIE);
-  const authenticated = token ? await authenticate(c.var.db, token, c.var.now) : null;
-  if (!token || !authenticated) return c.json(unauthenticated, 401);
-  c.set("user", authenticated.user);
-  c.set("userId", authenticated.userId);
-  c.set("sessionToken", token);
-  setSessionCookie(c, token);
-  await next();
-});
+// session's User, `c.var.userId` their id and `c.var.sessionToken` the session's token. A session
+// from a Temporary Password is refused with a 403 too, unless `forPasswordChange`.
+function sessionMiddleware({ forPasswordChange }: { forPasswordChange: boolean }) {
+  return createMiddleware<
+    AppEnv & { Variables: { user: User; userId: number; sessionToken: string } }
+  >(async (c, next) => {
+    const token = getCookie(c, SESSION_COOKIE);
+    const authenticated = token ? await authenticate(c.var.db, token, c.var.now) : null;
+    if (!token || !authenticated) return c.json(unauthenticated, 401);
+    setSessionCookie(c, token);
+    if (authenticated.passwordChangeRequired && !forPasswordChange) {
+      return c.json(passwordChangeRequired, 403);
+    }
+    c.set("user", authenticated.user);
+    c.set("userId", authenticated.userId);
+    c.set("sessionToken", token);
+    await next();
+  });
+}
+
+// Every route for a logged-in User sits behind this.
+export const requireUser = sessionMiddleware({ forPasswordChange: false });
+
+// Only for setting the new password a temporary one requires: it lets that session through.
+export const requireSession = sessionMiddleware({ forPasswordChange: true });
 
 const registerRoute = createRoute({
   method: "post",
@@ -83,8 +100,10 @@ const loginRoute = createRoute({
   },
   responses: {
     200: {
-      content: { "application/json": { schema: UserResponse } },
-      description: "Logged in; the response sets the session cookie",
+      content: { "application/json": { schema: LoginResponse } },
+      description:
+        "Logged in; the response sets the session cookie. With a Temporary Password, the " +
+        "session can only set a new one (`passwordChangeRequired`)",
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
@@ -130,6 +149,10 @@ auth.openAPIRegistry.registerComponent("securitySchemes", "session", {
   type: "apiKey",
   in: "cookie",
   name: SESSION_COOKIE,
+  description:
+    "The session cookie that login and registration set. A session from a Temporary Password " +
+    "the Operator issued can only set a new password (`POST /api/me/new-password`); every other " +
+    "route refuses it with a 403 `password_change_required`.",
 });
 
 auth.openapi(registerRoute, async (c) => {
@@ -147,7 +170,10 @@ auth.openapi(loginRoute, async (c) => {
   const loggedIn = await logIn(c.var.db, username, password, c.var.now);
   if (!loggedIn) return c.json({ error: "invalid_credentials" }, 401);
   setSessionCookie(c, loggedIn.token);
-  return c.json({ user: loggedIn.user }, 200);
+  return c.json(
+    { user: loggedIn.user, passwordChangeRequired: loggedIn.passwordChangeRequired },
+    200,
+  );
 });
 
 auth.openapi(logoutRoute, async (c) => {

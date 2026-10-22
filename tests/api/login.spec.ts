@@ -26,6 +26,7 @@ test("a User logs in with their Username and password", async ({ request }) => {
   expect(login.status()).toBe(200);
   expect(await login.json()).toEqual({
     user: { username: user.username, displayName: user.username },
+    passwordChangeRequired: false,
   });
   const current = await me(request);
   expect(current.status()).toBe(200);
@@ -44,6 +45,7 @@ test("the Username matches in any letter case", async ({ request }) => {
   expect(login.status()).toBe(200);
   expect(await login.json()).toEqual({
     user: { username: user.username, displayName: user.username },
+    passwordChangeRequired: false,
   });
 });
 

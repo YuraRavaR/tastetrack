@@ -30,6 +30,7 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | `pnpm db:migrate:local` | Apply migrations to the local D1 |
 | `pnpm cf-typegen` | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
 | `pnpm operator create-user --env <env>` | Operator CLI: create a User in `local`, `staging` or `production` (see below) |
+| `pnpm operator reset-password --env <env>` | Operator CLI: give a User who forgot their password a temporary one (see below) |
 
 The API serves its OpenAPI spec at `/api/openapi.json`.
 
@@ -44,6 +45,14 @@ pnpm operator create-user --env production
 ```
 
 It prompts for the Username and the password (twice, not echoed), hashes the password on your machine and sends only the hash, so no credentials end up in the repo or the shell history.
+
+When a User forgets their password, reset it:
+
+```sh
+pnpm operator reset-password --env production
+```
+
+It prompts for the Username, ends every session of theirs and prints a random Temporary Password once. Hand it to the User privately. When they log in with it, their session can only set a new password of their own (`POST /api/me/new-password`), which must differ from the temporary one; every other API call gets a 403 `password_change_required`, and the app takes them straight to the set-new-password screen. The Operator never chooses or learns the User's real password.
 
 ## Sessions
 

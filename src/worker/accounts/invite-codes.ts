@@ -4,12 +4,10 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { inviteCodes } from "../../db/schema";
 import { maxActiveInviteCodes } from "../../shared/accounts";
 import type { InviteCode } from "../../shared/api";
+import { randomCode } from "../random-token";
 
 export const inviteCodeLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 
-// Crockford's base32: digits and capitals without I, L, O and U, so a code read out or typed by
-// hand has no look-alikes. 32 divides 256, so taking each random byte mod 32 is unbiased.
-const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 const groups = 3;
 const groupLength = 4;
 
@@ -18,8 +16,7 @@ function grouped(chars: string): string {
 }
 
 function newCode(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(groups * groupLength));
-  return grouped([...bytes].map((byte) => alphabet[byte % alphabet.length]).join(""));
+  return grouped(randomCode(groups * groupLength));
 }
 
 // The stored form of a code as someone typed it: any letter case, with or without the dashes,

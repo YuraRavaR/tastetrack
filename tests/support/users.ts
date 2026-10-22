@@ -75,3 +75,11 @@ export async function createUser(): Promise<TestUser> {
     await api.dispose();
   }
 }
+
+// Resets the User's password as the Operator does, through the test-hook route, and returns the
+// Temporary Password. Every session of theirs ends.
+export async function resetPassword(api: APIRequestContext, username: string): Promise<string> {
+  const response = await api.post(`/api/test/users/${username}/password-reset`);
+  expect(response.status()).toBe(200);
+  return (await response.json()).temporaryPassword;
+}
