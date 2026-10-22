@@ -10,6 +10,7 @@ import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LogPage } from "./pages/LogPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { SharedListPage } from "./pages/SharedListPage";
 
 export function App() {
@@ -29,6 +30,7 @@ export function App() {
               <Route path="/lists/:listId" element={<ListPage />} />
               <Route path="/items/:mediaItemId" element={<ItemHistoryPage />} />
               <Route path="/invites" element={<InvitesPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Route>

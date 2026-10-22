@@ -1,10 +1,15 @@
 // Users, credentials and sessions. Route handlers only translate HTTP to these calls; every rule
 // about passwords and session lifetime lives here.
-import { and, eq, gt, lte, sql } from "drizzle-orm";
+import { and, eq, gt, lte, ne, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { alias } from "drizzle-orm/sqlite-core";
 import { inviteCodes, sessions, users } from "../../db/schema";
-import type { RegisterRequest, User } from "../../shared/api";
+import type {
+  AccountEditRequest,
+  PasswordChangeRequest,
+  RegisterRequest,
+  User,
+} from "../../shared/api";
 import { createBacklog } from "../lists/backlog";
 import { randomToken } from "../random-token";
 import {
@@ -38,6 +43,12 @@ function byUsername(username: string) {
   return sql`lower(${users.username}) = lower(${username})`;
 }
 
+// A User as the API shows them, with their Username standing in until they set a Display Name.
+export const userColumns = {
+  username: users.username,
+  displayName: sql<string>`coalesce(${users.displayName}, ${users.username})`,
+};
+
 export interface NewUser {
   username: string;
   password: string;
@@ -61,7 +72,7 @@ export async function createUser(
         createdAt: now,
       })
       .onConflictDoNothing()
-      .returning({ username: users.username }),
+      .returning(userColumns),
     createBacklog(db, byUsername(username)),
   ]);
   return created ?? null;
@@ -80,7 +91,17 @@ export async function logIn(
   password: string,
   now: Date,
 ): Promise<LoggedIn | null> {
-  const [found] = await db.select().from(users).where(byUsername(username)).limit(1);
+  const [found] = await db
+    .select({
+      id: users.id,
+      passwordHash: users.passwordHash,
+      passwordSalt: users.passwordSalt,
+      passwordIterations: users.passwordIterations,
+      ...userColumns,
+    })
+    .from(users)
+    .where(byUsername(username))
+    .limit(1);
   if (!found) {
     await hashPassword(password);
     return null;
@@ -100,7 +121,7 @@ export async function logIn(
   }
 
   const token = await startSession(db, found.id, now);
-  return { user: { username: found.username }, token };
+  return { user: { username: found.username, displayName: found.displayName }, token };
 }
 
 // Returns the new session's token.
@@ -156,6 +177,7 @@ export async function register(
               passwordIterations: sql<number>`${hash.iterations}`.as("password_iterations"),
               invitedBy: inviteCodes.issuerId,
               createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+              displayName: sql<string | null>`null`.as("display_name"),
             })
             .from(inviteCodes)
             .where(byCode),
@@ -171,7 +193,7 @@ export async function register(
   // Someone else registered with the code since it was checked.
   if (!created) return { ok: false, error: "invite_code_used" };
   const token = await startSession(db, created.id, now);
-  return { ok: true, loggedIn: { user: { username }, token } };
+  return { ok: true, loggedIn: { user: { username, displayName: username }, token } };
 }
 
 // D1 reports a broken unique index as an error whose message, possibly on a wrapped cause, names
@@ -201,11 +223,59 @@ export async function authenticate(
     .where(and(eq(sessions.tokenHash, await hashToken(token)), gt(sessions.expiresAt, now)))
     .returning({ userId: sessions.userId });
   if (!session) return null;
-  const [user] = await db
-    .select({ username: users.username })
-    .from(users)
-    .where(eq(users.id, session.userId));
+  const [user] = await db.select(userColumns).from(users).where(eq(users.id, session.userId));
   return user ? { userId: session.userId, user } : null;
+}
+
+// Changes the given fields of the User's account. An empty Display Name counts as none, so the
+// Username stands in again. Null when the User is gone.
+export async function editAccount(
+  db: DrizzleD1Database,
+  userId: number,
+  edit: AccountEditRequest,
+): Promise<User | null> {
+  const byId = eq(users.id, userId);
+  const [user] =
+    edit.displayName === undefined
+      ? await db.select(userColumns).from(users).where(byId)
+      : await db
+          .update(users)
+          .set({ displayName: edit.displayName || null })
+          .where(byId)
+          .returning(userColumns);
+  return user ?? null;
+}
+
+// Changes the User's password once their current one checks out, and ends every other session
+// of theirs, so one that was stolen stops working; the session of `token` stays. False for a
+// wrong current password, which changes nothing.
+export async function changePassword(
+  db: DrizzleD1Database,
+  userId: number,
+  token: string,
+  { currentPassword, newPassword }: PasswordChangeRequest,
+): Promise<boolean> {
+  const byId = eq(users.id, userId);
+  const [found] = await db
+    .select({
+      hash: users.passwordHash,
+      salt: users.passwordSalt,
+      iterations: users.passwordIterations,
+    })
+    .from(users)
+    .where(byId);
+  if (!found || !(await verifyPassword(currentPassword, found))) return false;
+
+  await db.batch([
+    db
+      .update(users)
+      .set(passwordColumns(await hashPassword(newPassword)))
+      .where(byId),
+    db
+      .delete(sessions)
+      .where(and(eq(sessions.userId, userId), ne(sessions.tokenHash, await hashToken(token)))),
+  ]);
+  return true;
 }
 
 export async function logOut(db: DrizzleD1Database, token: string): Promise<void> {

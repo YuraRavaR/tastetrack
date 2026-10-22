@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { appMeta } from "../db/schema";
 import { type ErrorResponse, HealthResponse } from "../shared/api";
+import { accountRoutes } from "./account";
 import { auth } from "./auth";
 import { catalogRoutes } from "./catalog";
 import { type AppEnv, withClock, withDatabase } from "./env";
@@ -37,6 +38,7 @@ app.openapi(healthRoute, async (c) => {
 });
 
 app.route("/", auth);
+app.route("/", accountRoutes);
 app.route("/", inviteCodeRoutes);
 app.route("/", catalogRoutes);
 app.route("/", logRoutes);

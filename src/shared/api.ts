@@ -1,7 +1,7 @@
 // Schemas for the HTTP API, shared by the Worker (validation and the OpenAPI
 // spec) and the client (response types).
 import { z } from "@hono/zod-openapi";
-import { passwordLength, usernamePattern } from "./accounts";
+import { maxDisplayNameLength, passwordLength, usernamePattern } from "./accounts";
 import {
   earliestFilmYear,
   filmGenres,
@@ -45,9 +45,12 @@ export const LoginRequest = z
 
 export type LoginRequest = z.infer<typeof LoginRequest>;
 
+// The Display Name is what others see of the User, on Share Links; it is the Username until the
+// User sets one.
 export const User = z
   .object({
     username: Username,
+    displayName: z.string().openapi({ example: "Olena K." }),
   })
   .openapi("User");
 
@@ -60,6 +63,34 @@ export const UserResponse = z
   .openapi("UserResponse");
 
 export type UserResponse = z.infer<typeof UserResponse>;
+
+// Only the fields given change. The Display Name is trimmed, and a null or empty one puts the
+// Username back in its place.
+export const AccountEditRequest = z
+  .object({
+    displayName: z
+      .string()
+      .trim()
+      .max(maxDisplayNameLength)
+      .nullable()
+      .optional()
+      .openapi({ example: "Olena K." }),
+  })
+  .strict()
+  .openapi("AccountEditRequest");
+
+export type AccountEditRequest = z.infer<typeof AccountEditRequest>;
+
+// The current password is checked, not held to the rules, like a login's; its cap only bounds
+// the work a request can cause. The new one follows the rules.
+export const PasswordChangeRequest = z
+  .object({
+    currentPassword: z.string().min(1).max(1000),
+    newPassword: Password,
+  })
+  .openapi("PasswordChangeRequest");
+
+export type PasswordChangeRequest = z.infer<typeof PasswordChangeRequest>;
 
 // Registration checks the Invite Code itself, so any string up to the cap gets that code's error.
 export const RegisterRequest = z

@@ -35,18 +35,19 @@ export const unauthenticatedResponse = {
 };
 
 // Refuses the request with a 401 unless it carries a live session, and makes `c.var.user` the
-// session's User and `c.var.userId` their id.
-export const requireUser = createMiddleware<AppEnv & { Variables: { user: User; userId: number } }>(
-  async (c, next) => {
-    const token = getCookie(c, SESSION_COOKIE);
-    const authenticated = token ? await authenticate(c.var.db, token, c.var.now) : null;
-    if (!token || !authenticated) return c.json(unauthenticated, 401);
-    c.set("user", authenticated.user);
-    c.set("userId", authenticated.userId);
-    setSessionCookie(c, token);
-    await next();
-  },
-);
+// session's User, `c.var.userId` their id and `c.var.sessionToken` the session's token.
+export const requireUser = createMiddleware<
+  AppEnv & { Variables: { user: User; userId: number; sessionToken: string } }
+>(async (c, next) => {
+  const token = getCookie(c, SESSION_COOKIE);
+  const authenticated = token ? await authenticate(c.var.db, token, c.var.now) : null;
+  if (!token || !authenticated) return c.json(unauthenticated, 401);
+  c.set("user", authenticated.user);
+  c.set("userId", authenticated.userId);
+  c.set("sessionToken", token);
+  setSessionCookie(c, token);
+  await next();
+});
 
 const registerRoute = createRoute({
   method: "post",

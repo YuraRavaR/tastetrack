@@ -5,6 +5,10 @@
 // uniqueness simple and rules out look-alike letters from other scripts.
 export const usernamePattern = /^[A-Za-z0-9_]{3,30}$/;
 
+// A Display Name is any text up to this long, once trimmed: unlike a Username it may be in any
+// script, and needn't be unique.
+export const maxDisplayNameLength = 50;
+
 // Any 10–128 characters, with no composition rules, so long passphrases work.
 export const passwordLength = { min: 10, max: 128 } as const;
 

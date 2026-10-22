@@ -1,3 +1,4 @@
+import { Settings } from "lucide-react";
 import { Link, Outlet } from "react-router";
 import { Button } from "@/components/ui/button";
 import tmdbLogo from "../assets/tmdb-logo.svg";
@@ -5,10 +6,10 @@ import { useAuth } from "../auth";
 import { t } from "../i18n/t";
 
 // The frame of every page: a header with the app name and, once logged in, the User, the Log,
-// Watchlist, Lists and Invites pages and a logout action, above a single content column, and a footer
-// crediting TMDB as its terms require (ADR-0004). Mobile first: the column fills a phone screen
-// and stops widening on larger ones, the header wraps rather than overflow, and the User's name
-// shows only where there is room.
+// Watchlist, Lists, Invites and Settings pages and a logout action, above a single content
+// column, and a footer crediting TMDB as its terms require (ADR-0004). Mobile first: the column
+// fills a phone screen and stops widening on larger ones, the header wraps rather than overflow,
+// Settings is an icon, and the User's Display Name shows only where there is room.
 export function AppLayout() {
   const { state, logOut } = useAuth();
 
@@ -22,7 +23,7 @@ export function AppLayout() {
           {state.status === "authenticated" && (
             <div className="flex min-w-0 items-center sm:gap-3">
               <span className="hidden truncate text-muted-foreground text-sm sm:inline">
-                {state.user.username}
+                {state.user.displayName}
               </span>
               <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
                 <Link to="/log">{t("log.nav")}</Link>
@@ -35,6 +36,11 @@ export function AppLayout() {
               </Button>
               <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
                 <Link to="/invites">{t("invites.nav")}</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
+                <Link to="/settings" aria-label={t("settings.nav")} title={t("settings.nav")}>
+                  <Settings aria-hidden />
+                </Link>
               </Button>
               <Button
                 variant="outline"

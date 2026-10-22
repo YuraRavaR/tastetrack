@@ -1,5 +1,6 @@
 // Calls to the Worker's API. The session travels in an HttpOnly cookie, so nothing here holds it.
 import type {
+  AccountEditRequest,
   Backlog,
   BacklogResponse,
   CatalogSearchResponse,
@@ -33,6 +34,7 @@ import type {
   NewLogEntryRequest,
   NewLogEntryResponse,
   NewManualMediaItemRequest,
+  PasswordChangeRequest,
   PlanRequest,
   RegisterRequest,
   RemovedListItem,
@@ -77,6 +79,42 @@ export async function logIn(username: string, password: string): Promise<LoginRe
 
 export async function logOut(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" });
+}
+
+// The User as changed, or null when the change couldn't be saved.
+export async function editAccount(edit: AccountEditRequest): Promise<User | null> {
+  try {
+    const response = await fetch("/api/account", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(edit),
+    });
+    if (!response.ok) return null;
+    return ((await response.json()) as UserResponse).user;
+  } catch {
+    return null;
+  }
+}
+
+export type ChangePasswordError = "wrong_password" | "unavailable";
+
+export type ChangePasswordResult = { ok: true } | { ok: false; error: ChangePasswordError };
+
+// Changes the User's password; every other session of theirs ends, and this one stays.
+export async function changePassword(
+  request: PasswordChangeRequest,
+): Promise<ChangePasswordResult> {
+  try {
+    const response = await fetch("/api/account/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) return { ok: true };
+    return { ok: false, error: response.status === 403 ? "wrong_password" : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
 }
 
 export type RegisterError =

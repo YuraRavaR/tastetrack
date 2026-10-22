@@ -24,10 +24,14 @@ test("a User logs in with their Username and password", async ({ request }) => {
   const login = await request.post("/api/auth/login", { data: user });
 
   expect(login.status()).toBe(200);
-  expect(await login.json()).toEqual({ user: { username: user.username } });
+  expect(await login.json()).toEqual({
+    user: { username: user.username, displayName: user.username },
+  });
   const current = await me(request);
   expect(current.status()).toBe(200);
-  expect(await current.json()).toEqual({ user: { username: user.username } });
+  expect(await current.json()).toEqual({
+    user: { username: user.username, displayName: user.username },
+  });
 });
 
 test("the Username matches in any letter case", async ({ request }) => {
@@ -38,7 +42,9 @@ test("the Username matches in any letter case", async ({ request }) => {
   });
 
   expect(login.status()).toBe(200);
-  expect(await login.json()).toEqual({ user: { username: user.username } });
+  expect(await login.json()).toEqual({
+    user: { username: user.username, displayName: user.username },
+  });
 });
 
 test("an unknown Username and a wrong password get the same error", async ({ request }) => {

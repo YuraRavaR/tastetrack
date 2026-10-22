@@ -13,6 +13,8 @@ interface Auth {
   state: AuthState;
   logIn(username: string, password: string): Promise<api.LoginResult>;
   register(request: RegisterRequest): Promise<api.RegisterResult>;
+  // False when the Display Name couldn't be saved; null or empty puts the Username back.
+  changeDisplayName(displayName: string | null): Promise<boolean>;
   logOut(): Promise<void>;
 }
 
@@ -46,6 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await api.register(request);
       if (result.ok) setState({ status: "authenticated", user: result.user });
       return result;
+    },
+    async changeDisplayName(displayName) {
+      const user = await api.editAccount({ displayName });
+      if (user) setState({ status: "authenticated", user });
+      return user !== null;
     },
     async logOut() {
       await api.logOut();
