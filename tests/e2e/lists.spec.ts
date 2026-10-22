@@ -10,9 +10,9 @@ function searchResult(page: Page, label: string) {
     .filter({ has: page.getByText(label, { exact: true }) });
 }
 
-test("a User builds a List: names it, adds films, orders and notes them, then deletes it", async ({
-  page,
-}) => {
+test("a User builds a List: names it, adds films, orders and notes them, then deletes it", {
+  tag: "@smoke",
+}, async ({ page }) => {
   await logInNewUser(page.request);
   await page.goto("/");
   await page.getByRole("link", { name: "Lists" }).click();

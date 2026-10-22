@@ -3,7 +3,9 @@ import { logInNewUser } from "../support/users";
 
 // Locally the Worker searches a TMDB fake; on staging, the real TMDB. Both know these films.
 
-test("a User searches films as they type, in English or Ukrainian", async ({ page }) => {
+test("a User searches films as they type, in English or Ukrainian", { tag: "@smoke" }, async ({
+  page,
+}) => {
   await logInNewUser(page.request);
   await page.goto("/");
   const search = page.getByRole("searchbox", { name: "Search films" });
@@ -37,7 +39,7 @@ test("typing a title makes one search once the User pauses", async ({ page }) =>
   expect(searched).toEqual(["alien"]);
 });
 
-test("TMDB is credited with its logo and notice", async ({ page }) => {
+test("TMDB is credited with its logo and notice", { tag: "@smoke" }, async ({ page }) => {
   await page.goto("/login");
 
   await expect(page.getByRole("img", { name: "TMDB" })).toBeVisible();

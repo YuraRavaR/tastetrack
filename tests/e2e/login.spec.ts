@@ -8,7 +8,9 @@ test("a logged-out visitor is sent to the login page", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
 });
 
-test("a User logs in, lands where they were going, and logs out", async ({ page }) => {
+test("a User logs in, lands where they were going, and logs out", { tag: "@smoke" }, async ({
+  page,
+}) => {
   const user = await createUser();
   await page.goto("/some/page");
   await expect(page).toHaveURL("/login");

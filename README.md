@@ -24,7 +24,7 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | `pnpm test:api` | Playwright API tests against local Wrangler, with test hooks on and off, and the Operator CLI tests |
 | `pnpm test:e2e` | Playwright browser tests against local Wrangler |
 | `pnpm test:smoke` | The production smoke test: against local Wrangler with hooks off, or `BASE_URL` |
-| `pnpm test:deployed` | Playwright API and E2E tests against `BASE_URL`, e.g. staging |
+| `pnpm test:deployed` | The `@smoke` API and E2E tests against `BASE_URL`, e.g. staging |
 | `pnpm test` | All of the local test suites |
 | `pnpm db:generate --name <name>` | Generate a migration from `src/db/schema.ts` (never edit an applied one) |
 | `pnpm db:migrate:local` | Apply migrations to the local D1 |
@@ -83,7 +83,7 @@ The `cli` Playwright project runs the Operator CLI against local D1 only, so `pn
 Commit messages and PR titles follow [Conventional Commits](https://www.conventionalcommits.org/), checked by commitlint in the `commit-msg` hook and in CI. They drive the version and the changelog.
 
 - **Every PR** ([ci.yml](.github/workflows/ci.yml), [pr-title.yml](.github/workflows/pr-title.yml)): commitlint over the PR's commits and title, then lint, type checks, unit tests, and the API, smoke and E2E tests against local Wrangler.
-- **Every merge to `main`** ([staging.yml](.github/workflows/staging.yml)): applies D1 migrations to the staging database, deploys the Worker with `--env staging` (test hooks on), then runs `pnpm test:deployed` against the deployed URL.
+- **Every merge to `main`** ([staging.yml](.github/workflows/staging.yml)): applies D1 migrations to the staging database, deploys the Worker with `--env staging` (test hooks on), then runs `pnpm test:deployed` against the deployed URL: only the tests tagged `@smoke`, since staging and production share one D1 write budget (ADR-0006). The full suite runs in CI against local D1.
 - **Every merge to `main`** ([release.yml](.github/workflows/release.yml)): release-please updates the release PR. Merging that PR tags a release, which deploys to production after manual approval ([production.yml](.github/workflows/production.yml)), then runs the smoke test against it. See [docs/production.md](docs/production.md), including the D1 export the Operator takes before approving.
 - **Weekly** ([dependabot.yml](.github/dependabot.yml)): Dependabot opens PRs for npm and GitHub Actions updates, grouping minor and patch bumps.
 
