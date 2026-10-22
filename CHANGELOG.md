@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/YuraRavaR/tastetrack/compare/v0.2.0...v0.3.0) (2026-10-22)
+
+
+### Features
+
+* add films TMDB doesn't have as Manual Media Items, seen only by their User ([#36](https://github.com/YuraRavaR/tastetrack/issues/36)) ([7113921](https://github.com/YuraRavaR/tastetrack/commit/7113921da1e2f6dd3ffe008380879b9831907a37))
+* build named Lists of films, ordered and noted, without touching the Log ([#35](https://github.com/YuraRavaR/tastetrack/issues/35)) ([a2c80a7](https://github.com/YuraRavaR/tastetrack/commit/a2c80a7446e690ee23d283e8430af95ff31bf537))
+* keep the TMDB cache fresh from a cron, and fill a cold cache progressively ([#41](https://github.com/YuraRavaR/tastetrack/issues/41)) ([dc73b1f](https://github.com/YuraRavaR/tastetrack/commit/dc73b1fce7d80bb979289508b29aeb3dfb5bbcbb))
+* let a User set their Display Name and change their password in Settings ([#42](https://github.com/YuraRavaR/tastetrack/issues/42)) ([5d59fac](https://github.com/YuraRavaR/tastetrack/commit/5d59facfccb1c63b69cf045effa1c2f2ec566ccd))
+* plan films on a Watchlist, reorder and note them, and logging takes them off with an undo ([#33](https://github.com/YuraRavaR/tastetrack/issues/33)) ([bbf032c](https://github.com/YuraRavaR/tastetrack/commit/bbf032cbebda970fce490a77048d5a18cce00264))
+* share any List, the Watchlist included, through an unguessable Share Link ([#37](https://github.com/YuraRavaR/tastetrack/issues/37)) ([02f6179](https://github.com/YuraRavaR/tastetrack/commit/02f6179fdce551bb7244595f510803effc6e0831)), closes [#18](https://github.com/YuraRavaR/tastetrack/issues/18)
+
 ## [0.2.0](https://github.com/YuraRavaR/tastetrack/compare/v0.1.0...v0.2.0) (2026-10-19)
 
 
