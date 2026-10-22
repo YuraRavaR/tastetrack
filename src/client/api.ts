@@ -33,6 +33,7 @@ import type {
   NewLogEntryRequest,
   NewLogEntryResponse,
   NewManualMediaItemRequest,
+  PasswordChangeRequest,
   PlanRequest,
   RegisterRequest,
   RemovedListItem,
@@ -77,6 +78,43 @@ export async function logIn(username: string, password: string): Promise<LoginRe
 
 export async function logOut(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" });
+}
+
+// The User with their new Display Name, or null when it couldn't be saved. Null or empty puts
+// the Username back in its place.
+export async function setDisplayName(displayName: string | null): Promise<User | null> {
+  try {
+    const response = await fetch("/api/me/display-name", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ displayName }),
+    });
+    if (!response.ok) return null;
+    return ((await response.json()) as UserResponse).user;
+  } catch {
+    return null;
+  }
+}
+
+export type ChangePasswordError = "wrong_password" | "unavailable";
+
+export type ChangePasswordResult = { ok: true } | { ok: false; error: ChangePasswordError };
+
+// Changes the User's password; every other session of theirs ends, and this one stays.
+export async function changePassword(
+  request: PasswordChangeRequest,
+): Promise<ChangePasswordResult> {
+  try {
+    const response = await fetch("/api/me/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) return { ok: true };
+    return { ok: false, error: response.status === 403 ? "wrong_password" : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
 }
 
 export type RegisterError =

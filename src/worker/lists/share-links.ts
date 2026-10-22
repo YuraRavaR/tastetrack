@@ -7,6 +7,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { lists, shareLinks, users } from "../../db/schema";
 import type { MediaType, SharedList, ShareLink } from "../../shared/api";
 import { sharedListTitle, sharedVisibilities, unsharedVisibilities } from "../../shared/lists";
+import { userColumns } from "../accounts/accounts";
 import { toMediaItem } from "../catalog/media-items";
 import { randomToken } from "../random-token";
 import { listOrder, selectListItems } from "./list-items";
@@ -123,15 +124,14 @@ function sharedBy(token: string) {
   return eq(shareLinks.token, token);
 }
 
-// The List behind a Share Link and its owner. Until Users can set a Display Name, it is their
-// Username, its default.
+// The List behind a Share Link and its owner.
 function selectHead(db: DrizzleD1Database, token: string) {
   return db
     .select({
       name: lists.name,
       description: lists.description,
       mediaType: lists.mediaType,
-      ownerDisplayName: users.username,
+      ownerDisplayName: userColumns.displayName,
     })
     .from(shareLinks)
     .innerJoin(lists, eq(shareLinks.listId, lists.id))

@@ -1,10 +1,10 @@
 // Users, credentials and sessions. Route handlers only translate HTTP to these calls; every rule
 // about passwords and session lifetime lives here.
-import { and, eq, gt, lte, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lte, ne, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { alias } from "drizzle-orm/sqlite-core";
 import { inviteCodes, sessions, users } from "../../db/schema";
-import type { RegisterRequest, User } from "../../shared/api";
+import type { PasswordChangeRequest, RegisterRequest, User } from "../../shared/api";
 import { createBacklog } from "../lists/backlog";
 import { randomToken } from "../random-token";
 import {
@@ -34,9 +34,22 @@ function passwordColumns({ hash, salt, iterations }: PasswordHash) {
   return { passwordHash: hash, passwordSalt: salt, passwordIterations: iterations };
 }
 
+// The stored hash, read back in the shape verifyPassword takes.
+const storedPassword = {
+  hash: users.passwordHash,
+  salt: users.passwordSalt,
+  iterations: users.passwordIterations,
+};
+
 function byUsername(username: string) {
   return sql`lower(${users.username}) = lower(${username})`;
 }
+
+// A User as the API shows them, with their Username standing in until they set a Display Name.
+export const userColumns = {
+  username: users.username,
+  displayName: sql<string>`coalesce(${users.displayName}, ${users.username})`,
+};
 
 export interface NewUser {
   username: string;
@@ -61,7 +74,7 @@ export async function createUser(
         createdAt: now,
       })
       .onConflictDoNothing()
-      .returning({ username: users.username }),
+      .returning(userColumns),
     createBacklog(db, byUsername(username)),
   ]);
   return created ?? null;
@@ -80,43 +93,63 @@ export async function logIn(
   password: string,
   now: Date,
 ): Promise<LoggedIn | null> {
-  const [found] = await db.select().from(users).where(byUsername(username)).limit(1);
+  const [found] = await db
+    .select({ id: users.id, ...storedPassword, ...userColumns })
+    .from(users)
+    .where(byUsername(username))
+    .limit(1);
   if (!found) {
     await hashPassword(password);
     return null;
   }
-  const stored = {
-    hash: found.passwordHash,
-    salt: found.passwordSalt,
-    iterations: found.passwordIterations,
-  };
-  if (!(await verifyPassword(password, stored))) return null;
+  if (!(await verifyPassword(password, found))) return null;
 
-  if (found.passwordIterations < targetIterations) {
-    await db
+  // A re-hash lands only on the hash that was checked; if the password changed meanwhile, the
+  // session below is refused.
+  let checkedHash = found.hash;
+  if (found.iterations < targetIterations) {
+    const [rehashed] = await db
       .update(users)
       .set(passwordColumns(await hashPassword(password)))
-      .where(eq(users.id, found.id));
+      .where(and(eq(users.id, found.id), eq(users.passwordHash, found.hash)))
+      .returning({ hash: users.passwordHash });
+    if (rehashed) checkedHash = rehashed.hash;
   }
 
-  const token = await startSession(db, found.id, now);
-  return { user: { username: found.username }, token };
+  const token = await startSession(db, found.id, checkedHash, now);
+  if (!token) return null;
+  return { user: { username: found.username, displayName: found.displayName }, token };
 }
 
-// Returns the new session's token.
-async function startSession(db: DrizzleD1Database, userId: number, now: Date): Promise<string> {
+// Returns the new session's token, or null when the User's password hash is no longer
+// `checkedHash`: a login that checked the old password while it was being changed must not
+// outlive the change, which ends every other session.
+async function startSession(
+  db: DrizzleD1Database,
+  userId: number,
+  checkedHash: string,
+  now: Date,
+): Promise<string | null> {
   const token = randomToken(tokenBytes);
   // Expired sessions are cleared here, so each User's stay bounded without a cron.
-  await db.batch([
+  const [, started] = await db.batch([
     db.delete(sessions).where(and(eq(sessions.userId, userId), lte(sessions.expiresAt, now))),
-    db.insert(sessions).values({
-      tokenHash: await hashToken(token),
-      userId,
-      createdAt: now,
-      expiresAt: expiryFrom(now),
-    }),
+    db
+      .insert(sessions)
+      .select(
+        db
+          .select({
+            tokenHash: sql<string>`${await hashToken(token)}`.as("token_hash"),
+            userId: users.id,
+            createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+            expiresAt: sql<number>`${expiryFrom(now).getTime()}`.as("expires_at"),
+          })
+          .from(users)
+          .where(and(eq(users.id, userId), eq(users.passwordHash, checkedHash))),
+      )
+      .returning({ tokenHash: sessions.tokenHash }),
   ]);
-  return token;
+  return started.length > 0 ? token : null;
 }
 
 export type Registration =
@@ -156,6 +189,7 @@ export async function register(
               passwordIterations: sql<number>`${hash.iterations}`.as("password_iterations"),
               invitedBy: inviteCodes.issuerId,
               createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+              displayName: sql<string | null>`null`.as("display_name"),
             })
             .from(inviteCodes)
             .where(byCode),
@@ -170,8 +204,9 @@ export async function register(
   }
   // Someone else registered with the code since it was checked.
   if (!created) return { ok: false, error: "invite_code_used" };
-  const token = await startSession(db, created.id, now);
-  return { ok: true, loggedIn: { user: { username }, token } };
+  const token = await startSession(db, created.id, hash.hash, now);
+  if (!token) throw new Error("A User who just registered has no session");
+  return { ok: true, loggedIn: { user: { username, displayName: username }, token } };
 }
 
 // D1 reports a broken unique index as an error whose message, possibly on a wrapped cause, names
@@ -201,11 +236,62 @@ export async function authenticate(
     .where(and(eq(sessions.tokenHash, await hashToken(token)), gt(sessions.expiresAt, now)))
     .returning({ userId: sessions.userId });
   if (!session) return null;
-  const [user] = await db
-    .select({ username: users.username })
-    .from(users)
-    .where(eq(users.id, session.userId));
+  const [user] = await db.select(userColumns).from(users).where(eq(users.id, session.userId));
   return user ? { userId: session.userId, user } : null;
+}
+
+// Sets the User's Display Name; null or empty puts their Username back in its place. Null when
+// the User is gone.
+export async function setDisplayName(
+  db: DrizzleD1Database,
+  userId: number,
+  displayName: string | null,
+): Promise<User | null> {
+  const [user] = await db
+    .update(users)
+    .set({ displayName: displayName || null })
+    .where(eq(users.id, userId))
+    .returning(userColumns);
+  return user ?? null;
+}
+
+// Changes the User's password once their current one checks out, and ends every other session
+// of theirs, so one that was stolen stops working; the session of `token` stays. The new hash
+// replaces only the one that was checked, and sessions end only once it has, so of two changes
+// racing, one fails as if its current password were wrong. False for a wrong current password,
+// which changes nothing.
+export async function changePassword(
+  db: DrizzleD1Database,
+  userId: number,
+  token: string,
+  { currentPassword, newPassword }: PasswordChangeRequest,
+): Promise<boolean> {
+  const byId = eq(users.id, userId);
+  const [found] = await db.select(storedPassword).from(users).where(byId);
+  if (!found || !(await verifyPassword(currentPassword, found))) return false;
+
+  const changed = await hashPassword(newPassword);
+  const [updated] = await db.batch([
+    db
+      .update(users)
+      .set(passwordColumns(changed))
+      .where(and(byId, eq(users.passwordHash, found.hash)))
+      .returning({ id: users.id }),
+    // The new hash has a fresh salt, so it is the User's only if this change landed.
+    db.delete(sessions).where(
+      and(
+        inArray(
+          sessions.userId,
+          db
+            .select({ id: users.id })
+            .from(users)
+            .where(and(byId, eq(users.passwordHash, changed.hash))),
+        ),
+        ne(sessions.tokenHash, await hashToken(token)),
+      ),
+    ),
+  ]);
+  return updated.length > 0;
 }
 
 export async function logOut(db: DrizzleD1Database, token: string): Promise<void> {

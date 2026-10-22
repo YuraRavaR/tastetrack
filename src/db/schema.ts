@@ -21,7 +21,8 @@ export const appMeta = sqliteTable("app_meta", {
 // Usernames are ASCII, so SQLite's lower() is enough to make them unique regardless of case.
 // The password hash records its own salt and iteration count (ADR-0007), so a hash made under an
 // older target still verifies and can be re-hashed at the next login. invitedBy is the User whose
-// Invite Code they registered with; it is cleared if that User is deleted, never the invitee.
+// Invite Code they registered with; it is cleared if that User is deleted, never the invitee. A
+// null displayName means the User hasn't set one, so their Display Name is their Username.
 export const users = sqliteTable(
   "users",
   {
@@ -34,6 +35,7 @@ export const users = sqliteTable(
       onDelete: "set null",
     }),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    displayName: text("display_name"),
   },
   (table) => [uniqueIndex("users_username_unique").on(sql`lower(${table.username})`)],
 );

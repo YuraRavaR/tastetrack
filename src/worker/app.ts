@@ -7,6 +7,7 @@ import { type AppEnv, withClock, withDatabase } from "./env";
 import { inviteCodeRoutes } from "./invite-codes";
 import { listRoutes } from "./lists";
 import { logRoutes } from "./log";
+import { meRoutes } from "./me";
 import { testHooks } from "./test-hooks";
 
 const healthRoute = createRoute({
@@ -37,6 +38,7 @@ app.openapi(healthRoute, async (c) => {
 });
 
 app.route("/", auth);
+app.route("/", meRoutes);
 app.route("/", inviteCodeRoutes);
 app.route("/", catalogRoutes);
 app.route("/", logRoutes);

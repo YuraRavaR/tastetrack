@@ -41,9 +41,11 @@ test("an invitee registers with an Invite Code, is logged in, and the code becom
   const response = await invitee.post("/api/auth/register", { data: registration });
 
   expect(response.status()).toBe(201);
-  expect(await response.json()).toEqual({ user: { username: registration.username } });
+  expect(await response.json()).toEqual({
+    user: { username: registration.username, displayName: registration.username },
+  });
   expect(await (await invitee.get("/api/auth/me")).json()).toEqual({
-    user: { username: registration.username },
+    user: { username: registration.username, displayName: registration.username },
   });
   expect(await (await request.get("/api/invite-codes")).json()).toEqual({ inviteCodes: [] });
   await invitee.post("/api/auth/logout");
@@ -187,6 +189,6 @@ test("when the inviter's account is removed, the invitee stays and their inviter
   expect(invitedBy.status()).toBe(200);
   expect(await invitedBy.json()).toEqual({ invitedBy: null });
   expect(await (await invitee.get("/api/auth/me")).json()).toEqual({
-    user: { username: registration.username },
+    user: { username: registration.username, displayName: registration.username },
   });
 });
