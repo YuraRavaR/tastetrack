@@ -1,6 +1,5 @@
 // Calls to the Worker's API. The session travels in an HttpOnly cookie, so nothing here holds it.
 import type {
-  AccountEditRequest,
   Backlog,
   BacklogResponse,
   CatalogSearchResponse,
@@ -81,13 +80,14 @@ export async function logOut(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" });
 }
 
-// The User as changed, or null when the change couldn't be saved.
-export async function editAccount(edit: AccountEditRequest): Promise<User | null> {
+// The User with their new Display Name, or null when it couldn't be saved. Null or empty puts
+// the Username back in its place.
+export async function setDisplayName(displayName: string | null): Promise<User | null> {
   try {
-    const response = await fetch("/api/account", {
-      method: "PATCH",
+    const response = await fetch("/api/me/display-name", {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(edit),
+      body: JSON.stringify({ displayName }),
     });
     if (!response.ok) return null;
     return ((await response.json()) as UserResponse).user;
@@ -105,7 +105,7 @@ export async function changePassword(
   request: PasswordChangeRequest,
 ): Promise<ChangePasswordResult> {
   try {
-    const response = await fetch("/api/account/password", {
+    const response = await fetch("/api/me/password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),

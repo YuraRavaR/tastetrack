@@ -26,7 +26,7 @@ function setSessionCookie(c: Context, token: string): void {
   });
 }
 
-const unauthenticated = { error: "unauthenticated" } satisfies ErrorResponse;
+export const unauthenticated = { error: "unauthenticated" } satisfies ErrorResponse;
 
 // The 401 that every route behind requireUser documents.
 export const unauthenticatedResponse = {

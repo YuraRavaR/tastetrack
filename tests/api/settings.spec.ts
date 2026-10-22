@@ -2,7 +2,7 @@ import { type APIRequestContext, expect, request as requests, test } from "@play
 import { logInNewUser } from "../support/users";
 
 async function setDisplayName(request: APIRequestContext, displayName: string | null) {
-  return request.patch("/api/account", { data: { displayName } });
+  return request.put("/api/me/display-name", { data: { displayName } });
 }
 
 async function changePassword(
@@ -10,7 +10,7 @@ async function changePassword(
   currentPassword: string,
   newPassword: string,
 ) {
-  return request.post("/api/account/password", { data: { currentPassword, newPassword } });
+  return request.post("/api/me/password", { data: { currentPassword, newPassword } });
 }
 
 // Logs in on a request context of its own, as on another device; dispose of it when done.
@@ -75,10 +75,13 @@ test("a Display Name is at most 50 characters", async ({ request }) => {
   expect(current).toEqual({ username: user.username, displayName: "я".repeat(50) });
 });
 
-test("changing the account needs a session", async ({ playwright, baseURL }) => {
+test("changing the Display Name or password needs a session", async ({ playwright, baseURL }) => {
   const anonymous = await playwright.request.newContext({ baseURL });
 
   expect((await setDisplayName(anonymous, "Olena")).status()).toBe(401);
+  expect((await changePassword(anonymous, "correct horse battery", "x".repeat(10))).status()).toBe(
+    401,
+  );
   await anonymous.dispose();
 });
 
@@ -146,10 +149,10 @@ test("changing the password ends the User's other sessions, and the current one 
   await someoneElse.dispose();
 });
 
-test("the OpenAPI spec describes the account routes", async ({ request }) => {
+test("the OpenAPI spec describes the Display Name and password routes", async ({ request }) => {
   const spec = await (await request.get("/api/openapi.json")).json();
 
-  expect(spec.paths["/api/account"].patch.security).toEqual([{ session: [] }]);
-  expect(spec.paths["/api/account/password"].post.responses["403"]).toBeDefined();
+  expect(spec.paths["/api/me/display-name"].put.security).toEqual([{ session: [] }]);
+  expect(spec.paths["/api/me/password"].post.responses["403"]).toBeDefined();
   expect(spec.components.schemas.User.required).toContain("displayName");
 });

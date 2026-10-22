@@ -13,8 +13,9 @@ interface Auth {
   state: AuthState;
   logIn(username: string, password: string): Promise<api.LoginResult>;
   register(request: RegisterRequest): Promise<api.RegisterResult>;
-  // False when the Display Name couldn't be saved; null or empty puts the Username back.
-  changeDisplayName(displayName: string | null): Promise<boolean>;
+  // The User as saved, or null when the Display Name couldn't be; null or empty puts the
+  // Username back.
+  setDisplayName(displayName: string | null): Promise<User | null>;
   logOut(): Promise<void>;
 }
 
@@ -49,10 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.ok) setState({ status: "authenticated", user: result.user });
       return result;
     },
-    async changeDisplayName(displayName) {
-      const user = await api.editAccount({ displayName });
+    async setDisplayName(displayName) {
+      const user = await api.setDisplayName(displayName);
       if (user) setState({ status: "authenticated", user });
-      return user !== null;
+      return user;
     },
     async logOut() {
       await api.logOut();

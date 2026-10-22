@@ -17,6 +17,15 @@ test("a User sets their Display Name and changes their password in Settings", as
   await expect(displayNameSection.getByRole("status")).toHaveText("Display Name saved.");
   await expect(page.getByRole("banner")).toContainText("Олена К.");
 
+  // Cleared, it is the Username again.
+  await displayName.fill("");
+  await page.getByRole("button", { name: "Save Display Name" }).click();
+  await expect(displayName).toHaveValue(user.username);
+  await expect(page.getByRole("banner")).toContainText(user.username);
+  await displayName.fill("Олена К.");
+  await page.getByRole("button", { name: "Save Display Name" }).click();
+  await expect(page.getByRole("banner")).toContainText("Олена К.");
+
   await page.getByLabel("Current password").fill("not the password");
   await page.getByLabel("New password").fill("a brand new passphrase");
   await page.getByRole("button", { name: "Change password" }).click();

@@ -1,13 +1,13 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { appMeta } from "../db/schema";
 import { type ErrorResponse, HealthResponse } from "../shared/api";
-import { accountRoutes } from "./account";
 import { auth } from "./auth";
 import { catalogRoutes } from "./catalog";
 import { type AppEnv, withClock, withDatabase } from "./env";
 import { inviteCodeRoutes } from "./invite-codes";
 import { listRoutes } from "./lists";
 import { logRoutes } from "./log";
+import { meRoutes } from "./me";
 import { testHooks } from "./test-hooks";
 
 const healthRoute = createRoute({
@@ -38,7 +38,7 @@ app.openapi(healthRoute, async (c) => {
 });
 
 app.route("/", auth);
-app.route("/", accountRoutes);
+app.route("/", meRoutes);
 app.route("/", inviteCodeRoutes);
 app.route("/", catalogRoutes);
 app.route("/", logRoutes);

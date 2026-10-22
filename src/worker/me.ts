@@ -1,32 +1,32 @@
-// The logged-in User's own account: their Display Name and their password.
+// The logged-in User's own settings: their Display Name and their password.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
-  AccountEditRequest,
+  DisplayNameRequest,
   ErrorResponse,
   PasswordChangeRequest,
   UserResponse,
 } from "../shared/api";
-import { changePassword, editAccount } from "./accounts/accounts";
-import { requireUser, unauthenticatedResponse } from "./auth";
+import { changePassword, setDisplayName } from "./accounts/accounts";
+import { requireUser, unauthenticated, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
 
-const editRoute = createRoute({
-  method: "patch",
-  path: "/account",
-  summary: "Change the logged-in User's Display Name",
+const displayNameRoute = createRoute({
+  method: "put",
+  path: "/me/display-name",
+  summary: "Set the logged-in User's Display Name, which others see on Share Links",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
-    body: { content: { "application/json": { schema: AccountEditRequest } }, required: true },
+    body: { content: { "application/json": { schema: DisplayNameRequest } }, required: true },
   },
   responses: {
     200: {
       content: { "application/json": { schema: UserResponse } },
-      description: "The User as changed",
+      description: "The User with their new Display Name",
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
-      description: "The request body is malformed, or the Display Name is too long",
+      description: "The request body is malformed, or the Display Name is over 50 characters",
     },
     401: unauthenticatedResponse,
   },
@@ -34,7 +34,7 @@ const editRoute = createRoute({
 
 const passwordRoute = createRoute({
   method: "post",
-  path: "/account/password",
+  path: "/me/password",
   summary: "Change the logged-in User's password, ending their other sessions",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
@@ -57,15 +57,16 @@ const passwordRoute = createRoute({
   },
 });
 
-export const accountRoutes = new OpenAPIHono<AppEnv>();
+export const meRoutes = new OpenAPIHono<AppEnv>();
 
-accountRoutes.openapi(editRoute, async (c) => {
-  const user = await editAccount(c.var.db, c.var.userId, c.req.valid("json"));
-  if (!user) return c.json({ error: "unauthenticated" }, 401);
+meRoutes.openapi(displayNameRoute, async (c) => {
+  const { displayName } = c.req.valid("json");
+  const user = await setDisplayName(c.var.db, c.var.userId, displayName);
+  if (!user) return c.json(unauthenticated, 401);
   return c.json({ user }, 200);
 });
 
-accountRoutes.openapi(passwordRoute, async (c) => {
+meRoutes.openapi(passwordRoute, async (c) => {
   const { db, userId, sessionToken } = c.var;
   if (!(await changePassword(db, userId, sessionToken, c.req.valid("json")))) {
     return c.json({ error: "wrong_password" }, 403);

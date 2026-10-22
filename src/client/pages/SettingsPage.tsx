@@ -9,7 +9,7 @@ import * as api from "../api";
 import { useAuth } from "../auth";
 import { t } from "../i18n/t";
 
-// The User's own account: the Display Name others see on Share Links, and their password.
+// The User's own settings: the Display Name others see on Share Links, and their password.
 export function SettingsPage() {
   const { state } = useAuth();
   if (state.status !== "authenticated") return null;
@@ -50,20 +50,20 @@ function Section({
   );
 }
 
-type Outcome = "saved" | "failed" | null;
-
 function DisplayNameSection({ user }: { user: User }) {
-  const { changeDisplayName } = useAuth();
+  const auth = useAuth();
   const [displayName, setDisplayName] = useState(user.displayName);
   const [saving, setSaving] = useState(false);
-  const [outcome, setOutcome] = useState<Outcome>(null);
+  const [outcome, setOutcome] = useState<"saved" | "failed" | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    const saved = await changeDisplayName(displayName);
+    const saved = await auth.setDisplayName(displayName);
     setSaving(false);
     setOutcome(saved ? "saved" : "failed");
+    // A cleared Display Name comes back as the Username, which the field then shows.
+    if (saved) setDisplayName(saved.displayName);
   }
 
   return (

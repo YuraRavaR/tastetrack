@@ -64,22 +64,19 @@ export const UserResponse = z
 
 export type UserResponse = z.infer<typeof UserResponse>;
 
-// Only the fields given change. The Display Name is trimmed, and a null or empty one puts the
-// Username back in its place.
-export const AccountEditRequest = z
+// The Display Name is trimmed, and a null or empty one puts the Username back in its place.
+export const DisplayNameRequest = z
   .object({
     displayName: z
       .string()
       .trim()
       .max(maxDisplayNameLength)
       .nullable()
-      .optional()
       .openapi({ example: "Olena K." }),
   })
-  .strict()
-  .openapi("AccountEditRequest");
+  .openapi("DisplayNameRequest");
 
-export type AccountEditRequest = z.infer<typeof AccountEditRequest>;
+export type DisplayNameRequest = z.infer<typeof DisplayNameRequest>;
 
 // The current password is checked, not held to the rules, like a login's; its cap only bounds
 // the work a request can cause. The new one follows the rules.
