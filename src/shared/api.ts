@@ -64,7 +64,7 @@ export const UserResponse = z
 
 export type UserResponse = z.infer<typeof UserResponse>;
 
-// passwordChangeRequired says the password was a temporary one the Operator issued: the session
+// passwordChangeRequired says the password was a Temporary Password the Operator issued: the session
 // can only set the User's own new password until they do.
 export const LoginResponse = z
   .object({
@@ -100,8 +100,8 @@ export const PasswordChangeRequest = z
 
 export type PasswordChangeRequest = z.infer<typeof PasswordChangeRequest>;
 
-// The User's own password, in place of the temporary one the Operator issued: it follows the
-// rules, and mustn't be the temporary one.
+// The User's own password, in place of the Temporary Password the Operator issued: it follows the
+// rules, and mustn't be the Temporary Password.
 export const NewPasswordRequest = z
   .object({
     newPassword: Password,

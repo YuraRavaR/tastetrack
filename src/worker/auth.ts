@@ -63,7 +63,7 @@ function sessionMiddleware({ forPasswordChange }: { forPasswordChange: boolean }
 // Every route for a logged-in User sits behind this.
 export const requireUser = sessionMiddleware({ forPasswordChange: false });
 
-// Only for setting the new password a temporary one requires: it lets that session through.
+// Only for setting the new password a Temporary Password requires: it lets that session through.
 export const requireSession = sessionMiddleware({ forPasswordChange: true });
 
 const registerRoute = createRoute({

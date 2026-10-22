@@ -83,7 +83,7 @@ export async function createUser(
 export interface LoggedIn {
   user: User;
   token: string;
-  // The password is a temporary one the Operator issued, so the session can only set a new one.
+  // The password is a Temporary Password the Operator issued, so the session can only set a new one.
   passwordChangeRequired: boolean;
 }
 
@@ -328,12 +328,12 @@ function endOtherSessionsOnceChanged(
 }
 
 export type TemporaryPasswordReplacement =
-  | { ok: true }
+  | { ok: true; user: User }
   | { ok: false; error: "password_change_not_required" | "temporary_password_reused" };
 
-// Sets the User's own password in place of the temporary one the Operator issued, which lifts
+// Sets the User's own password in place of the Temporary Password the Operator issued, which lifts
 // the restriction on their sessions, and ends every other session of theirs; the session of
-// `token` stays. The new hash replaces only the temporary one that was checked, so a second reset
+// `token` stays. The new hash replaces only the Temporary Password that was checked, so a second reset
 // meanwhile wins. A User who has no Temporary Password changes theirs with changePassword.
 export async function replaceTemporaryPassword(
   db: DrizzleD1Database,
@@ -357,10 +357,11 @@ export async function replaceTemporaryPassword(
       .update(users)
       .set({ ...passwordColumns(changed), passwordChangeRequired: false })
       .where(and(byId, eq(users.passwordHash, found.hash), eq(users.passwordChangeRequired, true)))
-      .returning({ id: users.id }),
+      .returning(userColumns),
     endOtherSessionsOnceChanged(db, userId, changed.hash, await hashToken(token)),
   ]);
-  return updated.length > 0 ? { ok: true } : { ok: false, error: "password_change_not_required" };
+  const [user] = updated;
+  return user ? { ok: true, user } : { ok: false, error: "password_change_not_required" };
 }
 
 // Four groups of four Crockford base32 characters: 80 random bits, easy to read out and type, and

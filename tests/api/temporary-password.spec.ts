@@ -57,10 +57,10 @@ test("setting a new password lifts the restriction, and the User uses the app as
 
   const response = await setNewPassword(request, "my very own passphrase");
 
-  expect(response.status()).toBe(204);
-  expect(await (await request.get("/api/auth/me")).json()).toEqual({
-    user: { username: user.username, displayName: user.username },
-  });
+  expect(response.status()).toBe(200);
+  const expected = { user: { username: user.username, displayName: user.username } };
+  expect(await response.json()).toEqual(expected);
+  expect(await (await request.get("/api/auth/me")).json()).toEqual(expected);
   expect((await request.get("/api/lists")).status()).toBe(200);
   const device = await playwright.request.newContext({ baseURL });
   const withTemporary = await device.post("/api/auth/login", {
@@ -88,7 +88,7 @@ test("the new password follows the rules and can't be the temporary one", async 
   expect(await reused.json()).toEqual({ error: "temporary_password_reused" });
 
   expect(await (await request.get("/api/auth/me")).json()).toEqual(passwordChangeRequired);
-  expect((await setNewPassword(request, "x".repeat(10))).status()).toBe(204);
+  expect((await setNewPassword(request, "x".repeat(10))).status()).toBe(200);
 });
 
 test("setting the new password ends the User's other sessions, and this one stays", async ({
@@ -102,7 +102,7 @@ test("setting the new password ends the User's other sessions, and this one stay
     data: { username: user.username, password: user.temporaryPassword },
   });
 
-  expect((await setNewPassword(request, "my very own passphrase")).status()).toBe(204);
+  expect((await setNewPassword(request, "my very own passphrase")).status()).toBe(200);
 
   expect((await request.get("/api/auth/me")).status()).toBe(200);
   expect((await other.get("/api/auth/me")).status()).toBe(401);

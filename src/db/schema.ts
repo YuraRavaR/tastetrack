@@ -23,7 +23,7 @@ export const appMeta = sqliteTable("app_meta", {
 // older target still verifies and can be re-hashed at the next login. invitedBy is the User whose
 // Invite Code they registered with; it is cleared if that User is deleted, never the invitee. A
 // null displayName means the User hasn't set one, so their Display Name is their Username.
-// passwordChangeRequired marks a password the Operator reset to a temporary one: until the User
+// passwordChangeRequired marks a password the Operator reset to a Temporary Password: until the User
 // sets their own, their sessions can do nothing else.
 export const users = sqliteTable(
   "users",

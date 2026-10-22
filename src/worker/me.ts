@@ -1,5 +1,5 @@
 // The logged-in User's own settings: their Display Name and their password, and the new password
-// that a temporary one requires.
+// that a Temporary Password requires.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   DisplayNameRequest,
@@ -64,7 +64,7 @@ const newPasswordRoute = createRoute({
   method: "post",
   path: "/me/new-password",
   summary:
-    "Set the logged-in User's own password in place of the temporary one the Operator issued, " +
+    "Set the logged-in User's own password in place of the Temporary Password the Operator issued, " +
     "ending their other sessions",
   middleware: [requireSession] as const,
   security: [{ session: [] }],
@@ -72,7 +72,8 @@ const newPasswordRoute = createRoute({
     body: { content: { "application/json": { schema: NewPasswordRequest } }, required: true },
   },
   responses: {
-    204: {
+    200: {
+      content: { "application/json": { schema: UserResponse } },
       description:
         "The password is set and the session is no longer restricted; every other session of " +
         "the User's has ended",
@@ -118,5 +119,5 @@ meRoutes.openapi(newPasswordRoute, async (c) => {
     const { error } = replaced;
     return error === "temporary_password_reused" ? c.json({ error }, 400) : c.json({ error }, 409);
   }
-  return c.body(null, 204);
+  return c.json({ user: replaced.user }, 200);
 });

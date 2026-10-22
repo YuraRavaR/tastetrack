@@ -125,9 +125,9 @@ export async function changePassword(
 
 export type NewPasswordError = "temporary_password_reused" | "unavailable";
 
-export type NewPasswordResult = { ok: true } | { ok: false; error: NewPasswordError };
+export type NewPasswordResult = { ok: true; user: User } | { ok: false; error: NewPasswordError };
 
-// Sets the User's own password in place of the temporary one; every other session of theirs
+// Sets the User's own password in place of the Temporary Password; every other session of theirs
 // ends, and this one can then do everything.
 export async function setNewPassword(newPassword: string): Promise<NewPasswordResult> {
   try {
@@ -136,7 +136,7 @@ export async function setNewPassword(newPassword: string): Promise<NewPasswordRe
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ newPassword }),
     });
-    if (response.ok) return { ok: true };
+    if (response.ok) return { ok: true, user: ((await response.json()) as UserResponse).user };
     const body = (await response.json()) as ErrorResponse;
     return {
       ok: false,

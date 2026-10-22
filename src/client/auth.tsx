@@ -12,7 +12,7 @@ type AuthState =
   | { status: "passwordChangeRequired"; username: string | null }
   | { status: "authenticated"; user: User };
 
-function stateOf(current: User | null | "password_change_required"): AuthState {
+function stateFromCurrentUser(current: User | null | "password_change_required"): AuthState {
   if (current === "password_change_required") {
     return { status: "passwordChangeRequired", username: null };
   }
@@ -26,7 +26,7 @@ interface Auth {
   // The User as saved, or null when the Display Name couldn't be; null or empty puts the
   // Username back.
   setDisplayName(displayName: string | null): Promise<User | null>;
-  // Sets the User's own password in place of the temporary one, which lets them in.
+  // Sets the User's own password in place of the Temporary Password, which lets them in.
   setNewPassword(newPassword: string): Promise<api.NewPasswordResult>;
   logOut(): Promise<void>;
 }
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .fetchCurrentUser()
       .catch(() => null)
       .then((current) => {
-        if (!cancelled) setState(stateOf(current));
+        if (!cancelled) setState(stateFromCurrentUser(current));
       });
     return () => {
       cancelled = true;
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     async setNewPassword(newPassword) {
       const result = await api.setNewPassword(newPassword);
-      if (result.ok) setState(stateOf(await api.fetchCurrentUser().catch(() => null)));
+      if (result.ok) setState({ status: "authenticated", user: result.user });
       return result;
     },
     async logOut() {
