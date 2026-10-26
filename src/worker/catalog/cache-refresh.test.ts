@@ -220,6 +220,23 @@ describe("a cron run", () => {
   });
 });
 
+// Search results as the client sends them to add their film.
+const alienFromSearch = {
+  externalReference: { source: "tmdb", mediaType: "film", id: "348" },
+  title: "Alien",
+  originalTitle: "Alien",
+  year: 1979,
+  posterUrl: null,
+  titleLanguage: "en",
+} as const;
+
+const failingFilmFromSearch = {
+  ...alienFromSearch,
+  externalReference: { ...alienFromSearch.externalReference, id: "999000001" },
+  title: "Failing film from search",
+  originalTitle: "TMDB Fake Details Failure",
+} as const;
+
 describe("a read", () => {
   useTmdbFake();
 
@@ -257,19 +274,3 @@ describe("a read", () => {
     expect(await due()).toEqual(["999000001"]);
   });
 });
-
-const alienFromSearch = {
-  externalReference: { source: "tmdb", mediaType: "film", id: "348" },
-  title: "Alien",
-  originalTitle: "Alien",
-  year: 1979,
-  posterUrl: null,
-  titleLanguage: "en",
-} as const;
-
-const failingFilmFromSearch = {
-  ...alienFromSearch,
-  externalReference: { ...alienFromSearch.externalReference, id: "999000001" },
-  title: "Failing film from search",
-  originalTitle: "TMDB Fake Details Failure",
-} as const;

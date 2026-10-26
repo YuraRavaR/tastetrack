@@ -24,10 +24,10 @@ type CacheEntry = typeof tmdbCache.$inferSelect;
 
 // TMDB allows caching for 6 months; we keep an entry 90 days from when it was last filled. Past
 // that no read shows it, whether or not the cron has deleted it yet.
-export const cacheLifetime = 90 * 24 * 60 * 60 * 1000;
+const cacheLifetime = 90 * 24 * 60 * 60 * 1000;
 
 // The oldest an entry may be and still be shown; an older one has expired.
-function oldestShown(now: Date): Date {
+export function oldestShown(now: Date): Date {
   return new Date(now.getTime() - cacheLifetime);
 }
 
