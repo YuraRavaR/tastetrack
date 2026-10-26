@@ -62,7 +62,8 @@ export async function fetchCurrentUser(): Promise<User | null | "password_change
 
 export type LoginResult =
   | { ok: true; user: User; passwordChangeRequired: boolean }
-  | { ok: false; error: "invalid_credentials" | "unavailable" };
+  | { ok: false; error: "invalid_credentials" | "unavailable" }
+  | { ok: false; error: "too_many_attempts"; retryAfterSeconds: number };
 
 export async function logIn(username: string, password: string): Promise<LoginResult> {
   try {
@@ -72,6 +73,10 @@ export async function logIn(username: string, password: string): Promise<LoginRe
       body: JSON.stringify({ username, password }),
     });
     if (response.ok) return { ok: true, ...((await response.json()) as LoginResponse) };
+    if (response.status === 429) {
+      const retryAfterSeconds = Number(response.headers.get("Retry-After"));
+      return { ok: false, error: "too_many_attempts", retryAfterSeconds };
+    }
     const body = (await response.json()) as ErrorResponse;
     return {
       ok: false,

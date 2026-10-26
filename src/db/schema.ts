@@ -60,6 +60,26 @@ export const sessions = sqliteTable(
   (table) => [index("sessions_user_id_idx").on(table.userId)],
 );
 
+// The login failures of one Username from one IP, which lock that pair once there are enough
+// (ADR-0007). The Username is kept lower-cased, as logins match it, and need not belong to a User,
+// so an unknown one locks the same way. An attempt counts as a failure before its password is
+// checked, and a success deletes the row; attempts while the pair is locked count too, but leave
+// lastFailedAt at the failure that locked it. Once lastFailedAt is a lockout in the past, the
+// failures no longer count, and the Cron Trigger deletes the row.
+export const loginFailures = sqliteTable(
+  "login_failures",
+  {
+    usernameKey: text("username_key").notNull(),
+    ip: text("ip").notNull(),
+    failures: integer("failures").notNull(),
+    lastFailedAt: integer("last_failed_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.usernameKey, table.ip] }),
+    index("login_failures_last_failed_at_idx").on(table.lastFailedAt),
+  ],
+);
+
 // An Invite Code is active until it is used or expires, 7 days after it was issued. Codes are
 // shown back to their issuer, so they are stored as issued, not hashed. usedAt alone marks a code
 // used, so it stays used whatever happens to the User who registered with it.

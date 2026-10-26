@@ -13,6 +13,7 @@ import {
   inviteCodeProblem,
   normalizeInviteCode,
 } from "./invite-codes";
+import { beginLoginAttempt, clearLoginFailures } from "./login-lockout";
 import { hashPassword, type PasswordHash, targetIterations, verifyPassword } from "./password";
 
 // A session lasts 30 days from the User's last activity.
@@ -87,9 +88,34 @@ export interface LoggedIn {
   passwordChangeRequired: boolean;
 }
 
+export type Login =
+  | { ok: true; loggedIn: LoggedIn }
+  | { ok: false; error: "invalid_credentials" }
+  | { ok: false; error: "too_many_attempts"; retryAfterMs: number };
+
+// Logs the User in from the client's IP unless that IP has locked their Username with failed
+// logins (login-lockout.ts). An unknown Username fails, and locks, just as a wrong password does,
+// and a locked pair is refused before any lookup, so no answer says which Usernames exist.
+export async function logIn(
+  db: DrizzleD1Database,
+  username: string,
+  password: string,
+  ip: string,
+  now: Date,
+): Promise<Login> {
+  const attempt = await beginLoginAttempt(db, username, ip, now);
+  if (!attempt.allowed) {
+    return { ok: false, error: "too_many_attempts", retryAfterMs: attempt.retryAfterMs };
+  }
+  const loggedIn = await checkCredentials(db, username, password, now);
+  if (!loggedIn) return { ok: false, error: "invalid_credentials" };
+  await clearLoginFailures(db, username, ip);
+  return { ok: true, loggedIn };
+}
+
 // Returns null for an unknown Username and a wrong password alike, after the same hashing work,
 // so neither the answer nor its timing says which Usernames exist.
-export async function logIn(
+async function checkCredentials(
   db: DrizzleD1Database,
   username: string,
   password: string,

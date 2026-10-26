@@ -14,6 +14,8 @@ export const en = {
   "login.submit": "Log in",
   "login.submitting": "Logging in…",
   "login.invalidCredentials": "Wrong Username or password",
+  "login.tooManyAttempts":
+    "Too many failed attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
   "login.unavailable": "Couldn't log in. Please try again.",
   "login.registerPrompt": "Have an Invite Code?",
   "login.registerLink": "Register",

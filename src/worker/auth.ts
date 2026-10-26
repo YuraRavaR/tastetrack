@@ -113,6 +113,18 @@ const loginRoute = createRoute({
       content: { "application/json": { schema: ErrorResponse } },
       description: "The Username is unknown or the password is wrong; the two aren't told apart",
     },
+    429: {
+      headers: {
+        "Retry-After": {
+          schema: { type: "integer" },
+          description: "Seconds until the lockout ends",
+        },
+      },
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "5 logins for this Username from this IP failed, so further attempts from it are " +
+        "refused for 15 minutes (`too_many_attempts`); an unknown Username locks the same way",
+    },
   },
 });
 
@@ -165,10 +177,22 @@ auth.openapi(registerRoute, async (c) => {
   return c.json({ user: registration.loggedIn.user }, 201);
 });
 
+// Cloudflare sets CF-Connecting-IP on every request, replacing any the client sent, so unlike
+// X-Forwarded-For it can't be forged. Only outside Cloudflare can it be missing, and such requests
+// then share one IP.
+function clientIp(c: Context): string {
+  return c.req.header("CF-Connecting-IP") ?? "";
+}
+
 auth.openapi(loginRoute, async (c) => {
   const { username, password } = c.req.valid("json");
-  const loggedIn = await logIn(c.var.db, username, password, c.var.now);
-  if (!loggedIn) return c.json({ error: "invalid_credentials" }, 401);
+  const login = await logIn(c.var.db, username, password, clientIp(c), c.var.now);
+  if (!login.ok) {
+    if (login.error === "invalid_credentials") return c.json({ error: login.error }, 401);
+    c.header("Retry-After", String(Math.ceil(login.retryAfterMs / 1000)));
+    return c.json({ error: login.error }, 429);
+  }
+  const { loggedIn } = login;
   setSessionCookie(c, loggedIn.token);
   return c.json(
     { user: loggedIn.user, passwordChangeRequired: loggedIn.passwordChangeRequired },
