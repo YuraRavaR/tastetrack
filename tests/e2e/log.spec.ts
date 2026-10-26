@@ -54,7 +54,7 @@ test("a Rating is required, and a date and Rewatch are kept", async ({ page }) =
   await page.getByRole("link", { name: "Log", exact: true }).click();
   const entry = page.getByRole("list", { name: "Log Entries" }).getByRole("listitem");
   await expect(entry.getByRole("img", { name: "3 stars" })).toBeVisible();
-  await expect(entry.getByText("15 Sep 2001")).toBeVisible();
+  await expect(entry.getByText("Sep 15, 2001")).toBeVisible();
   await expect(entry.getByText("Rewatch", { exact: true })).toBeVisible();
 });
 
@@ -95,23 +95,23 @@ test("a User opens a film's Item History from the Log, edits an entry and delete
   const currentRating = page.getByRole("definition");
   await expect(currentRating.getByRole("img", { name: "4.5 stars" })).toBeVisible();
   const entries = page.getByRole("list", { name: "Item History" }).getByRole("listitem");
-  await expect(entries.first()).toContainText("15 Sep 2001");
+  await expect(entries.first()).toContainText("Sep 15, 2001");
 
   // Moving the 2001 entry after the other makes it last, and its Rating current.
-  await entries.filter({ hasText: "15 Sep 2001" }).getByRole("button", { name: "Edit" }).click();
+  await entries.filter({ hasText: "Sep 15, 2001" }).getByRole("button", { name: "Edit" }).click();
   const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
   await expect(editing.getByRole("radio", { name: "3 stars" })).toBeChecked();
   await expect(editing.getByLabel("Review")).toHaveValue("First time.");
   await editing.getByLabel("Date").fill("2026-10-02");
   await editing.getByRole("button", { name: "Save" }).click();
   await expect(editing).toBeHidden();
-  await expect(entries.first()).toContainText("1 Oct 2026");
-  await expect(entries.last()).toContainText("2 Oct 2026");
+  await expect(entries.first()).toContainText("Oct 1, 2026");
+  await expect(entries.last()).toContainText("Oct 2, 2026");
   await expect(currentRating.getByRole("img", { name: "3 stars" })).toBeVisible();
 
   // Deleting asks first, and cancelling keeps the entry.
   const deleteLast = entries
-    .filter({ hasText: "2 Oct 2026" })
+    .filter({ hasText: "Oct 2, 2026" })
     .getByRole("button", { name: "Delete" });
   await deleteLast.click();
   const confirm = page.getByRole("alertdialog", { name: "Delete this entry?" });

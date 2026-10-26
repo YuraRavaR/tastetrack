@@ -69,15 +69,15 @@ describe("Ratings", () => {
 
 describe("dates", () => {
   // Midday UTC, so the date is the same in every time zone the tests might run in.
-  it("are written day, short month name, year", () => {
-    expect(formatDate(new Date("2026-10-26T12:00:00Z"))).toBe("26 Oct 2026");
+  it("are written short month name, day, year", () => {
+    expect(formatDate(new Date("2026-10-26T12:00:00Z"))).toBe("Oct 26, 2026");
   });
 
-  // British English would write "Sept".
+  // British English would write "Sept"; US English, "Sep".
   it.each([
-    ["2026-01-05T12:00:00Z", "5 Jan 2026"],
-    ["2026-06-30T12:00:00Z", "30 Jun 2026"],
-    ["2026-09-26T12:00:00Z", "26 Sep 2026"],
+    ["2026-01-05T12:00:00Z", "Jan 5, 2026"],
+    ["2026-06-30T12:00:00Z", "Jun 30, 2026"],
+    ["2026-09-26T12:00:00Z", "Sep 26, 2026"],
   ])("%s → %s, always with a three-letter month", (iso, expected) => {
     expect(formatDate(new Date(iso))).toBe(expected);
   });
@@ -86,9 +86,9 @@ describe("dates", () => {
 describe("calendar days", () => {
   // The same day in every time zone, though midnight UTC is the day before west of Greenwich.
   it.each([
-    ["2026-10-26", "26 Oct 2026"],
-    ["1900-01-01", "1 Jan 1900"],
-    ["2001-09-15", "15 Sep 2001"],
+    ["2026-10-26", "Oct 26, 2026"],
+    ["1900-01-01", "Jan 1, 1900"],
+    ["2001-09-15", "Sep 15, 2001"],
   ])("%s → %s", (date, expected) => {
     expect(formatCalendarDate(date)).toBe(expected);
   });
