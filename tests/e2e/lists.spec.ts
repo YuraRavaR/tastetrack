@@ -1,7 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 import { logInNewUser } from "../support/users";
 
-// Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens.
+// Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
+// TMDB matches whole words, so Aliens is searched for as "aliens": "alien" doesn't find it there.
 
 function searchResult(page: Page, label: string) {
   return page
@@ -30,13 +31,14 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
 
   await expect(page.getByRole("heading", { name: "Space horror" })).toBeVisible();
   await expect(page.getByText("Films to watch with the lights off.")).toBeVisible();
-  await page.getByRole("searchbox", { name: "Search films" }).fill("alien");
+  const search = page.getByRole("searchbox", { name: "Search films" });
+  await search.fill("alien");
   const alien = searchResult(page, "Alien (1979)");
-  const aliens = searchResult(page, "Aliens (1986)");
   await alien.getByRole("button", { name: "Add" }).click();
   await expect(alien.getByText("In this List")).toBeVisible();
   await expect(alien.getByRole("button", { name: "Add" })).toHaveCount(0);
-  await aliens.getByRole("button", { name: "Add" }).click();
+  await search.fill("aliens");
+  await searchResult(page, "Aliens (1986)").getByRole("button", { name: "Add" }).click();
   const items = page.getByRole("list", { name: "Space horror" }).getByRole("listitem");
   await expect(items).toHaveCount(2);
   await expect(page.getByText("2 films")).toBeVisible();
