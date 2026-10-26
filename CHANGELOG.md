@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/YuraRavaR/tastetrack/compare/v0.3.0...v0.4.0) (2026-10-26)
+
+
+### Features
+
+* show a film's runtime and genres on its page and in the Watchlist and Lists ([#51](https://github.com/YuraRavaR/tastetrack/issues/51)) ([2c0735d](https://github.com/YuraRavaR/tastetrack/commit/2c0735dad66cf2824367423f613a3cd7c804f604)), closes [#50](https://github.com/YuraRavaR/tastetrack/issues/50)
+* write dates month first, "Oct 26, 2026" ([#54](https://github.com/YuraRavaR/tastetrack/issues/54)) ([897c611](https://github.com/YuraRavaR/tastetrack/commit/897c61191f9eb3bceda38cfbebf43e90739f0b6d)), closes [#53](https://github.com/YuraRavaR/tastetrack/issues/53)
+
 ## [0.3.0](https://github.com/YuraRavaR/tastetrack/compare/v0.2.0...v0.3.0) (2026-10-26)
 
 
