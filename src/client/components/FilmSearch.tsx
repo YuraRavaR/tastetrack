@@ -291,9 +291,10 @@ function SearchResult({
         </div>
       </div>
       <div className="flex shrink-0 flex-wrap justify-end gap-2 self-end sm:self-auto">
-        <Button variant="outline" size="sm" onClick={onListed}>
+        {/* An icon alone on a phone, so the three actions fit one line. */}
+        <Button variant="outline" size="sm" onClick={onListed} title={t("filmLists.open")}>
           <ListPlus aria-hidden />
-          {t("filmLists.open")}
+          <span className="sr-only sm:not-sr-only">{t("filmLists.open")}</span>
         </Button>
         {!inBacklog && (
           <Button variant="outline" size="sm" disabled={planning} onClick={onPlanned}>
