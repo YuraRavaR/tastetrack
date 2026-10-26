@@ -42,3 +42,28 @@ test("a User sets their Display Name and changes their password in Settings", as
   await page.reload();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 });
+
+test("a User deletes their account in Settings with their password", async ({ page }) => {
+  const user = await logInNewUser(page.request);
+  await page.goto("/settings");
+
+  const deletion = page.getByRole("region", { name: "Delete account" });
+  await expect(deletion).toContainText("This can't be undone.");
+  await page.getByLabel("Your password").fill("not the password");
+  await page.getByRole("button", { name: "Delete account" }).click();
+  await expect(deletion.getByRole("alert")).toHaveText(
+    "That isn't your password. Nothing was deleted.",
+  );
+
+  await page.getByLabel("Your password").fill(user.password);
+  await page.getByRole("button", { name: "Delete account" }).click();
+
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("status")).toHaveText(
+    "Your account and everything in it have been deleted.",
+  );
+  await page.getByLabel("Username").fill(user.username);
+  await page.getByLabel("Password").fill(user.password);
+  await page.getByRole("button", { name: "Log in" }).click();
+  await expect(page.getByRole("alert")).toHaveText("Wrong Username or password");
+});

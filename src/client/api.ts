@@ -43,6 +43,7 @@ import type {
   ShareLink,
   ShareLinkResponse,
   User,
+  UserDeletionRequest,
   UserResponse,
 } from "../shared/api";
 import type { LogDateProblem } from "../shared/log";
@@ -120,6 +121,26 @@ export async function changePassword(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
+    });
+    if (response.ok) return { ok: true };
+    return { ok: false, error: response.status === 403 ? "wrong_password" : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+export type DeleteUserError = "wrong_password" | "unavailable";
+
+export type DeleteUserResult = { ok: true } | { ok: false; error: DeleteUserError };
+
+// Deletes the User and everything they own, for good, once their password checks out; the
+// session ends with them.
+export async function deleteUser(password: string): Promise<DeleteUserResult> {
+  try {
+    const response = await fetch("/api/me", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password } satisfies UserDeletionRequest),
     });
     if (response.ok) return { ok: true };
     return { ok: false, error: response.status === 403 ? "wrong_password" : "unavailable" };

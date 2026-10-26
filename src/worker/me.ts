@@ -1,15 +1,27 @@
-// The logged-in User's own settings: their Display Name and their password, and the new password
-// that a Temporary Password requires.
+// The logged-in User's own settings: their Display Name and their password, the new password
+// that a Temporary Password requires, and deleting the User altogether.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   DisplayNameRequest,
   ErrorResponse,
   NewPasswordRequest,
   PasswordChangeRequest,
+  UserDeletionRequest,
   UserResponse,
 } from "../shared/api";
-import { changePassword, replaceTemporaryPassword, setDisplayName } from "./accounts/accounts";
-import { requireSession, requireUser, unauthenticated, unauthenticatedResponse } from "./auth";
+import {
+  changePassword,
+  deleteUser,
+  replaceTemporaryPassword,
+  setDisplayName,
+} from "./accounts/accounts";
+import {
+  clearSessionCookie,
+  requireSession,
+  requireUser,
+  unauthenticated,
+  unauthenticatedResponse,
+} from "./auth";
 import type { AppEnv } from "./env";
 
 const displayNameRoute = createRoute({
@@ -94,6 +106,35 @@ const newPasswordRoute = createRoute({
   },
 });
 
+const deletionRoute = createRoute({
+  method: "delete",
+  path: "/me",
+  summary:
+    "Delete the logged-in User and everything they own, for good; Users they invited keep their " +
+    "accounts",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: {
+    body: { content: { "application/json": { schema: UserDeletionRequest } }, required: true },
+  },
+  responses: {
+    204: {
+      description:
+        "The User is deleted with their Log Entries, Lists, List Items, Share Links, Manual Media " +
+        "Items, Invite Codes and sessions; the response clears the session cookie",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The request body is malformed",
+    },
+    401: unauthenticatedResponse,
+    403: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The password is wrong (`wrong_password`); nothing is deleted",
+    },
+  },
+});
+
 export const meRoutes = new OpenAPIHono<AppEnv>();
 
 meRoutes.openapi(displayNameRoute, async (c) => {
@@ -120,4 +161,13 @@ meRoutes.openapi(newPasswordRoute, async (c) => {
     return error === "temporary_password_reused" ? c.json({ error }, 400) : c.json({ error }, 409);
   }
   return c.json({ user: replaced.user }, 200);
+});
+
+meRoutes.openapi(deletionRoute, async (c) => {
+  const { password } = c.req.valid("json");
+  if (!(await deleteUser(c.var.db, c.var.userId, password))) {
+    return c.json({ error: "wrong_password" }, 403);
+  }
+  clearSessionCookie(c);
+  return c.body(null, 204);
 });

@@ -17,6 +17,7 @@ export const en = {
   "login.tooManyAttempts":
     "Too many failed attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
   "login.unavailable": "Couldn't log in. Please try again.",
+  "login.userDeleted": "Your account and everything in it have been deleted.",
   "login.registerPrompt": "Have an Invite Code?",
   "login.registerLink": "Register",
   "register.title": "Register",
@@ -68,6 +69,14 @@ export const en = {
   "settings.passwordChanged": "Password changed. You've been logged out everywhere else.",
   "settings.wrongPassword": "That isn't your current password.",
   "settings.passwordFailed": "Couldn't change your password. Please try again.",
+  "settings.deleteTitle": "Delete account",
+  "settings.deleteDescription":
+    "Deletes your account for good, with your Log, Watchlist, Lists, the films you added by hand, your Share Links and your Invite Codes. People you invited keep their accounts. This can't be undone.",
+  "settings.deletePassword": "Your password",
+  "settings.deleteAccount": "Delete account",
+  "settings.deletingAccount": "Deleting…",
+  "settings.deleteWrongPassword": "That isn't your password. Nothing was deleted.",
+  "settings.deleteFailed": "Couldn't delete your account. Please try again.",
   "newPassword.title": "Set a new password",
   "newPassword.description":
     "You logged in with a Temporary Password. Choose your own to carry on; it logs you out everywhere else.",
