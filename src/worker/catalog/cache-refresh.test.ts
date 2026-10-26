@@ -199,6 +199,35 @@ describe("a cron run", () => {
     expect(await due()).toEqual(["999000001"]);
   });
 
+  it("gets past a full batch of entries TMDB never answers for", async () => {
+    // Films the fake doesn't know, so their details call is a 404 every time.
+    for (let id = 1; id <= 40; id++) {
+      await film(`404${id}`, { in: "log", cached: { updated: daysAgo(60) } });
+    }
+    await film("348", { in: "log", cached: { updated: daysAgo(30) } });
+
+    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 0, failed: 40, deleted: 0 });
+    const nextRun = new Date(now.getTime() + 15 * 60 * 1000);
+    expect(await refreshCache(db, tmdb, nextRun)).toEqual({
+      refreshed: 1,
+      failed: 39,
+      deleted: 0,
+    });
+    expect((await loggedTitles()).filter((title) => title === "Alien")).toHaveLength(1);
+  });
+
+  it("gets past a full batch of search-result entries TMDB never answers for", async () => {
+    for (let id = 1; id <= 40; id++) {
+      await film(`404${id}`, { in: "log", cached: { updated: daysAgo(2), detailed: false } });
+    }
+    await film("348", { in: "log", cached: { updated: daysAgo(1), detailed: false } });
+
+    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 0, failed: 40, deleted: 0 });
+    const nextRun = new Date(now.getTime() + 15 * 60 * 1000);
+    expect((await refreshCache(db, tmdb, nextRun)).refreshed).toBe(1);
+    expect((await loggedTitles()).filter((title) => title === "Alien")).toHaveLength(1);
+  });
+
   it("deletes entries past the 90-day hard expiry that it couldn't refresh", async () => {
     await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
     await film("404404", { in: "log", cached: { updated: daysAgo(89) } });
@@ -279,5 +308,15 @@ describe("a read", () => {
     expect(await loggedTitles()).toEqual(["Failing film from search"]);
     // Filled from a search result alone, so the cron refreshes it first.
     expect(await due()).toEqual(["999000001"]);
+  });
+
+  it("puts an entry refilled from a search result first, though the cron failed on it", async () => {
+    // 89 days old when the cron fails on it, expired by the time it is added again.
+    await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
+    expect(await refreshCache(db, tmdb, daysAgo(2))).toMatchObject({ failed: 1, deleted: 0 });
+    await film("348", { in: "log", cached: { updated: daysAgo(30) } });
+
+    await addFromSearch(db, tmdb, failingFilmFromSearch, now);
+    expect(await due()).toEqual(["999000001", "348"]);
   });
 });

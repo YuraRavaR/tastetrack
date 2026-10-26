@@ -145,7 +145,8 @@ export const mediaItems = sqliteTable(
 // a search result alone, when the details call failed, has no detailedAt and no runtime or genres.
 // ukrainianTitle is null when TMDB has no Ukrainian title. englishTitle is TMDB's English title,
 // which TMDB itself falls back to the Original Title for; it is null only in a row filled from a
-// search result that didn't run in English.
+// search result that didn't run in English. checkedAt is when the cron last tried to refresh the
+// row and TMDB didn't answer, if it has since the row was last filled; filling it clears it.
 export const tmdbCache = sqliteTable(
   "tmdb_cache",
   {
@@ -160,6 +161,7 @@ export const tmdbCache = sqliteTable(
     genres: text("genres", { mode: "json" }).$type<string[]>(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
     detailedAt: integer("detailed_at", { mode: "timestamp_ms" }),
+    checkedAt: integer("checked_at", { mode: "timestamp_ms" }),
   },
   (table) => [primaryKey({ columns: [table.mediaType, table.externalId] })],
 );
