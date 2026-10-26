@@ -32,12 +32,12 @@ const logEntryColumns = {
   ...mediaItemColumns,
 };
 
-function selectLog(db: DrizzleD1Database) {
+function selectLog(db: DrizzleD1Database, now: Date) {
   return db
     .select(logEntryColumns)
     .from(logEntries)
     .innerJoin(mediaItems, eq(logEntries.mediaItemId, mediaItems.id))
-    .leftJoin(tmdbCache, cacheOfMediaItem);
+    .leftJoin(tmdbCache, cacheOfMediaItem(now));
 }
 
 type LogEntryRow = Awaited<ReturnType<typeof selectLog>>[number];
@@ -103,7 +103,7 @@ export async function createLogEntry(
     ...takeOffBacklog(db, userId, request.mediaItemId),
   ]);
   if (!inserted) return { ok: false, error: "unknown_media_item" };
-  const [row] = await selectLog(db).where(eq(logEntries.id, inserted.id));
+  const [row] = await selectLog(db, now).where(eq(logEntries.id, inserted.id));
   if (!row) throw new Error(`Log Entry ${inserted.id} vanished`);
   return { ok: true, logEntry: toLogEntry(row), removedFromBacklog: removed ?? null };
 }
@@ -143,7 +143,7 @@ export async function editLogEntry(
   if (Object.values(changes).some((value) => value !== undefined)) {
     await db.update(logEntries).set(changes).where(own);
   }
-  const [row] = await selectLog(db).where(own);
+  const [row] = await selectLog(db, now).where(own);
   if (!row) return { ok: false, error: "unknown_log_entry" };
   return { ok: true, logEntry: toLogEntry(row) };
 }
@@ -163,8 +163,12 @@ export async function deleteLogEntry(
 }
 
 // The User's whole Log, in Log Order, in one query.
-export async function userLog(db: DrizzleD1Database, userId: number): Promise<LogEntry[]> {
-  const rows = await selectLog(db).where(eq(logEntries.userId, userId)).orderBy(logEntries.id);
+export async function userLog(
+  db: DrizzleD1Database,
+  userId: number,
+  now: Date,
+): Promise<LogEntry[]> {
+  const rows = await selectLog(db, now).where(eq(logEntries.userId, userId)).orderBy(logEntries.id);
   return inLogOrder(rows).map(toLogEntry);
 }
 
@@ -175,14 +179,15 @@ export async function itemHistory(
   db: DrizzleD1Database,
   userId: number,
   mediaItemId: number,
+  now: Date,
 ): Promise<ItemHistoryResponse | null> {
   const [[item], rows] = await Promise.all([
     db
       .select(mediaItemColumns)
       .from(mediaItems)
-      .leftJoin(tmdbCache, cacheOfMediaItem)
+      .leftJoin(tmdbCache, cacheOfMediaItem(now))
       .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId))),
-    selectLog(db)
+    selectLog(db, now)
       .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))
       .orderBy(logEntries.id),
   ]);

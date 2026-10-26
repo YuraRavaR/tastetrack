@@ -16,13 +16,13 @@ const listItemColumns = {
 };
 
 // List Items joined to their List, Media Item and its cache entry, for `.where` on any of them.
-export function selectListItems(db: DrizzleD1Database) {
+export function selectListItems(db: DrizzleD1Database, now: Date) {
   return db
     .select(listItemColumns)
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
-    .leftJoin(tmdbCache, cacheOfMediaItem);
+    .leftJoin(tmdbCache, cacheOfMediaItem(now));
 }
 
 type ListItemRow = Awaited<ReturnType<typeof selectListItems>>[number];
@@ -52,13 +52,14 @@ export async function ownListItem(
   db: DrizzleD1Database,
   userId: number,
   listItemId: number,
+  now: Date,
 ): Promise<ListItem | null> {
   const [row] = await db
     .select({ ...listItemColumns, index: listIndex })
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
-    .leftJoin(tmdbCache, cacheOfMediaItem)
+    .leftJoin(tmdbCache, cacheOfMediaItem(now))
     .where(and(eq(listItems.id, listItemId), eq(lists.userId, userId)));
   return row ? toListItem(row, row.index) : null;
 }
@@ -129,6 +130,7 @@ export async function editListItem(
   userId: number,
   listItemId: number,
   edit: ListItemEditRequest,
+  now: Date,
 ): Promise<ListItem | null> {
   const [own] = await db
     .select({ listId: listItems.listId })
@@ -143,7 +145,7 @@ export async function editListItem(
       .where(eq(listItems.id, listItemId));
   }
   if (edit.position !== undefined) await move(db, own.listId, listItemId, edit.position);
-  return ownListItem(db, userId, listItemId);
+  return ownListItem(db, userId, listItemId, now);
 }
 
 // Moves a List Item to place `index` in its List, counted from 0; past the end is last.

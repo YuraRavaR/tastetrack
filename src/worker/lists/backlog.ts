@@ -53,6 +53,7 @@ export async function userBacklog(
   userId: number,
   mediaType: MediaType,
   origin: string,
+  now: Date,
 ): Promise<Backlog> {
   const own = backlogOf(userId, mediaType);
   const [[backlog], rows] = await Promise.all([
@@ -61,7 +62,7 @@ export async function userBacklog(
       .from(lists)
       .leftJoin(shareLinks, eq(shareLinks.listId, lists.id))
       .where(own),
-    selectListItems(db)
+    selectListItems(db, now)
       .where(own)
       .orderBy(...listOrder),
   ]);
@@ -119,7 +120,7 @@ export async function plan(
     await move(db, backlogId, created.id, request.position);
   }
   const id = created?.id ?? existing?.id;
-  const listItem = id === undefined ? null : await ownListItem(db, userId, id);
+  const listItem = id === undefined ? null : await ownListItem(db, userId, id, now);
   if (!listItem) throw new Error(`Planning ${request.mediaItemId} inserted nothing`);
   return { ok: true, listItem, created: created !== undefined };
 }

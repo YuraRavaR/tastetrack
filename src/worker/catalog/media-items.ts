@@ -1,7 +1,7 @@
 // Media Items as Users see them: catalog-backed ones with their metadata in the disposable TMDB
 // cache (ADR-0004), where only the External Reference is User-facing data and everything read
 // from the cache may be missing, and Manual Media Items with their own.
-import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { mediaItems, tmdbCache } from "../../db/schema";
 import type {
@@ -22,12 +22,30 @@ import {
 
 type CacheEntry = typeof tmdbCache.$inferSelect;
 
-// Joins a Media Item to its cache entry, if any: `.leftJoin(tmdbCache, cacheOfMediaItem)`.
-export const cacheOfMediaItem = and(
-  eq(mediaItems.externalSource, "tmdb"),
-  eq(tmdbCache.mediaType, mediaItems.mediaType),
-  eq(tmdbCache.externalId, mediaItems.externalId),
-);
+// TMDB allows caching for 6 months; we keep an entry 90 days from when it was last filled. Past
+// that no read shows it, whether or not the cron has deleted it yet.
+const cacheLifetime = 90 * 24 * 60 * 60 * 1000;
+
+// The oldest an entry may be and still be shown; an older one has expired.
+export function oldestShown(now: Date): Date {
+  return new Date(now.getTime() - cacheLifetime);
+}
+
+// Joins a Media Item to its cache entry, if any and not past the hard expiry:
+// `.leftJoin(tmdbCache, cacheOfMediaItem(now))`. An expired entry reads as a miss, which the page
+// fills like any other.
+export function cacheOfMediaItem(now: Date) {
+  return and(
+    eq(mediaItems.externalSource, "tmdb"),
+    eq(tmdbCache.mediaType, mediaItems.mediaType),
+    eq(tmdbCache.externalId, mediaItems.externalId),
+    gte(tmdbCache.updatedAt, oldestShown(now)),
+  );
+}
+
+// For a query of Manual Media Items alone, which have no cache entry, in place of
+// `cacheOfMediaItem`: it joins nothing, but gives `mediaItemColumns` the table they name.
+export const noCacheEntry = sql`false`;
 
 // The Media Items the User may see: every catalog-backed one, and their own Manual Media Items.
 // Another User's is as unknown as one that doesn't exist.
@@ -48,10 +66,12 @@ export const mediaItemColumns = {
     runtime: mediaItems.runtime,
     genres: mediaItems.genres,
   },
+  // Drizzle reads a left join's columns as no entry when the first of them is null, so they lead
+  // with one that never is.
   cache: {
+    originalTitle: tmdbCache.originalTitle,
     englishTitle: tmdbCache.englishTitle,
     ukrainianTitle: tmdbCache.ukrainianTitle,
-    originalTitle: tmdbCache.originalTitle,
     year: tmdbCache.year,
     posterPath: tmdbCache.posterPath,
     runtime: tmdbCache.runtime,
@@ -212,7 +232,7 @@ export interface AddedMediaItem {
 // cache entry with one details call unless an earlier one already did. If that call fails, adding
 // still succeeds: the search result fills a missing entry instead, and a later add or the cron
 // fills in the rest. A search result never overwrites an entry, since it is only what the client
-// says TMDB said.
+// says TMDB said, unless the entry has expired: that counts as none.
 export async function addFromSearch(
   db: DrizzleD1Database,
   tmdb: TmdbConfig,
@@ -240,8 +260,9 @@ export async function addFromSearch(
   ]);
   if (!item) throw new Error(`Media Item for TMDB ${reference.id} neither inserted nor found`);
 
-  let metadata: CachedMetadata | undefined = cached;
-  if (!cached?.detailedAt) {
+  const shown = cached && cached.updatedAt >= oldestShown(now) ? cached : undefined;
+  let metadata: CachedMetadata | undefined = shown;
+  if (!shown?.detailedAt) {
     try {
       const details: CachedMetadata = await filmDetails(tmdb, reference.id);
       const columns = { ...details, updatedAt: now, detailedAt: now };
@@ -253,17 +274,17 @@ export async function addFromSearch(
     } catch (error) {
       if (!(error instanceof TmdbUnavailable)) throw error;
       console.error(error);
-      if (!cached) {
+      if (!shown) {
         metadata = fromSearchResult(result);
+        const columns = { ...metadata, updatedAt: now, detailedAt: null };
         await db
           .insert(tmdbCache)
-          .values({
-            mediaType: reference.mediaType,
-            externalId: reference.id,
-            ...metadata,
-            updatedAt: now,
-          })
-          .onConflictDoNothing();
+          .values({ mediaType: reference.mediaType, externalId: reference.id, ...columns })
+          .onConflictDoUpdate({
+            target: [tmdbCache.mediaType, tmdbCache.externalId],
+            set: columns,
+            setWhere: lt(tmdbCache.updatedAt, oldestShown(now)),
+          });
       }
     }
   }
@@ -319,7 +340,7 @@ export async function catalogMediaItems(
   const rows = await db
     .select(mediaItemColumns)
     .from(mediaItems)
-    .leftJoin(tmdbCache, cacheOfMediaItem)
+    .leftJoin(tmdbCache, cacheOfMediaItem(now))
     .where(and(inArray(mediaItems.id, ids), isNotNull(mediaItems.externalId)));
   const byId = new Map(rows.map((row) => [row.mediaItemId, toMediaItem(row)]));
   const items = [...new Set(ids)].flatMap((id) => byId.get(id) ?? []);

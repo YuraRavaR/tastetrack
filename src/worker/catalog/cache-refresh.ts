@@ -1,10 +1,11 @@
 // Keeping the disposable TMDB cache (ADR-0004) fresh from a Cron Trigger that runs every 15
 // minutes: it refreshes a batch of the oldest entries in use and deletes the rest once they expire
-// or nothing uses them. There is no refresh on read; a page fills only entries that are missing.
+// or nothing uses them. There is no refresh on read; a page fills only entries that are missing,
+// which an expired one counts as.
 import { and, asc, eq, exists, isNull, lt, not, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, logEntries, mediaItems, tmdbCache } from "../../db/schema";
-import { fetchDetails, storeDetails } from "./media-items";
+import { fetchDetails, oldestShown, storeDetails } from "./media-items";
 import type { TmdbConfig } from "./tmdb";
 
 export interface CacheKey {
@@ -21,9 +22,6 @@ const day = 24 * 60 * 60 * 1000;
 // An entry is refreshed once it is this old, so a small deployment doesn't fetch the same films
 // from TMDB every 15 minutes.
 const refreshAge = 7 * day;
-
-// TMDB allows caching for 6 months; we keep an entry 90 days from when it was last filled.
-const cacheLifetime = 90 * day;
 
 // An entry nothing references is kept this long, so one just added from search survives until
 // the User logs or plans it.
@@ -107,7 +105,7 @@ export async function refreshCache(
     .delete(tmdbCache)
     .where(
       or(
-        lt(tmdbCache.updatedAt, before(now, cacheLifetime)),
+        lt(tmdbCache.updatedAt, oldestShown(now)),
         and(lt(tmdbCache.updatedAt, before(now, unreferencedLifetime)), not(referenced(db))),
       ),
     )

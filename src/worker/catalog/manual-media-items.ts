@@ -14,7 +14,7 @@ import type {
 } from "../../shared/api";
 import { latestFilmYear, maxManualMediaItems, maxManualSearchResults } from "../../shared/catalog";
 import { textKey } from "../../shared/text";
-import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "./media-items";
+import { mediaItemColumns, noCacheEntry, toMediaItem } from "./media-items";
 
 // The columns of media_items that `fields` sets, with each title's key beside it. An empty
 // Original Title counts as none.
@@ -131,7 +131,7 @@ async function ownManualMediaItem(
   const [row] = await db
     .select(mediaItemColumns)
     .from(mediaItems)
-    .leftJoin(tmdbCache, cacheOfMediaItem)
+    .leftJoin(tmdbCache, noCacheEntry)
     .where(ownManual(userId, mediaItemId));
   return row ? toMediaItem(row) : null;
 }
@@ -178,7 +178,7 @@ export async function manualMediaItemUsage(
       )`,
     })
     .from(mediaItems)
-    .leftJoin(tmdbCache, cacheOfMediaItem)
+    .leftJoin(tmdbCache, noCacheEntry)
     .where(ownManual(userId, mediaItemId));
   if (!row) return null;
   return {
@@ -227,7 +227,7 @@ export async function manualSearch(
       )`,
     })
     .from(mediaItems)
-    .leftJoin(tmdbCache, cacheOfMediaItem)
+    .leftJoin(tmdbCache, noCacheEntry)
     .where(
       and(
         eq(mediaItems.ownerId, userId),

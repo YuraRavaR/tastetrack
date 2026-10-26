@@ -184,6 +184,7 @@ export async function userList(
   userId: number,
   listId: number,
   origin: string,
+  now: Date,
 ): Promise<List | null> {
   const own = ownList(userId, listId);
   const [[found], rows] = await Promise.all([
@@ -192,7 +193,7 @@ export async function userList(
       .from(lists)
       .leftJoin(shareLinks, eq(shareLinks.listId, lists.id))
       .where(own),
-    selectListItems(db)
+    selectListItems(db, now)
       .where(own)
       .orderBy(...listOrder),
   ]);
@@ -247,7 +248,7 @@ export async function addToList(
   );
   if (!created) return { ok: false, error: existing ? "already_in_list" : "list_full" };
   if (request.position !== undefined) await move(db, listId, created.id, request.position);
-  const listItem = await ownListItem(db, userId, created.id);
+  const listItem = await ownListItem(db, userId, created.id, now);
   if (!listItem) throw new Error(`List Item ${created.id} vanished as it was added`);
   return { ok: true, listItem };
 }
