@@ -5,6 +5,7 @@ import { listItems, lists, logEntries, mediaItems, tmdbCache, users } from "../.
 import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
+import { addFromSearch, catalogMediaItems } from "./media-items";
 import { tmdbFake } from "./tmdb-fake";
 
 const day = 24 * 60 * 60 * 1000;
@@ -148,10 +149,11 @@ const tmdb = { baseUrl: "http://tmdb.test/3", accessToken: "fake-tmdb-token" };
 
 // The metadata titles the User's Log shows, in Log Order.
 async function loggedTitles(): Promise<(string | null)[]> {
-  return (await userLog(db, userId)).map((entry) => entry.mediaItem.metadata?.title ?? null);
+  return (await userLog(db, userId, now)).map((entry) => entry.mediaItem.metadata?.title ?? null);
 }
 
-describe("a cron run", () => {
+// Points fetch at the TMDB fake for each test in the enclosing describe.
+function useTmdbFake(): void {
   beforeEach(() => {
     // Each failed details call is logged; the tests say which fail.
     vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -164,6 +166,10 @@ describe("a cron run", () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
+}
+
+describe("a cron run", () => {
+  useTmdbFake();
 
   it("refreshes the entries due with TMDB's details", async () => {
     await film("348", { in: "log", cached: { updated: daysAgo(30) } });
@@ -171,7 +177,7 @@ describe("a cron run", () => {
 
     expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
     expect(await loggedTitles()).toEqual(["Alien", "Film 679"]);
-    expect((await userLog(db, userId))[0]?.mediaItem.metadata).toEqual({
+    expect((await userLog(db, userId, now))[0]?.mediaItem.metadata).toEqual({
       title: "Alien",
       originalTitle: "Alien",
       ukrainianTitle: "Чужий",
@@ -213,3 +219,57 @@ describe("a cron run", () => {
     expect(await loggedTitles()).toEqual([null, "Film 679"]);
   });
 });
+
+describe("a read", () => {
+  useTmdbFake();
+
+  it("ignores entries past the 90-day hard expiry, whether or not the cron has run", async () => {
+    await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
+    await film("404404", { in: "log", cached: { updated: daysAgo(89) } });
+
+    expect(await loggedTitles()).toEqual([null, "Film 404404"]);
+  });
+
+  it("refetches an expired entry from TMDB, as for one that is missing", async () => {
+    await film("348", { in: "log", cached: { updated: daysAgo(91) } });
+
+    const [item] = await catalogMediaItems(db, tmdb, [1], now);
+    expect(item?.metadata?.title).toBe("Alien");
+    expect(await loggedTitles()).toEqual(["Alien"]);
+    expect(await due()).toEqual([]);
+  });
+
+  it("refetches an expired entry when its film is added from search again", async () => {
+    await film("348", { cached: { updated: daysAgo(91) } });
+
+    const added = await addFromSearch(db, tmdb, alienFromSearch, now);
+    expect(added.mediaItem.metadata?.title).toBe("Alien");
+    expect(added.mediaItem.metadata?.runtime).toBe(117);
+  });
+
+  it("shows the search result in place of an expired entry when TMDB is down", async () => {
+    await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
+
+    const added = await addFromSearch(db, tmdb, failingFilmFromSearch, now);
+    expect(added.mediaItem.metadata?.title).toBe("Failing film from search");
+    expect(await loggedTitles()).toEqual(["Failing film from search"]);
+    // Filled from a search result alone, so the cron refreshes it first.
+    expect(await due()).toEqual(["999000001"]);
+  });
+});
+
+const alienFromSearch = {
+  externalReference: { source: "tmdb", mediaType: "film", id: "348" },
+  title: "Alien",
+  originalTitle: "Alien",
+  year: 1979,
+  posterUrl: null,
+  titleLanguage: "en",
+} as const;
+
+const failingFilmFromSearch = {
+  ...alienFromSearch,
+  externalReference: { ...alienFromSearch.externalReference, id: "999000001" },
+  title: "Failing film from search",
+  originalTitle: "TMDB Fake Details Failure",
+} as const;

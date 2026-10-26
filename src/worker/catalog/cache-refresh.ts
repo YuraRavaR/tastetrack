@@ -4,7 +4,7 @@
 import { and, asc, eq, exists, isNull, lt, not, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, logEntries, mediaItems, tmdbCache } from "../../db/schema";
-import { fetchDetails, storeDetails } from "./media-items";
+import { cacheLifetime, fetchDetails, storeDetails } from "./media-items";
 import type { TmdbConfig } from "./tmdb";
 
 export interface CacheKey {
@@ -21,9 +21,6 @@ const day = 24 * 60 * 60 * 1000;
 // An entry is refreshed once it is this old, so a small deployment doesn't fetch the same films
 // from TMDB every 15 minutes.
 const refreshAge = 7 * day;
-
-// TMDB allows caching for 6 months; we keep an entry 90 days from when it was last filled.
-const cacheLifetime = 90 * day;
 
 // An entry nothing references is kept this long, so one just added from search survives until
 // the User logs or plans it.

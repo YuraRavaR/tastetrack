@@ -437,7 +437,13 @@ function originOf(url: string): string {
 
 listRoutes.openapi(backlogRoute, async (c) => {
   const { mediaType } = c.req.valid("query");
-  const backlog = await userBacklog(c.var.db, c.var.userId, mediaType, originOf(c.req.url));
+  const backlog = await userBacklog(
+    c.var.db,
+    c.var.userId,
+    mediaType,
+    originOf(c.req.url),
+    c.var.now,
+  );
   await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItemsOf(backlog.items), c.var.now);
   return c.json({ backlog }, 200);
 });
@@ -451,7 +457,13 @@ listRoutes.openapi(planRoute, async (c) => {
 
 listRoutes.openapi(editRoute, async (c) => {
   const { listItemId } = c.req.valid("param");
-  const edited = await editListItem(c.var.db, c.var.userId, listItemId, c.req.valid("json"));
+  const edited = await editListItem(
+    c.var.db,
+    c.var.userId,
+    listItemId,
+    c.req.valid("json"),
+    c.var.now,
+  );
   if (!edited) return c.json({ error: "unknown_list_item" }, 404);
   return c.json({ listItem: edited }, 200);
 });
@@ -487,7 +499,7 @@ listRoutes.openapi(createListRoute, async (c) => {
 
 listRoutes.openapi(listRoute, async (c) => {
   const { listId } = c.req.valid("param");
-  const list = await userList(c.var.db, c.var.userId, listId, originOf(c.req.url));
+  const list = await userList(c.var.db, c.var.userId, listId, originOf(c.req.url), c.var.now);
   if (!list) return c.json({ error: "unknown_list" }, 404);
   await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItemsOf(list.items), c.var.now);
   return c.json({ list }, 200);
@@ -541,7 +553,7 @@ listRoutes.openapi(revokeShareLinkRoute, async (c) => {
 // can tell whether a List is behind it.
 listRoutes.openapi(sharedListRoute, async (c) => {
   c.header("X-Robots-Tag", "noindex");
-  const list = await sharedList(c.var.db, c.req.valid("param").token);
+  const list = await sharedList(c.var.db, c.req.valid("param").token, c.var.now);
   if (!list) return c.json({ error: "not_found" }, 404);
   await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItemsOf(list.items), c.var.now);
   return c.json({ sharedList: list }, 200);

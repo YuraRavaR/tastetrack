@@ -162,10 +162,14 @@ export async function sharedListHead(
 // The List behind a Share Link as anyone may see it, in two queries however long it is: its
 // title, description, owner's Display Name and items with their Notes, and nothing of the owner's
 // Log. Null for a token that is unknown, revoked or replaced.
-export async function sharedList(db: DrizzleD1Database, token: string): Promise<SharedList | null> {
+export async function sharedList(
+  db: DrizzleD1Database,
+  token: string,
+  now: Date,
+): Promise<SharedList | null> {
   const [[row], rows] = await Promise.all([
     selectHead(db, token),
-    selectListItems(db)
+    selectListItems(db, now)
       .where(
         inArray(
           lists.id,
