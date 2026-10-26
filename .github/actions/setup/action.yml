@@ -20,7 +20,10 @@ runs:
       shell: bash
       run: pnpm install --frozen-lockfile
 
+    # Without --with-deps: the runner image already has the libraries Chromium needs, and the
+    # apt-get install that flag runs (fonts the tests don't look at) sometimes stalls on the
+    # Ubuntu mirror for good.
     - name: Install Chromium
       if: inputs.playwright == 'true'
       shell: bash
-      run: pnpm exec playwright install --with-deps chromium
+      run: pnpm exec playwright install chromium

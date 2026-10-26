@@ -33,6 +33,8 @@ jobs:
   checks:
     name: Lint, types and tests
     runs-on: ubuntu-latest
+    # A run takes about 2 minutes; a stalled download fails it here, not after GitHub's 6 hours.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
