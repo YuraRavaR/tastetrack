@@ -65,6 +65,8 @@ jobs:
     name: Smoke tests against staging
     needs: deploy
     runs-on: ubuntu-latest
+    # A run takes about 2 minutes; a stalled download fails it here, not after GitHub's 6 hours.
+    timeout-minutes: 15
     env:
       BASE_URL: ${{ needs.deploy.outputs.url }}
     steps:
