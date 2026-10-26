@@ -15,6 +15,8 @@ import {
   ListSummaryResponse,
   ListsResponse,
   type MediaItem,
+  MediaItemListsResponse,
+  MediaItemParams,
   NewListItemRequest,
   NewListRequest,
   PlanRequest,
@@ -39,6 +41,7 @@ import {
   createList,
   deleteList,
   editList,
+  mediaItemLists,
   userList,
   userLists,
 } from "./lists/user-lists";
@@ -321,6 +324,33 @@ const addToListRoute = createRoute({
   },
 });
 
+const mediaItemListsRoute = createRoute({
+  method: "get",
+  path: "/catalog/items/{mediaItemId}/lists",
+  summary: "Show which of the logged-in User's Lists hold a Media Item",
+  description:
+    "The User's Lists of the Media Item's Media Type, oldest first, each with the List Item " +
+    "that holds the Media Item there, or null. The Backlog isn't one.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: MediaItemParams },
+  responses: {
+    200: {
+      content: { "application/json": { schema: MediaItemListsResponse } },
+      description: "The User's Lists, each with the Media Item's List Item or null",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Media Item id isn't a positive integer (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
+    404: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "There is no such Media Item (`unknown_media_item`)",
+    },
+  },
+});
+
 const unknownOwnListResponse = {
   content: { "application/json": { schema: ErrorResponse } },
   description: "The User has no such List, the Backlog included (`unknown_list`)",
@@ -489,6 +519,13 @@ const listErrorStatus = {
 
 listRoutes.openapi(listsRoute, async (c) => {
   return c.json({ lists: await userLists(c.var.db, c.var.userId) }, 200);
+});
+
+listRoutes.openapi(mediaItemListsRoute, async (c) => {
+  const { mediaItemId } = c.req.valid("param");
+  const lists = await mediaItemLists(c.var.db, c.var.userId, mediaItemId);
+  if (!lists) return c.json({ error: "unknown_media_item" }, 404);
+  return c.json({ lists }, 200);
 });
 
 listRoutes.openapi(createListRoute, async (c) => {
