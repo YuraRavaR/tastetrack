@@ -9,6 +9,7 @@ import { ListPage } from "./pages/ListPage";
 import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LogPage } from "./pages/LogPage";
+import { NewPasswordPage } from "./pages/NewPasswordPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SharedListPage } from "./pages/SharedListPage";
@@ -21,6 +22,7 @@ export function App() {
           <Route element={<AppLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/new-password" element={<NewPasswordPage />} />
             <Route path="/s/:token" element={<SharedListPage />} />
             <Route element={<RequireAuth />}>
               <Route index element={<HomePage />} />

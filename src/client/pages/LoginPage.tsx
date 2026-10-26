@@ -18,6 +18,10 @@ export function LoginPage() {
     const from = (location.state as LoginLocationState | null)?.from ?? "/";
     return <Navigate to={from} replace />;
   }
+  // The User still goes where they were going once they have set their own password.
+  if (state.status === "passwordChangeRequired") {
+    return <Navigate to="/new-password" replace state={location.state} />;
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

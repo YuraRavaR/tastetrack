@@ -9,7 +9,8 @@ import { t } from "../i18n/t";
 // Watchlist, Lists, Invites and Settings pages and a logout action, above a single content
 // column, and a footer crediting TMDB as its terms require (ADR-0004). Mobile first: the column
 // fills a phone screen and stops widening on larger ones, the header wraps rather than overflow,
-// Settings is an icon, and the User's Display Name shows only where there is room.
+// Settings is an icon, and the User's Display Name shows only where there is room. A User who
+// must set a new password gets only the logout action.
 export function AppLayout() {
   const { state, logOut } = useAuth();
 
@@ -20,6 +21,11 @@ export function AppLayout() {
           <Link to="/" className="font-semibold text-lg tracking-tight">
             {t("app.name")}
           </Link>
+          {state.status === "passwordChangeRequired" && (
+            <Button variant="outline" size="sm" onClick={() => logOut()}>
+              {t("auth.logout")}
+            </Button>
+          )}
           {state.status === "authenticated" && (
             <div className="flex min-w-0 items-center sm:gap-3">
               <span className="hidden truncate text-muted-foreground text-sm sm:inline">

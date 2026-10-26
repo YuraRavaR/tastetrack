@@ -152,6 +152,10 @@ _Avoid_: Nickname, full name, profile name
 A single-use code, valid for 7 days, that an existing User generates so someone new can register.
 _Avoid_: Invitation link, referral, Friend Request
 
+**Temporary Password**:
+A random password the Operator issues to a User who forgot theirs, shown once; logging in with it only lets the User set their own new password.
+_Avoid_: Reset password, one-time password, OTP
+
 **Recovery Code** _(planned)_:
 A one-time code that can reset a User's password once; a User holds a set of eight, issued at registration and replaceable on demand.
 _Avoid_: Backup code, reset token

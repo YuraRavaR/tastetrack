@@ -21,6 +21,7 @@ import type {
   LogEntry,
   LogEntryEditRequest,
   LogEntryResponse,
+  LoginResponse,
   LogResponse,
   ManualMediaItemEditRequest,
   ManualMediaItemResponse,
@@ -46,16 +47,21 @@ import type {
 } from "../shared/api";
 import type { LogDateProblem } from "../shared/log";
 
-// The logged-in User, or null without a live session.
-export async function fetchCurrentUser(): Promise<User | null> {
+// The logged-in User, null without a live session, or "password_change_required" for a session
+// from a Temporary Password, which can only set a new one.
+export async function fetchCurrentUser(): Promise<User | null | "password_change_required"> {
   const response = await fetch("/api/auth/me");
   if (response.status === 401) return null;
+  if (response.status === 403) {
+    const body = (await response.json()) as ErrorResponse;
+    if (body.error === "password_change_required") return body.error;
+  }
   if (!response.ok) throw new Error(`Loading the current User failed: ${response.status}`);
   return ((await response.json()) as UserResponse).user;
 }
 
 export type LoginResult =
-  | { ok: true; user: User }
+  | { ok: true; user: User; passwordChangeRequired: boolean }
   | { ok: false; error: "invalid_credentials" | "unavailable" };
 
 export async function logIn(username: string, password: string): Promise<LoginResult> {
@@ -65,7 +71,7 @@ export async function logIn(username: string, password: string): Promise<LoginRe
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
-    if (response.ok) return { ok: true, user: ((await response.json()) as UserResponse).user };
+    if (response.ok) return { ok: true, ...((await response.json()) as LoginResponse) };
     const body = (await response.json()) as ErrorResponse;
     return {
       ok: false,
@@ -112,6 +118,31 @@ export async function changePassword(
     });
     if (response.ok) return { ok: true };
     return { ok: false, error: response.status === 403 ? "wrong_password" : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+export type NewPasswordError = "temporary_password_reused" | "unavailable";
+
+export type NewPasswordResult = { ok: true; user: User } | { ok: false; error: NewPasswordError };
+
+// Sets the User's own password in place of the Temporary Password; every other session of theirs
+// ends, and this one can then do everything.
+export async function setNewPassword(newPassword: string): Promise<NewPasswordResult> {
+  try {
+    const response = await fetch("/api/me/new-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newPassword }),
+    });
+    if (response.ok) return { ok: true, user: ((await response.json()) as UserResponse).user };
+    const body = (await response.json()) as ErrorResponse;
+    return {
+      ok: false,
+      error:
+        body.error === "temporary_password_reused" ? "temporary_password_reused" : "unavailable",
+    };
   } catch {
     return { ok: false, error: "unavailable" };
   }

@@ -64,6 +64,17 @@ export const UserResponse = z
 
 export type UserResponse = z.infer<typeof UserResponse>;
 
+// passwordChangeRequired says the password was a Temporary Password the Operator issued: the session
+// can only set the User's own new password until they do.
+export const LoginResponse = z
+  .object({
+    user: User,
+    passwordChangeRequired: z.boolean(),
+  })
+  .openapi("LoginResponse");
+
+export type LoginResponse = z.infer<typeof LoginResponse>;
+
 // The Display Name is trimmed, and a null or empty one puts the Username back in its place.
 export const DisplayNameRequest = z
   .object({
@@ -88,6 +99,16 @@ export const PasswordChangeRequest = z
   .openapi("PasswordChangeRequest");
 
 export type PasswordChangeRequest = z.infer<typeof PasswordChangeRequest>;
+
+// The User's own password, in place of the Temporary Password the Operator issued: it follows the
+// rules, and mustn't be the Temporary Password.
+export const NewPasswordRequest = z
+  .object({
+    newPassword: Password,
+  })
+  .openapi("NewPasswordRequest");
+
+export type NewPasswordRequest = z.infer<typeof NewPasswordRequest>;
 
 // Registration checks the Invite Code itself, so any string up to the cap gets that code's error.
 export const RegisterRequest = z
