@@ -66,10 +66,12 @@ export const mediaItemColumns = {
     runtime: mediaItems.runtime,
     genres: mediaItems.genres,
   },
+  // Drizzle reads a left join's columns as no entry when the first of them is null, so they lead
+  // with one that never is.
   cache: {
+    originalTitle: tmdbCache.originalTitle,
     englishTitle: tmdbCache.englishTitle,
     ukrainianTitle: tmdbCache.ukrainianTitle,
-    originalTitle: tmdbCache.originalTitle,
     year: tmdbCache.year,
     posterPath: tmdbCache.posterPath,
     runtime: tmdbCache.runtime,

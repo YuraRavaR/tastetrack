@@ -58,8 +58,9 @@ beforeEach(async () => {
 interface Film {
   // Where the film is referenced from, if anywhere.
   in?: "log" | "list";
-  // Its cache entry: when it was last filled, and whether by a details call. None when omitted.
-  cached?: { updated: Date; detailed?: boolean };
+  // Its cache entry: when it was last filled, whether by a details call, and whether it has an
+  // English Localized Title. None when omitted.
+  cached?: { updated: Date; detailed?: boolean; english?: boolean };
 }
 
 // Adds a catalog-backed film with TMDB id `id`.
@@ -81,7 +82,7 @@ async function film(id: string, { in: where, cached }: Film = {}): Promise<void>
     await db.insert(tmdbCache).values({
       mediaType: "film",
       externalId: id,
-      englishTitle: `Film ${id}`,
+      englishTitle: cached.english === false ? null : `Film ${id}`,
       originalTitle: `Film ${id}`,
       updatedAt: cached.updated,
       detailedAt: cached.detailed === false ? null : cached.updated,
@@ -245,6 +246,12 @@ describe("a read", () => {
     await film("404404", { in: "log", cached: { updated: daysAgo(89) } });
 
     expect(await loggedTitles()).toEqual([null, "Film 404404"]);
+  });
+
+  it("shows an entry with no English Localized Title under its Original Title", async () => {
+    await film("404404", { in: "log", cached: { updated: daysAgo(1), english: false } });
+
+    expect(await loggedTitles()).toEqual(["Film 404404"]);
   });
 
   it("refetches an expired entry from TMDB, as for one that is missing", async () => {
