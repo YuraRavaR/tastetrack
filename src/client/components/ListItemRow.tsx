@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { ListItem } from "../../shared/api";
 import { filmLabel } from "../catalog/film-label";
 import { t } from "../i18n/t";
-import { FilmTitle } from "./FilmTitle";
+import { FilmFacts, FilmTitle } from "./FilmTitle";
 import { Poster } from "./Poster";
 
 export function listItemLabel(item: ListItem): string {
@@ -12,7 +12,7 @@ export function listItemLabel(item: ListItem): string {
   return metadata ? filmLabel(metadata) : t("film.unknown");
 }
 
-// One film of a List or the Watchlist, with its Note, and buttons to move, note or remove it.
+// One film of a List or the Watchlist, with its runtime, genres and Note, and buttons to move, note or remove it.
 export function ListItemRow({
   item,
   loading,
@@ -42,6 +42,7 @@ export function ListItemRow({
           >
             <FilmTitle metadata={item.mediaItem.metadata} loading={loading} />
           </Link>
+          <FilmFacts metadata={item.mediaItem.metadata} />
           {item.note && <p className="whitespace-pre-line break-words text-sm">{item.note}</p>}
         </div>
       </div>

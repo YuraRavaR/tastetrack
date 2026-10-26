@@ -309,6 +309,8 @@ export const en = {
   "film.labelWithOriginalAndYear": "{title} ({originalTitle}, {year})",
   "film.labelWithOriginal": "{title} ({originalTitle})",
   "film.labelWithYear": "{title} ({year})",
+  "film.runtime": "{minutes} min",
+  "film.runtimeAndGenres": "{runtime} · {genres}",
   "films.count": "{count, plural, one {# film} other {# films}}",
 } as const;
 

@@ -5,7 +5,7 @@ import type { ItemHistoryResponse, LogEntry } from "../../shared/api";
 import * as api from "../api";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
-import { FilmTitle } from "../components/FilmTitle";
+import { FilmFacts, FilmTitle } from "../components/FilmTitle";
 import { LogEntryDetails } from "../components/LogEntryDetails";
 import { EditLogEntryDialog } from "../components/LogEntryDialog";
 import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
@@ -78,6 +78,7 @@ export function ItemHistoryPage() {
           <h1 className="font-semibold text-2xl tracking-tight">
             <FilmTitle metadata={mediaItem.metadata} />
           </h1>
+          <FilmFacts metadata={mediaItem.metadata} />
           <p className="text-muted-foreground text-sm">
             {t("itemHistory.timesExperienced", { count: logEntries.length })}
           </p>

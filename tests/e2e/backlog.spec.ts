@@ -120,3 +120,18 @@ test("a full Watchlist says to remove or log some films", async ({ page }) => {
     "Your Watchlist is full: it holds up to 1,000 films. Remove or log some to make room.",
   );
 });
+
+test("the Watchlist and a film's page show its runtime and genres", async ({ page }) => {
+  await logInNewUser(page.request);
+  await page.goto("/");
+  await search(page, "alien");
+  await searchResult(page, "Alien (1979)").getByRole("button", { name: "Want to watch" }).click();
+  await expect(searchResult(page, "Alien (1979)").getByText("On your Watchlist")).toBeVisible();
+
+  await page.getByRole("link", { name: "Watchlist" }).click();
+  const items = page.getByRole("list", { name: "Watchlist" }).getByRole("listitem");
+  await expect(items).toContainText("117 min · Horror, Science Fiction");
+  await items.getByRole("link", { name: "Alien (1979)" }).click();
+  await expect(page.getByRole("heading", { name: "Alien (1979)" })).toBeVisible();
+  await expect(page.getByText("117 min · Horror, Science Fiction")).toBeVisible();
+});

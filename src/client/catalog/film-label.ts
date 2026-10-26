@@ -17,3 +17,17 @@ export function filmLabel({ title, originalTitle, year }: Titled): string {
   if (year !== null) return t("film.labelWithYear", { title, year: String(year) });
   return title;
 }
+
+export interface Described {
+  runtime: number | null;
+  genres: string[];
+}
+
+// The runtime and genres, leaving out whichever is unknown: "122 min · Comedy, Romance". Null when
+// neither is known.
+export function filmFacts({ runtime, genres }: Described): string | null {
+  const genreList = genres.join(", ");
+  if (runtime === null) return genreList || null;
+  const minutes = t("film.runtime", { minutes: runtime });
+  return genreList ? t("film.runtimeAndGenres", { runtime: minutes, genres: genreList }) : minutes;
+}

@@ -55,6 +55,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   await page.getByRole("link", { name: "Log", exact: true }).click();
   await page.getByRole("link", { name: `${wedding} (2019)` }).click();
   await expect(page.getByText("You added this film manually.")).toBeVisible();
+  await expect(page.getByText("95 min · Documentary")).toBeVisible();
   await page.getByRole("button", { name: "Edit film" }).click();
   const editing = page.getByRole("dialog", { name: `Edit ${wedding} (2019)` });
   await expect(editing.getByLabel("Minutes")).toHaveValue("95");
