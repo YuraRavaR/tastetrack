@@ -6,6 +6,7 @@ Never commit or push to `main`. Every change, including docs, goes on its own br
 
 - Branch off an up-to-date `main`: `git switch main && git pull && git switch -c <type>/<short-slug>`.
 - Branch types: `feat/`, `fix/`, `docs/`, `chore/`, `test/`, `refactor/`. Add the issue number when there is one, e.g. `feat/12-log-entry-form`.
+- `prototype/<issue>-<slug>` holds a throwaway prototype. It is pushed but never gets a PR or merges; its issue links to it, and the chosen design is rebuilt with tests on a `feat/` branch.
 - Open the PR with `gh pr create`, link the issue with `Closes #<n>` in the body.
 - If you find yourself on `main` with uncommitted work, create a branch first (`git switch -c ...`); the work moves with you.
 - Commit messages and PR titles follow Conventional Commits (`feat: ...`, `fix(scope): ...`); commitlint checks both in CI.

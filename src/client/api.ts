@@ -27,6 +27,8 @@ import type {
   ManualMediaItemResponse,
   ManualSearchResult,
   MediaItem,
+  MediaItemList,
+  MediaItemListsResponse,
   MediaItemResponse,
   MediaItemsResponse,
   NewListItemRequest,
@@ -494,6 +496,15 @@ export async function fetchLists(): Promise<ListSummary[]> {
   const response = await fetch("/api/lists");
   if (!response.ok) throw new Error(`Loading the Lists failed: ${response.status}`);
   return ((await response.json()) as ListsResponse).lists;
+}
+
+// The User's Lists, each with the List Item holding the Media Item there or null; null when
+// there is no such Media Item.
+export async function fetchMediaItemLists(mediaItemId: number): Promise<MediaItemList[] | null> {
+  const response = await fetch(`/api/catalog/items/${mediaItemId}/lists`);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Loading the film's Lists failed: ${response.status}`);
+  return ((await response.json()) as MediaItemListsResponse).lists;
 }
 
 // One of the User's Lists, or null when they have no such List.

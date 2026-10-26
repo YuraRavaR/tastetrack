@@ -287,6 +287,85 @@ test("the Lists page loads in the same number of queries for 1 List as for 100",
   expect(hundred).toBe(one);
 });
 
+// The User's film Lists as the picker on a film sees them: each with the film's List Item, or null.
+async function listsOf(request: APIRequestContext, mediaItemId: number) {
+  const response = await request.get(`/api/catalog/items/${mediaItemId}/lists`);
+  expect(response.status(), await response.text()).toBe(200);
+  return (await response.json()).lists;
+}
+
+test("a film's Lists say which hold it, where, and with what Note", async ({ request }) => {
+  await logInNewUser(request);
+  const mediaItemId = (await alien(request)).id;
+  const space = await createList(request, { name: "Space" });
+  const horror = await createList(request, { name: "Horror" });
+  const comfort = await createList(request, { name: "Comfort" });
+  await addToList(request, horror.id, { mediaItemId: (await aliens(request)).id });
+  const held = await addToList(request, horror.id, { mediaItemId, note: "Olena's favourite." });
+
+  expect(await listsOf(request, mediaItemId)).toEqual([
+    { ...space, listItem: null },
+    {
+      ...horror,
+      itemCount: 2,
+      listItem: { id: held.id, position: 1, note: "Olena's favourite." },
+    },
+    { ...comfort, listItem: null },
+  ]);
+});
+
+test("a film's Lists leave out the Backlog and other Users' Lists", async ({
+  request,
+  playwright,
+}) => {
+  await logInNewUser(request);
+  const mediaItemId = (await alien(request)).id;
+  const planned = await request.post("/api/backlog/items", { data: { mediaItemId } });
+  expect(planned.status()).toBe(201);
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+  await logInNewUser(other);
+  await addToList(other, (await createList(other, { name: "Theirs" })).id, { mediaItemId });
+  await other.dispose();
+
+  expect(await listsOf(request, mediaItemId)).toEqual([]);
+});
+
+test("the Lists of an unknown Media Item are a 404", async ({ request }) => {
+  await logInNewUser(request);
+
+  const response = await request.get("/api/catalog/items/2000000000/lists");
+
+  expect(response.status()).toBe(404);
+  expect(await response.json()).toEqual({ error: "unknown_media_item" });
+});
+
+test("a film's Lists load in the same number of queries for 1 List as for 100", async ({
+  request,
+  playwright,
+}) => {
+  const queriesForListsOf = async (api: APIRequestContext, count: number) => {
+    await logInNewUser(api);
+    const mediaItemId = (await alien(api)).id;
+    const lists = await Promise.all(
+      Array.from({ length: count }, (_, i) => createList(api, { name: `List ${i + 1}` })),
+    );
+    await Promise.all(lists.map((list) => addToList(api, list.id, { mediaItemId })));
+    const response = await api.get(`/api/catalog/items/${mediaItemId}/lists`);
+    const body = await response.json();
+    expect(body.lists).toHaveLength(count);
+    expect(body.lists.every((list: { listItem: unknown }) => list.listItem !== null)).toBe(true);
+    return response.headers()["x-d1-query-count"];
+  };
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+
+  const one = await queriesForListsOf(request, 1);
+  const hundred = await queriesForListsOf(other, 100);
+  await other.dispose();
+
+  expect(one).toMatch(/^\d+$/);
+  expect(hundred).toBe(one);
+});
+
 async function logFilm(request: APIRequestContext, mediaItemId: number) {
   const response = await request.post("/api/log-entries", { data: { mediaItemId, rating: 4 } });
   expect(response.status(), await response.text()).toBe(201);
@@ -401,6 +480,7 @@ test("without a session, Lists are a 401", async ({ request }) => {
     await request.patch("/api/lists/1", { data: {} }),
     await request.delete("/api/lists/1"),
     await request.post("/api/lists/1/items", { data: {} }),
+    await request.get("/api/catalog/items/1/lists"),
   ]) {
     expect(response.status(), response.url()).toBe(401);
   }
@@ -415,4 +495,5 @@ test("the OpenAPI spec describes Lists", async ({ request }) => {
   expect(spec.paths["/api/lists/{listId}"].patch.responses["409"]).toBeDefined();
   expect(spec.paths["/api/lists/{listId}"].delete.responses["204"]).toBeDefined();
   expect(spec.paths["/api/lists/{listId}/items"].post.responses["409"]).toBeDefined();
+  expect(spec.paths["/api/catalog/items/{mediaItemId}/lists"].get.responses["404"]).toBeDefined();
 });

@@ -9,6 +9,7 @@ import type {
   ListEditRequest,
   ListItem,
   ListSummary,
+  MediaItemList,
   MediaType,
   NewListItemRequest,
   NewListRequest,
@@ -17,6 +18,7 @@ import { isReservedListName, listNameKey, maxLists } from "../../shared/lists";
 import { visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
+  listIndex,
   listOrder,
   move,
   ownListItem,
@@ -175,6 +177,46 @@ export async function deleteList(
 ): Promise<boolean> {
   const deleted = await db.delete(lists).where(ownList(userId, listId)).returning({ id: lists.id });
   return deleted.length > 0;
+}
+
+// The User's own Lists of the Media Item's Media Type, oldest first, each with the List Item
+// that holds it there, in three queries however many Lists there are; null when the User can't see
+// the Media Item. Another User's Manual Media Item is as unknown as one that doesn't exist.
+export async function mediaItemLists(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaItemId: number,
+): Promise<MediaItemList[] | null> {
+  const [[mediaItem], held, summaries] = await Promise.all([
+    db
+      .select({ mediaType: mediaItems.mediaType })
+      .from(mediaItems)
+      .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId))),
+    db
+      .select({
+        listId: listItems.listId,
+        id: listItems.id,
+        note: listItems.note,
+        index: listIndex,
+      })
+      .from(listItems)
+      .innerJoin(lists, eq(listItems.listId, lists.id))
+      .where(
+        and(
+          eq(listItems.mediaItemId, mediaItemId),
+          eq(lists.userId, userId),
+          eq(lists.kind, "list"),
+        ),
+      ),
+    userLists(db, userId),
+  ]);
+  if (!mediaItem) return null;
+  const places = new Map(
+    held.map(({ listId, id, note, index }) => [listId, { id, position: index, note }]),
+  );
+  return summaries
+    .filter((list) => list.mediaType === mediaItem.mediaType)
+    .map((list) => ({ ...list, listItem: places.get(list.id) ?? null }));
 }
 
 // One of the User's own Lists, its Share Link at `origin` while it has one, and its items in

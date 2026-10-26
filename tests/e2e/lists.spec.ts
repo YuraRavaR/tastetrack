@@ -1,4 +1,5 @@
-import { expect, type Page, test } from "@playwright/test";
+import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
+import { alien, aliens } from "../support/films";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
@@ -88,4 +89,81 @@ test("a name the User already has is refused", async ({ page }) => {
   await dialog.getByRole("button", { name: "Create" }).click();
 
   await expect(dialog.getByRole("alert")).toHaveText("You already have a List with this name.");
+});
+
+// Makes a List through the API: its id.
+async function createList(request: APIRequestContext, name: string): Promise<number> {
+  const response = await request.post("/api/lists", { data: { name, mediaType: "film" } });
+  expect(response.status(), await response.text()).toBe(201);
+  return (await response.json()).list.id;
+}
+
+async function listItemsOf(request: APIRequestContext, listId: number) {
+  return (await (await request.get(`/api/lists/${listId}`)).json()).list.items;
+}
+
+test("a User puts a search result on Lists and takes it off again, from home", async ({ page }) => {
+  await logInNewUser(page.request);
+  const horror = await createList(page.request, "Horror");
+  const comfort = await createList(page.request, "Comfort");
+  await page.goto("/");
+
+  await page.getByRole("searchbox", { name: "Search films" }).fill("alien");
+  await searchResult(page, "Alien (1979)").getByRole("button", { name: "Add to list" }).click();
+  const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
+  await dialog.getByRole("checkbox", { name: "Horror" }).click();
+  await dialog.getByRole("checkbox", { name: "Comfort" }).click();
+  await expect(dialog.getByRole("checkbox", { name: "Comfort" })).toBeChecked();
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(dialog).toBeHidden();
+  expect(await listItemsOf(page.request, horror)).toHaveLength(1);
+  expect(await listItemsOf(page.request, comfort)).toHaveLength(1);
+
+  // Opened again, it shows where the film is, and unticking takes it off.
+  await searchResult(page, "Alien (1979)").getByRole("button", { name: "Add to list" }).click();
+  await expect(dialog.getByRole("checkbox", { name: "Horror" })).toBeChecked();
+  await dialog.getByRole("checkbox", { name: "Comfort" }).click();
+  await expect(dialog.getByRole("checkbox", { name: "Comfort" })).not.toBeChecked();
+  await dialog.getByRole("button", { name: "Done" }).click();
+  expect(await listItemsOf(page.request, horror)).toHaveLength(1);
+  expect(await listItemsOf(page.request, comfort)).toHaveLength(0);
+});
+
+test("a List unticked and ticked again gets the film back where it was, with its Note", async ({
+  page,
+}) => {
+  await logInNewUser(page.request);
+  const horror = await createList(page.request, "Horror");
+  const alienId = (await alien(page.request)).id;
+  for (const data of [
+    { mediaItemId: alienId, note: "Watch it first." },
+    { mediaItemId: (await aliens(page.request)).id },
+  ]) {
+    expect((await page.request.post(`/api/lists/${horror}/items`, { data })).status()).toBe(201);
+  }
+  await page.goto(`/items/${alienId}`);
+
+  await page.getByRole("button", { name: "Add to list" }).click();
+  const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
+  const box = dialog.getByRole("checkbox", { name: "Horror" });
+  await box.click();
+  await expect(box).not.toBeChecked();
+  await box.click();
+  await expect(box).toBeChecked();
+
+  const items = await listItemsOf(page.request, horror);
+  expect(items.map((item: { mediaItem: { id: number } }) => item.mediaItem.id)[0]).toBe(alienId);
+  expect(items[0].note).toBe("Watch it first.");
+});
+
+test("a User with no Lists is pointed to the Lists page", async ({ page }) => {
+  await logInNewUser(page.request);
+  await page.goto(`/items/${(await alien(page.request)).id}`);
+
+  await page.getByRole("button", { name: "Add to list" }).click();
+  const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
+  await expect(dialog).toContainText("You have no Lists yet.");
+  await dialog.getByRole("link", { name: "Make a List" }).click();
+
+  await expect(page).toHaveURL(/\/lists$/);
 });

@@ -650,6 +650,32 @@ export const ListsResponse = z
 
 export type ListsResponse = z.infer<typeof ListsResponse>;
 
+// Where a Media Item sits in one List: its List Item, its place counted from 0, and its Note.
+export const ListItemPlace = z
+  .object({
+    id: z.int().openapi({ example: 17 }),
+    position: z.int().min(0).openapi({ example: 2 }),
+    note: z.string().nullable().openapi({ example: "Olena's favourite." }),
+  })
+  .openapi("ListItemPlace");
+
+export type ListItemPlace = z.infer<typeof ListItemPlace>;
+
+// One of the User's Lists, with the List Item that holds a given Media Item, or null.
+export const MediaItemList = ListSummary.extend({
+  listItem: ListItemPlace.nullable(),
+}).openapi("MediaItemList");
+
+export type MediaItemList = z.infer<typeof MediaItemList>;
+
+export const MediaItemListsResponse = z
+  .object({
+    lists: z.array(MediaItemList),
+  })
+  .openapi("MediaItemListsResponse");
+
+export type MediaItemListsResponse = z.infer<typeof MediaItemListsResponse>;
+
 // One of the User's own Lists with its Share Link while it has one, and its List Items in order.
 export const List = ListSummary.omit({ itemCount: true })
   .extend({ shareLink: ShareLink.nullable(), items: z.array(ListItem) })
