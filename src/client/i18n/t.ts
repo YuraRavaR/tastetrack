@@ -15,24 +15,18 @@ export function t(id: MessageId, values?: Record<string, PrimitiveType>): string
   return String(format.format(values));
 }
 
-// Day, month, year with the US English three-letter month: British English would order it the
-// same way but writes September as "Sept".
+// US English: the three-letter month, then the day and year, "Oct 26, 2026".
 const dateOptions: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" };
 const dateFormat = new Intl.DateTimeFormat(locale, dateOptions);
 const utcDateFormat = new Intl.DateTimeFormat(locale, { ...dateOptions, timeZone: "UTC" });
 
-function dayMonthYear(format: Intl.DateTimeFormat, date: Date): string {
-  const parts = Object.fromEntries(format.formatToParts(date).map((p) => [p.type, p.value]));
-  return `${parts.day} ${parts.month} ${parts.year}`;
-}
-
-// A calendar date in the viewer's time zone, e.g. "26 Oct 2026".
+// A calendar date in the viewer's time zone, e.g. "Oct 26, 2026".
 export function formatDate(date: Date): string {
-  return dayMonthYear(dateFormat, date);
+  return dateFormat.format(date);
 }
 
 // A calendar day written YYYY-MM-DD, such as a Log Entry's date, the same way. It names the same
 // day wherever it is read, so it is formatted in UTC rather than the viewer's time zone.
 export function formatCalendarDate(date: string): string {
-  return dayMonthYear(utcDateFormat, new Date(`${date}T00:00:00Z`));
+  return utcDateFormat.format(new Date(`${date}T00:00:00Z`));
 }
