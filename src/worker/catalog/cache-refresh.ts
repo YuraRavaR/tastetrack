@@ -63,8 +63,10 @@ function referenced(db: DrizzleD1Database) {
 
 // The cache entries the cron refreshes next, at most `limit`: those a Log Entry or List Item
 // references and that are a week old, or were filled from a search result alone, at any age. Those
-// come first, then the oldest. A referenced Media Item with no entry isn't due: the first page to
-// show it fills it. Nothing reads an unreferenced entry, so it is never refreshed.
+// the cron hasn't tried since come first, then the rest by when they were last filled or tried, so
+// an entry TMDB never answers for goes to the back each run instead of taking the batch for good.
+// A referenced Media Item with no entry isn't due: the first page to show it fills it. Nothing
+// reads an unreferenced entry, so it is never refreshed.
 export async function dueForRefresh(
   db: DrizzleD1Database,
   now: Date,
@@ -79,8 +81,21 @@ export async function dueForRefresh(
         or(isNull(tmdbCache.detailedAt), lt(tmdbCache.updatedAt, before(now, refreshAge))),
       ),
     )
-    .orderBy(sql`${tmdbCache.detailedAt} is not null`, asc(tmdbCache.updatedAt))
+    .orderBy(
+      sql`${tmdbCache.detailedAt} is not null or ${tmdbCache.checkedAt} is not null`,
+      asc(sql`coalesce(${tmdbCache.checkedAt}, ${tmdbCache.updatedAt})`),
+    )
     .limit(limit);
+}
+
+// Records that TMDB didn't answer for these entries now, in one query, as storeDetails does.
+async function markFailed(db: DrizzleD1Database, failed: CacheKey[], now: Date): Promise<void> {
+  if (failed.length === 0) return;
+  const rows = JSON.stringify(failed);
+  await db.run(sql`
+    update ${tmdbCache} set checked_at = ${now.getTime()}
+    where (media_type, external_id) in
+      (select value ->> 'mediaType', value ->> 'externalId' from json_each(${rows}))`);
 }
 
 export interface CacheRefresh {
@@ -90,9 +105,9 @@ export interface CacheRefresh {
 }
 
 // One cron run: refetches the entries due from TMDB, one details call each, and writes them back
-// in one query. An entry TMDB doesn't answer for is left as it is, to be tried again next run.
-// Then it deletes the entries past the hard expiry, which there is no refresh on read to renew,
-// and those nothing has referenced for a day.
+// in one query. An entry TMDB doesn't answer for keeps what it shows and is marked as tried, to be
+// tried again behind the others. Then it deletes the entries past the hard expiry, which there is
+// no refresh on read to renew, and those nothing has referenced for a day.
 export async function refreshCache(
   db: DrizzleD1Database,
   tmdb: TmdbConfig,
@@ -100,7 +115,10 @@ export async function refreshCache(
 ): Promise<CacheRefresh> {
   const due = await dueForRefresh(db, now);
   const fetched = await fetchDetails(tmdb, due);
+  const answered = new Set(fetched.map((film) => film.externalId));
   await storeDetails(db, fetched, now);
+  const failed = due.filter((key) => !answered.has(key.externalId));
+  await markFailed(db, failed, now);
   const deleted = await db
     .delete(tmdbCache)
     .where(
@@ -112,7 +130,7 @@ export async function refreshCache(
     .returning({ externalId: tmdbCache.externalId });
   return {
     refreshed: fetched.length,
-    failed: due.length - fetched.length,
+    failed: failed.length,
     deleted: deleted.length,
   };
 }

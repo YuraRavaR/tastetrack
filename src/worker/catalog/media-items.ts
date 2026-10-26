@@ -210,16 +210,17 @@ export async function storeDetails(
   // An upsert from a select needs a where clause, or SQLite reads "on" as a join's.
   await db.run(sql`
     insert into ${tmdbCache} (media_type, external_id, english_title, ukrainian_title,
-      original_title, year, poster_path, runtime, genres, updated_at, detailed_at)
+      original_title, year, poster_path, runtime, genres, updated_at, detailed_at, checked_at)
     select value ->> 'mediaType', value ->> 'externalId', value ->> 'englishTitle',
       value ->> 'ukrainianTitle', value ->> 'originalTitle', value ->> 'year',
-      value ->> 'posterPath', value ->> 'runtime', value -> 'genres', ${at}, ${at}
+      value ->> 'posterPath', value ->> 'runtime', value -> 'genres', ${at}, ${at}, null
     from json_each(${rows}) where true
     on conflict (media_type, external_id) do update set
       english_title = excluded.english_title, ukrainian_title = excluded.ukrainian_title,
       original_title = excluded.original_title, year = excluded.year,
       poster_path = excluded.poster_path, runtime = excluded.runtime, genres = excluded.genres,
-      updated_at = excluded.updated_at, detailed_at = excluded.detailed_at`);
+      updated_at = excluded.updated_at, detailed_at = excluded.detailed_at,
+      checked_at = excluded.checked_at`);
 }
 
 export interface AddedMediaItem {
@@ -265,7 +266,7 @@ export async function addFromSearch(
   if (!shown?.detailedAt) {
     try {
       const details: CachedMetadata = await filmDetails(tmdb, reference.id);
-      const columns = { ...details, updatedAt: now, detailedAt: now };
+      const columns = { ...details, updatedAt: now, detailedAt: now, checkedAt: null };
       await db
         .insert(tmdbCache)
         .values({ mediaType: reference.mediaType, externalId: reference.id, ...columns })
@@ -276,7 +277,7 @@ export async function addFromSearch(
       console.error(error);
       if (!shown) {
         metadata = fromSearchResult(result);
-        const columns = { ...metadata, updatedAt: now, detailedAt: null };
+        const columns = { ...metadata, updatedAt: now, detailedAt: null, checkedAt: null };
         await db
           .insert(tmdbCache)
           .values({ mediaType: reference.mediaType, externalId: reference.id, ...columns })

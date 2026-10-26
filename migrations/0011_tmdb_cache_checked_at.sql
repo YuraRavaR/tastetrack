@@ -1,0 +1,1 @@
+ALTER TABLE `tmdb_cache` ADD `checked_at` integer;
