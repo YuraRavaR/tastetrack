@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.0](https://github.com/YuraRavaR/tastetrack/compare/v0.2.0...v0.3.0) (2026-10-26)
+
+
+### Features
+
+* add films TMDB doesn't have as Manual Media Items, seen only by their User ([#36](https://github.com/YuraRavaR/tastetrack/issues/36)) ([7113921](https://github.com/YuraRavaR/tastetrack/commit/7113921da1e2f6dd3ffe008380879b9831907a37))
+* build named Lists of films, ordered and noted, without touching the Log ([#35](https://github.com/YuraRavaR/tastetrack/issues/35)) ([a2c80a7](https://github.com/YuraRavaR/tastetrack/commit/a2c80a7446e690ee23d283e8430af95ff31bf537))
+* keep the TMDB cache fresh from a cron, and fill a cold cache progressively ([#41](https://github.com/YuraRavaR/tastetrack/issues/41)) ([dc73b1f](https://github.com/YuraRavaR/tastetrack/commit/dc73b1fce7d80bb979289508b29aeb3dfb5bbcbb))
+* let a User delete their account and everything in it, confirmed with their password ([#45](https://github.com/YuraRavaR/tastetrack/issues/45)) ([97ebbfd](https://github.com/YuraRavaR/tastetrack/commit/97ebbfde7e1ac6a325179b8c1864f64fbe09e085))
+* let a User set their Display Name and change their password in Settings ([#42](https://github.com/YuraRavaR/tastetrack/issues/42)) ([5d59fac](https://github.com/YuraRavaR/tastetrack/commit/5d59facfccb1c63b69cf045effa1c2f2ec566ccd))
+* let the Operator reset a forgotten password to a Temporary Password ([#43](https://github.com/YuraRavaR/tastetrack/issues/43)) ([24b8e0d](https://github.com/YuraRavaR/tastetrack/commit/24b8e0d1cb7b0de4e66995be7fb6090ed7434d2b))
+* lock a Username for 15 minutes after 5 failed logins from one IP ([#44](https://github.com/YuraRavaR/tastetrack/issues/44)) ([5e8f16b](https://github.com/YuraRavaR/tastetrack/commit/5e8f16bc27cec083303a9108fd8bd2279d1c2b07)), closes [#9](https://github.com/YuraRavaR/tastetrack/issues/9)
+* plan films on a Watchlist, reorder and note them, and logging takes them off with an undo ([#33](https://github.com/YuraRavaR/tastetrack/issues/33)) ([bbf032c](https://github.com/YuraRavaR/tastetrack/commit/bbf032cbebda970fce490a77048d5a18cce00264))
+* share any List, the Watchlist included, through an unguessable Share Link ([#37](https://github.com/YuraRavaR/tastetrack/issues/37)) ([02f6179](https://github.com/YuraRavaR/tastetrack/commit/02f6179fdce551bb7244595f510803effc6e0831)), closes [#18](https://github.com/YuraRavaR/tastetrack/issues/18)
+
+
+### Bug Fixes
+
+* **catalog:** never show a TMDB cache entry past its 90-day hard expiry ([#46](https://github.com/YuraRavaR/tastetrack/issues/46)) ([0c81fd1](https://github.com/YuraRavaR/tastetrack/commit/0c81fd1bb86002c74e976dfdcb47fb27f574d40e))
+* **catalog:** stop entries TMDB never answers for from taking every cron batch ([#49](https://github.com/YuraRavaR/tastetrack/issues/49)) ([20e1f3c](https://github.com/YuraRavaR/tastetrack/commit/20e1f3c1c75dfd6b1e637893f627bb41ad045ddc)), closes [#40](https://github.com/YuraRavaR/tastetrack/issues/40)
+* **deps:** bump the production-dependencies group with 3 updates ([#47](https://github.com/YuraRavaR/tastetrack/issues/47)) ([4255766](https://github.com/YuraRavaR/tastetrack/commit/42557667025f921bdbf0c42e411e256062ca8eb4))
+
 ## [0.2.0](https://github.com/YuraRavaR/tastetrack/compare/v0.1.0...v0.2.0) (2026-10-19)
 
 
