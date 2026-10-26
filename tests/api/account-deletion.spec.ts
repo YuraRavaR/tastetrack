@@ -11,7 +11,8 @@ function newDevice() {
   return requests.newContext({ baseURL: test.info().project.use.baseURL });
 }
 
-async function logIn(api: APIRequestContext, user: TestUser) {
+// The login's status code: 200 when the User could log in.
+async function logInStatus(api: APIRequestContext, user: TestUser) {
   return (await api.post("/api/auth/login", { data: user })).status();
 }
 
@@ -29,8 +30,8 @@ async function storedRecords(request: APIRequestContext, ids: Record<string, num
   return response.json();
 }
 
-test("deleting the account needs a session", async ({ playwright, baseURL }) => {
-  const anonymous = await playwright.request.newContext({ baseURL });
+test("deleting the account needs a session", async () => {
+  const anonymous = await newDevice();
 
   expect((await deleteUser(anonymous, "correct horse battery")).status()).toBe(401);
   await anonymous.dispose();
@@ -45,7 +46,7 @@ test("a wrong password deletes nothing", async ({ request }) => {
   expect(await response.json()).toEqual({ error: "wrong_password" });
   expect((await request.get("/api/auth/me")).status()).toBe(200);
   const device = await newDevice();
-  expect(await logIn(device, user)).toBe(200);
+  expect(await logInStatus(device, user)).toBe(200);
   await device.dispose();
 });
 
@@ -81,6 +82,7 @@ test("deleting the account removes everything the User owns, and ends their sess
     request.post(`/api/lists/${list.id}/items`, { data: { mediaItemId: film.id } }),
   );
   const { shareLink } = await created(request.post(`/api/lists/${list.id}/share-link`));
+  expect((await request.get(`/api/shared-lists/${shareLink.token}`)).status()).toBe(200);
   const { inviteCode } = await created(request.post("/api/invite-codes"));
   const records = {
     logEntries: [logEntry.id],
@@ -90,7 +92,7 @@ test("deleting the account removes everything the User owns, and ends their sess
   };
   expect(await storedRecords(request, records)).toEqual(records);
   const phone = await newDevice();
-  expect(await logIn(phone, user)).toBe(200);
+  expect(await logInStatus(phone, user)).toBe(200);
 
   const response = await deleteUser(request, user.password);
 
@@ -101,7 +103,7 @@ test("deleting the account removes everything the User owns, and ends their sess
   await phone.dispose();
 
   const anyone = await newDevice();
-  expect(await logIn(anyone, user)).toBe(401);
+  expect(await logInStatus(anyone, user)).toBe(401);
   expect((await anyone.get(`/api/shared-lists/${shareLink.token}`)).status()).toBe(404);
   expect((await anyone.get(`/s/${shareLink.token}`)).status()).toBe(404);
   const registration = await anyone.post("/api/auth/register", {
@@ -151,7 +153,7 @@ test("other Users' records of the same catalog film stay", async ({ request }) =
   const film = await alien(request);
   await created(request.post("/api/log-entries", { data: { mediaItemId: film.id, rating: 2 } }));
   const staying = await newDevice();
-  await logIn(staying, await createUser());
+  await logInStatus(staying, await createUser());
   const { logEntry } = await created(
     staying.post("/api/log-entries", {
       data: { mediaItemId: (await alien(staying)).id, rating: 5 },

@@ -129,7 +129,9 @@ export async function changePassword(
   }
 }
 
-export type DeleteUserResult = { ok: true } | { ok: false; error: ChangePasswordError };
+export type DeleteUserError = "wrong_password" | "unavailable";
+
+export type DeleteUserResult = { ok: true } | { ok: false; error: DeleteUserError };
 
 // Deletes the User and everything they own, for good, once their password checks out; the
 // session ends with them.

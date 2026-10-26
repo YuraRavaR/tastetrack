@@ -193,7 +193,7 @@ function PasswordSection({ username }: { username: string }) {
 function DeletionSection({ username }: { username: string }) {
   const auth = useAuth();
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<api.ChangePasswordError | null>(null);
+  const [error, setError] = useState<api.DeleteUserError | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -208,6 +208,7 @@ function DeletionSection({ username }: { username: string }) {
   return (
     <Section title={t("settings.deleteTitle")} description={t("settings.deleteDescription")}>
       <form className="flex flex-col gap-4" onSubmit={submit}>
+        {/* Tells a password manager whose password this is. */}
         <input
           type="text"
           name="username"
