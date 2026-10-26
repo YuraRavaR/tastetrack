@@ -1,12 +1,19 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!worker-configuration.d.ts", "!migrations/meta"]
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!worker-configuration.d.ts",
+      "!migrations/meta",
+      "!pnpm-lock.yaml",
+      "!CHANGELOG.md"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -18,6 +25,11 @@
     "enabled": true,
     "rules": {
       "preset": "recommended"
+    }
+  },
+  "markdown": {
+    "formatter": {
+      "enabled": false
     }
   },
   "css": {
