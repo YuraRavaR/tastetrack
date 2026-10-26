@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { FilmMetadata } from "../../shared/api";
-import { filmLabel } from "../catalog/film-label";
+import { filmFacts, filmLabel } from "../catalog/film-label";
 import { t } from "../i18n/t";
 
 // A film's label, "Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)", with its Ukrainian title
@@ -30,4 +30,11 @@ export function FilmTitle({
       )}
     </span>
   );
+}
+
+// A film's runtime and genres, as far as they are known: "122 min · Comedy, Romance". Nothing
+// while its metadata is missing or holds neither.
+export function FilmFacts({ metadata }: { metadata: FilmMetadata | null }) {
+  const facts = metadata && filmFacts(metadata);
+  return facts ? <p className="text-muted-foreground text-sm">{facts}</p> : null;
 }
