@@ -2,10 +2,6 @@
 // Film words belong here, not in domain code (ADR-0005).
 export const en = {
   "app.name": "TasteTrack",
-  "app.tagline": "Your personal film tracker",
-  "health.checking": "Checking the connection to the server…",
-  "health.ok": "The server is up",
-  "health.unavailable": "The server is unavailable",
   "auth.checking": "Loading…",
   "auth.logout": "Log out",
   "login.title": "Log in",
@@ -137,6 +133,8 @@ export const en = {
   "log.empty": "Your Log is empty. Search for a film you've watched and mark it Watched.",
   "log.unavailable": "Couldn't load your Log. Please try again.",
   "log.view": "See your Log",
+  "home.log.title": "Latest in your Log",
+  "home.log.all": "{count, plural, one {See your Log} other {All # in your Log}}",
   "backlog.nav": "Watchlist",
   "backlog.title": "Your Watchlist",
   "backlog.listLabel": "Watchlist",

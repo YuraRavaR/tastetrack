@@ -1,5 +1,5 @@
 import { Bookmark, CircleCheck, ListPlus, PencilLine } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,8 +42,15 @@ type PlanError = "backlog_full" | "unavailable";
 // a Revisit by default if it is in the Log, and takes it off the Watchlist with an undo. A result
 // not on the Watchlist can be marked Want to watch, which puts it there, and any can be added to
 // or taken off the User's Lists. Below the results, a film search doesn't find can be added by
-// hand, and then shows first.
-export function FilmSearch() {
+// hand, and then shows first. With `labelAsHeading` the field's label is the page's heading, and
+// `onSearchingChange` hears when the field starts or stops holding a query.
+export function FilmSearch({
+  labelAsHeading = false,
+  onSearchingChange,
+}: {
+  labelAsHeading?: boolean;
+  onSearchingChange?: (searching: boolean) => void;
+}) {
   const inputId = useId();
   const [query, setQuery] = useState("");
   const search = useCatalogSearch(query);
@@ -64,6 +71,11 @@ export function FilmSearch() {
   const inBacklog = (found: Found) => plannedNow.get(foundKey(found)) ?? found.inBacklog;
 
   const trimmed = query.trim();
+  const searching = trimmed !== "";
+
+  useEffect(() => {
+    onSearchingChange?.(searching);
+  }, [searching, onSearchingChange]);
   const searched = new Set(search.results.map(foundKey));
   const results = [
     ...(added.query === trimmed
@@ -140,7 +152,15 @@ export function FilmSearch() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <Label htmlFor={inputId}>{t("search.label")}</Label>
+        {labelAsHeading ? (
+          <h1 className="font-semibold text-2xl tracking-tight">
+            <Label htmlFor={inputId} className="font-semibold text-2xl leading-8">
+              {t("search.label")}
+            </Label>
+          </h1>
+        ) : (
+          <Label htmlFor={inputId}>{t("search.label")}</Label>
+        )}
         <Input
           id={inputId}
           type="search"
