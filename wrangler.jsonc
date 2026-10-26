@@ -6,9 +6,10 @@
 // a secret on staging and production, set with `wrangler secret put` (see README). The Worker
 // runs first for the API and for Share Link pages (/s/*), whose <head> it fills in on the app's
 // HTML from the ASSETS binding (ADR-0008); everything else is served as static assets. The Cron
-// Trigger refreshes the TMDB cache every 15 minutes (ADR-0004), in production only: envs inherit
-// triggers, so `local` and `staging` clear them, and run the cron through the test hooks' manual
-// trigger instead, which keeps staging's writes off the account's shared D1 budget (ADR-0006).
+// Trigger refreshes the TMDB cache every 15 minutes (ADR-0004) and clears login failures that no
+// longer count, in production only: envs inherit triggers, so `local` and `staging` clear them,
+// and run the cache refresh through the test hooks' manual trigger instead, which keeps staging's
+// writes off the account's shared D1 budget (ADR-0006).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tastetrack",

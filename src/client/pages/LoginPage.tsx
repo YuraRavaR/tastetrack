@@ -11,7 +11,7 @@ import { t } from "../i18n/t";
 export function LoginPage() {
   const { state, logIn } = useAuth();
   const location = useLocation();
-  const [error, setError] = useState<Extract<LoginResult, { ok: false }>["error"] | null>(null);
+  const [error, setError] = useState<Extract<LoginResult, { ok: false }> | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   if (state.status === "authenticated") {
@@ -29,7 +29,7 @@ export function LoginPage() {
     setSubmitting(true);
     const result = await logIn(String(form.get("username")), String(form.get("password")));
     setSubmitting(false);
-    if (!result.ok) setError(result.error);
+    if (!result.ok) setError(result);
   }
 
   return (
@@ -64,9 +64,7 @@ export function LoginPage() {
           </div>
           {error && (
             <p role="alert" className="text-destructive text-sm">
-              {t(
-                error === "invalid_credentials" ? "login.invalidCredentials" : "login.unavailable",
-              )}
+              {loginErrorMessage(error)}
             </p>
           )}
           <Button type="submit" className="w-full" disabled={submitting}>
@@ -82,4 +80,18 @@ export function LoginPage() {
       </CardContent>
     </Card>
   );
+}
+
+function loginErrorMessage(error: Extract<LoginResult, { ok: false }>): string {
+  switch (error.error) {
+    case "invalid_credentials":
+      return t("login.invalidCredentials");
+    case "too_many_attempts":
+      // Whole minutes, rounded up, so the wait is never shorter than it says.
+      return t("login.tooManyAttempts", {
+        minutes: Math.max(1, Math.ceil(error.retryAfterSeconds / 60)),
+      });
+    case "unavailable":
+      return t("login.unavailable");
+  }
 }

@@ -71,6 +71,13 @@
       "when": 1792673570330,
       "tag": "0009_password_change_required",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1793010677373,
+      "tag": "0010_login_failures",
+      "breakpoints": true
     }
   ]
 }

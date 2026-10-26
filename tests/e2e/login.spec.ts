@@ -41,3 +41,24 @@ test("a wrong password shows an error and stays on the login page", async ({ pag
   await expect(page.getByRole("alert")).toHaveText("Wrong Username or password");
   await expect(page).toHaveURL("/login");
 });
+
+test("after 5 wrong passwords the login page says how long to wait", async ({ page }) => {
+  const user = await createUser();
+  await page.goto("/login");
+  await page.getByLabel("Username").fill(user.username);
+  const password = page.getByLabel("Password");
+  for (let i = 0; i < 5; i++) {
+    await password.fill("not the password");
+    const failed = page.waitForResponse("/api/auth/login");
+    await page.getByRole("button", { name: "Log in" }).click();
+    expect((await failed).status()).toBe(401);
+  }
+
+  await password.fill(user.password);
+  await page.getByRole("button", { name: "Log in" }).click();
+
+  await expect(page.getByRole("alert")).toHaveText(
+    "Too many failed attempts. Try again in 15 minutes.",
+  );
+  await expect(page).toHaveURL("/login");
+});
