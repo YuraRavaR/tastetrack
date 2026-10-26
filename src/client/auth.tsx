@@ -5,10 +5,11 @@ import * as api from "./api";
 import { t } from "./i18n/t";
 
 // A User who logged in with a Temporary Password the Operator issued must set their own before
-// anything else; their Username is known only when they logged in on this page load.
+// anything else; their Username is known only when they logged in on this page load. Anonymous
+// right after deleting their account, the login page says so.
 type AuthState =
   | { status: "checking" }
-  | { status: "anonymous" }
+  | { status: "anonymous"; userDeleted?: boolean }
   | { status: "passwordChangeRequired"; username: string | null }
   | { status: "authenticated"; user: User };
 
@@ -28,6 +29,8 @@ interface Auth {
   setDisplayName(displayName: string | null): Promise<User | null>;
   // Sets the User's own password in place of the Temporary Password, which lets them in.
   setNewPassword(newPassword: string): Promise<api.NewPasswordResult>;
+  // Deletes the User for good, which logs them out.
+  deleteUser(password: string): Promise<api.DeleteUserResult>;
   logOut(): Promise<void>;
 }
 
@@ -77,6 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.ok) setState({ status: "authenticated", user: result.user });
       return result;
     },
+    async deleteUser(password) {
+      const result = await api.deleteUser(password);
+      if (result.ok) setState({ status: "anonymous", userDeleted: true });
+      return result;
+    },
     async logOut() {
       await api.logOut();
       setState({ status: "anonymous" });
@@ -106,6 +114,8 @@ export function RequireAuth() {
   if (state.status === "checking") {
     return <p className="text-muted-foreground">{t("auth.checking")}</p>;
   }
+  // A deleted User has nowhere left to go back to.
+  if (state.status === "anonymous" && state.userDeleted) return <Navigate to="/login" replace />;
   if (state.status === "anonymous" || state.status === "passwordChangeRequired") {
     const from = location.pathname + location.search;
     const to = state.status === "anonymous" ? "/login" : "/new-password";

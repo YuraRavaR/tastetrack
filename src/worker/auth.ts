@@ -27,6 +27,10 @@ function setSessionCookie(c: Context, token: string): void {
   });
 }
 
+export function clearSessionCookie(c: Context): void {
+  deleteCookie(c, SESSION_COOKIE, { path: "/" });
+}
+
 export const unauthenticated = { error: "unauthenticated" } satisfies ErrorResponse;
 
 // The 401 that every route behind requireUser documents.
@@ -203,7 +207,7 @@ auth.openapi(loginRoute, async (c) => {
 auth.openapi(logoutRoute, async (c) => {
   const token = getCookie(c, SESSION_COOKIE);
   if (token) await logOut(c.var.db, token);
-  deleteCookie(c, SESSION_COOKIE, { path: "/" });
+  clearSessionCookie(c);
   return c.body(null, 204);
 });
 

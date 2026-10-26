@@ -9,7 +9,8 @@ import * as api from "../api";
 import { useAuth } from "../auth";
 import { t } from "../i18n/t";
 
-// The User's own settings: the Display Name others see on Share Links, and their password.
+// The User's own settings: the Display Name others see on Share Links, their password, and
+// deleting their account.
 export function SettingsPage() {
   const { state } = useAuth();
   if (state.status !== "authenticated") return null;
@@ -19,6 +20,7 @@ export function SettingsPage() {
       <h1 className="font-semibold text-2xl tracking-tight">{t("settings.title")}</h1>
       <DisplayNameSection user={state.user} />
       <PasswordSection username={state.user.username} />
+      <DeletionSection username={state.user.username} />
     </div>
   );
 }
@@ -179,6 +181,61 @@ function PasswordSection({ username }: { username: string }) {
         <div>
           <Button type="submit" disabled={changing}>
             {t(changing ? "settings.changingPassword" : "settings.changePassword")}
+          </Button>
+        </div>
+      </form>
+    </Section>
+  );
+}
+
+// The password is the confirmation, so a stray tap can't delete anything. Once the User is
+// deleted, the app takes them to the login page.
+function DeletionSection({ username }: { username: string }) {
+  const auth = useAuth();
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<api.ChangePasswordError | null>(null);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const fields = new FormData(event.currentTarget);
+    setDeleting(true);
+    const result = await auth.deleteUser(String(fields.get("deletionPassword")));
+    if (result.ok) return;
+    setDeleting(false);
+    setError(result.error);
+  }
+
+  return (
+    <Section title={t("settings.deleteTitle")} description={t("settings.deleteDescription")}>
+      <form className="flex flex-col gap-4" onSubmit={submit}>
+        <input
+          type="text"
+          name="username"
+          value={username}
+          autoComplete="username"
+          readOnly
+          hidden
+        />
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="deletionPassword">{t("settings.deletePassword")}</Label>
+          <Input
+            id="deletionPassword"
+            name="deletionPassword"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        {error && (
+          <p role="alert" className="text-destructive text-sm">
+            {t(
+              error === "wrong_password" ? "settings.deleteWrongPassword" : "settings.deleteFailed",
+            )}
+          </p>
+        )}
+        <div>
+          <Button type="submit" variant="destructive" disabled={deleting}>
+            {t(deleting ? "settings.deletingAccount" : "settings.deleteAccount")}
           </Button>
         </div>
       </form>

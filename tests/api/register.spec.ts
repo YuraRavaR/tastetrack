@@ -172,23 +172,3 @@ test("the new User records who invited them", async ({ request, invitee }) => {
   const invitedBy = await request.get(`/api/test/users/${registration.username}/invited-by`);
   expect(await invitedBy.json()).toEqual({ invitedBy: issuer });
 });
-
-// Users can't be removed in the app yet, so a test hook removes the inviter.
-test("when the inviter's account is removed, the invitee stays and their inviter is cleared", async ({
-  request,
-  invitee,
-}) => {
-  const issuer = (await (await request.get("/api/auth/me")).json()).user.username;
-  const registration = newInvitee(await issueCode(request));
-  expect((await invitee.post("/api/auth/register", { data: registration })).status()).toBe(201);
-
-  const removed = await request.delete(`/api/test/users/${issuer}`);
-
-  expect(removed.status()).toBe(204);
-  const invitedBy = await request.get(`/api/test/users/${registration.username}/invited-by`);
-  expect(invitedBy.status()).toBe(200);
-  expect(await invitedBy.json()).toEqual({ invitedBy: null });
-  expect(await (await invitee.get("/api/auth/me")).json()).toEqual({
-    user: { username: registration.username, displayName: registration.username },
-  });
-});

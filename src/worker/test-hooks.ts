@@ -1,19 +1,13 @@
 // Test-only routes, mounted under /api/test. They stay out of the OpenAPI spec, and with test
 // hooks off the whole prefix falls through to the JSON 404.
 import { z } from "@hono/zod-openapi";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
-import { tmdbCache } from "../db/schema";
+import { listItems, lists, logEntries, mediaItems, tmdbCache } from "../db/schema";
 import { type ErrorResponse, Password, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
-import {
-  createUser,
-  deleteUser,
-  inviterOf,
-  passwordIterationsOf,
-  resetPassword,
-} from "./accounts/accounts";
+import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
 import { refreshCache } from "./catalog/cache-refresh";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { tmdbFake } from "./catalog/tmdb-fake";
@@ -58,11 +52,6 @@ testHooks.post("/users", async (c) => {
   return c.json({ user }, 201);
 });
 
-testHooks.delete("/users/:username", async (c) => {
-  if (!(await deleteUser(c.var.db, c.req.param("username")))) return c.notFound();
-  return c.body(null, 204);
-});
-
 testHooks.get("/users/:username/password-iterations", async (c) => {
   const iterations = await passwordIterationsOf(c.var.db, c.req.param("username"));
   if (iterations === null) return c.notFound();
@@ -81,6 +70,36 @@ testHooks.get("/users/:username/invited-by", async (c) => {
   const invitedBy = await inviterOf(c.var.db, c.req.param("username"));
   if (invitedBy === undefined) return c.notFound();
   return c.json({ invitedBy }, 200);
+});
+
+// Of the given Log Entry, List, List Item and Media Item ids, those still stored, in id order: the
+// API shows a User's records only to them, so this is how a test sees a deleted User's records
+// gone.
+const recordTables = { logEntries, lists, listItems, mediaItems };
+const recordIds = z.array(z.int()).max(100).default([]);
+const RecordIds = z.object({
+  logEntries: recordIds,
+  lists: recordIds,
+  listItems: recordIds,
+  mediaItems: recordIds,
+});
+
+testHooks.post("/records", async (c) => {
+  const body = RecordIds.safeParse(await c.req.json().catch(() => undefined));
+  if (!body.success) return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
+  const stored: Record<string, number[]> = {};
+  for (const [kind, table] of Object.entries(recordTables)) {
+    const ids = body.data[kind as keyof typeof recordTables];
+    const rows = ids.length
+      ? await c.var.db
+          .select({ id: table.id })
+          .from(table)
+          .where(inArray(table.id, ids))
+          .orderBy(table.id)
+      : [];
+    stored[kind] = rows.map((row) => row.id);
+  }
+  return c.json(stored, 200);
 });
 
 // Plans placeholder films for a User, or adds them to a List, so tests reach the limit without

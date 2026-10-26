@@ -62,6 +62,11 @@ export function LoginPage() {
               required
             />
           </div>
+          {state.status === "anonymous" && state.userDeleted && !error && (
+            <p role="status" className="text-muted-foreground text-sm">
+              {t("login.userDeleted")}
+            </p>
+          )}
           {error && (
             <p role="alert" className="text-destructive text-sm">
               {loginErrorMessage(error)}

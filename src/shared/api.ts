@@ -100,6 +100,15 @@ export const PasswordChangeRequest = z
 
 export type PasswordChangeRequest = z.infer<typeof PasswordChangeRequest>;
 
+// The password confirms the deletion; like a login's, it is checked, not held to the rules.
+export const UserDeletionRequest = z
+  .object({
+    password: z.string().min(1).max(1000),
+  })
+  .openapi("UserDeletionRequest");
+
+export type UserDeletionRequest = z.infer<typeof UserDeletionRequest>;
+
 // The User's own password, in place of the Temporary Password the Operator issued: it follows the
 // rules, and mustn't be the Temporary Password.
 export const NewPasswordRequest = z
