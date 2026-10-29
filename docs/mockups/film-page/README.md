@@ -21,12 +21,15 @@ The page exists to answer "how did I rate this film, and how often have I watche
 
 ## Layout, top to bottom (phone first)
 
-1. **Banner.** Full column width, `h-46` (184px) on a phone and taller from `sm:`, `rounded-lg`. It shows the film's image, or a no-poster placeholder when it has none. The space is reserved before the image loads, so nothing shifts.
+1. **Banner.** Full column width, `h-46` (184px) on a phone and taller from `sm:`, `rounded-lg`. The space is reserved before the image loads, so nothing shifts. It shows, in order of preference:
+   - the film's TMDB backdrop, `w780` on a phone and `w1280` from `sm:`, cropped to cover;
+   - with no backdrop, the poster centred on `bg-muted`;
+   - with neither, a no-poster placeholder.
 2. **Title block.** `h1` is the film's label, as `FilmTitle` renders it today. Below it are the Ukrainian Localized Title and `FilmFacts`, both `text-muted-foreground text-sm`.
 3. **Stat tiles.** A `grid-cols-3 gap-2` row of bordered `bg-card` tiles. Each has a `text-xs` muted label above a `text-lg font-semibold` value:
-   - **Watched**: "3 times" (the number of Log Entries).
+   - **Watched**: "3 times" (the number of Log Entries), or "Once" for one.
    - **Your rating**: one filled star and the Current Rating ("5", "4.5").
-   - **First watched**: the earliest date among the Log Entries, "Mar 2, 2019".
+   - **First watched**: the earliest date among the dated Log Entries, "Mar 2, 2019". With no dated entry it shows "–", named "No date". The tile stays, so the row keeps three tiles.
 4. **Actions.** Since #62: Watched again, the Want to watch toggle and Add to list. See [`search-results/film-page-watched.html`](../search-results/film-page-watched.html).
 5. **"Viewings"** (`h2`) and the Item History as one bordered `divide-y` list, **newest first**. Each row has:
    - a first line with the date (`font-medium`), the Rating as small stars, and the "Rewatch" badge on a Revisit;
@@ -37,9 +40,9 @@ Labels use sentence case throughout: "Your rating", not "Current Rating".
 
 ## No-poster placeholders
 
-A film without a poster shows one of ten placeholders instead of the plain film icon. All ten are approved.
+A film without a poster shows one of ten placeholders instead of the plain film icon, wherever `Poster` draws it: this page, the Log, the Watchlist, Lists, search, home and the "Watched" dialog. All ten are approved.
 
-- **Which one.** `mediaItem.id % 10`, the same as placeholder No. `id % 10 + 1` in the table below. It is stable per film, so the placeholder does not change between visits.
+- **Which one.** `mediaItem.id % 10`, the same as placeholder No. `id % 10 + 1` in the table below. It is stable per film, so the placeholder does not change between visits. A search result with no Media Item yet (a TMDB film not in the catalog) has no id and shows No. 4, `Film`, the icon it shows today.
 - **Look.** `bg-muted`, a `text-muted-foreground` lucide icon, and the caption in `text-xs` below it.
 - **Size.** Where the image is 112×168 or larger (this page's banner, any larger poster), the icon is about a third of the shorter side and the caption shows. Smaller thumbnails, like `Poster`'s 48×72 in lists, show the icon only.
 - **Accessible name.** "No poster"; the caption is decoration.
@@ -66,16 +69,19 @@ New UI text goes into `src/client/i18n/en.ts`:
 | Where | Text |
 | --- | --- |
 | Tile labels | Watched · Your rating · First watched |
-| Watched value | {count} time / {count} times |
+| Watched value | Once / {count} times |
+| First watched, no date | – (accessible name "No date") |
 | List heading | Viewings |
 | Entry menu | Actions for {date} · Edit · Delete |
 | Placeholders | "No poster", and the ten captions above |
 
-## Open questions (settle before the issue)
+## Open questions
 
-1. **Banner image.** The banner is wide (about 2:1), but the app stores only the `w92` poster (`src/worker/catalog/tmdb.ts`). Should it use TMDB's backdrop, which means a new `backdrop_path` field and a stored URL? Or should it show a larger poster (`w342`) beside the title, with the banner only as the no-poster fallback?
-2. **First watched without dates.** What does the tile show when no Log Entry has a date? It could hide, show "No date", or fall back to the first entry's creation date.
-3. **Watched once.** Should the value read "1 time" or "Once"?
+All settled.
+
+1. ~~**Banner image.**~~ Settled: TMDB's backdrop. The TMDB cache (`tmdb_cache`, ADR-0004) gains a `backdrop_path` column, filled from the same details call as the poster when a film is added and by the cron refresh. There is no backfill, to spare the D1 write budget (ADR-0006): entries cached before the change get a backdrop when the cron next refreshes them, and until then the banner falls back to the poster. A larger poster beside the title was rejected because it breaks variant C, and a poster cropped to the banner because it leaves a strip of a 2:3 image.
+2. ~~**First watched without dates.**~~ Settled: "–". The tile stays. A creation date is not when the film was watched.
+3. ~~**Watched once.**~~ Settled: "Once".
 4. ~~**Never watched.**~~ Settled in [`search-results/`](../search-results/): the banner and title, no tiles, the actions Watched, Want to watch and Add to list, and an empty "Viewings".
-5. **Placeholders elsewhere.** The placeholders are approved for this page. Should `Poster` use them in every list (Log, Watchlist, Lists, search), icon-only at thumbnail size?
-6. **Accent colour.** The stars and Delete are both red today, so Delete stands out less. That is #63's question; this page follows whatever it decides.
+5. ~~**Placeholders elsewhere.**~~ Settled: yes, everywhere `Poster` draws, icon-only at thumbnail size. See [No-poster placeholders](#no-poster-placeholders).
+6. ~~**Accent colour.**~~ Settled by #63: the accent is gold and red is left to Delete. See [`accent/`](../accent/).

@@ -62,6 +62,25 @@ The type UI appears only once a second Media Type ships. Until then:
 
 The only visible change is the new navigation: the bottom tab bar on a phone, and the account menu replacing the Invites and Settings links and the Log out button. That part can be built now. It also settles #58, the phone header that doesn't fit on one line.
 
+The section that holds the Backlogs is labelled **Watchlist** and links to `/watchlist` until a second Media Type ships. Renaming it to "Up next" is a separate issue for then.
+
+### Built now so a second Media Type is easy to add
+
+Only what costs little now, no UI ahead of time:
+
+- The UI words in [Wording per Media Type](#wording-per-media-type) sit in `en.ts` under keys per Media Type (`mediaType.film.verb` is "Watched", `mediaType.film.backlog` is "Watchlist", and so on). Components pick them by the Media Item's type and don't hard-code "Watched".
+- `Poster` takes its cover shape from the Media Type. Films are 2:3, the only shape today.
+- The sections are data (one array the tab bar and the header both render), not markup written twice.
+
+The type picker, the Up next tabs and the Log and Lists filters are not built.
+
+## The frame
+
+- **Widths.** The header and the footer stop at `max-w-6xl` (72rem, the mockup's 70rem). Each page sets its own column: home is wide, so its blocks sit side by side from `md`; the film's page, the Log, Lists, the Watchlist, Invites and Settings stay at `max-w-3xl`.
+- **Footer.** The TMDB attribution, and the app version from `package.json` ("v0.5.0") in `text-muted-foreground text-xs` beside it.
+- **Logged out** (login, register, a Share Link page): the app name alone, with no tab bar and no account menu.
+- **A User who must set a new password**: the app name and the account menu holding only Log out, with no tab bar.
+
 ## Wording per Media Type
 
 The domain terms stay generic (GLOSSARY, ADR-0005); these are UI words in `en.ts`:
@@ -75,12 +94,14 @@ The domain terms stay generic (GLOSSARY, ADR-0005); these are UI words in `en.ts
 
 "Up next" is the section that holds every Backlog. Series, already planned in the glossary, become one more row here and one more tab.
 
-## Open questions (settle before the issues)
+## Open questions
+
+Questions 1, 2, 4, 5 and 6 matter only once a second Media Type ships, and wait for then. Questions 3 and 7 are settled.
 
 1. **Games.** Games are not yet a planned Media Type in the glossary or ADR-0005. Adding them needs a glossary entry and an ADR choosing the External Source (IGDB needs a Twitch app login; RAWG is simpler).
 2. **External Sources for books and music.** Open Library and MusicBrainz are proposals only. Each needs an ADR like ADR-0004 (TMDB): terms, rate limits, attribution.
-3. **"Up next" while only films exist.** Should the nav label read "Watchlist" until a second type ships, then "Up next"? Or "Up next" from the start?
+3. ~~**"Up next" while only films exist.**~~ Settled: "Watchlist" until a second type ships, then "Up next" in an issue of its own. Over a single Watchlist, "Up next" adds nothing, and "Watchlist" matches the route, home's "Next on your Watchlist" (#66) and the toasts.
 4. **Which type is selected first.** The search picker and the Up next tabs could open on the last type the User used (stored per User or per device), or always on Films.
 5. **Empty types.** Should Up next show a tab for a type whose Backlog is empty, or only the types the User has used?
 6. **Log and Lists filters.** These pages need an "All · Films · Books · …" filter. Not mocked yet.
-7. **Tablet.** From `md` (768px) the nav is in the header. Is a bottom bar better on tablets in portrait?
+7. ~~**Tablet.**~~ Settled: from `md` (768px) the nav is in the header, on a tablet in portrait too, as mocked.

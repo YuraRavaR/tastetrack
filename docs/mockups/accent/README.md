@@ -88,6 +88,6 @@ For comparison, today's dark theme puts white text on the destructive red at 2.8
 
 ## Open questions
 
-1. **Star outline.** On the canvas the outline was a lighter gold, `oklch(0.66 0.14 78)`, at 3.2:1. This page uses `--primary-strong`, which reads browner but needs no extra token. Pick one.
+1. ~~**Star outline.**~~ Settled: `--primary-strong`, which reads browner than the canvas's lighter gold (`oklch(0.66 0.14 78)`, 3.2:1) but needs no extra token.
 2. ~~**Serif for Media Item titles everywhere?**~~ Settled: no. Titles are in the sans; only the app name is a serif.
 3. ~~**Cyrillic.**~~ Settled by 2: Ukrainian Localized Titles are in the sans, which has Cyrillic. The serif sets only the Latin word "TasteTrack".

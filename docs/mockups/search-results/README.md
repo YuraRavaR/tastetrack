@@ -89,3 +89,7 @@ All settled.
 2. ~~**Same control on the page?**~~ Settled: yes, the page's Want to watch toggles too.
 3. ~~**Back link.**~~ Settled: no "‹ Search" link. The search keeps its query in the URL (`/?q=paris`), so the browser's back, or a swipe back on a phone, brings the results back as they were. The page is also reached from the Log, Lists and the Watchlist, where a "Search" link would be wrong.
 4. ~~**"Watched again" on a watched film's page.**~~ Settled: the same action block, under the stat tiles. See `film-page-watched.html`.
+5. ~~**Both marks.**~~ Settled: a film in the Log and back on the Watchlist (planned for a rewatch) shows "In your Log". The pressed bookmark already shows the Watchlist.
+6. ~~**Taking a film off the Watchlist.**~~ Settled: a new `DELETE /backlog/items/{mediaItemId}`, the mirror of `POST /backlog/items`, used by search and the film's page. Search results then need no List Item id, and a search's D1 query count doesn't grow.
+7. ~~**The query in the URL.**~~ Settled: typing writes `?q=` with `replace`, so a burst of typing makes one history entry, not one per key. Clearing the field removes `q`. Today the query isn't in the URL at all, so this is new.
+8. ~~**Placeholders.**~~ Settled in [`film-page/`](../film-page/#no-poster-placeholders): a result without a poster shows its placeholder icon, and one not in the catalog yet shows No. 4, `Film`.
