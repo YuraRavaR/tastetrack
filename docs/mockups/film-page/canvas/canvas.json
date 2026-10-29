@@ -1,0 +1,19 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-29T12:00:00Z" },
+  "title": "TasteTrack film page",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 390, "h": 1000, "title": "A · Rating header", "is_interactive": true },
+    "Timeline.dc.html": { "x": 470, "y": 0, "w": 390, "h": 1000, "title": "B · Timeline" },
+    "Stats.dc.html": { "x": 940, "y": 0, "w": 390, "h": 1000, "title": "C · Stats strip", "is_interactive": true },
+    "NoImage.dc.html": { "x": 1410, "y": 0, "w": 720, "h": 600, "title": "No-poster placeholders" },
+    "NoPoster.dc.html": { "x": 1410, "y": 720, "w": 112, "h": 168, "title": "NoPoster (component)" }
+  },
+  "order": ["Main.dc.html", "Timeline.dc.html", "Stats.dc.html", "NoImage.dc.html", "NoPoster.dc.html"],
+  "notes": {
+    "heading": { "x": 0, "y": -260, "text": "Film page (#64) · phone 390", "kind": "title1", "maxW": 2130 }
+  },
+  "designSystems": []
+}

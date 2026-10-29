@@ -12,7 +12,9 @@
       "!worker-configuration.d.ts",
       "!migrations/meta",
       "!pnpm-lock.yaml",
-      "!CHANGELOG.md"
+      "!CHANGELOG.md",
+      "!docs/mockups/**/*.html",
+      "!docs/mockups/**/canvas"
     ]
   },
   "formatter": {

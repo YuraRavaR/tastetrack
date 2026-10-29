@@ -1,0 +1,22 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-29T21:00:00Z" },
+  "title": "TasteTrack Watched dialog",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 402, "h": 874, "title": "A · Full form · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "FormWeb.dc.html": { "x": 482, "y": 0, "w": 1440, "h": 900, "title": "A · Full form · Web", "expand": "fill", "is_interactive": true },
+    "Compact.dc.html": { "x": 0, "y": 1300, "w": 402, "h": 874, "title": "B · Stars first, details on tap · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "CompactWeb.dc.html": { "x": 482, "y": 1300, "w": 1440, "h": 900, "title": "B · Stars first, details on tap · Web", "expand": "fill", "is_interactive": true },
+    "Journal.dc.html": { "x": 0, "y": 2600, "w": 402, "h": 874, "title": "C · Review first · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "JournalWeb.dc.html": { "x": 482, "y": 2600, "w": 1440, "h": 900, "title": "C · Review first · Web", "expand": "fill", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "FormWeb.dc.html", "Compact.dc.html", "CompactWeb.dc.html", "Journal.dc.html", "JournalWeb.dc.html"],
+  "notes": {
+    "titleA": { "x": 0, "y": -260, "text": "A · Full form: every field open, Save at the bottom", "kind": "title1", "maxW": 1922 },
+    "titleB": { "x": 0, "y": 1040, "text": "B · Stars first: date, Review and Rewatch open on tap", "kind": "title1", "maxW": 1922 },
+    "titleC": { "x": 0, "y": 2340, "text": "C · Review first: date and Rewatch as chips by Save", "kind": "title1", "maxW": 1922 }
+  },
+  "designSystems": []
+}

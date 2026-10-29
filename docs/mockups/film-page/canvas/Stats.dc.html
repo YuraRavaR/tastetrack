@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Film page, variant C: stats strip</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:oklch(0.2 0.01 50)}a:hover{color:oklch(0.5 0.17 25)}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1000px; box-sizing: border-box; display: flex; flex-direction: column; background: oklch(0.985 0.002 75); color: oklch(0.2 0.01 50); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<header style="border-bottom: 1px solid oklch(0.9 0.008 60); background: oklch(1 0 0)">
+<div style="box-sizing: border-box; min-height: 56px; padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: 16px; row-gap: 4px">
+<a href="#" style="font-weight: 600; font-size: 18px; letter-spacing: -0.01em; text-decoration: none">TasteTrack</a>
+<nav aria-label="Main" style="display: flex; align-items: center; font-size: 14px; font-weight: 500">
+<a href="#" style="padding: 8px; text-decoration: none">Log</a>
+<a href="#" style="padding: 8px; text-decoration: none">Watchlist</a>
+<a href="#" style="padding: 8px; text-decoration: none">Lists</a>
+<a href="#" style="padding: 8px; text-decoration: none">Invites</a>
+<a href="#" aria-label="Settings" style="padding: 8px; display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg></a>
+<button type="button" style="margin-left: 4px; height: 32px; padding: 0 8px; border: 1px solid oklch(0.9 0.008 60); border-radius: 8px; background: oklch(1 0 0); color: oklch(0.2 0.01 50); font-size: 14px; font-weight: 500">Log out</button>
+</nav>
+</div>
+</header>
+
+<main style="flex: 1; padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 20px">
+
+<div>
+<dc-import name="NoPoster" n="{{posterN}}" w="358" h="184" r="10" hint-size="358px,184px"></dc-import>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)</h1>
+<p lang="uk" style="margin: 0; font-size: 14px; color: oklch(0.5 0.015 50)">Амелі</p>
+<p style="margin: 0; font-size: 14px; color: oklch(0.5 0.015 50)">122 min · Comedy, Romance</p>
+</div>
+
+<dl style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<div style="padding: 10px 12px; border: 1px solid oklch(0.9 0.008 60); border-radius: 10px; background: oklch(1 0 0); display: flex; flex-direction: column; gap: 4px">
+<dt style="font-size: 12px; color: oklch(0.5 0.015 50)">Watched</dt>
+<dd style="margin: 0; font-size: 18px; font-weight: 600">3 times</dd>
+</div>
+<div style="padding: 10px 12px; border: 1px solid oklch(0.9 0.008 60); border-radius: 10px; background: oklch(1 0 0); display: flex; flex-direction: column; gap: 4px">
+<dt style="font-size: 12px; color: oklch(0.5 0.015 50)">Your rating</dt>
+<dd role="img" aria-label="5 stars" style="margin: 0; display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg>5</dd>
+</div>
+<div style="padding: 10px 12px; border: 1px solid oklch(0.9 0.008 60); border-radius: 10px; background: oklch(1 0 0); display: flex; flex-direction: column; gap: 4px">
+<dt style="font-size: 12px; color: oklch(0.5 0.015 50)">First watched</dt>
+<dd style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600">Mar 2, 2019</dd>
+</div>
+</dl>
+
+<button type="button" style="height: 40px; padding: 0 14px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid oklch(0.9 0.008 60); border-radius: 8px; background: oklch(1 0 0); color: oklch(0.2 0.01 50); font-size: 14px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to list</button>
+
+<section aria-labelledby="viewings" style="display: flex; flex-direction: column; gap: 10px">
+<h2 id="viewings" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em">Viewings</h2>
+<ul aria-label="Item History" style="margin: 0; padding: 0; list-style: none; border: 1px solid oklch(0.9 0.008 60); border-radius: 10px; background: oklch(1 0 0)">
+
+<li style="position: relative; padding: 8px 4px 8px 12px; display: flex; align-items: center; gap: 8px">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+<span style="font-weight: 500">Oct 11, 2026</span>
+<span role="img" aria-label="5 stars" style="display: flex">
+<sc-for list="{{e1}}" as="s" hint-placeholder-count="5"><span style="position: relative; display: inline-block; width: 14px; height: 14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.5 0.015 50)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="display: block"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg><sc-if value="{{s.full}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="position: absolute; top: 0; left: 0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if><sc-if value="{{s.half}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 0; left: 0; width: 7px; height: 14px; overflow: hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></span></sc-if></span></sc-for>
+</span>
+<span style="padding: 1px 6px; border-radius: 6px; background: oklch(0.95 0.006 60); color: oklch(0.25 0.01 50); font-size: 12px; font-weight: 500">Rewatch</span>
+</div>
+<p style="margin: 0; font-size: 13px; color: oklch(0.5 0.015 50); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Better every time. The photo-booth thread finally clicked for me.</p>
+</div>
+<button type="button" aria-label="Actions for Oct 11, 2026" aria-expanded="{{open1}}" onClick="{{toggle1}}" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 8px; background: transparent; color: oklch(0.5 0.015 50); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+<sc-if value="{{open1}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; top: 48px; right: 6px; z-index: 5; min-width: 168px; padding: 4px; display: flex; flex-direction: column; background: oklch(1 0 0); border: 1px solid oklch(0.9 0.008 60); border-radius: 8px; box-shadow: 0 8px 24px oklch(0.2 0.01 50 / 14%)">
+<button type="button" role="menuitem" onClick="{{close}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 6px; background: transparent; color: oklch(0.2 0.01 50); font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>Edit</button>
+<div style="height: 1px; margin: 4px 0; background: oklch(0.9 0.008 60)"></div>
+<button type="button" role="menuitem" onClick="{{close}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 6px; background: transparent; color: oklch(0.577 0.245 27.325); font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
+</div>
+</sc-if>
+</li>
+
+<li style="position: relative; padding: 8px 4px 8px 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid oklch(0.9 0.008 60)">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+<span style="font-weight: 500">Dec 24, 2023</span>
+<span role="img" aria-label="4.5 stars" style="display: flex">
+<sc-for list="{{e2}}" as="s" hint-placeholder-count="5"><span style="position: relative; display: inline-block; width: 14px; height: 14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.5 0.015 50)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="display: block"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg><sc-if value="{{s.full}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="position: absolute; top: 0; left: 0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if><sc-if value="{{s.half}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 0; left: 0; width: 7px; height: 14px; overflow: hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></span></sc-if></span></sc-for>
+</span>
+<span style="padding: 1px 6px; border-radius: 6px; background: oklch(0.95 0.006 60); color: oklch(0.25 0.01 50); font-size: 12px; font-weight: 500">Rewatch</span>
+</div>
+</div>
+<button type="button" aria-label="Actions for Dec 24, 2023" aria-expanded="{{open2}}" onClick="{{toggle2}}" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 8px; background: transparent; color: oklch(0.5 0.015 50); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+<sc-if value="{{open2}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; top: 48px; right: 6px; z-index: 5; min-width: 168px; padding: 4px; display: flex; flex-direction: column; background: oklch(1 0 0); border: 1px solid oklch(0.9 0.008 60); border-radius: 8px; box-shadow: 0 8px 24px oklch(0.2 0.01 50 / 14%)">
+<button type="button" role="menuitem" onClick="{{close}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 6px; background: transparent; color: oklch(0.2 0.01 50); font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>Edit</button>
+<div style="height: 1px; margin: 4px 0; background: oklch(0.9 0.008 60)"></div>
+<button type="button" role="menuitem" onClick="{{close}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 6px; background: transparent; color: oklch(0.577 0.245 27.325); font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
+</div>
+</sc-if>
+</li>
+
+<li style="position: relative; padding: 8px 4px 8px 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid oklch(0.9 0.008 60)">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+<span style="font-weight: 500">Mar 2, 2019</span>
+<span role="img" aria-label="4 stars" style="display: flex">
+<sc-for list="{{e3}}" as="s" hint-placeholder-count="5"><span style="position: relative; display: inline-block; width: 14px; height: 14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.5 0.015 50)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="display: block"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg><sc-if value="{{s.full}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="position: absolute; top: 0; left: 0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if><sc-if value="{{s.half}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 0; left: 0; width: 7px; height: 14px; overflow: hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></span></sc-if></span></sc-for>
+</span>
+</div>
+<p style="margin: 0; font-size: 13px; color: oklch(0.5 0.015 50); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Charming, if a little too sweet.</p>
+</div>
+<button type="button" aria-label="Actions for Mar 2, 2019" aria-expanded="{{open3}}" onClick="{{toggle3}}" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 8px; background: transparent; color: oklch(0.5 0.015 50); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+<sc-if value="{{open3}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; bottom: 48px; right: 6px; z-index: 5; min-width: 168px; padding: 4px; display: flex; flex-direction: column; background: oklch(1 0 0); border: 1px solid oklch(0.9 0.008 60); border-radius: 8px; box-shadow: 0 8px 24px oklch(0.2 0.01 50 / 14%)">
+<button type="button" role="menuitem" onClick="{{close}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 6px; background: transparent; color: oklch(0.2 0.01 50); font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>Edit</button>
+<div style="height: 1px; margin: 4px 0; background: oklch(0.9 0.008 60)"></div>
+<button type="button" role="menuitem" onClick="{{close}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 6px; background: transparent; color: oklch(0.577 0.245 27.325); font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
+</div>
+</sc-if>
+</li>
+
+</ul>
+</section>
+</main>
+
+<footer style="border-top: 1px solid oklch(0.9 0.008 60); padding: 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: oklch(0.5 0.015 50)">TMDB</span>
+<p style="margin: 0; font-size: 12px; color: oklch(0.5 0.015 50)">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"placeholder":{"editor":"int","default":0,"min":0,"max":10,"section":"No poster"},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+const open = (this.state && this.state.open) || 0;
+const starsOf = (r) => [1, 2, 3, 4, 5].map((s) => ({ full: r >= s, half: r >= s - 0.5 && r < s }));
+const toggle = (n) => () => this.setState({ open: open === n ? 0 : n });
+const pick = Number(this.props.placeholder ?? 0);
+const filmId = 194;
+return {
+posterN: String(pick >= 1 && pick <= 10 ? pick : (filmId % 10) + 1),
+e1: starsOf(5), e2: starsOf(4.5), e3: starsOf(4),
+open1: open === 1, open2: open === 2, open3: open === 3,
+toggle1: toggle(1), toggle2: toggle(2), toggle3: toggle(3),
+close: () => this.setState({ open: 0 })
+};
+}
+}
+</script>
+</body>
+</html>

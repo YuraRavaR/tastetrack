@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watched dialog, variant A</title>
+<!--
+  Static mockup of the "Watched" dialog (a new Log Entry), variant A "full form".
+  Colours are the Gold · Paper tokens from docs/mockups/accent/README.md; type follows Gold · Cinema:
+  Fraunces italic for the app name only, the system sans for everything else.
+  Below 768px the dialog is a bottom sheet; from 768px it is a centred dialog.
+  Dark mode follows the system setting. Stars, date chips, Rewatch, Save and Close work.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500..700&display=swap">
+<style>
+:root {
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-brand: "Fraunces", Georgia, serif;
+  --radius: 14px;
+  --radius-md: 10px;
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --destructive: oklch(0.46 0.18 25);
+  --border: oklch(0.88 0.015 75);
+  --input: oklch(0.85 0.015 75);
+  --ring: oklch(0.55 0.012 55);
+  --scrim: oklch(0.2 0.01 50 / 42%);
+  --shadow: oklch(0.2 0.01 50 / 16%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --destructive: oklch(0.66 0.2 22);
+    --border: oklch(1 0 0 / 11%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.66 0.012 60);
+    --scrim: oklch(0 0 0 / 58%);
+    --shadow: oklch(0 0 0 / 45%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.muted { color: var(--muted-foreground); }
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.poster { flex-shrink: 0; border-radius: 4px; background: var(--muted); color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+
+/* The page behind the dialog: home, with a film search open */
+.screen { position: relative; min-height: max(874px, 100svh); display: flex; flex-direction: column; overflow: hidden; }
+.col { width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+.top { background: var(--card); border-bottom: 1px solid var(--border); }
+.top .col { height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: var(--font-brand); font-style: italic; font-weight: 600; font-size: 21px; letter-spacing: -0.01em; }
+.sections { display: none; flex: 1; gap: 4px; font-size: 14px; font-weight: 500; }
+.sections span { padding: 8px 12px; border-radius: 8px; color: var(--muted-foreground); }
+.sections span.on { background: var(--muted); color: var(--foreground); }
+.account { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.account .name { display: none; }
+.avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); }
+main .col { padding-block: 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+.search { height: 46px; padding: 0 14px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.result { padding: 12px; display: flex; align-items: center; gap: 12px; }
+.result .what { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.title { font-weight: 600; }
+.sub { font-size: 13px; }
+.mark { align-self: flex-start; padding: 2px 8px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-strong); font-size: 12px; font-weight: 600; }
+.pill-btn { height: 36px; padding: 0 14px; display: flex; align-items: center; border-radius: var(--radius-md); background: var(--primary); color: var(--primary-foreground); font-size: 14px; font-weight: 600; }
+h3.section { margin: 8px 0 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.rows { margin: 0; padding: 0 12px; list-style: none; }
+.rows li { padding: 10px 0; display: flex; align-items: center; gap: 12px; }
+.rows li + li { border-top: 1px solid var(--border); }
+.rows .meta { font-size: 12px; }
+.tabs { margin-top: auto; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--card); border-top: 1px solid var(--border); }
+.tabs span { padding: 4px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--muted-foreground); }
+.tabs span.on { color: var(--primary-strong); font-weight: 700; }
+.tabs span i { padding: 2px 16px; border-radius: 999px; display: flex; }
+.tabs span.on i { background: var(--primary-soft); }
+
+/* The dialog: a bottom sheet on a phone */
+.scrim { position: absolute; inset: 0; background: var(--scrim); }
+.dialog {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: calc(100% - 48px);
+  display: flex; flex-direction: column; background: var(--card);
+  border-radius: 28px 28px 0 0; box-shadow: 0 -8px 32px var(--shadow);
+}
+.dialog header { padding: 16px 10px 4px 20px; display: flex; align-items: center; gap: 12px; }
+.dialog header .what { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.eyebrow { margin: 0; font-size: 12px; font-weight: 600; color: var(--primary-strong); }
+.dialog h2 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dialog header p.sub { margin: 0; }
+.close { width: 44px; height: 44px; flex-shrink: 0; align-self: flex-start; border: 0; border-radius: 999px; background: transparent; color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+.body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px 20px; display: flex; flex-direction: column; gap: 22px; }
+fieldset { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px; }
+legend, .label { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+.label { margin: 0; }
+.optional { font-weight: 400; color: var(--muted-foreground); }
+
+.rating { display: flex; align-items: center; gap: 14px; }
+.stars { display: flex; gap: 2px; }
+.star { --s: 44px; position: relative; display: block; width: var(--s); height: var(--s); }
+.star svg { display: block; width: var(--s); height: var(--s); stroke-width: 1.4; stroke-linejoin: round; }
+.star .outline { fill: none; stroke: var(--muted-foreground); }
+.star .fill { position: absolute; top: 0; left: 0; bottom: 0; width: 0; overflow: hidden; }
+.star .fill svg { fill: var(--primary); stroke: var(--primary-strong); }
+.star input { position: absolute; top: 0; width: 50%; height: 100%; margin: 0; appearance: none; cursor: pointer; border-radius: 4px; }
+.star input.l { left: 0; }
+.star input.r { right: 0; }
+.value { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.error { margin: 0; font-size: 13px; color: var(--destructive); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 44px; padding: 0 14px; border: 1px solid var(--input); border-radius: 999px; background: transparent; font-size: 14px; }
+.chip[aria-pressed="true"] { border-color: var(--primary-strong); background: var(--primary-soft); font-weight: 600; }
+.field { height: 44px; padding: 0 12px; border: 1px solid var(--input); border-radius: var(--radius-md); background: var(--card); font-size: 15px; }
+input[type="date"].field { align-self: flex-start; }
+textarea.field { height: auto; padding: 10px 12px; resize: none; line-height: 1.45; }
+
+.rewatch { padding-top: 16px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--border); }
+.rewatch .what { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.rewatch .what span:first-child { font-size: 15px; font-weight: 500; }
+.switch { width: 52px; height: 44px; padding: 0; flex-shrink: 0; border: 0; background: transparent; display: flex; align-items: center; }
+.switch .track { width: 52px; height: 32px; padding: 3px; border-radius: 999px; background: var(--input); display: flex; justify-content: flex-start; }
+.switch .knob { width: 26px; height: 26px; border-radius: 999px; background: var(--card); box-shadow: 0 1px 3px var(--shadow); }
+.switch[aria-checked="true"] .track { background: var(--primary); justify-content: flex-end; }
+
+.dialog footer { padding: 12px 20px calc(12px + max(22px, env(safe-area-inset-bottom))); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); }
+.dialog footer .hint { margin: 0; text-align: center; font-size: 12px; }
+.btn { height: 50px; padding: 0 20px; border: 0; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; }
+.btn.primary { order: -1; background: var(--primary); color: var(--primary-foreground); }
+.btn.outline { display: none; border: 1px solid var(--input); background: var(--card); font-weight: 500; }
+
+.toast { position: absolute; left: 16px; right: 16px; bottom: 88px; padding: 4px 4px 4px 16px; display: flex; align-items: center; gap: 8px; border-radius: var(--radius); background: var(--foreground); color: var(--background); font-size: 14px; box-shadow: 0 8px 24px var(--shadow); }
+.toast span { flex: 1; }
+.toast button { height: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--background); font-weight: 600; }
+[hidden] { display: none !important; }
+
+/* From md: header sections, and a centred dialog */
+@media (min-width: 768px) {
+  .screen { min-height: max(900px, 100svh); }
+  .col { padding: 0 24px; }
+  .top .col { height: 64px; }
+  .brand { font-size: 22px; }
+  .sections { display: flex; }
+  .account { margin-left: 0; }
+  .account .name { display: inline; }
+  .avatar { width: 32px; height: 32px; }
+  main .col { padding-block: 32px; gap: 20px; }
+  .search { height: 52px; font-size: 16px; }
+  .result { padding: 14px 16px; gap: 16px; }
+  .result .poster { width: 48px !important; height: 72px !important; }
+  .result .mark { align-self: center; }
+  .result .what { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 12px; }
+  .result .what .sub { flex-basis: 100%; }
+  .tabs { display: none; }
+  .dialog {
+    top: 72px; bottom: auto; left: 50%; right: auto; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 480px; max-height: calc(100% - 144px);
+    border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 16px 48px var(--shadow);
+  }
+  .dialog header { padding: 20px 12px 4px 24px; gap: 14px; }
+  .dialog header .poster { width: 40px !important; height: 60px !important; }
+  .dialog h2 { font-size: 22px; white-space: normal; }
+  .close { width: 40px; height: 40px; border-radius: 8px; }
+  .body { padding: 16px 24px 20px; gap: 20px; }
+  .star { --s: 40px; }
+  .value { font-size: 24px; }
+  .chip { height: 36px; }
+  .field { height: 40px; font-size: 14px; }
+  textarea.field { resize: vertical; line-height: 1.5; }
+  .rewatch .what span:first-child { font-size: 14px; }
+  .switch { width: 44px; height: 26px; }
+  .switch .track { width: 44px; height: 26px; }
+  .switch .knob { width: 20px; height: 20px; }
+  .dialog footer { padding: 16px 24px 20px; flex-direction: row; align-items: center; }
+  .dialog footer .hint { flex: 1; text-align: left; }
+  .btn { height: 40px; font-size: 14px; }
+  .btn.primary { order: 0; }
+  .btn.outline { display: block; padding: 0 16px; }
+  .toast { left: 50%; right: auto; bottom: 32px; transform: translateX(-50%); }
+}
+</style>
+</head>
+<body>
+<div class="screen">
+
+<div aria-hidden="true" style="display: contents">
+<div class="top"><div class="col">
+<span class="brand">TasteTrack</span>
+<span class="sections"><span class="on">Home</span><span>Log</span><span>Up next</span><span>Lists</span></span>
+<span class="account"><span class="avatar"></span><span class="name">Mira</span></span>
+</div></div>
+<main><div class="col">
+<div class="card search"><svg class="i muted" width="16" height="16" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>perfect days</div>
+<div class="card result">
+<span class="poster" style="width: 40px; height: 60px"></span>
+<span class="what"><span class="title">Perfect Days</span><span class="sub muted">2023 · 124 min</span><span class="mark">On your Watchlist</span></span>
+<span class="pill-btn">Watched</span>
+</div>
+<h3 class="section">Latest in your Log</h3>
+<ul class="card rows">
+<li><span class="poster" style="width: 40px; height: 60px"></span><span style="display: flex; flex-direction: column; gap: 4px"><span class="title">Amélie</span><span class="meta muted">Watched Oct 11</span></span></li>
+<li><span class="poster" style="width: 40px; height: 60px"></span><span style="display: flex; flex-direction: column; gap: 4px"><span class="title">Aftersun</span><span class="meta muted">Watched Oct 3</span></span></li>
+<li><span class="poster" style="width: 40px; height: 60px"></span><span style="display: flex; flex-direction: column; gap: 4px"><span class="title">Past Lives</span><span class="meta muted">Watched Sep 27</span></span></li>
+</ul>
+</div></main>
+<div class="tabs">
+<span class="on"><i><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.9"><path d="M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"/></svg></i>Home</span>
+<span><i><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i>Log</span>
+<span><i><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75"><path d="M6 3h12v18l-6-4-6 4z"/></svg></i>Up next</span>
+<span><i><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></i>Lists</span>
+</div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<form class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" novalidate>
+<header>
+<span class="poster" style="width: 36px; height: 54px"><svg class="i" width="16" height="16" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"/></svg></span>
+<div class="what">
+<p class="eyebrow">Watched</p>
+<h2 id="dlg-title">Perfect Days</h2>
+<p class="sub muted">2023 · 124 min</p>
+</div>
+<button type="button" class="close" data-close aria-label="Close"><svg class="i" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</header>
+
+<div class="body">
+<fieldset>
+<legend>Rating</legend>
+<div class="rating">
+<div class="stars" id="stars"></div>
+<span class="value" id="value">4.5</span>
+</div>
+<p class="error" id="error" role="alert" hidden>Choose a Rating.</p>
+</fieldset>
+
+<fieldset>
+<legend>Date <span class="optional">(optional)</span></legend>
+<div class="chips" id="dates">
+<button type="button" class="chip" aria-pressed="true" data-date="today">Today</button>
+<button type="button" class="chip" aria-pressed="false" data-date="yesterday">Yesterday</button>
+<button type="button" class="chip" aria-pressed="false" data-date="other">Other date</button>
+<button type="button" class="chip" aria-pressed="false" data-date="none">No date</button>
+</div>
+<input class="field" id="other" type="date" aria-label="Date watched" min="1900-01-01" max="2026-10-29" value="2026-10-24" hidden>
+</fieldset>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label class="label" for="review">Review <span class="optional">(optional)</span></label>
+<textarea class="field" id="review" rows="4" maxlength="10000" placeholder="What stayed with you?">Quiet and generous. The tree shadows at lunch stayed with me all week.</textarea>
+</div>
+
+<div class="rewatch">
+<div class="what"><span id="rewatch-label">Rewatch</span><span class="muted" style="font-size: 13px">You've watched it before</span></div>
+<button type="button" class="switch" id="rewatch" role="switch" aria-checked="false" aria-labelledby="rewatch-label"><span class="track"><span class="knob"></span></span></button>
+</div>
+</div>
+
+<footer>
+<p class="hint muted">Saving takes it off your Watchlist</p>
+<button type="button" class="btn outline" data-close>Cancel</button>
+<button type="submit" class="btn primary">Save</button>
+</footer>
+</form>
+
+<div class="toast" id="toast" role="status" hidden><span id="toast-text"></span><button type="button" id="again">Show again</button></div>
+</div>
+
+<script>
+const starPath = '<polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"/>';
+const starsEl = document.getElementById("stars");
+const label = (r) => (r === 1 ? "1 star" : `${r} stars`);
+// "#unrated" opens the dialog with no Rating, to show the error on Save.
+let rating = location.hash === "#unrated" ? null : 4.5;
+for (let n = 1; n <= 5; n++) {
+  starsEl.insertAdjacentHTML("beforeend", `<span class="star">
+    <svg class="outline" viewBox="0 0 24 24" aria-hidden="true">${starPath}</svg>
+    <span class="fill"><svg viewBox="0 0 24 24" aria-hidden="true">${starPath}</svg></span>
+    <input class="l" type="radio" name="rating" value="${n - 0.5}" aria-label="${label(n - 0.5)}">
+    <input class="r" type="radio" name="rating" value="${n}" aria-label="${label(n)}">
+  </span>`);
+}
+function paintStars() {
+  starsEl.querySelectorAll(".star").forEach((star, i) => {
+    const fill = rating === null ? 0 : Math.max(0, Math.min(1, rating - i));
+    star.querySelector(".fill").style.width = `${fill * 100}%`;
+  });
+  starsEl.querySelectorAll("input").forEach((input) => { input.checked = Number(input.value) === rating; });
+  document.getElementById("value").textContent = rating === null ? "–" : String(rating);
+}
+starsEl.addEventListener("change", (event) => {
+  rating = Number(event.target.value);
+  document.getElementById("error").hidden = true;
+  paintStars();
+});
+paintStars();
+
+document.getElementById("dates").addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-date]");
+  if (!chip) return;
+  document.querySelectorAll("[data-date]").forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
+  document.getElementById("other").hidden = chip.dataset.date !== "other";
+});
+
+const rewatch = document.getElementById("rewatch");
+rewatch.addEventListener("click", () => rewatch.setAttribute("aria-checked", String(rewatch.getAttribute("aria-checked") !== "true")));
+
+const dialog = document.getElementById("dialog");
+function closeWith(text) {
+  dialog.hidden = true;
+  document.getElementById("scrim").hidden = true;
+  document.getElementById("toast-text").textContent = text;
+  document.getElementById("toast").hidden = false;
+}
+dialog.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (rating === null) { document.getElementById("error").hidden = false; return; }
+  closeWith("Added Perfect Days to your Log.");
+});
+document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => closeWith("Closed without saving.")));
+document.getElementById("again").addEventListener("click", () => {
+  dialog.hidden = false;
+  document.getElementById("scrim").hidden = false;
+  document.getElementById("toast").hidden = true;
+});
+</script>
+</body>
+</html>

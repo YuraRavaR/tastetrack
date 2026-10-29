@@ -1,0 +1,195 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-29T22:00:00Z"
+  },
+  "title": "TasteTrack search and unwatched film",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 402,
+      "h": 874,
+      "title": "A · Search results · iPhone 17 Pro",
+      "radius": 55,
+      "is_interactive": true
+    },
+    "AFilm.dc.html": {
+      "x": 482,
+      "y": 0,
+      "w": 402,
+      "h": 874,
+      "title": "A · Film not watched yet · iPhone 17 Pro",
+      "radius": 55,
+      "is_interactive": true
+    },
+    "AWeb.dc.html": {
+      "x": 964,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A · Search results · Web",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AFilmWeb.dc.html": {
+      "x": 2484,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A · Film not watched yet · Web",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "B.dc.html": {
+      "x": 0,
+      "y": 1300,
+      "w": 402,
+      "h": 874,
+      "title": "B · Search results · iPhone 17 Pro",
+      "radius": 55,
+      "is_interactive": true
+    },
+    "BFilm.dc.html": {
+      "x": 482,
+      "y": 1300,
+      "w": 402,
+      "h": 874,
+      "title": "B · Film not watched yet · iPhone 17 Pro",
+      "radius": 55,
+      "is_interactive": true
+    },
+    "BWeb.dc.html": {
+      "x": 964,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B · Search results · Web",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "BFilmWeb.dc.html": {
+      "x": 2484,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B · Film not watched yet · Web",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "C.dc.html": {
+      "x": 0,
+      "y": 2600,
+      "w": 402,
+      "h": 874,
+      "title": "C · Search results · iPhone 17 Pro",
+      "radius": 55,
+      "is_interactive": true
+    },
+    "CFilm.dc.html": {
+      "x": 482,
+      "y": 2600,
+      "w": 402,
+      "h": 874,
+      "title": "C · Film not watched yet · iPhone 17 Pro",
+      "radius": 55,
+      "is_interactive": true
+    },
+    "CWeb.dc.html": {
+      "x": 964,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "C · Search results · Web",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "CFilmWeb.dc.html": {
+      "x": 2484,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "C · Film not watched yet · Web",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Watched.dc.html": {
+      "x": 0,
+      "y": 3900,
+      "w": 402,
+      "h": 874,
+      "title": "Picked · Film watched 3 times · iPhone 17 Pro",
+      "radius": 55,
+      "is_interactive": true
+    },
+    "WatchedWeb.dc.html": {
+      "x": 482,
+      "y": 3900,
+      "w": 1440,
+      "h": 1000,
+      "title": "Picked · Film watched 3 times · Web",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "AFilm.dc.html",
+    "AWeb.dc.html",
+    "AFilmWeb.dc.html",
+    "B.dc.html",
+    "BFilm.dc.html",
+    "BWeb.dc.html",
+    "BFilmWeb.dc.html",
+    "C.dc.html",
+    "CFilm.dc.html",
+    "CWeb.dc.html",
+    "CFilmWeb.dc.html",
+    "Watched.dc.html",
+    "WatchedWeb.dc.html"
+  ],
+  "notes": {
+    "titleA": {
+      "x": 0,
+      "y": -260,
+      "text": "A · Button row: Watched first, Want to watch and Add to list beside it",
+      "kind": "title1",
+      "maxW": 3924
+    },
+    "titleB": {
+      "x": 0,
+      "y": 1040,
+      "text": "B · Quiet rows: one Watched button, the rest in a menu; a “Not watched yet” card on the page",
+      "kind": "title1",
+      "maxW": 3924
+    },
+    "titleC": {
+      "x": 0,
+      "y": 2340,
+      "text": "C · Poster and action bar: icon actions in search, the page's actions pinned above the tabs",
+      "kind": "title1",
+      "maxW": 3924
+    },
+    "unwatched": {
+      "x": -380,
+      "y": 0,
+      "w": 300,
+      "text": "Not watched yet, in search: “Paris, 13th District”. It has no mark, so it shows Watched and Want to watch. Its title links to its page, the next board (in Play, click the title).\n\n“Paris Is Burning” and “Last Tango in Paris” aren't watched either, but they aren't in the catalogue yet, so their titles are plain text with no page.\n\nThe same three rows are in B and C.",
+      "fill": "teal",
+      "size": "m"
+    },
+    "titleWatched": {
+      "x": 0,
+      "y": 3640,
+      "text": "Watched film: the same actions, under the stat tiles",
+      "kind": "title1",
+      "maxW": 1922
+    }
+  },
+  "designSystems": []
+}

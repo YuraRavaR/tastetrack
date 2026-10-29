@@ -1,0 +1,19 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-29T20:30:00Z" },
+  "title": "TasteTrack navigation",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 402, "h": 874, "title": "A · By section · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "SectionWeb.dc.html": { "x": 482, "y": 0, "w": 1440, "h": 900, "title": "A · By section · Web", "expand": "fill", "is_interactive": true },
+    "TypeMobile.dc.html": { "x": 0, "y": 1300, "w": 402, "h": 874, "title": "B · By type · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "TypeWeb.dc.html": { "x": 482, "y": 1300, "w": 1440, "h": 900, "title": "B · By type · Web", "expand": "fill", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "SectionWeb.dc.html", "TypeMobile.dc.html", "TypeWeb.dc.html"],
+  "notes": {
+    "titleA": { "x": 0, "y": -260, "text": "A · By section: Home, Log, Up next, Lists. The type is a filter", "kind": "title1", "maxW": 1922 },
+    "titleB": { "x": 0, "y": 1040, "text": "B · By type: Films, Books, Music, Games come first", "kind": "title1", "maxW": 1922 }
+  },
+  "designSystems": []
+}

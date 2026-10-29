@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Film not watched yet, variant A</title>
+<!--
+  Static mockup of the film's page (Item History) for a film with no Log Entries, variant A
+  "button row", issue #62. It reuses film-page C's banner and title block (docs/mockups/film-page/);
+  the stat tiles are left out, and Viewings shows an empty state.
+  Colours are the Gold · Paper tokens from docs/mockups/accent/README.md; type follows Gold · Cinema.
+  Below 768px: a bottom tab bar; from 768px: sections in the header. Dark mode follows the system.
+  There is no back link: the search keeps its query in the URL, so the browser's back restores it.
+  Want to watch toggles, and Watched works. Open it with #watchlist for a film already on the Watchlist.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500..700&display=swap">
+<style>
+:root {
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-brand: "Fraunces", Georgia, serif;
+  --radius: 14px;
+  --radius-md: 10px;
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --input: oklch(0.85 0.015 75);
+  --ring: oklch(0.55 0.012 55);
+  --shadow: oklch(0.2 0.01 50 / 16%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.66 0.012 60);
+    --shadow: oklch(0 0 0 / 45%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground); font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+p, h1, h2 { margin: 0; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+[hidden] { display: none !important; }
+.muted { color: var(--muted-foreground); }
+.col { width: 100%; max-width: 48rem; margin: 0 auto; padding: 0 16px; }
+
+.top { background: var(--card); border-bottom: 1px solid var(--border); }
+.top .col { min-height: 56px; display: flex; align-items: center; gap: 24px; }
+.brand { font-family: var(--font-brand); font-style: italic; font-weight: 600; font-size: 21px; letter-spacing: -0.01em; }
+.sections { display: none; flex: 1; gap: 4px; font-size: 14px; font-weight: 500; }
+.sections a { padding: 8px 12px; border-radius: 8px; color: var(--muted-foreground); }
+.sections a[aria-current] { background: var(--muted); color: var(--foreground); }
+.account { width: 44px; height: 44px; margin-left: auto; margin-right: -4px; padding: 0; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; }
+.account .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.account .name { display: none; }
+
+main { flex: 1; }
+main .col { padding-block: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+/* No poster: placeholder No. 9, picked as mediaItem.id % 10 + 1 */
+.banner { height: 184px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: var(--radius); background: var(--muted); color: var(--muted-foreground); text-align: center; }
+.banner p { font-size: 12px; line-height: 16px; }
+.title { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.title h1 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.title p { font-size: 14px; }
+
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.btn { height: 48px; padding: 0 14px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 16px; font-weight: 500; }
+.btn-primary { border: 0; background: var(--primary); color: var(--primary-foreground); font-weight: 600; }
+.btn-outline { border: 1px solid var(--border); background: var(--card); }
+.add { grid-column: 1 / -1; height: 44px; font-size: 15px; }
+.plan { padding: 0 8px; white-space: nowrap; font-size: 15px; }
+.plan[aria-pressed="true"] { border-color: var(--primary-strong); background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.plan[aria-pressed="true"] svg { fill: currentColor; }
+
+section { display: flex; flex-direction: column; gap: 10px; }
+section h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.empty { padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px dashed var(--input); border-radius: var(--radius); text-align: center; }
+.empty p:first-child { font-size: 15px; font-weight: 500; }
+.empty p:last-child { font-size: 13px; color: var(--muted-foreground); }
+
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 5; padding: 4px 4px 4px 16px; display: flex; align-items: center; gap: 8px; border-radius: var(--radius); background: var(--foreground); color: var(--background); font-size: 14px; box-shadow: 0 8px 24px var(--shadow); }
+.toast span { flex: 1; }
+.toast button { width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--background); display: flex; align-items: center; justify-content: center; }
+
+footer { border-top: 1px solid var(--border); }
+footer .col { padding-block: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 12px; color: var(--muted-foreground); }
+footer .tmdb { font-weight: 700; letter-spacing: 0.04em; }
+
+.tabs { position: sticky; bottom: 0; z-index: 4; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--card); border-top: 1px solid var(--border); }
+.tabs a { padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--muted-foreground); }
+.tabs a span { width: 56px; height: 30px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
+.tabs a[aria-current] { font-weight: 600; color: var(--primary-strong); }
+.tabs a[aria-current] span { background: var(--primary-soft); }
+
+@media (min-width: 640px) {
+  .banner { height: 260px; gap: 10px; }
+  .banner svg { width: 72px; height: 72px; }
+  .banner p { font-size: 13px; }
+  .actions { display: flex; flex-wrap: wrap; }
+  .btn, .add { height: 40px; font-size: 15px; }
+  .btn-primary { padding: 0 18px; }
+}
+@media (min-width: 768px) {
+  .sections { display: flex; }
+  .account { width: auto; height: 40px; padding: 0 10px 0 4px; }
+  .account .avatar { width: 32px; height: 32px; }
+  .account .name { display: inline; }
+  main .col { padding-block: 24px 32px; gap: 20px; }
+  .title h1 { font-size: 28px; line-height: 34px; letter-spacing: -0.015em; }
+  .empty { padding: 24px 16px; }
+  .tabs { display: none; }
+  .toast { left: 50%; right: auto; bottom: 24px; transform: translateX(-50%); padding: 2px 2px 2px 14px; }
+  .toast button { width: 36px; height: 36px; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="col">
+<a href="#" class="brand">TasteTrack</a>
+<nav class="sections" aria-label="Main">
+<a href="search-results-c.html" aria-current="page">Home</a>
+<a href="#">Log</a>
+<a href="#">Up next</a>
+<a href="#">Lists</a>
+</nav>
+<button type="button" class="account" aria-label="Account"><span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span><span class="name">Yura</span></button>
+</div>
+</header>
+
+<main>
+<div class="col">
+
+<div class="banner" role="img" aria-label="No poster">
+<svg class="i" width="56" height="56" viewBox="0 0 24 24" stroke-width="1.5" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6M10 22h4"></path></svg>
+<p aria-hidden="true">Imagine something great.</p>
+</div>
+
+<div class="title">
+<h1>Paris, 13th District (Les Olympiades, 2021)</h1>
+<p lang="uk" class="muted">Париж, 13-й округ</p>
+<p class="muted">105 min · Drama, Romance</p>
+</div>
+
+<div class="actions">
+<button type="button" class="btn btn-primary watched"><svg class="i" width="18" height="18" viewBox="0 0 24 24" stroke-width="2.25" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Watched</button>
+<button type="button" class="btn btn-outline plan" aria-pressed="false"><svg class="i" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg><span>Want to watch</span></button>
+<button type="button" class="btn btn-outline add"><svg class="i" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to list</button>
+</div>
+
+<section aria-labelledby="viewings">
+<h2 id="viewings">Viewings</h2>
+<div class="empty">
+<p>No viewings yet</p>
+<p>Each time you watch it, the date, Rating and Review show here.</p>
+</div>
+</section>
+</div>
+</main>
+
+<footer>
+<div class="col">
+<span class="tmdb">TMDB</span>
+<span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+</div>
+</footer>
+
+<nav class="tabs" aria-label="Main">
+<a href="search-results-c.html" aria-current="page"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.9" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg></span>Home</a>
+<a href="#"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>Log</a>
+<a href="#"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></span>Up next</a>
+<a href="#"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg></span>Lists</a>
+</nav>
+
+<div class="toast" role="status" hidden><span></span><button type="button" aria-label="Dismiss"><svg class="i" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+
+<script>
+// Want to watch is a toggle: pressed, it reads "On your Watchlist", and pressing it again takes the film off.
+const film = "Paris, 13th District";
+const plan = document.querySelector(".plan");
+const toast = document.querySelector(".toast");
+function setPlanned(on) {
+  plan.setAttribute("aria-pressed", String(on));
+  plan.querySelector("span").textContent = on ? "On your Watchlist" : "Want to watch";
+}
+function say(message) {
+  toast.querySelector("span").textContent = message;
+  toast.hidden = false;
+}
+setPlanned(location.hash === "#watchlist");
+plan.addEventListener("click", () => {
+  const on = plan.getAttribute("aria-pressed") !== "true";
+  setPlanned(on);
+  say(on ? `Put ${film} on your Watchlist.` : `Took ${film} off your Watchlist.`);
+});
+document.querySelector(".watched").addEventListener("click", () => {
+  setPlanned(false);
+  say(`Added ${film} to your Log.`);
+});
+toast.querySelector("button").addEventListener("click", () => { toast.hidden = true; });
+</script>
+</body>
+</html>

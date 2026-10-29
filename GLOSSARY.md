@@ -79,7 +79,7 @@ Optional free text a User writes in one Log Entry.
 _Avoid_: Note (that is for List Items), comment, notes
 
 **Item History**:
-All of one User's Log Entries for one Media Item, in time order.
+All of one User's Log Entries for one Media Item, in time order ("Viewings" for films in the UI).
 _Avoid_: Timeline, item log
 
 **Tag** _(planned)_:
