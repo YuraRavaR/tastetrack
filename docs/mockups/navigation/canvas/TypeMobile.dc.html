@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Navigation B, by type, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:oklch(0.2 0.01 50)}a:hover{color:oklch(0.5 0.17 25)}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 402px; height: 874px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; background: oklch(0.985 0.002 75); color: oklch(0.2 0.01 50); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<header style="flex-shrink: 0; padding: 62px 16px 12px; display: flex; flex-direction: column; gap: 10px; background: oklch(1 0 0); border-bottom: 1px solid oklch(0.9 0.008 60)">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<a href="#" style="font-size: 20px; font-weight: 600; letter-spacing: -0.01em; text-decoration: none">TasteTrack</a>
+<button type="button" aria-label="Account: Invites, Settings, Log out" style="width: 44px; height: 44px; margin-right: -4px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 34px; height: 34px; border-radius: 999px; background: oklch(0.95 0.006 60); color: oklch(0.25 0.01 50); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span></button>
+</div>
+<div role="tablist" aria-label="Type" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 12px; background: oklch(0.95 0.006 60)">
+<sc-for list="{{types}}" as="t" hint-placeholder-count="4">
+<button type="button" role="tab" aria-selected="{{t.active}}" onClick="{{t.pick}}" style="height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 9px; font-size: 13px; font-weight: 600; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">
+<sc-if value="{{t.isFilm}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></sc-if>
+<sc-if value="{{t.isBook}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg></sc-if>
+<sc-if value="{{t.isMusic}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg></sc-if>
+<sc-if value="{{t.isGame}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="4"></rect><path d="M6 12.5h4M8 10.5v4"></path><circle cx="15.5" cy="11.5" r="0.9" fill="currentColor"></circle><circle cx="17.5" cy="13.5" r="0.9" fill="currentColor"></circle></svg></sc-if>
+{{t.label}}
+</button>
+</sc-for>
+</div>
+</header>
+
+<main style="flex: 1; min-height: 0; overflow-y: auto; padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 24px">
+
+<div style="height: 46px; display: flex; align-items: center; border: 1px solid oklch(0.9 0.008 60); border-radius: 12px; background: oklch(1 0 0)">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.5 0.015 50)" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="margin-left: 14px; flex-shrink: 0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="{{searchPlaceholder}}" placeholder="{{searchPlaceholder}}" style="flex: 1; min-width: 0; height: 100%; padding: 0 12px 0 10px; border: 0; background: transparent; color: oklch(0.2 0.01 50); font: inherit; font-size: 15px; outline: none">
+</div>
+
+<section aria-labelledby="latest" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<h2 id="latest" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em">Latest in your Log</h2>
+<a href="#" style="font-size: 14px; color: oklch(0.5 0.015 50); text-decoration: none; white-space: nowrap">{{logLink}}</a>
+</div>
+<ul style="margin: 0; padding: 0 12px; list-style: none; border: 1px solid oklch(0.9 0.008 60); border-radius: 12px; background: oklch(1 0 0)">
+<sc-for list="{{latest}}" as="it" hint-placeholder-count="3">
+<li style="padding: 10px 0; display: flex; align-items: center; gap: 12px; border-top: {{it.bt}}">
+<div style="width: {{it.tw}}px; height: {{it.th}}px; flex-shrink: 0; border-radius: 4px; background: oklch(0.95 0.006 60); color: oklch(0.5 0.015 50); display: flex; align-items: center; justify-content: center">
+<sc-if value="{{it.isFilm}}" hint-placeholder-val="{{true}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></sc-if>
+<sc-if value="{{it.isBook}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg></sc-if>
+<sc-if value="{{it.isMusic}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg></sc-if>
+<sc-if value="{{it.isGame}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="4"></rect><path d="M6 12.5h4M8 10.5v4"></path><circle cx="15.5" cy="11.5" r="0.9" fill="currentColor"></circle><circle cx="17.5" cy="13.5" r="0.9" fill="currentColor"></circle></svg></sc-if>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<a href="#" style="font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.title}}</a>
+<p style="margin: 0; font-size: 13px; color: oklch(0.5 0.015 50); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.by}}</p>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: oklch(0.5 0.015 50)">
+<span role="img" aria-label="{{it.starsLabel}}" style="display: flex">
+<sc-for list="{{it.stars}}" as="s" hint-placeholder-count="5"><span style="position: relative; display: inline-block; width: 12px; height: 12px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="oklch(0.5 0.015 50)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="display: block"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg><sc-if value="{{s.full}}" hint-placeholder-val="{{true}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="position: absolute; top: 0; left: 0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if><sc-if value="{{s.half}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 0; left: 0; width: 6px; height: 12px; overflow: hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="oklch(0.5 0.17 25)" stroke="oklch(0.5 0.17 25)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></span></sc-if></span></sc-for>
+</span>
+<span>{{it.meta}}</span>
+</div>
+</div>
+</li>
+</sc-for>
+</ul>
+</section>
+
+<section aria-labelledby="backlog" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<h2 id="backlog" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em">{{backlogTitle}}</h2>
+<a href="#" style="font-size: 14px; color: oklch(0.5 0.015 50); text-decoration: none; white-space: nowrap">{{backlogLink}}</a>
+</div>
+<ul style="margin: 0; padding: 0 12px; list-style: none; border: 1px solid oklch(0.9 0.008 60); border-radius: 12px; background: oklch(1 0 0)">
+<sc-for list="{{upnext}}" as="it" hint-placeholder-count="3">
+<li style="padding: 10px 0; display: flex; align-items: center; gap: 12px; border-top: {{it.bt}}">
+<div style="width: {{it.tw}}px; height: {{it.th}}px; flex-shrink: 0; border-radius: 4px; background: oklch(0.95 0.006 60); color: oklch(0.5 0.015 50); display: flex; align-items: center; justify-content: center">
+<sc-if value="{{it.isFilm}}" hint-placeholder-val="{{true}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></sc-if>
+<sc-if value="{{it.isBook}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg></sc-if>
+<sc-if value="{{it.isMusic}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg></sc-if>
+<sc-if value="{{it.isGame}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="4"></rect><path d="M6 12.5h4M8 10.5v4"></path><circle cx="15.5" cy="11.5" r="0.9" fill="currentColor"></circle><circle cx="17.5" cy="13.5" r="0.9" fill="currentColor"></circle></svg></sc-if>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<a href="#" style="font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.title}}</a>
+<p style="margin: 0; font-size: 13px; color: oklch(0.5 0.015 50); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.by}}</p>
+</div>
+</li>
+</sc-for>
+</ul>
+</section>
+</main>
+
+<nav aria-label="Main" style="flex-shrink: 0; padding: 6px 8px 34px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: oklch(1 0 0); border-top: 1px solid oklch(0.9 0.008 60)">
+<a href="#" aria-current="page" style="padding: 4px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: oklch(0.5 0.17 25); font-size: 11px; font-weight: 600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>Home</a>
+<a href="#" style="padding: 4px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: oklch(0.5 0.015 50); font-size: 11px; font-weight: 500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Log</a>
+<a href="#" style="padding: 4px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: oklch(0.5 0.015 50); font-size: 11px; font-weight: 500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>{{backlogTitle}}</a>
+<a href="#" style="padding: 4px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: oklch(0.5 0.015 50); font-size: 11px; font-weight: 500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>Lists</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":402,"height":874}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const type = st.type || 'film';
+const T = {
+film: { label: 'Films', verb: 'Watched', backlog: 'Watchlist', search: 'Search films', count: 12, logged: 9 },
+book: { label: 'Books', verb: 'Read', backlog: 'Reading list', search: 'Search books', count: 7, logged: 6 },
+music: { label: 'Music', verb: 'Listened', backlog: 'Listen later', search: 'Search albums', count: 9, logged: 6 },
+game: { label: 'Games', verb: 'Played', backlog: 'Play next', search: 'Search games', count: 4, logged: 3 }
+};
+const order = ['film', 'book', 'music', 'game'];
+const starsOf = (r) => [1, 2, 3, 4, 5].map((s) => ({ full: r >= s, half: r >= s - 0.5 && r < s }));
+const kind = (k) => ({ isFilm: k === 'film', isBook: k === 'book', isMusic: k === 'music', isGame: k === 'game' });
+const deco = (it, i) => Object.assign({}, it, kind(type), {
+tw: type === 'music' ? 48 : type === 'game' ? 45 : 40,
+th: type === 'music' ? 48 : 60,
+stars: it.rating ? starsOf(it.rating) : [],
+starsLabel: it.rating ? it.rating + ' stars' : '',
+meta: it.date ? T[type].verb + ' ' + it.date : '',
+bt: i === 0 ? 'none' : '1px solid oklch(0.9 0.008 60)'
+});
+const LOG = {
+film: [{ title: 'Amélie', by: '2001, 122 min', rating: 5, date: 'Oct 11' }, { title: 'Past Lives', by: '2023, 106 min', rating: 4.5, date: 'Oct 3' }, { title: 'Anatomy of a Fall', by: '2023, 151 min', rating: 4, date: 'Sep 21' }],
+book: [{ title: 'Dune', by: 'Frank Herbert, 1965', rating: 4, date: 'Oct 20' }, { title: 'Klara and the Sun', by: 'Kazuo Ishiguro, 2021', rating: 4.5, date: 'Sep 28' }, { title: 'Tomorrow, and Tomorrow, and Tomorrow', by: 'Gabrielle Zevin, 2022', rating: 4, date: 'Sep 2' }],
+music: [{ title: 'Kid A', by: 'Radiohead, 2000', rating: 4.5, date: 'Oct 25' }, { title: 'Blonde', by: 'Frank Ocean, 2016', rating: 5, date: 'Oct 7' }, { title: 'Carrie & Lowell', by: 'Sufjan Stevens, 2015', rating: 4.5, date: 'Sep 30' }],
+game: [{ title: 'Outer Wilds', by: 'Mobius Digital, 2019', rating: 5, date: 'Oct 16' }, { title: 'Disco Elysium', by: 'ZA/UM, 2019', rating: 4.5, date: 'Aug 30' }, { title: 'Hades', by: 'Supergiant Games, 2020', rating: 4, date: 'Aug 2' }]
+};
+const UP = {
+film: [{ title: 'The Matrix', by: '1999, 136 min' }, { title: 'Perfect Days', by: '2023, 124 min' }, { title: 'Aftersun', by: '2022, 102 min' }],
+book: [{ title: 'Piranesi', by: 'Susanna Clarke, 2020' }, { title: 'The Left Hand of Darkness', by: 'Ursula K. Le Guin, 1969' }, { title: 'Lincoln in the Bardo', by: 'George Saunders, 2017' }],
+music: [{ title: 'Promises', by: 'Floating Points & Pharoah Sanders, 2021' }, { title: 'Titanic Rising', by: 'Weyes Blood, 2019' }, { title: 'SOS', by: 'SZA, 2022' }],
+game: [{ title: 'Hollow Knight: Silksong', by: 'Team Cherry, 2025' }, { title: 'Celeste', by: 'Maddy Makes Games, 2018' }, { title: 'Return of the Obra Dinn', by: 'Lucas Pope, 2018' }]
+};
+return {
+types: order.map((k) => Object.assign({
+label: T[k].label, active: k === type, pick: () => this.setState({ type: k }),
+bg: k === type ? 'oklch(1 0 0)' : 'transparent',
+fg: k === type ? 'oklch(0.2 0.01 50)' : 'oklch(0.5 0.015 50)',
+shadow: k === type ? '0 1px 2px oklch(0.2 0.01 50 / 14%)' : 'none'
+}, kind(k))),
+latest: LOG[type].map(deco),
+upnext: UP[type].map(deco),
+searchPlaceholder: T[type].search,
+logLink: 'All ' + T[type].logged,
+backlogTitle: T[type].backlog,
+backlogLink: 'All ' + T[type].count
+};
+}
+}
+</script>
+</body>
+</html>

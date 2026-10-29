@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accent, gold paper</title>
+<!--
+  Specimen of the picked accent for issue #63: gold on cream paper, with Fraunces for display text.
+  Every colour below is a proposed token for src/client/styles.css (see README.md); dark mode
+  follows the system setting. The screen gathers everything the accent touches.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&display=swap">
+<style>
+:root {
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --radius: 14px;
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --destructive: oklch(0.46 0.18 25);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.88 0.015 75);
+  --input: oklch(0.85 0.015 75);
+  --ring: oklch(0.55 0.012 55);
+  --mark: color-mix(in oklch, var(--primary) 20%, transparent);
+  --shadow: oklch(0.2 0.01 50 / 12%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --destructive: oklch(0.66 0.2 22);
+    --destructive-foreground: oklch(0.17 0.006 50);
+    --border: oklch(1 0 0 / 11%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.66 0.012 60);
+    --mark: color-mix(in oklch, var(--primary) 15%, transparent);
+    --shadow: oklch(0 0 0 / 45%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground); font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+.display { font-family: var(--font-display); font-weight: 600; }
+.muted { color: var(--muted-foreground); }
+.col { width: 100%; max-width: 28rem; margin: 0 auto; padding: 0 16px; }
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+header .col { height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 21px; letter-spacing: -0.01em; }
+.avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+
+main { flex: 1; }
+main .col { padding-block: 12px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+.search { height: 46px; display: flex; align-items: center; border: 1px solid var(--ring); border-radius: var(--radius); background: var(--card); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 35%, transparent); }
+.search .q { flex: 1; padding: 0 8px 0 10px; font-size: 15px; }
+.caret { display: inline-block; width: 1.5px; height: 18px; margin-left: 1px; vertical-align: -3px; background: var(--foreground); }
+.clear { width: 28px; height: 28px; margin-right: 9px; border: 0; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+
+.card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.rows { margin: 0; padding: 0 12px; list-style: none; }
+.row { padding: 10px 0; display: flex; align-items: center; gap: 12px; }
+.row + .row { border-top: 1px solid var(--border); }
+.poster { width: 36px; height: 54px; flex-shrink: 0; border-radius: 4px; background: var(--muted); }
+.text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.title { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+.mark { padding: 2px 9px; border-radius: 999px; background: var(--mark); color: var(--primary-strong); display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; }
+.stars { display: flex; gap: 1px; }
+.star { position: relative; display: inline-block; }
+.star svg { display: block; }
+.star .fill { position: absolute; top: 0; left: 0; overflow: hidden; }
+
+.btn { height: 36px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: inherit; font: inherit; font-size: 14px; font-weight: 500; }
+.btn-sm { height: 32px; font-size: 13px; }
+.btn-primary { background: var(--primary); color: var(--primary-foreground); font-weight: 600; padding: 0 18px; }
+.btn-outline { border-color: var(--border); }
+.btn-destructive { background: var(--destructive); color: var(--destructive-foreground); font-weight: 600; padding: 0 18px; }
+.btn-ghost-destructive { color: var(--destructive); padding: 0 8px; margin-left: -8px; }
+
+.dialog { padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px var(--shadow); }
+.dialog h2 { margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 600; }
+.dialog p { margin: 0; font-size: 13px; }
+.label { font-size: 13px; font-weight: 500; }
+.field { height: 38px; padding: 0 12px; display: flex; align-items: center; border: 1px solid var(--input); border-radius: 10px; font-size: 14px; }
+.actions { display: flex; align-items: center; gap: 8px; }
+.spacer { flex: 1; }
+
+.tabbar { position: sticky; bottom: 0; padding: 6px 8px 10px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--card); border-top: 1px solid var(--border); }
+.tabbar a { padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted-foreground); font-size: 11px; font-weight: 500; text-decoration: none; }
+.tabbar a span { padding: 2px 16px; border-radius: 999px; display: flex; }
+.tabbar a[aria-current] { color: var(--primary-strong); font-weight: 700; }
+.tabbar a[aria-current] span { background: var(--mark); }
+</style>
+</head>
+<body>
+
+<header>
+<div class="col">
+<span class="brand">TasteTrack</span>
+<span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>
+</div>
+</header>
+
+<main>
+<div class="col">
+
+<div class="search">
+<svg class="i muted" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true" style="margin-left: 14px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span class="q">am<span class="caret"></span></span>
+<button type="button" class="clear" aria-label="Clear search"><svg class="i" width="14" height="14" viewBox="0 0 24 24" stroke-width="2.25" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg></button>
+</div>
+
+<ul class="card rows">
+<li class="row">
+<span class="poster"></span>
+<div class="text">
+<span class="title">Amélie (2001)</span>
+<span class="mark"><svg class="i" width="13" height="13" viewBox="0 0 24 24" stroke-width="2.75" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg>In your Log</span>
+</div>
+<span class="stars" role="img" aria-label="5 stars" data-rating="5" data-size="14"></span>
+</li>
+<li class="row">
+<span class="poster"></span>
+<div class="text">
+<span class="title">Amour (2012)</span>
+<span class="muted" style="font-size: 13px">127 min · Drama, Romance</span>
+</div>
+<button type="button" class="btn btn-sm btn-primary">Watched</button>
+</li>
+<li class="row">
+<span class="poster"></span>
+<div class="text">
+<span class="title">American Beauty (1999)</span>
+<span class="mark"><svg class="i" width="13" height="13" viewBox="0 0 24 24" stroke-width="2.5" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>On your Watchlist</span>
+</div>
+</li>
+</ul>
+
+<div class="card dialog">
+<h2>Edit your entry for Amélie</h2>
+<span class="label">Rating</span>
+<span class="stars" role="img" aria-label="4.5 stars" data-rating="4.5" data-size="30" style="margin-top: -4px; gap: 2px"></span>
+<span class="field">Oct 11, 2026</span>
+<div class="actions">
+<button type="button" class="btn btn-ghost-destructive"><svg class="i" width="15" height="15" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
+<span class="spacer"></span>
+<button type="button" class="btn btn-outline">Cancel</button>
+<button type="button" class="btn btn-primary">Save</button>
+</div>
+</div>
+
+<div class="card dialog" style="gap: 6px">
+<h2>Delete this entry?</h2>
+<p class="muted">Its Rating and Review for Amélie go too.</p>
+<div class="actions" style="justify-content: flex-end; margin-top: 8px">
+<button type="button" class="btn btn-outline">Cancel</button>
+<button type="button" class="btn btn-destructive">Delete</button>
+</div>
+</div>
+
+</div>
+</main>
+
+<nav class="tabbar" aria-label="Main">
+<a href="#" aria-current="page"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.9" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg></span>Home</a>
+<a href="#"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>Log</a>
+<a href="#"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></span>Up next</a>
+<a href="#"><span><svg class="i" width="22" height="22" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg></span>Lists</a>
+</nav>
+
+<script>
+// Draws each [data-rating] as stars: gold fill with a darker gold outline, half stars allowed.
+const STAR = "12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26";
+const svg = (size, filled) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${filled ? "var(--primary)" : "none"}" stroke="${filled ? "var(--primary-strong)" : "var(--muted-foreground)"}" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><polygon points="${STAR}"></polygon></svg>`;
+for (const el of document.querySelectorAll("[data-rating]")) {
+  const rating = Number(el.dataset.rating);
+  const size = Number(el.dataset.size);
+  let html = "";
+  for (let s = 1; s <= 5; s++) {
+    const fill = rating >= s ? 1 : rating >= s - 0.5 ? 0.5 : 0;
+    html += `<span class="star" style="width:${size}px;height:${size}px">${svg(size, false)}${
+      fill ? `<span class="fill" style="width:${fill * size}px;height:${size}px">${svg(size, true)}</span>` : ""
+    }</span>`;
+  }
+  el.innerHTML = html;
+}
+</script>
+</body>
+</html>

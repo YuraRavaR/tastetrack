@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Film watched 3 times, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500..700&amp;display=swap">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--destructive:oklch(0.46 0.18 25);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--ring:oklch(0.55 0.012 55);--shadow:oklch(0.2 0.01 50 / 16%);--logo:'Fraunces',Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--destructive:oklch(0.66 0.2 22);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.66 0.012 60);--shadow:oklch(0 0 0 / 45%)}
+.tt a{color:inherit;text-decoration:none}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+</style>
+</helmet>
+<div class="{{theme}}" style="position: relative; width: 402px; height: 874px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased">
+
+<header style="flex-shrink: 0; padding: 62px 16px 8px; display: flex; align-items: center; justify-content: space-between; background: var(--card); border-bottom: 1px solid var(--border)">
+<a href="#" style="font-family: var(--logo); font-style: italic; font-size: 21px; font-weight: 600; letter-spacing: -0.01em">TasteTrack</a>
+<button type="button" aria-label="Account" style="width: 44px; height: 44px; margin-right: -4px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span></button>
+</header>
+
+<main style="flex: 1; min-height: 0; overflow-y: auto; padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+
+<div role="img" aria-label="No poster" style="height: 184px; flex-shrink: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; background: var(--muted); color: var(--mfg); text-align: center">
+<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="6.5"></circle><path d="M15 15l5.5 5.5"></path><path d="M8.4 8.4a1.7 1.7 0 1 1 2.4 1.5c-.5.3-.8.6-.8 1.2"></path><circle cx="10" cy="13" r="0.5" fill="currentColor"></circle></svg>
+<p aria-hidden="true" style="margin: 0; font-size: 12px">404: poster not found.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)</h1>
+<p lang="uk" style="margin: 0; font-size: 14px; color: var(--mfg)">Амелі</p>
+<p style="margin: 0; font-size: 14px; color: var(--mfg)">122 min · Comedy, Romance</p>
+</div>
+
+<dl style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 14px; background: var(--card)">
+<dt style="font-size: 12px; color: var(--mfg)">Watched</dt>
+<dd style="margin: 0; font-size: 18px; font-weight: 600">{{timesText}}</dd>
+</div>
+<div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 14px; background: var(--card)">
+<dt style="font-size: 12px; color: var(--mfg)">Your rating</dt>
+<dd role="img" aria-label="5 stars" style="margin: 0; display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="fill: var(--primary); stroke: var(--pstrong); stroke-width: 1.6; stroke-linejoin: round"><polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"></polygon></svg>5</dd>
+</div>
+<div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 14px; background: var(--card)">
+<dt style="font-size: 12px; color: var(--mfg)">First watched</dt>
+<dd style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600">Mar 2, 2019</dd>
+</div>
+</dl>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" onClick="{{watch}}" style="height: 48px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 10px; background: var(--primary); color: var(--pfg); font-size: 16px; font-weight: 600; white-space: nowrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Watched again</button>
+<button type="button" aria-pressed="{{onWl}}" onClick="{{plan}}" style="height: 48px; padding: 0 8px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid {{bmBorder}}; border-radius: 10px; background: {{bmBg}}; color: {{bmFg}}; font-size: 15px; font-weight: {{bmWeight}}; white-space: nowrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="{{bmFill}}" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>{{bmLabel}}</button>
+<button type="button" style="grid-column: 1 / -1; height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 15px; font-weight: 500"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to list</button>
+</div>
+
+<section aria-labelledby="viewings" style="display: flex; flex-direction: column; gap: 10px">
+<h2 id="viewings" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em">Viewings</h2>
+<ul aria-label="Item History" style="margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 14px; background: var(--card)">
+<sc-for list="{{entries}}" as="e" hint-placeholder-count="3">
+<li style="padding: 8px 4px 8px 12px; display: flex; align-items: center; gap: 8px; border-top: {{e.bt}}">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+<span style="font-weight: 500">{{e.date}}</span>
+<span role="img" aria-label="{{e.starsLabel}}" style="display: flex">
+<sc-for list="{{e.stars}}" as="s" hint-placeholder-count="5"><span style="position: relative; display: block; width: 14px; height: 14px"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="display: block; fill: none; stroke: var(--pstrong); stroke-width: 1.8; stroke-linejoin: round"><polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"></polygon></svg><sc-if value="{{s.full}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; top: 0; left: 0; fill: var(--primary); stroke: var(--pstrong); stroke-width: 1.8; stroke-linejoin: round"><polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"></polygon></svg></sc-if><sc-if value="{{s.half}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 0; left: 0; width: 7px; height: 14px; overflow: hidden"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="fill: var(--primary); stroke: var(--pstrong); stroke-width: 1.8; stroke-linejoin: round"><polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"></polygon></svg></span></sc-if></span></sc-for>
+</span>
+<sc-if value="{{e.rewatch}}" hint-placeholder-val="{{false}}"><span style="padding: 1px 6px; border-radius: 6px; background: var(--muted); font-size: 12px; font-weight: 500">Rewatch</span></sc-if>
+</div>
+<sc-if value="{{e.review}}" hint-placeholder-val="{{true}}"><p style="margin: 0; font-size: 13px; color: var(--mfg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{e.review}}</p></sc-if>
+</div>
+<button type="button" aria-label="{{e.menuLabel}}" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 8px; background: transparent; color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+</li>
+</sc-for>
+</ul>
+</section>
+</main>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div role="status" style="position: absolute; left: 16px; right: 16px; bottom: 104px; padding: 4px 4px 4px 16px; display: flex; align-items: center; gap: 8px; border-radius: 14px; background: var(--fg); color: var(--bg); font-size: 14px; box-shadow: 0 8px 24px var(--shadow)">
+<span style="flex: 1">{{toast}}</span>
+<button type="button" aria-label="Dismiss" onClick="{{dismiss}}" style="width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--bg); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</sc-if>
+
+<nav aria-label="Main" style="flex-shrink: 0; padding: 6px 8px 34px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--card); border-top: 1px solid var(--border)">
+<a href="#" style="padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--pstrong); font-size: 11px; font-weight: 600"><span style="width: 56px; height: 30px; border-radius: 999px; background: var(--psoft); display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg></span>Home</a>
+<a href="#" style="padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--mfg); font-size: 11px; font-weight: 500"><span style="width: 56px; height: 30px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>Log</a>
+<a href="#" style="padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--mfg); font-size: 11px; font-weight: 500"><span style="width: 56px; height: 30px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></span>Up next</a>
+<a href="#" style="padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--mfg); font-size: 11px; font-weight: 500"><span style="width: 56px; height: 30px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg></span>Lists</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"onWatchlist":{"editor":"boolean","default":false},"$preview":{"width":402,"height":874}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const onWl = 'onWl' in st ? st.onWl : !!this.props.onWatchlist;
+const extra = st.extra || 0;
+const E = [
+{ date: 'Oct 11, 2026', rating: 5, rewatch: true, review: 'Better every time. The photo-booth thread finally clicked for me.' },
+{ date: 'Dec 24, 2023', rating: 4.5, rewatch: true, review: '' },
+{ date: 'Mar 2, 2019', rating: 4, rewatch: false, review: 'Charming, if a little too sweet.' }
+];
+const today = { date: 'Oct 29, 2026', rating: 5, rewatch: true, review: '' };
+const list = extra ? [today].concat(E) : E;
+const times = list.length;
+return {
+theme: this.props.dark ? 'tt dark' : 'tt',
+timesText: times + ' times',
+onWl: onWl,
+bmLabel: onWl ? 'On your Watchlist' : 'Want to watch',
+bmBorder: onWl ? 'var(--pstrong)' : 'var(--border)',
+bmBg: onWl ? 'var(--psoft)' : 'var(--card)',
+bmFg: onWl ? 'var(--pstrong)' : 'var(--fg)',
+bmFill: onWl ? 'currentColor' : 'none',
+bmWeight: onWl ? 600 : 500,
+entries: list.map((e, i) => ({
+date: e.date,
+review: e.review,
+rewatch: e.rewatch,
+bt: i === 0 ? 'none' : '1px solid var(--border)',
+menuLabel: 'Actions for ' + e.date,
+starsLabel: e.rating + ' stars',
+stars: [1, 2, 3, 4, 5].map((n) => ({ full: e.rating >= n, half: e.rating === n - 0.5 }))
+})),
+plan: () => this.setState({ onWl: !onWl, toast: onWl ? 'Took Amélie off your Watchlist.' : 'Put Amélie on your Watchlist.' }),
+watch: () => this.setState({ extra: 1, onWl: false, toast: 'Added Amélie to your Log.' }),
+toast: st.toast || '',
+dismiss: () => this.setState({ toast: '' })
+};
+}
+}
+</script>
+</body>
+</html>

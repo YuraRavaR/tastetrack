@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Watched dialog C, review first, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&amp;display=swap">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--destructive:oklch(0.46 0.18 25);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--ring:oklch(0.55 0.012 55);--scrim:oklch(0.2 0.01 50 / 42%);--shadow:oklch(0.2 0.01 50 / 16%);--heading:'Fraunces',Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--destructive:oklch(0.66 0.2 22);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.66 0.012 60);--scrim:oklch(0 0 0 / 58%);--shadow:oklch(0 0 0 / 45%)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt input,.tt textarea{font:inherit}
+.tt :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.tt textarea::placeholder{color:var(--mfg)}
+</style>
+</helmet>
+<div class="{{theme}}" style="position: relative; min-height: 900px; overflow: hidden; background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased">
+
+<div aria-hidden="true">
+<div style="background: var(--card); border-bottom: 1px solid var(--border)">
+<div style="max-width: 1040px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 32px">
+<span style="font-family: var(--heading); font-size: 22px; font-weight: 700; letter-spacing: -0.01em">TasteTrack</span>
+<span style="flex: 1; display: flex; gap: 4px; font-size: 14px; font-weight: 500">
+<span style="padding: 8px 12px; border-radius: 8px; background: var(--muted)">Home</span>
+<span style="padding: 8px 12px; color: var(--mfg)">Log</span>
+<span style="padding: 8px 12px; color: var(--mfg)">Up next</span>
+<span style="padding: 8px 12px; color: var(--mfg)">Lists</span>
+</span>
+<span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span style="width: 32px; height: 32px; border-radius: 999px; background: var(--muted)"></span>Mira</span>
+</div>
+</div>
+<div style="max-width: 1040px; margin: 0 auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); font-size: 16px">perfect days</div>
+<div style="padding: 14px 16px; display: flex; align-items: center; gap: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card)">
+<span style="width: 48px; height: 72px; border-radius: 4px; background: var(--muted)"></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span style="font-family: var(--heading); font-size: 17px; font-weight: 600">Perfect Days</span><span style="font-size: 13px; color: var(--mfg)">2023 · 124 min · Wim Wenders</span></span>
+<span style="height: 40px; padding: 0 16px; display: flex; align-items: center; border-radius: 10px; background: var(--primary); color: var(--pfg); font-size: 14px; font-weight: 600">Watched</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+<div style="height: 340px; border: 1px solid var(--border); border-radius: 14px; background: var(--card)"></div>
+<div style="height: 340px; border: 1px solid var(--border); border-radius: 14px; background: var(--card)"></div>
+</div>
+</div>
+</div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{true}}">
+<div style="position: absolute; inset: 0; background: var(--scrim)"></div>
+<section role="dialog" aria-modal="true" aria-labelledby="dlg-title" style="position: absolute; top: 0; right: 0; bottom: 0; width: 100%; max-width: 480px; display: flex; flex-direction: column; background: var(--card); border-left: 1px solid var(--border); box-shadow: -16px 0 48px var(--shadow)">
+
+<header style="padding: 24px 16px 0 28px; display: flex; align-items: center; gap: 14px">
+<div style="width: 48px; height: 72px; flex-shrink: 0; border-radius: 4px; background: var(--muted); color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<p style="margin: 0; font-size: 12px; font-weight: 600; color: var(--pstrong)">Watched</p>
+<h2 id="dlg-title" style="margin: 0; font-family: var(--heading); font-size: 24px; font-weight: 600; letter-spacing: -0.01em">Perfect Days</h2>
+<p style="margin: 0; font-size: 13px; color: var(--mfg)">2023 · 124 min · Wim Wenders</p>
+</div>
+<button type="button" aria-label="Close" onClick="{{close}}" style="width: 40px; height: 40px; flex-shrink: 0; align-self: flex-start; border: 0; border-radius: 8px; background: transparent; color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</header>
+
+<fieldset style="margin: 20px 0 0; padding: 0 28px 18px; border: 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px">
+<legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Rating</legend>
+<div style="display: flex; align-items: center; gap: 14px">
+<div style="display: flex">
+<sc-for list="{{stars}}" as="s" hint-placeholder-count="5">
+<span style="position: relative; display: block; width: 44px; height: 44px">
+<svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" style="display: block; fill: none; stroke: var(--mfg); stroke-width: 1.4; stroke-linejoin: round"><polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"></polygon></svg>
+<sc-if value="{{s.full}}" hint-placeholder-val="{{true}}"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; top: 0; left: 0; fill: var(--primary); stroke: var(--pstrong); stroke-width: 1.4; stroke-linejoin: round"><polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"></polygon></svg></sc-if>
+<sc-if value="{{s.half}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 0; left: 0; width: 22px; height: 44px; overflow: hidden"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" style="fill: var(--primary); stroke: var(--pstrong); stroke-width: 1.4; stroke-linejoin: round"><polygon points="12 2.5 14.9 8.4 21.4 9.3 16.7 13.9 17.8 20.4 12 17.3 6.2 20.4 7.3 13.9 2.6 9.3 9.1 8.4"></polygon></svg></span></sc-if>
+<input type="radio" name="rating" aria-label="{{s.leftLabel}}" checked="{{s.leftOn}}" onChange="{{s.pickLeft}}" style="position: absolute; top: 0; left: 0; width: 50%; height: 100%; margin: 0; appearance: none; cursor: pointer; border-radius: 4px">
+<input type="radio" name="rating" aria-label="{{s.rightLabel}}" checked="{{s.rightOn}}" onChange="{{s.pickRight}}" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; margin: 0; appearance: none; cursor: pointer; border-radius: 4px">
+</span>
+</sc-for>
+</div>
+<span style="font-family: var(--heading); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums">{{ratingText}}</span>
+</div>
+<sc-if value="{{err}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; font-size: 13px; color: var(--destructive)">Choose a Rating.</p></sc-if>
+</fieldset>
+
+<textarea aria-label="Review (optional)" maxlength="10000" placeholder="What stayed with you? (optional)" value="{{review}}" onChange="{{setReview}}" style="flex: 1; min-height: 0; margin: 0; padding: 20px 28px; resize: none; border: 0; outline: none; background: transparent; color: var(--fg); font-size: 16px; line-height: 1.65"></textarea>
+
+<div style="position: relative; padding: 14px 20px 20px 28px; display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border)">
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" aria-label="Date" style="position: absolute; left: 24px; bottom: 70px; min-width: 220px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px var(--shadow)">
+<sc-for list="{{dates}}" as="d" hint-placeholder-count="4">
+<button type="button" role="menuitemradio" aria-checked="{{d.on}}" onClick="{{d.pick}}" style="height: 38px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: {{d.bg}}; font-size: 14px; font-weight: {{d.fw}}; text-align: left"><span style="flex: 1">{{d.label}}</span><span style="font-size: 12px; color: var(--mfg)">{{d.hint}}</span></button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{pickOther}}" hint-placeholder-val="{{false}}">
+<input type="date" aria-label="Date watched" min="1900-01-01" max="2026-10-29" value="{{otherDate}}" onChange="{{setOtherDate}}" style="position: absolute; left: 28px; bottom: 70px; height: 40px; padding: 0 12px; border: 1px solid var(--input); border-radius: 10px; background: var(--card); color: var(--fg); font-size: 14px; box-shadow: 0 12px 32px var(--shadow)">
+</sc-if>
+<button type="button" aria-haspopup="menu" aria-expanded="{{menuOpen}}" aria-label="{{dateAria}}" onClick="{{toggleMenu}}" style="height: 38px; padding: 0 12px; display: flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid var(--input); background: transparent; font-size: 14px; font-weight: 500; white-space: nowrap">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--mfg)"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>{{dateText}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--mfg)"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<button type="button" aria-pressed="{{rewatch}}" onClick="{{toggleRewatch}}" style="height: 38px; padding: 0 12px; display: flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid {{rwBorder}}; background: {{rwBg}}; font-size: 14px; font-weight: {{rwWeight}}; white-space: nowrap">
+<sc-if value="{{rewatch}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--pstrong)"><path d="M5 12l5 5 9-10"></path></svg></sc-if>
+<sc-if value="{{notRewatch}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--mfg)"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg></sc-if>
+Rewatch
+</button>
+<button type="button" onClick="{{save}}" style="margin-left: auto; height: 40px; padding: 0 22px; border: 0; border-radius: 10px; background: var(--primary); color: var(--pfg); font-size: 14px; font-weight: 600">Save</button>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{saved}}" hint-placeholder-val="{{false}}">
+<div role="status" style="position: absolute; left: 50%; bottom: 32px; transform: translateX(-50%); padding: 4px 4px 4px 16px; display: flex; align-items: center; gap: 12px; border-radius: 14px; background: var(--fg); color: var(--bg); font-size: 14px; box-shadow: 0 8px 24px var(--shadow)">
+<span>{{toast}}</span>
+<button type="button" onClick="{{reopen}}" style="height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: var(--bg); font-weight: 600">Show again</button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"rated":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const rated = this.props.rated ?? true;
+const rating = 'rating' in st ? st.rating : (rated ? 4.5 : null);
+const date = st.date || 'today';
+const rewatch = !!st.rewatch;
+const menuOpen = !!st.menuOpen;
+const label = (r) => (r === 1 ? '1 star' : r + ' stars');
+const stars = [1, 2, 3, 4, 5].map((n) => ({
+full: rating !== null && rating >= n,
+half: rating === n - 0.5,
+leftOn: rating === n - 0.5,
+rightOn: rating === n,
+leftLabel: label(n - 0.5),
+rightLabel: label(n),
+pickLeft: () => this.setState({ rating: n - 0.5, err: false }),
+pickRight: () => this.setState({ rating: n, err: false })
+}));
+const otherDate = st.otherDate || '2026-10-24';
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const p = otherDate.split('-');
+const otherText = p.length === 3 ? months[Number(p[1]) - 1] + ' ' + Number(p[2]) + ', ' + p[0] : 'Pick a date';
+const opts = [
+{ id: 'today', label: 'Today', hint: 'Oct 29', text: 'Today' },
+{ id: 'yesterday', label: 'Yesterday', hint: 'Oct 28', text: 'Yesterday' },
+{ id: 'other', label: 'Other date…', hint: '', text: otherText },
+{ id: 'none', label: 'No date', hint: '', text: 'No date' }
+];
+const dateText = opts.find((o) => o.id === date).text;
+return {
+theme: this.props.dark ? 'tt dark' : 'tt',
+open: !st.saved,
+saved: !!st.saved,
+stars: stars,
+ratingText: rating === null ? '' : String(rating),
+err: !!st.err,
+review: 'review' in st ? st.review : 'Quiet and generous. Hirayama cleans toilets in Tokyo and photographs the light through the trees at lunch, and somehow that is enough for two hours.\n\nThe last shot, his face while Feeling Good plays, stayed with me all week.',
+setReview: (e) => this.setState({ review: e.target.value }),
+menuOpen: menuOpen,
+toggleMenu: () => this.setState({ menuOpen: !menuOpen, pickOther: false }),
+dateText: dateText,
+dateAria: 'Date: ' + dateText,
+dates: opts.map((o) => ({
+label: o.label,
+hint: o.hint,
+on: o.id === date,
+bg: o.id === date ? 'var(--psoft)' : 'transparent',
+fw: o.id === date ? 600 : 400,
+pick: () => this.setState({ date: o.id, menuOpen: false, pickOther: o.id === 'other' })
+})),
+pickOther: !!st.pickOther,
+otherDate: otherDate,
+setOtherDate: (e) => this.setState({ otherDate: e.target.value, pickOther: false }),
+rewatch: rewatch,
+notRewatch: !rewatch,
+rwBorder: rewatch ? 'var(--pstrong)' : 'var(--input)',
+rwBg: rewatch ? 'var(--psoft)' : 'transparent',
+rwWeight: rewatch ? 600 : 500,
+toggleRewatch: () => this.setState({ rewatch: !rewatch }),
+save: () => (rating === null ? this.setState({ err: true }) : this.setState({ saved: true })),
+toast: st.closed ? 'Closed without saving.' : 'Added Perfect Days to your Log.',
+close: () => this.setState({ saved: true, closed: true }),
+reopen: () => this.setState({ saved: false, closed: false })
+};
+}
+}
+</script>
+</body>
+</html>

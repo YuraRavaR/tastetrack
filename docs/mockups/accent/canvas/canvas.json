@@ -1,0 +1,24 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-29T21:10:00Z" },
+  "title": "TasteTrack accent colour",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 852, "h": 924, "title": "Today · red accent" },
+    "Ink.dc.html": { "x": 932, "y": 0, "w": 852, "h": 924, "title": "A · Ink" },
+    "Cool.dc.html": { "x": 1864, "y": 0, "w": 852, "h": 924, "title": "B · Cool accent (blue)" },
+    "Warm.dc.html": { "x": 2796, "y": 0, "w": 852, "h": 924, "title": "C · Warm accent (ochre)" },
+    "GoldPlain.dc.html": { "x": 0, "y": 1304, "w": 852, "h": 924, "title": "Gold · Plain" },
+    "GoldPaper.dc.html": { "x": 932, "y": 1304, "w": 852, "h": 924, "title": "Gold · Paper (serif, cream)" },
+    "GoldCinema.dc.html": { "x": 1864, "y": 1304, "w": 852, "h": 924, "title": "Gold · Cinema (dark bars)" },
+    "GoldSoft.dc.html": { "x": 2796, "y": 1304, "w": 852, "h": 924, "title": "Gold · Soft (tinted, rounder)" },
+    "Screen.dc.html": { "x": 0, "y": 2348, "w": 390, "h": 844, "title": "Screen (component)" }
+  },
+  "order": ["Main.dc.html", "Ink.dc.html", "Cool.dc.html", "Warm.dc.html", "GoldPlain.dc.html", "GoldPaper.dc.html", "GoldCinema.dc.html", "GoldSoft.dc.html", "Screen.dc.html"],
+  "notes": {
+    "heading": { "x": 0, "y": -260, "text": "Accent colour (#63): today and three palettes, light and dark", "kind": "title1", "maxW": 3648 },
+    "goldHeading": { "x": 0, "y": 1044, "text": "Gold, between yellow and gold, in four looks", "kind": "title1", "maxW": 3648 }
+  },
+  "designSystems": []
+}

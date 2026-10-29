@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>No-poster placeholders</title>
+<!--
+  The ten placeholders a film without a poster shows, at the 112×168 poster size with their caption
+  and at the 48×72 thumbnail size with the icon only. Colours copy src/client/styles.css.
+-->
+<style>
+:root {
+  --background: oklch(0.985 0.002 75);
+  --foreground: oklch(0.2 0.01 50);
+  --muted: oklch(0.95 0.006 60);
+  --muted-foreground: oklch(0.5 0.015 50);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.17 0.006 50);
+    --foreground: oklch(0.96 0.004 75);
+    --muted: oklch(0.27 0.008 50);
+    --muted-foreground: oklch(0.72 0.012 60);
+  }
+}
+body {
+  margin: 0; padding: 32px; background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
+p.lead { margin: 0 0 24px; font-size: 14px; color: var(--muted-foreground); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, 112px); gap: 24px 16px; }
+figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ph {
+  background: var(--muted); color: var(--muted-foreground); overflow: hidden; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.ph.poster { width: 112px; height: 168px; border-radius: 6px; padding: 10px; box-sizing: border-box; }
+.ph.poster p { margin: 0; font-size: 12px; line-height: 16px; }
+.ph.thumb { width: 48px; height: 72px; border-radius: 4px; }
+.ph.thumb p { display: none; }
+.sizes { display: flex; align-items: flex-end; gap: 8px; }
+figcaption { font-size: 12px; font-weight: 500; color: var(--muted-foreground); text-align: center; }
+</style>
+</head>
+<body>
+<h1>No-poster placeholders</h1>
+<p class="lead">A film without a poster shows placeholder No. (mediaItem.id % 10) + 1, so the same film always gets the same one.</p>
+<div class="grid" id="grid"></div>
+
+<script>
+// Each placeholder: the lucide icon the app uses, the icon as drawn in the mockup, and its caption.
+const placeholders = [
+  ["Popcorn", '<path d="M5 9h14l-1.5 12h-11z"></path><path d="M9.5 9l.5 12M14.5 9l-.5 12"></path><circle cx="9" cy="5.5" r="1.2"></circle><circle cx="15.5" cy="4.5" r="1"></circle>', "Eaten with the popcorn."],
+  ["Ghost", '<path d="M6 20V10a6 6 0 0 1 12 0v10l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5z"></path><circle cx="10" cy="10.5" r="0.9" fill="currentColor"></circle><circle cx="14" cy="10.5" r="0.9" fill="currentColor"></circle><path d="M10.5 14.5q1.5-1.2 3 0"></path>', "This poster is a ghost."],
+  ["Clapperboard", '<rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9"></path><path d="M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path>', "Still in makeup."],
+  ["Film", '<circle cx="10" cy="11" r="7"></circle><circle cx="10" cy="7.5" r="1.4"></circle><circle cx="10" cy="14.5" r="1.4"></circle><circle cx="6.5" cy="11" r="1.4"></circle><circle cx="13.5" cy="11" r="1.4"></circle><path d="M10 18c4 0 6 2.5 11 2"></path>', "Lost in the projector."],
+  ["SearchX", '<circle cx="10" cy="10" r="6.5"></circle><path d="M15 15l5.5 5.5"></path><path d="M8.4 8.4a1.7 1.7 0 1 1 2.4 1.5c-.5.3-.8.6-.8 1.2"></path><circle cx="10" cy="13" r="0.5" fill="currentColor"></circle>', "404: poster not found."],
+  ["MoonStar", '<circle cx="11" cy="13" r="8"></circle><path d="M7 12q1.5 1.5 3 0M12 12q1.5 1.5 3 0"></path><path d="M9.5 16.5h3"></path><path d="M17 2.5h3.5l-3.5 3.5h3.5"></path>', "The poster is napping."],
+  ["Cat", '<path d="M5 20v-9L4 4l4.5 3.5h7L20 4l-1 7v9z"></path><circle cx="9.5" cy="13" r="0.9" fill="currentColor"></circle><circle cx="14.5" cy="13" r="0.9" fill="currentColor"></circle><path d="M11.3 16h1.4M2 15.5h4M2 18h4M18 15.5h4M18 18h4"></path>', "The cat knocked it down."],
+  ["Send", '<path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4z"></path>', "Flew off to Cannes."],
+  ["Lightbulb", '<path d="M9 18h6M10 21h4"></path><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"></path>', "Imagine something great."],
+  ["Glasses", '<path d="M2 9h20"></path><path d="M3 9l1 5a2 2 0 0 0 2 1.6h2.5a2 2 0 0 0 2-1.6L11 9M13 9l.5 5a2 2 0 0 0 2 1.6H18a2 2 0 0 0 2-1.6L21 9"></path><path d="M10 19.5q2 1.5 4 0"></path>', "Poster went incognito."],
+];
+const icon = (paths, size) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+document.getElementById("grid").innerHTML = placeholders
+  .map(([name, paths, caption], i) => `
+    <figure>
+      <div class="ph poster" role="img" aria-label="No poster">${icon(paths, 38)}<p>${caption}</p></div>
+      <div class="ph thumb" role="img" aria-label="No poster">${icon(paths, 20)}</div>
+      <figcaption>No. ${i + 1} · ${name}</figcaption>
+    </figure>`)
+  .join("");
+</script>
+</body>
+</html>
