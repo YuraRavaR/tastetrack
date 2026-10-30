@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filmFacts, filmLabel } from "./film-label";
+import { filmFacts, filmLabel, filmYearAndRuntime } from "./film-label";
 
 describe("a search result's label", () => {
   it("is the title and year when the title is the Original Title", () => {
@@ -32,5 +32,20 @@ describe("a film's runtime and genres", () => {
 
   it("are nothing when neither is known", () => {
     expect(filmFacts({ runtime: null, genres: [] })).toBeNull();
+  });
+});
+
+describe("a film's year and runtime", () => {
+  it("are the year, then the runtime in minutes", () => {
+    expect(filmYearAndRuntime({ year: 2001, runtime: 122 })).toBe("2001 · 122 min");
+  });
+
+  it("leave out whichever is unknown", () => {
+    expect(filmYearAndRuntime({ year: 2001, runtime: null })).toBe("2001");
+    expect(filmYearAndRuntime({ year: null, runtime: 95 })).toBe("95 min");
+  });
+
+  it("are nothing when neither is known", () => {
+    expect(filmYearAndRuntime({ year: null, runtime: null })).toBeNull();
   });
 });

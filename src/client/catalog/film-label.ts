@@ -31,3 +31,19 @@ export function filmFacts({ runtime, genres }: Described): string | null {
   const minutes = t("film.runtime", { minutes: runtime });
   return genreList ? t("film.runtimeAndGenres", { runtime: minutes, genres: genreList }) : minutes;
 }
+
+// The year and runtime, leaving out whichever is unknown: "2001 · 122 min". Null when neither is
+// known.
+export function filmYearAndRuntime({
+  year,
+  runtime,
+}: {
+  year: number | null;
+  runtime: number | null;
+}): string | null {
+  const minutes = runtime === null ? null : t("film.runtime", { minutes: runtime });
+  if (year === null) return minutes;
+  return minutes
+    ? t("film.yearAndRuntime", { year: String(year), runtime: minutes })
+    : String(year);
+}

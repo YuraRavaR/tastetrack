@@ -57,43 +57,57 @@ export function RatingValue({ rating }: { rating: number }) {
 }
 
 // Picks a Rating in half stars: each star is two radio buttons, its left and right halves, so the
-// arrow keys step through the Ratings half a star at a time.
+// arrow keys step through the Ratings half a star at a time. The Rating shows as a number beside
+// the stars, and `error` says under them what's wrong.
 export function RatingInput({
   value,
   onChange,
-  invalid,
+  error,
 }: {
   value: number | null;
   onChange: (rating: number) => void;
-  invalid?: boolean;
+  error: string | null;
 }) {
   const name = useId();
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-2 font-medium text-sm">{t("rating.label")}</legend>
-      <div className="flex">
-        {starNumbers.map((star) => (
-          <span key={star} className="relative">
-            <StarShape fill={fillOf(star, value)} className="size-9" />
-            {[star - ratingStars.step, star].map((rating) => (
-              <input
-                key={rating}
-                type="radio"
-                name={name}
-                value={rating}
-                checked={value === rating}
-                onChange={() => onChange(rating)}
-                aria-label={t("rating.stars", { stars: rating })}
-                aria-invalid={invalid || undefined}
-                className={cn(
-                  "absolute inset-y-0 w-1/2 cursor-pointer appearance-none rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
-                  rating === star ? "right-0" : "left-0",
-                )}
+      <div className="flex items-center gap-3.5">
+        <div className="flex gap-0.5">
+          {starNumbers.map((star) => (
+            <span key={star} className="relative">
+              <StarShape
+                fill={fillOf(star, value)}
+                className="size-11 md:size-10 [&_svg]:stroke-[1.4]"
               />
-            ))}
-          </span>
-        ))}
+              {[star - ratingStars.step, star].map((rating) => (
+                <input
+                  key={rating}
+                  type="radio"
+                  name={name}
+                  value={rating}
+                  checked={value === rating}
+                  onChange={() => onChange(rating)}
+                  aria-label={t("rating.stars", { stars: rating })}
+                  aria-invalid={error !== null || undefined}
+                  className={cn(
+                    "absolute inset-y-0 w-1/2 cursor-pointer appearance-none rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
+                    rating === star ? "right-0" : "left-0",
+                  )}
+                />
+              ))}
+            </span>
+          ))}
+        </div>
+        <span className="font-semibold text-[26px] tabular-nums md:text-2xl">
+          {value === null ? t("rating.none") : t("rating.value", { stars: value })}
+        </span>
       </div>
+      {error && (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }
