@@ -120,12 +120,17 @@ test("home shows the Watchlist in its saved order with each film's facts and Not
 test("home shows the first five films of a longer Watchlist and counts them all", async ({
   page,
 }) => {
-  await fillBacklog(page.request, await logInNewUser(page.request), 6);
+  await fillBacklog(page.request, await logInNewUser(page.request), 5);
+  const sixth = await page.request.post("/api/backlog/items", {
+    data: { mediaItemId: (await alien(page.request)).id },
+  });
+  expect(sixth.status()).toBe(201);
 
   await page.goto("/");
 
   const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
   await expect(watchlist.getByRole("listitem")).toHaveCount(5);
+  await expect(watchlist).not.toContainText("Alien (1979)");
   await expect(watchlist.getByRole("link", { name: "All 6 on your Watchlist" })).toBeVisible();
 });
 
