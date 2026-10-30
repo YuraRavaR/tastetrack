@@ -39,7 +39,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   await film.getByRole("button", { name: "Want to watch" }).click();
   await expect(film.getByText("On your Watchlist")).toBeVisible();
   await film.getByRole("button", { name: "Watched" }).click();
-  const logging = page.getByRole("dialog", { name: `Log ${wedding} (2019)` });
+  const logging = page.getByRole("dialog", { name: wedding, exact: true });
   await logging.getByRole("radio", { name: "5 stars", exact: true }).check();
   await logging.getByRole("button", { name: "Save" }).click();
   await expect(film.getByText("In your Log")).toBeVisible();

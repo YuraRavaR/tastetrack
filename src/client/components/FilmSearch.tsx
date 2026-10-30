@@ -285,6 +285,7 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
       <LogEntryDialog
         found={logging}
         inLog={logging !== null && inLog(logging)}
+        inBacklog={logging !== null && inBacklog(logging)}
         onClose={() => setLogging(null)}
         onLogged={logged}
       />

@@ -4,11 +4,12 @@ import { type CoverShape, coverOf, coverShape, placeholderFor } from "../catalog
 import type { Found } from "../catalog/found";
 import { t } from "../i18n/t";
 
-type PosterSize = "thumbnail" | "search" | "large";
+type PosterSize = "dialog" | "thumbnail" | "search" | "large";
 
 // Fixed heights, not an aspect ratio: a row's flex stretch would pull an auto height out of shape.
 const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
   "2:3": {
+    dialog: "h-13.5 w-9 rounded-sm md:h-15 md:w-10",
     thumbnail: "h-18 w-12 rounded-sm",
     search: "h-21 w-14 rounded-sm md:h-18 md:w-12",
     large: "h-42 w-28 rounded-md",

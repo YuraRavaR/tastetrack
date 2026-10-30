@@ -146,6 +146,10 @@ export function ItemHistoryPage() {
           setEditing(null);
           await reload();
         }}
+        onDelete={() => {
+          setDeleting(editing);
+          setEditing(null);
+        }}
       />
       <FilmListsDialog film={listing} onClose={() => setListing(null)} />
       <DeleteLogEntryDialog

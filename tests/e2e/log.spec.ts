@@ -1,4 +1,4 @@
-import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
+import { type APIRequestContext, expect, type Locator, type Page, test } from "@playwright/test";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien.
@@ -15,7 +15,7 @@ test("a User marks a search result Watched, rates it and finds it in their Log",
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
 
   await alien.getByRole("button", { name: "Watched" }).click();
-  const dialog = page.getByRole("dialog", { name: "Log Alien (1979)" });
+  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await dialog.getByRole("radio", { name: "4.5 stars" }).check();
   await dialog.getByLabel("Review").fill("Still terrifying.");
   await dialog.getByRole("button", { name: "Save" }).click();
@@ -31,7 +31,9 @@ test("a User marks a search result Watched, rates it and finds it in their Log",
   await expect(entry.getByText("Still terrifying.")).toBeVisible();
 });
 
-test("a Rating is required, and a date and Rewatch are kept", async ({ page }) => {
+// Opens the dialog for Alien from search, with the browser's clock on a day the Worker accepts.
+async function openWatchedDialog(page: Page) {
+  await page.clock.setFixedTime(new Date("2026-03-15T12:00:00"));
   await logInNewUser(page.request);
   await page.goto("/");
   await page.getByRole("searchbox", { name: "Search films" }).fill("alien");
@@ -41,21 +43,114 @@ test("a Rating is required, and a date and Rewatch are kept", async ({ page }) =
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) })
     .getByRole("button", { name: "Watched" })
     .click();
-  const dialog = page.getByRole("dialog", { name: "Log Alien (1979)" });
+  return page.getByRole("dialog", { name: "Alien", exact: true });
+}
 
-  await dialog.getByLabel("Date").fill("2001-09-15");
-  await dialog.getByRole("checkbox", { name: "Rewatch" }).check();
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toBeVisible();
+async function saveRatedEntry(page: Page, dialog: Locator) {
   await dialog.getByRole("radio", { name: "3 stars" }).check();
   await dialog.getByRole("button", { name: "Save" }).click();
-
   await expect(dialog).toBeHidden();
   await page.getByRole("link", { name: "Log", exact: true }).click();
-  const entry = page.getByRole("list", { name: "Log Entries" }).getByRole("listitem");
-  await expect(entry.getByRole("img", { name: "3 stars" })).toBeVisible();
+  return page.getByRole("list", { name: "Log Entries" }).getByRole("listitem");
+}
+
+test("a new Log Entry is dated today unless the User says otherwise", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+
+  await expect(dialog.getByRole("button", { name: "Today" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(dialog.getByLabel("Date watched")).toHaveCount(0);
+
+  const entry = await saveRatedEntry(page, dialog);
+  await expect(entry.getByText("Mar 15, 2026")).toBeVisible();
+});
+
+test("Yesterday dates a Log Entry the day before", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+
+  await dialog.getByRole("button", { name: "Yesterday" }).click();
+
+  const entry = await saveRatedEntry(page, dialog);
+  await expect(entry.getByText("Mar 14, 2026")).toBeVisible();
+});
+
+test("Other date saves the date in its field, bounded by 1900 and today", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+
+  await dialog.getByRole("button", { name: "Other date" }).click();
+  const date = dialog.getByLabel("Date watched");
+  await expect(date).toHaveAttribute("min", "1900-01-01");
+  await expect(date).toHaveAttribute("max", "2026-03-15");
+  await date.fill("2001-09-15");
+
+  const entry = await saveRatedEntry(page, dialog);
   await expect(entry.getByText("Sep 15, 2001")).toBeVisible();
+});
+
+test("Other date with an empty field asks for a date", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+
+  await dialog.getByRole("radio", { name: "3 stars" }).check();
+  await dialog.getByRole("button", { name: "Other date" }).click();
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog.getByText("That isn't a valid date.")).toBeVisible();
+
+  await dialog.getByRole("button", { name: "Today" }).click();
+  await expect(dialog.getByText("That isn't a valid date.")).toBeHidden();
+});
+
+test("No date saves an undated Log Entry", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+
+  await dialog.getByRole("button", { name: "No date" }).click();
+
+  const entry = await saveRatedEntry(page, dialog);
+  await expect(entry.getByText("No date")).toBeVisible();
+});
+
+test("a Rating is required, and Rewatch is kept", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+
+  await dialog.getByRole("switch", { name: "Rewatch" }).check();
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText("Choose a Rating.");
+
+  const entry = await saveRatedEntry(page, dialog);
+  await expect(entry.getByRole("img", { name: "3 stars" })).toBeVisible();
   await expect(entry.getByText("Rewatch", { exact: true })).toBeVisible();
+});
+
+test("the dialog shows the film, and its Rating as a number", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+
+  await expect(dialog).toHaveAccessibleDescription("1979");
+  await expect(dialog.getByText("–", { exact: true })).toBeVisible();
+  await dialog.getByRole("radio", { name: "4.5 stars" }).check();
+  await expect(dialog.getByText("4.5", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Saving takes it off your Watchlist")).toHaveCount(0);
+});
+
+test("Close, Cancel and Esc close the dialog without saving", async ({ page }) => {
+  const dialog = await openWatchedDialog(page);
+  const alien = page
+    .getByRole("list", { name: "Search results" })
+    .getByRole("listitem")
+    .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
+
+  await dialog.getByRole("radio", { name: "3 stars" }).check();
+  await dialog.getByRole("button", { name: "Close" }).click();
+  await expect(dialog).toBeHidden();
+
+  await alien.getByRole("button", { name: "Watched" }).click();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toBeHidden();
+
+  await alien.getByRole("button", { name: "Watched" }).click();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(alien.getByText("In your Log")).toHaveCount(0);
 });
 
 // Logs Alien through the API, which is quicker than the dialog and not what these tests are about.
@@ -74,6 +169,7 @@ async function logAlien(api: APIRequestContext, entries: object[]) {
     });
     expect(response.status()).toBe(201);
   }
+  return mediaItem.id;
 }
 
 // Opens the Item History of the film logAlien logged, from the Log.
@@ -104,10 +200,10 @@ test("a User opens a film's Item History from the Log, edits an entry and delete
   // Moving the 2001 entry after the other makes it newest, and its Rating current.
   await page.getByRole("button", { name: "Actions for Sep 15, 2001" }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
   await expect(editing.getByRole("radio", { name: "3 stars" })).toBeChecked();
   await expect(editing.getByLabel("Review")).toHaveValue("First time.");
-  await editing.getByLabel("Date").fill("2026-10-02");
+  await editing.getByLabel("Date watched").fill("2026-10-02");
   await editing.getByRole("button", { name: "Save" }).click();
   await expect(editing).toBeHidden();
   await expect(entries.first()).toContainText("Oct 2, 2026");
@@ -190,14 +286,14 @@ test('the "⋯" menu holds Edit, a separator and Delete, and the page works afte
 
   // A dialog opened from the menu hands the page back when it closes.
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
   await editing.getByRole("button", { name: "Cancel" }).click();
   await expect(editing).toBeHidden();
   await page.getByRole("button", { name: "Add to list" }).click();
   await expect(page.getByRole("dialog", { name: "Lists for Alien (1979)" })).toBeVisible();
 });
 
-test("Rewatch is ticked when the film is already in the Log, and can be unticked", async ({
+test("Rewatch is on when the film is already in the Log, and can be turned off", async ({
   page,
 }) => {
   await logInNewUser(page.request);
@@ -207,8 +303,8 @@ test("Rewatch is ticked when the film is already in the Log, and can be unticked
     .getByRole("list", { name: "Search results" })
     .getByRole("listitem")
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
-  const dialog = page.getByRole("dialog", { name: "Log Alien (1979)" });
-  const rewatch = dialog.getByRole("checkbox", { name: "Rewatch" });
+  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
+  const rewatch = dialog.getByRole("switch", { name: "Rewatch" });
 
   await alien.getByRole("button", { name: "Watched" }).click();
   await expect(rewatch).not.toBeChecked();
@@ -227,4 +323,60 @@ test("Rewatch is ticked when the film is already in the Log, and can be unticked
   const entries = page.getByRole("list", { name: "Log Entries" }).getByRole("listitem");
   await expect(entries).toHaveCount(2);
   await expect(entries.getByText("Rewatch", { exact: true })).toHaveCount(0);
+});
+
+test("editing opens on the chip that matches the entry's date", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-03-15T12:00:00"));
+  await logInNewUser(page.request);
+  const id = await logAlien(page.request, [
+    { rating: 1, date: "2026-03-15" },
+    { rating: 2, date: "2026-03-14" },
+    { rating: 3 },
+    { rating: 4, date: "2001-09-15" },
+  ]);
+  await page.goto(`/items/${id}`);
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
+
+  for (const [row, chip] of [
+    ["Mar 15, 2026", "Today"],
+    ["Mar 14, 2026", "Yesterday"],
+    ["No date", "No date"],
+    ["Sep 15, 2001", "Other date"],
+  ] as const) {
+    await page.getByRole("button", { name: `Actions for ${row}` }).click();
+    await page.getByRole("menuitem", { name: "Edit" }).click();
+    await expect(editing.getByRole("button", { name: chip })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(editing.getByRole("button", { pressed: true })).toHaveCount(1);
+    if (chip === "Other date") {
+      await expect(editing.getByLabel("Date watched")).toHaveValue("2001-09-15");
+    }
+    await editing.getByRole("button", { name: "Cancel" }).click();
+    await expect(editing).toBeHidden();
+  }
+});
+
+test("Delete in the edit dialog asks first, then removes the entry", async ({ page }) => {
+  await logInNewUser(page.request);
+  const id = await logAlien(page.request, [
+    { rating: 3, date: "2001-09-15" },
+    { rating: 4, date: "2019-03-02" },
+  ]);
+  await page.goto(`/items/${id}`);
+
+  await page.getByRole("button", { name: "Actions for Sep 15, 2001" }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
+  await editing.getByRole("button", { name: "Delete" }).click();
+  const confirm = page.getByRole("alertdialog", { name: "Delete this entry?" });
+  await expect(editing).toBeHidden();
+  await confirm.getByRole("button", { name: "Delete" }).click();
+
+  await expect(confirm).toBeHidden();
+  await expect(page.getByRole("button", { name: "Actions for Sep 15, 2001" })).toHaveCount(0);
+  // The page is usable again once both dialogs have closed.
+  await page.getByRole("button", { name: "Actions for Mar 2, 2019" }).click();
+  await expect(page.getByRole("menuitem", { name: "Edit" })).toBeVisible();
 });
