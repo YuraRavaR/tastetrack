@@ -222,7 +222,8 @@ export type AddCatalogItemRequest = z.infer<typeof AddCatalogItemRequest>;
 
 // A film's metadata from the External Source. The title is the English Localized Title, or the
 // Original Title when there is none; ukrainianTitle is the Ukrainian one when it differs from the
-// title. Runtime (minutes) and genres are unknown until the details call succeeds.
+// title. Runtime (minutes) and genres are unknown until the details call succeeds, and so is the
+// backdrop, which comes in a size for a phone's screen and one for a larger screen's.
 export const FilmMetadata = z
   .object({
     title: z.string().openapi({ example: "Amélie" }),
@@ -232,6 +233,16 @@ export const FilmMetadata = z
     posterUrl: z.url().nullable().openapi({
       example: "https://image.tmdb.org/t/p/w92/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
     }),
+    backdropUrls: z
+      .object({
+        small: z.url().openapi({
+          example: "https://image.tmdb.org/t/p/w780/6n53UI4mX9QMfe2S0Pgt8mGebY1.jpg",
+        }),
+        large: z.url().openapi({
+          example: "https://image.tmdb.org/t/p/w1280/6n53UI4mX9QMfe2S0Pgt8mGebY1.jpg",
+        }),
+      })
+      .nullable(),
     runtime: z.int().nullable().openapi({ example: 122 }),
     genres: z.array(z.string()).openapi({ example: ["Comedy", "Romance"] }),
   })
@@ -241,8 +252,8 @@ export type FilmMetadata = z.infer<typeof FilmMetadata>;
 
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
-// metadata is what its User gave: never a poster or a Ukrainian title, and the title as its
-// Original Title when it has none.
+// metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
+// as its Original Title when it has none.
 export const MediaItem = z
   .object({
     id: z.int().openapi({ example: 42 }),

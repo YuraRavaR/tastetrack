@@ -59,8 +59,8 @@ interface Film {
   // Where the film is referenced from, if anywhere.
   in?: "log" | "list";
   // Its cache entry: when it was last filled, whether by a details call, and whether it has an
-  // English Localized Title. None when omitted.
-  cached?: { updated: Date; detailed?: boolean; english?: boolean };
+  // English Localized Title and a backdrop path. None when omitted.
+  cached?: { updated: Date; detailed?: boolean; english?: boolean; backdrop?: string };
 }
 
 // Adds a catalog-backed film with TMDB id `id`.
@@ -84,6 +84,7 @@ async function film(id: string, { in: where, cached }: Film = {}): Promise<void>
       externalId: id,
       englishTitle: cached.english === false ? null : `Film ${id}`,
       originalTitle: `Film ${id}`,
+      backdropPath: cached.backdrop,
       updatedAt: cached.updated,
       detailedAt: cached.detailed === false ? null : cached.updated,
     });
@@ -184,10 +185,22 @@ describe("a cron run", () => {
       ukrainianTitle: "Чужий",
       year: 1979,
       posterUrl: "https://image.tmdb.org/t/p/w92/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
+      backdropUrls: {
+        small: "https://image.tmdb.org/t/p/w780/AmR3JG1VQVxU8TfAvljUhfSFUOx.jpg",
+        large: "https://image.tmdb.org/t/p/w1280/AmR3JG1VQVxU8TfAvljUhfSFUOx.jpg",
+      },
       runtime: 117,
       genres: ["Horror", "Science Fiction"],
     });
     expect(await due()).toEqual([]);
+  });
+
+  it("clears a cached backdrop TMDB no longer has", async () => {
+    // The fake has no backdrop for this film.
+    await film("679", { in: "log", cached: { updated: daysAgo(30), backdrop: "/gone.jpg" } });
+
+    await refreshCache(db, tmdb, now);
+    expect((await userLog(db, userId, now))[0]?.mediaItem.metadata?.backdropUrls).toBeNull();
   });
 
   it("keeps an entry TMDB doesn't answer for, to try again next run", async () => {
@@ -283,6 +296,15 @@ describe("a read", () => {
     expect(await loggedTitles()).toEqual(["Film 404404"]);
   });
 
+  it("fills a missing entry's backdrop, and keeps it for the next read", async () => {
+    await film("348", { in: "log" });
+
+    const [item] = await catalogMediaItems(db, tmdb, [1], now);
+    expect(item?.metadata?.backdropUrls?.small).toMatch(/\/w780\/\w+\.jpg$/);
+    const [logged] = await userLog(db, userId, now);
+    expect(logged?.mediaItem.metadata?.backdropUrls).toEqual(item?.metadata?.backdropUrls);
+  });
+
   it("refetches an expired entry from TMDB, as for one that is missing", async () => {
     await film("348", { in: "log", cached: { updated: daysAgo(91) } });
 
@@ -298,6 +320,7 @@ describe("a read", () => {
     const added = await addFromSearch(db, tmdb, alienFromSearch, now);
     expect(added.mediaItem.metadata?.title).toBe("Alien");
     expect(added.mediaItem.metadata?.runtime).toBe(117);
+    expect(added.mediaItem.metadata?.backdropUrls).not.toBeNull();
   });
 
   it("shows the search result in place of an expired entry when TMDB is down", async () => {
@@ -305,6 +328,7 @@ describe("a read", () => {
 
     const added = await addFromSearch(db, tmdb, failingFilmFromSearch, now);
     expect(added.mediaItem.metadata?.title).toBe("Failing film from search");
+    expect(added.mediaItem.metadata?.backdropUrls).toBeNull();
     expect(await loggedTitles()).toEqual(["Failing film from search"]);
     // Filled from a search result alone, so the cron refreshes it first.
     expect(await due()).toEqual(["999000001"]);

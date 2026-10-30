@@ -24,6 +24,7 @@ const metadata = {
   ukrainianTitle: null,
   year: 1979,
   posterUrl,
+  backdropUrls: null,
   runtime: 117,
   genres: [],
 };

@@ -85,6 +85,13 @@
       "when": 1793014953422,
       "tag": "0011_tmdb_cache_checked_at",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1793373488709,
+      "tag": "0012_tmdb_cache_backdrop_path",
+      "breakpoints": true
     }
   ]
 }

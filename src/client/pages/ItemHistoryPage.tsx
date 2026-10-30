@@ -7,13 +7,13 @@ import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
+import { FilmBanner } from "../components/FilmBanner";
 import { FilmListsDialog, type ListsFilm } from "../components/FilmListsDialog";
 import { FilmFacts, FilmTitle } from "../components/FilmTitle";
 import { ItemHistoryRow } from "../components/ItemHistoryRow";
 import { ItemHistoryStats } from "../components/ItemHistoryStats";
 import { EditLogEntryDialog } from "../components/LogEntryDialog";
 import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
-import { Poster } from "../components/Poster";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
@@ -33,9 +33,9 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
   }
 }
 
-// One film's Item History: tiles for how the User watched and rated it, and every Log Entry,
-// newest first, each of which can be edited or deleted. The Worker sends them in Log Order, and
-// the page only reverses that for display. After an edit or a delete it reloads, so the order and
+// One film's Item History: a banner, tiles for how the User watched and rated it, and every Log
+// Entry, newest first, each of which can be edited or deleted. The Worker sends them in Log Order,
+// and the page only reverses that for display. After an edit or a delete it reloads, so the order and
 // the Current Rating are always the Worker's. The film can be added to or taken off the User's
 // Lists. A film the User added manually can be edited too, or deleted with everything that goes
 // with it.
@@ -80,17 +80,15 @@ export function ItemHistoryPage() {
   const manual = mediaItem.externalReference === null;
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex gap-4">
-        <Poster subject={mediaItem} size="thumbnail" />
-        <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="font-semibold text-2xl tracking-tight">
-            <FilmTitle metadata={mediaItem.metadata} />
-          </h1>
-          <FilmFacts metadata={mediaItem.metadata} />
-          {logEntries.length === 0 && (
-            <p className="text-muted-foreground text-sm">{t("itemHistory.notExperienced")}</p>
-          )}
-        </div>
+      <FilmBanner mediaItem={mediaItem} />
+      <div className="flex flex-col gap-2">
+        <h1 className="font-semibold text-2xl tracking-tight">
+          <FilmTitle metadata={mediaItem.metadata} />
+        </h1>
+        <FilmFacts metadata={mediaItem.metadata} />
+        {logEntries.length === 0 && (
+          <p className="text-muted-foreground text-sm">{t("itemHistory.notExperienced")}</p>
+        )}
       </div>
       {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
       <div className="flex flex-wrap gap-2">

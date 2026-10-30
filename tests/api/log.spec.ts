@@ -47,10 +47,26 @@ test("adding a search result makes a Media Item with both titles, runtime and ge
       ukrainianTitle: "Чужий",
       year: 1979,
       posterUrl: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w92\/\w+\.jpg$/),
+      backdropUrls: {
+        small: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w780\/\w+\.jpg$/),
+        large: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w1280\/\w+\.jpg$/),
+      },
       runtime: 117,
       genres: expect.arrayContaining(["Horror", "Science Fiction"]),
     },
   });
+});
+
+test("a film TMDB has no backdrop for has none, whatever its poster", async ({ request }) => {
+  test.skip(callsRealTmdb(), "Only the TMDB fake has a film without a backdrop");
+  await logInNewUser(request);
+  const result = await searchResult(request, "aliens", "679");
+
+  const response = await request.post("/api/catalog/items", { data: result });
+
+  const { metadata } = (await response.json()).mediaItem;
+  expect(metadata.posterUrl).not.toBeNull();
+  expect(metadata.backdropUrls).toBeNull();
 });
 
 test("adding the same film again, from any search and by any User, reuses its Media Item", async ({
@@ -88,6 +104,7 @@ test("when the details call fails, adding still succeeds, from the search result
     ukrainianTitle: null,
     year: 2020,
     posterUrl: null,
+    backdropUrls: null,
     runtime: null,
     genres: [],
   });

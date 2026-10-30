@@ -16,7 +16,7 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
 };
 
 // A film's poster, or a placeholder when it has none. Only the large size has room for the
-// placeholder's caption; the rest show its icon.
+// placeholder's caption, and that placeholder fills what it's put in; the rest show their icon.
 export function Poster({ subject, size }: { subject: MediaItem | Found; size: PosterSize }) {
   const cover = coverOf(subject);
   const sizeClass = sizeClasses[coverShape(cover.mediaType)][size];
@@ -39,11 +39,10 @@ export function Poster({ subject, size }: { subject: MediaItem | Found; size: Po
       aria-label={t("poster.none")}
       className={cn(
         "flex shrink-0 flex-col items-center justify-center gap-2 bg-muted text-center text-muted-foreground",
-        large && "p-2.5",
-        sizeClass,
+        large ? "size-full p-2.5" : sizeClass,
       )}
     >
-      <Icon aria-hidden className={large ? "size-9.5" : "size-5"} />
+      <Icon aria-hidden className={large ? "size-14" : "size-5"} />
       {large && <p className="text-xs">{t(caption)}</p>}
     </div>
   );
