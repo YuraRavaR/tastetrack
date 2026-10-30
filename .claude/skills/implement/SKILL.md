@@ -7,13 +7,11 @@ disable-model-invocation: true
 
 Implement issue $ARGUMENTS. Work through the steps in order; each ends on its done condition.
 
-If a `mattpocock-skills` skill named below isn't available, do that step by hand and say so in the hand-over.
-
 ## 1. Read the issue
 
-Fetch the issue as `docs/agents/issue-tracker.md` describes and state its title. Read its parent, its comments and every mockup or design it links.
+Fetch the issue as `docs/agents/issue-tracker.md` describes, or through the REST call in the cloud session's setup message, and state its title. Read its parent, its comments and every mockup or design it links.
 
-Stop and ask the user when the issue lacks the `ready-for-agent` label, an issue blocking it is still open, or `gh` can't reach GitHub.
+Stop and ask the user when the issue lacks the `ready-for-agent` label, an issue blocking it is still open, or GitHub can't be reached.
 
 **Done:** you can name every acceptance criterion.
 
@@ -30,13 +28,13 @@ git switch -c <type>/<n>-<slug> FETCH_HEAD
 
 ## 3. Build
 
-Call `mattpocock-skills:tdd` and work red to green, one acceptance criterion at a time. Run the typecheck and the touched test files often. Commit as you go.
+Call `tdd` and work red to green, one acceptance criterion at a time. Run the typecheck and the touched test files often. Commit as you go.
 
 **Done:** every acceptance criterion has a test that went red and then green, or a stated reason it has none.
 
 ## 4. Review
 
-Call `mattpocock-skills:code-review` on the changes since the commit this branch started from, and fix what it finds.
+Call `code-review` on the changes since the commit this branch started from, and fix what it finds.
 
 **Done:** every finding is fixed, or listed for the hand-over with a reason.
 
@@ -48,9 +46,9 @@ Run `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` and `pnpm exec playwright te
 
 ## 6. Open the pull request
 
-Push the branch. Write the body with `mattpocock-skills:pr`, put `Closes #<n>` in it, and open it with `gh pr create`.
+Push the branch. Write the body with `pr`, put `Closes #<n>` in it, and open it with `gh pr create`, or the REST call in the cloud session's setup message.
 
-When the cloud session refuses the branch name, push to the branch it allows. When `gh` can't open the pull request, give the user the branch, the title and the body.
+When the push is refused for the branch name, push to the session's own branch. When the pull request can't be opened, give the user the branch, the title and the body.
 
 **Done:** the pull request exists and CI has started, or the user holds everything needed to open it.
 

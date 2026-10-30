@@ -15,7 +15,11 @@ hook_input=""
 IFS= read -r -t 1 -d '' hook_input
 if [ -z "${CLOUD_SETUP_PULLED:-}" ] && echo "$hook_input" | grep -q '"source": *"startup"'; then
   before="$(git rev-parse HEAD)"
-  if ! git pull --ff-only --quiet >/dev/null 2>&1; then
+  # A session's own claude/ branch has no upstream; it starts from main.
+  pull_from=""
+  git rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1 || pull_from="origin main"
+  # shellcheck disable=SC2086
+  if ! git pull --ff-only --quiet $pull_from >/dev/null 2>&1; then
     echo "Cloud session: git pull failed, so this session works from $(git log -1 --oneline)."
   elif [ "$(git rev-parse HEAD)" != "$before" ]; then
     echo "Cloud session: the clone was behind GitHub; pulled up to $(git log -1 --oneline)."
@@ -23,8 +27,11 @@ if [ -z "${CLOUD_SETUP_PULLED:-}" ] && echo "$hook_input" | grep -q '"source": *
   CLOUD_SETUP_PULLED=1 exec bash "$0" </dev/null
 fi
 
-known_failures() {
+session_notes() {
   cat <<'EOF'
+GitHub GraphQL is blocked from cloud sessions, so `gh issue view` and `gh pr create` fail with
+HTTP 403. Use REST: `gh api repos/YuraRavaR/tastetrack/issues/<n>`, and
+`gh api repos/YuraRavaR/tastetrack/pulls -f title=... -f head=<branch> -f base=main -f body=...`.
 Two test failures here come from the container, not the change under test:
 - tests/api/login-lockout.spec.ts, "the same Username from another IP is unaffected", calls the
   server on IPv6 [::1], which this container lacks. CI runs it.
@@ -55,7 +62,7 @@ if [ "$(node_major node)" != "$want" ] || ! command -v pnpm >/dev/null; then
   echo "$(node -v 2>/dev/null || echo none) and pnpm $(pnpm -v 2>/dev/null || echo none). Node binaries on PATH:"
   which -a node 2>/dev/null | sed 's/^/  /'
   echo "The environment's setup script installs both; see docs/agents/cloud-sessions.md."
-  known_failures
+  session_notes
   exit 0
 fi
 
@@ -66,9 +73,9 @@ if ! {
     git config core.hooksPath .githooks
 } >"$log" 2>&1; then
   echo "Cloud session setup failed; the output is in $log."
-  known_failures
+  session_notes
   exit 0
 fi
 
 echo "Cloud session ready: Node $(node -v), dependencies, Chromium and the Git hooks are installed."
-known_failures
+session_notes
