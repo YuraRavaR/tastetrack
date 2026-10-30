@@ -1,10 +1,11 @@
-import { Bookmark, Check, ListPlus } from "lucide-react";
+import { Bookmark, List, ListPlus, RotateCw, Star } from "lucide-react";
 import { useId, useState } from "react";
 import { Link } from "react-router";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { RemovedListItem } from "../../shared/api";
+import type { HoldingList, RemovedListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import {
@@ -37,14 +38,20 @@ function actionValues(found: Found) {
 
 type PlanError = "backlog_full" | "unavailable";
 
+// What a result's row says of the User's Log Entries for it.
+type RowLog = { currentRating: number | null; logEntryCount: number };
+
+// How many of a result's Lists its row names, before saying how many more hold it.
+const maxListChips = 2;
+
 // Search as you type, with no button: results follow a short pause in typing, the User's own
 // Manual Media Items first, and the query lives in the URL. A result with a Media Item links to its
-// film's page. Any result can be marked Watched, which records a Log Entry for it, as
-// a Revisit by default if it is in the Log, and takes it off the Watchlist with an undo. Want to
-// watch is a toggle, which puts a result on the Watchlist or takes it off again, and any result can
-// be added to or taken off the User's Lists. Below the results, a film search doesn't find can be
-// added by hand, and then shows first. With `labelAsHeading` the field's label is the page's
-// heading.
+// film's page, and shows the User's Current Rating, how many viewings they have and the Lists that
+// hold it. Any result can be marked Watched, which records a Log Entry for it, as a Revisit by
+// default if it is in the Log, and takes it off the Watchlist with an undo. Want to watch is a
+// toggle, which puts a result on the Watchlist or takes it off again, and any result can be added
+// to or taken off the User's Lists. Below the results, a film search doesn't find can be added by
+// hand, and then shows first. With `labelAsHeading` the field's label is the page's heading.
 export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolean }) {
   const searchLabel = mediaWord(pageMediaType, "search");
   const backlogName = mediaWord(pageMediaType, "backlog");
@@ -60,14 +67,17 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const [planError, setPlanError] = useState<PlanError | null>(null);
   // Results logged since the search ran, which the search's own marks don't know about yet.
-  const [loggedNow, setLoggedNow] = useState<ReadonlySet<string>>(new Set());
+  const [loggedNow, setLoggedNow] = useState<ReadonlyMap<string, RowLog>>(new Map());
+  // The Lists holding results since the User last put them on or took them off one.
+  const [listedNow, setListedNow] = useState<ReadonlyMap<string, HoldingList[]>>(new Map());
   // Results put on or taken off the Watchlist since the search ran, by whether they are on it.
   const [plannedNow, setPlannedNow] = useState<ReadonlyMap<string, boolean>>(new Map());
   const [planning, setPlanning] = useState<ReadonlySet<string>>(new Set());
   // Results that joined the catalog since the search ran, by their Media Item's id.
   const [catalogedNow, setCatalogedNow] = useState<ReadonlyMap<string, number>>(new Map());
 
-  const inLog = (found: Found) => found.inLog || loggedNow.has(foundKey(found));
+  const logOf = (found: Found) => loggedNow.get(foundKey(found)) ?? found;
+  const inLog = (found: Found) => logOf(found).logEntryCount > 0;
   const inBacklog = (found: Found) => plannedNow.get(foundKey(found)) ?? found.inBacklog;
   const mediaItemIdOf = (found: Found) => {
     return catalogedNow.get(foundKey(found)) ?? foundMediaItemId(found);
@@ -134,7 +144,10 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
       mediaItemId: saved.logEntry.mediaItem.id,
       removedFromBacklog: saved.removedFromBacklog,
     });
-    setLoggedNow((current) => new Set(current).add(foundKey(found)));
+    const { currentRating, logEntryCount } = saved;
+    setLoggedNow((current) => {
+      return new Map(current).set(foundKey(found), { currentRating, logEntryCount });
+    });
     markCataloged(found, saved.logEntry.mediaItem.id);
     if (saved.removedFromBacklog) markPlanned(found, false);
   }
@@ -149,6 +162,10 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
     }
     markPlanned(found, true);
     setLastAction({ kind: "putBack", found });
+  }
+
+  function markListed(found: Found, lists: HoldingList[]) {
+    setListedNow((current) => new Map(current).set(foundKey(found), lists));
   }
 
   function addedManually(found: Found) {
@@ -211,13 +228,18 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
               found={found}
               mediaItemId={mediaItemIdOf(found)}
               onOpened={rememberScroll}
-              inLog={inLog(found)}
+              log={logOf(found)}
+              lists={listedNow.get(foundKey(found)) ?? found.lists}
               inBacklog={inBacklog(found)}
               planning={planning.has(foundKey(found))}
               onExperienced={() => setLogging(found)}
               onTogglePlanned={() => togglePlanned(found)}
               onListed={() =>
-                setListing({ label: foundLabel(found), mediaItem: () => addToCatalog(found) })
+                setListing({
+                  label: foundLabel(found),
+                  mediaItem: () => addToCatalog(found),
+                  onHeld: (lists) => markListed(found, lists),
+                })
               }
             />
           ))}
@@ -233,6 +255,7 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
       )}
       <LogEntryDialog
         found={logging}
+        mediaItemId={logging && mediaItemIdOf(logging)}
         inLog={logging !== null && inLog(logging)}
         inBacklog={logging !== null && inBacklog(logging)}
         onClose={() => setLogging(null)}
@@ -253,7 +276,8 @@ function SearchResult({
   found,
   mediaItemId,
   onOpened,
-  inLog,
+  log,
+  lists,
   inBacklog,
   planning,
   onExperienced,
@@ -263,25 +287,23 @@ function SearchResult({
   found: Found;
   mediaItemId: number | null;
   onOpened: () => void;
-  inLog: boolean;
+  log: RowLog;
+  lists: HoldingList[];
   inBacklog: boolean;
   planning: boolean;
   onExperienced: () => void;
   onTogglePlanned: () => void;
   onListed: () => void;
 }) {
-  // One mark: a film back on the Watchlist for a Revisit shows its pressed bookmark.
-  const mark = inLog
-    ? t("search.inLog")
-    : inBacklog
-      ? t("search.inBacklog", { backlogName: mediaWord(foundMediaType(found), "backlog") })
-      : null;
+  const mediaType = foundMediaType(found);
+  const { currentRating, logEntryCount } = log;
+  const inLog = logEntryCount > 0;
 
   return (
     <li className="flex items-start gap-3 p-3 md:items-center">
       <Poster subject={found} size="search" />
       <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-3">
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           {mediaItemId !== null ? (
             <Link
               to={`/items/${mediaItemId}`}
@@ -297,19 +319,39 @@ function SearchResult({
             {found.kind === "manual" && (
               <span className="font-medium text-muted-foreground">{t("search.addedByYou")}</span>
             )}
-            {mark && <span className="font-semibold text-primary-strong">{mark}</span>}
+            {currentRating !== null && mediaItemId !== null && (
+              <Link
+                to={`/items/${mediaItemId}`}
+                onClick={onOpened}
+                className="flex items-center gap-1 font-semibold text-primary-strong underline-offset-4 hover:underline focus-visible:underline"
+              >
+                <Star role="img" aria-label={t("rating.label")} className="size-3 fill-current" />
+                {mediaWord(mediaType, "ratingAndCount", {
+                  rating: currentRating,
+                  count: logEntryCount,
+                })}
+              </Link>
+            )}
           </span>
+          <ListChips lists={lists} onOpened={onOpened} />
         </div>
-        <div className="flex shrink-0 gap-2">
-          {/* The source order is the desktop's, where the Tab key is used; a phone leads with Watched. */}
+        <div className="flex shrink-0 gap-1.5 md:gap-2">
+          <Button
+            variant={inLog ? "pressed" : "outline"}
+            className="h-11 gap-1.5 px-2 font-semibold has-[>svg]:px-2 md:h-9 md:w-37.5"
+            onClick={onExperienced}
+          >
+            {inLog && <RotateCw aria-hidden className="hidden min-[380px]:block" />}
+            {mediaWord(mediaType, inLog ? "experiencedAgain" : "markExperienced")}
+          </Button>
           <Button
             variant={inBacklog ? "pressed" : "outline"}
             size="icon"
             className="size-11 md:size-9"
             disabled={planning}
             aria-pressed={inBacklog}
-            aria-label={mediaWord(foundMediaType(found), "planned")}
-            title={mediaWord(foundMediaType(found), "planned")}
+            aria-label={mediaWord(mediaType, "planned")}
+            title={mediaWord(mediaType, "planned")}
             onClick={onTogglePlanned}
           >
             <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
@@ -324,15 +366,36 @@ function SearchResult({
           >
             <ListPlus aria-hidden />
           </Button>
-          <Button
-            className="order-first h-11 font-semibold md:order-none md:h-9"
-            onClick={onExperienced}
-          >
-            <Check aria-hidden />
-            {mediaWord(foundMediaType(found), "experienced")}
-          </Button>
         </div>
       </div>
     </li>
+  );
+}
+
+// The User's Lists holding a result, each linking to its List: the first few, then how many more.
+function ListChips({ lists, onOpened }: { lists: HoldingList[]; onOpened: () => void }) {
+  if (lists.length === 0) return null;
+  const more = lists.length - maxListChips;
+  return (
+    <div className="flex min-w-0 items-center gap-1 text-muted-foreground">
+      <List role="img" aria-label={t("search.lists")} className="mr-0.5 size-3.5 shrink-0" />
+      {lists.slice(0, maxListChips).map((list) => (
+        <Badge
+          key={list.id}
+          variant="outline"
+          className="block min-w-0 max-w-1/2 shrink truncate text-muted-foreground"
+          asChild
+        >
+          <Link to={`/lists/${list.id}`} onClick={onOpened}>
+            {list.name}
+          </Link>
+        </Badge>
+      ))}
+      {more > 0 && (
+        <Badge variant="outline" className="text-muted-foreground">
+          {t("search.moreLists", { count: more })}
+        </Badge>
+      )}
+    </div>
   );
 }

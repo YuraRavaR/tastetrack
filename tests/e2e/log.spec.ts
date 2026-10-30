@@ -14,14 +14,14 @@ test("a User marks a search result Watched, rates it and finds it in their Log",
     .getByRole("listitem")
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
 
-  await alien.getByRole("button", { name: "Watched" }).click();
+  await alien.getByRole("button", { name: "Mark watched" }).click();
   const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await dialog.getByRole("radio", { name: "4.5 stars" }).check();
   await dialog.getByLabel("Review").fill("Still terrifying.");
   await dialog.getByRole("button", { name: "Save" }).click();
 
   await expect(dialog).toBeHidden();
-  await expect(alien.getByText("In your Log")).toBeVisible();
+  await expect(alien.getByRole("link", { name: "4.5 · 1 viewing" })).toBeVisible();
   await page.getByRole("link", { name: "Log", exact: true }).click();
   const entry = page.getByRole("list", { name: "Log Entries" }).getByRole("listitem");
   await expect(entry).toHaveCount(1);
@@ -41,7 +41,7 @@ async function openWatchedDialog(page: Page) {
     .getByRole("list", { name: "Search results" })
     .getByRole("listitem")
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) })
-    .getByRole("button", { name: "Watched" })
+    .getByRole("button", { name: "Mark watched" })
     .click();
   return page.getByRole("dialog", { name: "Alien", exact: true });
 }
@@ -143,14 +143,14 @@ test("Close, Cancel and Esc close the dialog without saving", async ({ page }) =
   await dialog.getByRole("button", { name: "Close" }).click();
   await expect(dialog).toBeHidden();
 
-  await alien.getByRole("button", { name: "Watched" }).click();
+  await alien.getByRole("button", { name: "Mark watched" }).click();
   await dialog.getByRole("button", { name: "Cancel" }).click();
   await expect(dialog).toBeHidden();
 
-  await alien.getByRole("button", { name: "Watched" }).click();
+  await alien.getByRole("button", { name: "Mark watched" }).click();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
-  await expect(alien.getByText("In your Log")).toHaveCount(0);
+  await expect(alien.getByRole("button", { name: "Watched again" })).toHaveCount(0);
 });
 
 // Logs Alien through the API, which is quicker than the dialog and not what these tests are about.
@@ -306,13 +306,13 @@ test("Rewatch is on when the film is already in the Log, and can be turned off",
   const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   const rewatch = dialog.getByRole("switch", { name: "Rewatch" });
 
-  await alien.getByRole("button", { name: "Watched" }).click();
+  await alien.getByRole("button", { name: "Mark watched" }).click();
   await expect(rewatch).not.toBeChecked();
   await dialog.getByRole("radio", { name: "4 stars" }).check();
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog).toBeHidden();
 
-  await alien.getByRole("button", { name: "Watched" }).click();
+  await alien.getByRole("button", { name: "Watched again" }).click();
   await expect(rewatch).toBeChecked();
   await rewatch.uncheck();
   await dialog.getByRole("radio", { name: "5 stars", exact: true }).check();

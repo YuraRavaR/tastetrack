@@ -32,7 +32,8 @@ import { addFromSearch, catalogMediaItems, mediaItemIdsByExternalId } from "./ca
 import { searchFilms, TmdbUnavailable } from "./catalog/tmdb";
 import { type AppEnv, tmdbConfig } from "./env";
 import { plannedExternalIds } from "./lists/backlog";
-import { loggedExternalIds } from "./log/log-entries";
+import { listsHolding } from "./lists/user-lists";
+import { loggedMediaItems } from "./log/log-entries";
 
 const searchRoute = createRoute({
   method: "get",
@@ -41,8 +42,10 @@ const searchRoute = createRoute({
   description:
     "One TMDB search in the query's language: uk-UA when the query has a Cyrillic letter, " +
     "otherwise en-US. Results come in TMDB's order, titled in that language, with their Media " +
-    "Item's id once they are in the catalog, and marked when the User has a Log Entry for them " +
-    "and when they are in the User's Backlog. Before them, to be listed first, come up to " +
+    "Item's id once they are in the catalog, and marked with what the User has of them: whether " +
+    "they have a Log Entry for it, with the Current Rating and how many they have, whether it is " +
+    "in their Backlog, and their own Lists holding it, oldest first. Before them, to be listed " +
+    "first, come up to " +
     `${maxManualSearchResults} of the User's own Manual Media Items whose title or Original ` +
     "Title contains the query, regardless of case, in title order and marked the same way.",
   middleware: [requireUser] as const,
@@ -257,18 +260,43 @@ catalogRoutes.openapi(searchRoute, async (c) => {
     return c.json({ error: "catalog_unavailable" }, 502);
   }
   const ids = matches.map((match) => match.externalReference.id);
-  const [manualResults, mediaItemIds, logged, planned] = await Promise.all([
+  const [manualMatches, mediaItemIds, planned] = await Promise.all([
     manual,
     mediaItemIdsByExternalId(c.var.db, "tmdb", mediaType, ids),
-    loggedExternalIds(c.var.db, c.var.userId, "tmdb", mediaType, ids),
     plannedExternalIds(c.var.db, c.var.userId, "tmdb", mediaType, ids),
   ]);
-  const results = matches.map((match) => ({
+  const shownIds = [
+    ...manualMatches.map(({ mediaItem }) => mediaItem.id),
+    ...mediaItemIds.values(),
+  ];
+  // Whatever the results, so that a search takes the same number of queries (ADR-0009).
+  const [logged, listed] = await Promise.all([
+    loggedMediaItems(c.var.db, c.var.userId, shownIds),
+    listsHolding(c.var.db, c.var.userId, shownIds),
+  ]);
+  const userMarksOf = (mediaItemId: number | null) => {
+    const item = mediaItemId === null ? undefined : logged.get(mediaItemId);
+    const lists = mediaItemId === null ? undefined : listed.get(mediaItemId);
+    return {
+      inLog: item !== undefined,
+      currentRating: item?.currentRating ?? null,
+      logEntryCount: item?.logEntryCount ?? 0,
+      lists: lists ?? [],
+    };
+  };
+  const manualResults = manualMatches.map((match) => ({
     ...match,
-    mediaItemId: mediaItemIds.get(match.externalReference.id) ?? null,
-    inLog: logged.has(match.externalReference.id),
-    inBacklog: planned.has(match.externalReference.id),
+    ...userMarksOf(match.mediaItem.id),
   }));
+  const results = matches.map((match) => {
+    const mediaItemId = mediaItemIds.get(match.externalReference.id) ?? null;
+    return {
+      ...match,
+      mediaItemId,
+      inBacklog: planned.has(match.externalReference.id),
+      ...userMarksOf(mediaItemId),
+    };
+  });
   return c.json({ manualResults, results }, 200);
 });
 

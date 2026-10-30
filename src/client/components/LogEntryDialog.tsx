@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,7 @@ import {
   mediaItemOf,
 } from "../catalog/found";
 import { mediaWord } from "../i18n/media-words";
-import { t } from "../i18n/t";
+import { formatCalendarDate, t } from "../i18n/t";
 import { type DateChip, dateChipFor, dateChips, dateOfChip } from "../log/date-chips";
 import { Poster } from "./Poster";
 import { RatingInput } from "./Rating";
@@ -57,18 +57,56 @@ function backlogHint(mediaType: MediaType, inBacklog: boolean): string | null {
     : null;
 }
 
+// The last of a Media Item's Log Entries, from its Item History once that has loaded. When it
+// doesn't load, the form only goes without the hint it is for.
+function useLastLogEntry(mediaItemId: number | null): LogEntry | null {
+  const [last, setLast] = useState<LogEntry | null>(null);
+  useEffect(() => {
+    if (mediaItemId === null) return;
+    let cancelled = false;
+    api.fetchItemHistory(mediaItemId).then(
+      (history) => {
+        if (!cancelled) setLast(history?.logEntries.at(-1) ?? null);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [mediaItemId]);
+  return last;
+}
+
+// The Rating and date of the User's last Log Entry for the film, beside the new Rating's legend.
+function LastTime({ entry }: { entry: LogEntry }) {
+  return (
+    <span className="flex items-center gap-1 font-normal text-muted-foreground text-xs">
+      {t("logEntry.lastTime")} <Star aria-hidden className="size-3 fill-current" />
+      {entry.date
+        ? t("logEntry.lastRatingAndDate", {
+            rating: entry.rating,
+            date: formatCalendarDate(entry.date),
+          })
+        : t("rating.value", { stars: entry.rating })}
+    </span>
+  );
+}
+
 // Marks a film search found Experienced: asks for a Rating, and optionally a date, a Review and
 // whether it is a Revisit, then adds a TMDB result to the catalog and records the Log Entry, which
 // takes the film off the Backlog. `found` is the film to log; the dialog is open while it is set.
-// Revisit starts on when the User already has a Log Entry for the film.
+// For a film in the Log, with its Media Item as `mediaItemId`, Revisit starts on and the form says
+// what the User gave it last time.
 export function LogEntryDialog({
   found,
+  mediaItemId,
   inLog,
   inBacklog,
   onClose,
   onLogged,
 }: {
   found: Found | null;
+  mediaItemId: number | null;
   inLog: boolean;
   inBacklog: boolean;
   onClose: () => void;
@@ -92,6 +130,7 @@ export function LogEntryDialog({
             title={foundName(found)}
             yearAndRuntime={foundYearAndRuntime(found)}
             initial={newEntry(inLog)}
+            loggedMediaItemId={inLog ? mediaItemId : null}
             hint={backlogHint(foundMediaType(found), inBacklog)}
             save={save}
             onSaved={(saved) => onLogged(found, saved)}
@@ -129,6 +168,7 @@ export function MediaItemLogEntryDialog({
           title={metadata ? filmName(metadata) : t("film.unknown")}
           yearAndRuntime={metadata ? filmYearAndRuntime(metadata) : null}
           initial={newEntry(inLog)}
+          loggedMediaItemId={inLog ? mediaItem.id : null}
           hint={backlogHint(mediaType, inBacklog)}
           save={(fields) => api.createLogEntry({ mediaItemId: mediaItem.id, ...fields })}
           onSaved={onLogged}
@@ -213,12 +253,13 @@ const chipLabels = {
   none: "logEntry.noDate",
 } as const;
 
-function LogEntryForm({
+function LogEntryForm<Saved>({
   subject,
   mediaType,
   title,
   yearAndRuntime,
   initial,
+  loggedMediaItemId = null,
   hint = null,
   save,
   onSaved,
@@ -229,9 +270,11 @@ function LogEntryForm({
   title: string;
   yearAndRuntime: string | null;
   initial: FormValues;
+  // The film's Media Item, when this is another Log Entry for a film in the Log.
+  loggedMediaItemId?: number | null;
   hint?: string | null;
-  save: (fields: LogEntryFields) => Promise<api.SaveLogEntryResult>;
-  onSaved: (saved: api.SavedLogEntry) => void;
+  save: (fields: LogEntryFields) => Promise<api.SaveLogEntryResult<Saved>>;
+  onSaved: (saved: { ok: true } & Saved) => void;
   onDelete?: () => void;
 }) {
   const ids = { review: useId(), revisit: useId(), revisitHint: useId() };
@@ -245,6 +288,7 @@ function LogEntryForm({
   const [revisit, setRevisit] = useState(initial.revisit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
+  const lastEntry = useLastLogEntry(loggedMediaItemId);
   const dateError =
     error === "invalid_date" || error === "date_too_early" || error === "date_in_future";
 
@@ -291,7 +335,7 @@ function LogEntryForm({
         <Poster subject={subject} size="dialog" />
         <DialogHeader className="min-w-0 flex-1 gap-0.5 text-left">
           <p className="font-semibold text-primary-strong text-xs">
-            {mediaWord(mediaType, "experienced")}
+            {mediaWord(mediaType, loggedMediaItemId === null ? "experienced" : "experiencedAgain")}
           </p>
           <DialogTitle className="break-words text-xl leading-tight tracking-tight">
             {title}
@@ -321,6 +365,7 @@ function LogEntryForm({
             setRating(stars);
             if (error === "rating") setError(null);
           }}
+          hint={lastEntry && <LastTime entry={lastEntry} />}
           error={error === "rating" ? t(errorMessages.rating) : null}
         />
         <fieldset className="flex flex-col gap-2">

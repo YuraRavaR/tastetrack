@@ -130,6 +130,8 @@ test("logging a Revisit from a film's page updates its tiles and Viewings at onc
   await main.getByRole("button", { name: "Watched again" }).click();
   const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await expect(dialog.getByRole("switch", { name: "Rewatch" })).toBeChecked();
+  await expect(dialog.getByText("Watched again", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Last time")).toHaveText("Last time 5 · Mar 1, 2026");
   await dialog.getByRole("radio", { name: "3 stars" }).check();
   await dialog.getByRole("button", { name: "Save" }).click();
 

@@ -24,7 +24,7 @@ test("a User plans films from search, then orders and notes their Watchlist", {
   await search(page, "alien");
   const alien = searchResult(page, "Alien (1979)");
   await alien.getByRole("button", { name: "Want to watch" }).click();
-  await expect(alien.getByText("On your Watchlist")).toBeVisible();
+  await expect(alien.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
   await expect(alien.getByRole("button", { name: "Want to watch" })).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -32,7 +32,7 @@ test("a User plans films from search, then orders and notes their Watchlist", {
   await search(page, "aliens");
   const aliens = searchResult(page, "Aliens (1986)");
   await aliens.getByRole("button", { name: "Want to watch" }).click();
-  await expect(aliens.getByText("On your Watchlist")).toBeVisible();
+  await expect(aliens.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
 
   await page.getByRole("link", { name: "Watchlist" }).click();
   const items = page.getByRole("list", { name: "Watchlist" }).getByRole("listitem");
@@ -78,13 +78,13 @@ test("the bookmark in search puts a film on the Watchlist and takes it off again
 
   await expect(page.getByText("Put Alien (1979) on your Watchlist.")).toBeVisible();
   await expect(bookmark).toHaveAttribute("aria-pressed", "true");
-  await expect(alien.getByText("On your Watchlist")).toBeVisible();
+  await expect(alien.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
 
   await bookmark.click();
 
   await expect(page.getByText("Took Alien (1979) off your Watchlist.")).toBeVisible();
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
-  await expect(alien.getByText("On your Watchlist")).toHaveCount(0);
+  await expect(alien.getByRole("button", { name: "Want to watch", pressed: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Dismiss" }).click();
   await expect(page.getByText("Took Alien (1979) off your Watchlist.")).toHaveCount(0);
 
@@ -104,14 +104,14 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
   await search(page, "alien");
   const alien = searchResult(page, "Alien (1979)");
   await alien.getByRole("button", { name: "Want to watch" }).click();
-  await expect(alien.getByText("On your Watchlist")).toBeVisible();
+  await expect(alien.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
   await search(page, "aliens");
   const aliens = searchResult(page, "Aliens (1986)");
   await aliens.getByRole("button", { name: "Want to watch" }).click();
-  await expect(aliens.getByText("On your Watchlist")).toBeVisible();
+  await expect(aliens.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
   await search(page, "alien");
 
-  await alien.getByRole("button", { name: "Watched" }).click();
+  await alien.getByRole("button", { name: "Mark watched" }).click();
   const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await expect(dialog.getByText("Saving takes it off your Watchlist")).toBeVisible();
   await dialog.getByRole("radio", { name: "4 stars" }).check();
@@ -119,12 +119,10 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
 
   await expect(dialog).toBeHidden();
   await expect(page.getByText("Took Alien (1979) off your Watchlist.")).toBeVisible();
-  await expect(alien.getByText("On your Watchlist")).toHaveCount(0);
+  await expect(alien.getByRole("button", { name: "Want to watch", pressed: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText("Put Alien (1979) back on your Watchlist.")).toBeVisible();
-  // One mark: the pressed bookmark already shows the Watchlist.
-  await expect(alien.getByText("In your Log")).toBeVisible();
-  await expect(alien.getByText("On your Watchlist")).toHaveCount(0);
+  await expect(alien.getByRole("button", { name: "Watched again" })).toBeVisible();
   await expect(alien.getByRole("button", { name: "Want to watch" })).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -140,7 +138,12 @@ test("removing a film from the Watchlist can be undone", async ({ page }) => {
   await page.goto("/");
   await search(page, "alien");
   await searchResult(page, "Alien (1979)").getByRole("button", { name: "Want to watch" }).click();
-  await expect(searchResult(page, "Alien (1979)").getByText("On your Watchlist")).toBeVisible();
+  await expect(
+    searchResult(page, "Alien (1979)").getByRole("button", {
+      name: "Want to watch",
+      pressed: true,
+    }),
+  ).toBeVisible();
   await page.getByRole("link", { name: "Watchlist" }).click();
   const items = page.getByRole("list", { name: "Watchlist" }).getByRole("listitem");
 
@@ -170,7 +173,12 @@ test("the Watchlist and a film's page show its runtime and genres", async ({ pag
   await page.goto("/");
   await search(page, "alien");
   await searchResult(page, "Alien (1979)").getByRole("button", { name: "Want to watch" }).click();
-  await expect(searchResult(page, "Alien (1979)").getByText("On your Watchlist")).toBeVisible();
+  await expect(
+    searchResult(page, "Alien (1979)").getByRole("button", {
+      name: "Want to watch",
+      pressed: true,
+    }),
+  ).toBeVisible();
 
   await page.getByRole("link", { name: "Watchlist" }).click();
   const items = page.getByRole("list", { name: "Watchlist" }).getByRole("listitem");

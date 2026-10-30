@@ -29,7 +29,9 @@ const experiencedRoute = createRoute({
   summary: "Mark a Media Item Experienced, recording a Log Entry",
   description:
     "Also takes the Media Item off the User's Backlog, and says where it was and its Note, so " +
-    "that marking it Planned at that position with that Note undoes it.",
+    "that marking it Planned at that position with that Note undoes it. Answers with the Media " +
+    "Item's Current Rating and number of Log Entries too, as a backdated entry leaves the " +
+    "Current Rating as it was.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -38,7 +40,9 @@ const experiencedRoute = createRoute({
   responses: {
     201: {
       content: { "application/json": { schema: NewLogEntryResponse } },
-      description: "The new Log Entry, and where its Media Item was in the Backlog, if it was",
+      description:
+        "The new Log Entry, where its Media Item was in the Backlog, if it was, and its Current " +
+        "Rating and number of Log Entries now",
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
@@ -161,8 +165,8 @@ export const logRoutes = new OpenAPIHono<AppEnv>();
 logRoutes.openapi(experiencedRoute, async (c) => {
   const created = await createLogEntry(c.var.db, c.var.userId, c.req.valid("json"), c.var.now);
   if (!created.ok) return c.json({ error: created.error }, 400);
-  const { logEntry, removedFromBacklog } = created;
-  return c.json({ logEntry, removedFromBacklog }, 201);
+  const { logEntry, removedFromBacklog, currentRating, logEntryCount } = created;
+  return c.json({ logEntry, removedFromBacklog, currentRating, logEntryCount }, 201);
 });
 
 logRoutes.openapi(editRoute, async (c) => {

@@ -55,6 +55,9 @@ describe("a cover", () => {
       },
       inLog: false,
       inBacklog: false,
+      currentRating: null,
+      logEntryCount: 0,
+      lists: [],
     };
 
     expect(coverOf(found)).toEqual({ url: null, mediaItemId: 42, mediaType: "film" });
@@ -71,6 +74,9 @@ describe("a cover", () => {
     mediaItemId: null,
     inLog: false,
     inBacklog: false,
+    currentRating: null,
+    logEntryCount: 0,
+    lists: [],
   };
 
   it("names no Media Item for a TMDB result not in the catalog", () => {

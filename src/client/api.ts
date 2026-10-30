@@ -39,7 +39,6 @@ import type {
   PasswordChangeRequest,
   PlanRequest,
   RegisterRequest,
-  RemovedListItem,
   SharedList,
   SharedListResponse,
   ShareLink,
@@ -360,24 +359,20 @@ export async function deleteManualMediaItem(mediaItemId: number): Promise<boolea
 
 export type LogEntryError = LogDateProblem | "unavailable";
 
-// removedFromBacklog is where a new Log Entry's film was in the Backlog before logging took it
-// off; an edit never does, so it is null then.
-export interface SavedLogEntry {
-  ok: true;
-  logEntry: LogEntry;
-  removedFromBacklog: RemovedListItem | null;
-}
+export type SavedLogEntry = { ok: true } & NewLogEntryResponse;
 
-export type SaveLogEntryResult = SavedLogEntry | { ok: false; error: LogEntryError };
+export type SaveLogEntryResult<Saved = NewLogEntryResponse> =
+  | ({ ok: true } & Saved)
+  | { ok: false; error: LogEntryError };
 
 const logEntryErrors = new Set<string>(["invalid_date", "date_too_early", "date_in_future"]);
 
 // Sends a new or edited Log Entry, and reads back the entry or the reason it was refused.
-async function sendLogEntry(
+async function sendLogEntry<Saved>(
   url: string,
   method: "POST" | "PATCH",
   request: NewLogEntryRequest | LogEntryEditRequest,
-): Promise<SaveLogEntryResult> {
+): Promise<SaveLogEntryResult<Saved>> {
   try {
     const response = await fetch(url, {
       method,
@@ -385,12 +380,7 @@ async function sendLogEntry(
       body: JSON.stringify(request),
     });
     if (response.ok) {
-      const body = (await response.json()) as LogEntryResponse & Partial<NewLogEntryResponse>;
-      return {
-        ok: true,
-        logEntry: body.logEntry,
-        removedFromBacklog: body.removedFromBacklog ?? null,
-      };
+      return { ok: true, ...((await response.json()) as Saved) };
     }
     const { error } = (await response.json()) as ErrorResponse;
     return {
@@ -403,14 +393,14 @@ async function sendLogEntry(
 }
 
 export function createLogEntry(request: NewLogEntryRequest): Promise<SaveLogEntryResult> {
-  return sendLogEntry("/api/log-entries", "POST", request);
+  return sendLogEntry<NewLogEntryResponse>("/api/log-entries", "POST", request);
 }
 
 export function editLogEntry(
   logEntryId: number,
   edit: LogEntryEditRequest,
-): Promise<SaveLogEntryResult> {
-  return sendLogEntry(`/api/log-entries/${logEntryId}`, "PATCH", edit);
+): Promise<SaveLogEntryResult<LogEntryResponse>> {
+  return sendLogEntry<LogEntryResponse>(`/api/log-entries/${logEntryId}`, "PATCH", edit);
 }
 
 // True once the Log Entry is gone, including when it already was.

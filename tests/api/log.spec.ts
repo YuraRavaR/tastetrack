@@ -272,6 +272,34 @@ test("the Log lists undated entries first, then by date, then by creation time",
   ]);
 });
 
+test("a new Log Entry's answer gives the film's Current Rating and number of Log Entries", async ({
+  request,
+}) => {
+  await logInNewUser(request);
+  const mediaItem = await add(request, await searchResult(request, "alien", "348"));
+  const logged = async (data: object) => {
+    const response = await request.post("/api/log-entries", {
+      data: { mediaItemId: mediaItem.id, ...data },
+    });
+    expect(response.status(), await response.text()).toBe(201);
+    return response.json();
+  };
+
+  expect(await logged({ rating: 4, date: "2026-03-02" })).toMatchObject({
+    currentRating: 4,
+    logEntryCount: 1,
+  });
+  // Backdated, so the Current Rating stays the later opinion.
+  expect(await logged({ rating: 1, date: "2026-03-01" })).toMatchObject({
+    currentRating: 4,
+    logEntryCount: 2,
+  });
+  expect(await logged({ rating: 5, date: "2026-03-03" })).toMatchObject({
+    currentRating: 5,
+    logEntryCount: 3,
+  });
+});
+
 test("a Log is the User's own", async ({ request, playwright }) => {
   await logInNewUser(request);
   await postLogEntry(request, { mediaItemId: (await addAlien(request)).id, rating: 4 });

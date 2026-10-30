@@ -173,7 +173,7 @@ test("searching hides the Log, which shows a film just logged once the search is
     .getByRole("list", { name: "Search results" })
     .getByRole("listitem")
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) })
-    .getByRole("button", { name: "Watched" })
+    .getByRole("button", { name: "Mark watched" })
     .click();
   const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await dialog.getByRole("radio", { name: "4 stars" }).check();
@@ -209,7 +209,7 @@ test("a film on the Watchlist marked Watched from search moves to the Log once t
     .getByRole("list", { name: "Search results" })
     .getByRole("listitem")
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) })
-    .getByRole("button", { name: "Watched" })
+    .getByRole("button", { name: "Mark watched" })
     .click();
   const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await dialog.getByRole("radio", { name: "4 stars" }).check();

@@ -7,7 +7,6 @@ import type {
   ItemHistoryResponse,
   LogEntry,
   LogEntryEditRequest,
-  MediaType,
   NewLogEntryRequest,
   RemovedListItem,
 } from "../../shared/api";
@@ -60,13 +59,14 @@ export type NewLogEntry = Required<Omit<NewLogEntryRequest, "timeZone">> &
 export type LogEntryProblem = LogDateProblem | "invalid_rating" | "unknown_media_item";
 
 export type CreatedLogEntry =
-  | { ok: true; logEntry: LogEntry; removedFromBacklog: RemovedListItem | null }
+  | ({ ok: true; logEntry: LogEntry; removedFromBacklog: RemovedListItem | null } & LoggedMediaItem)
   | { ok: false; error: LogEntryProblem };
 
 // Records that the User experienced the Media Item, and takes it off their Backlog in the same
-// batch; `removedFromBacklog` says where it was, so the client can offer to undo that. A first
-// entry may be a Revisit, and an empty Review counts as none. Another User's Manual Media Item is
-// as unknown as one that doesn't exist.
+// batch; `removedFromBacklog` says where it was, so the client can offer to undo that. It answers
+// with the Media Item's Current Rating and number of Log Entries now. A first entry may be a
+// Revisit, and an empty Review counts as none. Another User's Manual Media Item is as unknown as
+// one that doesn't exist.
 export async function createLogEntry(
   db: DrizzleD1Database,
   userId: number,
@@ -103,9 +103,13 @@ export async function createLogEntry(
     ...takeOffBacklog(db, userId, request.mediaItemId),
   ]);
   if (!inserted) return { ok: false, error: "unknown_media_item" };
-  const [row] = await selectLog(db, now).where(eq(logEntries.id, inserted.id));
-  if (!row) throw new Error(`Log Entry ${inserted.id} vanished`);
-  return { ok: true, logEntry: toLogEntry(row), removedFromBacklog: removed ?? null };
+  const [[row], logged] = await Promise.all([
+    selectLog(db, now).where(eq(logEntries.id, inserted.id)),
+    loggedMediaItems(db, userId, [request.mediaItemId]),
+  ]);
+  const item = logged.get(request.mediaItemId);
+  if (!row || !item) throw new Error(`Log Entry ${inserted.id} vanished`);
+  return { ok: true, logEntry: toLogEntry(row), removedFromBacklog: removed ?? null, ...item };
 }
 
 // One of the User's own Log Entries: another User's is as unknown as one that doesn't exist.
@@ -202,26 +206,37 @@ export async function itemHistory(
   };
 }
 
-// Which of these External Source ids of one Media Type the User has a Log Entry for.
-export async function loggedExternalIds(
+export interface LoggedMediaItem {
+  currentRating: number;
+  logEntryCount: number;
+}
+
+// The Current Rating and number of Log Entries of each of these Media Items the User has logged,
+// in one query.
+export async function loggedMediaItems(
   db: DrizzleD1Database,
   userId: number,
-  source: "tmdb",
-  mediaType: MediaType,
-  externalIds: string[],
-): Promise<Set<string>> {
-  if (externalIds.length === 0) return new Set();
+  mediaItemIds: number[],
+): Promise<Map<number, LoggedMediaItem>> {
   const rows = await db
-    .selectDistinct({ externalId: mediaItems.externalId })
+    .select({
+      mediaItemId: logEntries.mediaItemId,
+      rating: logEntries.rating,
+      date: logEntries.date,
+      createdAt: logEntries.createdAt,
+    })
     .from(logEntries)
-    .innerJoin(mediaItems, eq(logEntries.mediaItemId, mediaItems.id))
-    .where(
-      and(
-        eq(logEntries.userId, userId),
-        eq(mediaItems.externalSource, source),
-        eq(mediaItems.mediaType, mediaType),
-        inArray(mediaItems.externalId, externalIds),
-      ),
-    );
-  return new Set(rows.flatMap((row) => (row.externalId === null ? [] : [row.externalId])));
+    .where(and(eq(logEntries.userId, userId), inArray(logEntries.mediaItemId, mediaItemIds)))
+    .orderBy(logEntries.id);
+  const entriesOf = new Map<number, typeof rows>();
+  for (const row of rows) {
+    entriesOf.set(row.mediaItemId, [...(entriesOf.get(row.mediaItemId) ?? []), row]);
+  }
+  const items = new Map<number, LoggedMediaItem>();
+  for (const [mediaItemId, entries] of entriesOf) {
+    const current = currentRating(entries);
+    if (current === null) continue;
+    items.set(mediaItemId, { currentRating: toStars(current), logEntryCount: entries.length });
+  }
+  return items;
 }

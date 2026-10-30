@@ -11,7 +11,7 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
   "2:3": {
     dialog: "h-13.5 w-9 rounded-sm md:h-15 md:w-10",
     thumbnail: "h-18 w-12 rounded-sm",
-    search: "h-21 w-14 rounded-sm md:h-18 md:w-12",
+    search: "h-27 w-18 rounded-sm md:h-18 md:w-12",
     large: "h-42 w-28 rounded-md",
   },
 };

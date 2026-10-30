@@ -1,10 +1,11 @@
 // A User's own Lists, beside the Backlog: making, reading, renaming and deleting them, and adding
 // Media Items to them. Route handlers only translate HTTP to these calls; the List rules are the
 // domain core's (src/shared/lists.ts).
-import { and, asc, count, eq, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
 import type {
+  HoldingList,
   List,
   ListEditRequest,
   ListItem,
@@ -217,6 +218,33 @@ export async function mediaItemLists(
   return summaries
     .filter((list) => list.mediaType === mediaItem.mediaType)
     .map((list) => ({ ...list, listItem: places.get(list.id) ?? null }));
+}
+
+// The User's own Lists holding each of these Media Items, oldest first, in one query. The Backlog
+// isn't one of them. A Media Item on none of their Lists is left out.
+export async function listsHolding(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaItemIds: number[],
+): Promise<Map<number, HoldingList[]>> {
+  const rows = await db
+    .select({ mediaItemId: listItems.mediaItemId, id: lists.id, name: lists.name })
+    .from(listItems)
+    .innerJoin(lists, eq(listItems.listId, lists.id))
+    .where(
+      and(
+        eq(lists.userId, userId),
+        eq(lists.kind, "list"),
+        inArray(listItems.mediaItemId, mediaItemIds),
+      ),
+    )
+    .orderBy(asc(lists.createdAt), asc(lists.id));
+  const holding = new Map<number, HoldingList[]>();
+  for (const { mediaItemId, id, name } of rows) {
+    if (name === null) throw new Error(`List ${id} has no name`);
+    holding.set(mediaItemId, [...(holding.get(mediaItemId) ?? []), { id, name }]);
+  }
+  return holding;
 }
 
 // One of the User's own Lists, its Share Link at `origin` while it has one, and its items in

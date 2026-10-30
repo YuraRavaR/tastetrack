@@ -37,19 +37,19 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
 
   // It is planned and logged like any film.
   await film.getByRole("button", { name: "Want to watch" }).click();
-  await expect(film.getByText("On your Watchlist")).toBeVisible();
-  await film.getByRole("button", { name: "Watched" }).click();
+  await expect(film.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
+  await film.getByRole("button", { name: "Mark watched" }).click();
   const logging = page.getByRole("dialog", { name: wedding, exact: true });
   await logging.getByRole("radio", { name: "5 stars", exact: true }).check();
   await logging.getByRole("button", { name: "Save" }).click();
-  await expect(film.getByText("In your Log")).toBeVisible();
+  await expect(film.getByRole("link", { name: "5 · 1 viewing" })).toBeVisible();
 
   // A later search lists it first.
   await page.reload();
   await search.fill("олени");
   const first = page.getByRole("list", { name: "Search results" }).getByRole("listitem").first();
   await expect(first).toContainText(`${wedding} (2019)`);
-  await expect(first).toContainText("In your Log");
+  await expect(first).toContainText("5 · 1 viewing");
 
   // Its page, reached from the Log, edits it.
   await page.getByRole("link", { name: "Log", exact: true }).click();

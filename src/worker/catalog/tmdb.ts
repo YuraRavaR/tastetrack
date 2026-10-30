@@ -40,9 +40,12 @@ export function backdropUrls(backdropPath: string | null): FilmMetadata["backdro
   };
 }
 
-// A search result before what the app holds about it, its Media Item and the User's Log and
-// Backlog, is added to it.
-export type CatalogSearchMatch = Omit<CatalogSearchResult, "mediaItemId" | "inLog" | "inBacklog">;
+// A search result before what the app holds about it, its Media Item and the User's Log, Backlog
+// and Lists, is added to it.
+export type CatalogSearchMatch = Omit<
+  CatalogSearchResult,
+  "mediaItemId" | "inLog" | "inBacklog" | "currentRating" | "logEntryCount" | "lists"
+>;
 
 // Only the fields we use, so TMDB adding or dropping others doesn't break us.
 const TmdbFilm = z.object({

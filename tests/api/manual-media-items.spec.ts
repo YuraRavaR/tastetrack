@@ -398,12 +398,12 @@ test("search lists the User's own matching Manual Media Items first, by either t
   const byTitle = await search(request, "ЧУЖИЙ");
   const byOriginalTitle = await search(request, "home VIDEO");
 
-  expect(byTitle.manualResults).toEqual([
+  expect(byTitle.manualResults).toMatchObject([
     { mediaItem: sequel, inLog: true, inBacklog: false },
     { mediaItem: homeVideo, inLog: false, inBacklog: true },
   ]);
   expect(byTitle.results).toContainEqual(expect.objectContaining({ originalTitle: "Alien" }));
-  expect(byOriginalTitle.manualResults).toEqual([
+  expect(byOriginalTitle.manualResults).toMatchObject([
     { mediaItem: homeVideo, inLog: false, inBacklog: true },
   ]);
   expect((await search(request, "alien")).results).toContainEqual(

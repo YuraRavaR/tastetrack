@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,14 +12,25 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import type { ListItemPlace, MediaItem, MediaItemList, RemovedListItem } from "../../shared/api";
+import type {
+  HoldingList,
+  ListItemPlace,
+  MediaItem,
+  MediaItemList,
+  RemovedListItem,
+} from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { t } from "../i18n/t";
 
-// A film to put on Lists: its label, and how to get its Media Item, which for a TMDB search
-// result adds it to the catalog first. Kept in state by the opener, so it loads once per opening.
-export type ListsFilm = { label: string; mediaItem: () => Promise<MediaItem | null> };
+// A film to put on Lists: its label, how to get its Media Item, which for a TMDB search result adds
+// it to the catalog first, and who to tell which Lists hold it, oldest first, as that changes. Kept
+// in state by the opener, so it loads once per opening.
+export type ListsFilm = {
+  label: string;
+  mediaItem: () => Promise<MediaItem | null>;
+  onHeld?: (lists: HoldingList[]) => void;
+};
 
 // Every one of the User's Lists with a checkbox, ticked where the film is already: ticking adds
 // the film at the end, unticking takes it off. A List unticked and ticked again before the dialog
@@ -57,20 +68,35 @@ async function loadLists(film: ListsFilm): Promise<ListsState> {
 
 function FilmLists({ film }: { film: ListsFilm }) {
   const [state, setState] = useState<ListsState>({ status: "loading" });
+  // The state as of the last answer, which a change still saving when the dialog closes reads too.
+  const latest = useRef(state);
   const [busy, setBusy] = useState<ReadonlySet<number>>(new Set());
   const [error, setError] = useState<api.AddToListError | null>(null);
   // Where the film was in each List it was taken off since the dialog opened, by List id.
   const [removed, setRemoved] = useState<ReadonlyMap<number, RemovedListItem>>(new Map());
 
+  // Sets the state and tells the opener which Lists hold the film now.
+  const show = useCallback(
+    (next: ListsState) => {
+      latest.current = next;
+      setState(next);
+      if (next.status !== "loaded") return;
+      film.onHeld?.(
+        next.lists.filter((list) => list.listItem !== null).map(({ id, name }) => ({ id, name })),
+      );
+    },
+    [film],
+  );
+
   useEffect(() => {
     let cancelled = false;
     loadLists(film).then((loaded) => {
-      if (!cancelled) setState(loaded);
+      if (!cancelled) show(loaded);
     });
     return () => {
       cancelled = true;
     };
-  }, [film]);
+  }, [film, show]);
 
   function setBusyOf(listId: number, isBusy: boolean) {
     setBusy((current) => {
@@ -82,14 +108,12 @@ function FilmLists({ film }: { film: ListsFilm }) {
   }
 
   function place(listId: number, listItem: ListItemPlace | null) {
-    setState((current) =>
-      current.status === "loaded"
-        ? {
-            ...current,
-            lists: current.lists.map((list) => (list.id === listId ? { ...list, listItem } : list)),
-          }
-        : current,
-    );
+    const current = latest.current;
+    if (current.status !== "loaded") return;
+    show({
+      ...current,
+      lists: current.lists.map((list) => (list.id === listId ? { ...list, listItem } : list)),
+    });
   }
 
   async function toggle(mediaItemId: number, list: MediaItemList) {
@@ -110,7 +134,7 @@ function FilmLists({ film }: { film: ListsFilm }) {
         place(list.id, { id, position, note });
       } else if (outcome.error === "already_in_list") {
         // Added elsewhere since the dialog opened: show the List as it is now.
-        setState(await loadLists(film));
+        show(await loadLists(film));
       } else {
         setError(outcome.error);
       }
