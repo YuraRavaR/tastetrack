@@ -9,11 +9,39 @@ set -uo pipefail
 
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/..}" || exit 0
 
-if [ "$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null)" != "$(cut -d. -f1 .nvmrc)" ] ||
-  ! command -v pnpm >/dev/null; then
-  echo "Cloud session setup skipped: it needs Node $(cut -d. -f1 .nvmrc) and pnpm on PATH, and this"
-  echo "container has Node $(node -v 2>/dev/null || echo none). The environment's setup script"
-  echo "installs both; see docs/agents/cloud-sessions.md."
+known_failures() {
+  cat <<'EOF'
+Two test failures here come from the container, not the change under test:
+- tests/api/login-lockout.spec.ts, "the same Username from another IP is unaffected", calls the
+  server on IPv6 [::1], which this container lacks. CI runs it.
+- A full Playwright run can fail a few random tests with SQLITE_BUSY in the Wrangler log. Rerun
+  that project on its own before suspecting the change.
+EOF
+}
+
+want="$(cut -d. -f1 .nvmrc)"
+node_major() { "$1" -p 'process.versions.node.split(".")[0]' 2>/dev/null; }
+
+# The environment's setup script installs this Node with nvm or n, but the session's PATH can
+# still lead to the image's own Node. Put the matching one first, for this script and, through
+# CLAUDE_ENV_FILE, for the session's shell commands.
+if [ "$(node_major node)" != "$want" ]; then
+  for bin in "${NVM_DIR:-$HOME/.nvm}"/versions/node/v"$want".*/bin /root/.nvm/versions/node/v"$want".*/bin \
+    /usr/local/n/versions/node/"$want".*/bin /usr/local/bin; do
+    if [ "$(node_major "$bin/node")" = "$want" ]; then
+      export PATH="$bin:$PATH"
+      [ -n "${CLAUDE_ENV_FILE:-}" ] && echo "export PATH=\"$bin:\$PATH\"" >>"$CLAUDE_ENV_FILE"
+      break
+    fi
+  done
+fi
+
+if [ "$(node_major node)" != "$want" ] || ! command -v pnpm >/dev/null; then
+  echo "Cloud session setup skipped: it needs Node $want and pnpm, and found Node"
+  echo "$(node -v 2>/dev/null || echo none) and pnpm $(pnpm -v 2>/dev/null || echo none). Node binaries on PATH:"
+  which -a node 2>/dev/null | sed 's/^/  /'
+  echo "The environment's setup script installs both; see docs/agents/cloud-sessions.md."
+  known_failures
   exit 0
 fi
 
@@ -24,14 +52,9 @@ if ! {
     git config core.hooksPath .githooks
 } >"$log" 2>&1; then
   echo "Cloud session setup failed; the output is in $log."
+  known_failures
   exit 0
 fi
 
-cat <<'EOF'
-Cloud session ready: dependencies, Chromium and the Git hooks are installed.
-Two test failures here come from the container, not the change under test:
-- tests/api/login-lockout.spec.ts, "the same Username from another IP is unaffected", calls the
-  server on IPv6 [::1], which this container lacks. CI runs it.
-- A full Playwright run can fail a few random tests with SQLITE_BUSY in the Wrangler log. Rerun
-  that project on its own before suspecting the change.
-EOF
+echo "Cloud session ready: Node $(node -v), dependencies, Chromium and the Git hooks are installed."
+known_failures

@@ -3,7 +3,7 @@
 Claude Code cloud sessions (claude.ai/code, `claude --remote`) run in a fresh container. The setup comes in two parts:
 
 - **The environment** on claude.ai provides the tools: Node and pnpm. Its image ships Node 22, whose Corepack can't run pnpm 12, so the setup script installs both itself.
-- **The SessionStart hook** in `.claude/settings.json` runs `scripts/cloud-session-setup.sh` once the repo is cloned: `pnpm install`, the Chromium build that the locked Playwright expects (the image's preinstalled one is older), and the Git hooks. Locally `CLAUDE_CODE_REMOTE` is unset, so the script exits straight away.
+- **The SessionStart hook** in `.claude/settings.json` runs `scripts/cloud-session-setup.sh` once the repo is cloned. The session's PATH can still lead to the image's Node 22, so the script first puts the setup script's Node 24 ahead of it, for the whole session. Then it runs `pnpm install`, the Chromium build that the locked Playwright expects (the image's preinstalled one is older), and the Git hooks. Locally `CLAUDE_CODE_REMOTE` is unset, so the script exits straight away.
 
 Start each session with `YuraRavaR/tastetrack` selected; without it the container has no repo, and the session can't push a branch.
 
