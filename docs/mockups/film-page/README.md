@@ -26,7 +26,7 @@ The page exists to answer "how did I rate this film, and how often have I watche
    - with no backdrop, the poster centred on `bg-muted`;
    - with neither, a no-poster placeholder.
 2. **Title block.** `h1` is the film's label, as `FilmTitle` renders it today. Below it are the Ukrainian Localized Title and `FilmFacts`, both `text-muted-foreground text-sm`.
-3. **Stat tiles.** A `grid-cols-3 gap-2` row of bordered `bg-card` tiles. Each has a `text-xs` muted label above a `text-lg font-semibold` value:
+3. **Stat tiles.** A `grid-cols-3 gap-2` row of bordered `bg-card` tiles. On a phone the third column takes the width of its date, so the date keeps to one line. Each has a `text-xs` muted label above a `font-semibold` value, `text-lg` except for the smaller date:
    - **Watched**: "3 times" (the number of Log Entries), or "Once" for one.
    - **Your rating**: one filled star and the Current Rating ("5", "4.5").
    - **First watched**: the earliest date among the dated Log Entries, "Mar 2, 2019". With no dated entry it shows "–", named "No date". The tile stays, so the row keeps three tiles.

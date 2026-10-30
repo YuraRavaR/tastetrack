@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   currentRating,
+  firstLogDate,
   inLogOrder,
   latestLogDate,
   logDateProblem,
@@ -176,5 +177,25 @@ describe("the Current Rating", () => {
     ];
 
     expect(currentRating(entries)).toBe(5);
+  });
+});
+
+describe("the first date of a set of Log Entries", () => {
+  it("is none without Log Entries", () => {
+    expect(firstLogDate([])).toBeNull();
+  });
+
+  it("is none when no entry is dated", () => {
+    expect(firstLogDate([{ date: null }, { date: null }])).toBeNull();
+  });
+
+  it("is the earliest date, in whatever order the entries come", () => {
+    const entries = [{ date: "2026-10-11" }, { date: "2019-03-02" }, { date: "2023-12-24" }];
+
+    expect(firstLogDate(entries)).toBe("2019-03-02");
+  });
+
+  it("skips undated entries, which Log Order puts first", () => {
+    expect(firstLogDate([{ date: null }, { date: "2023-12-24" }])).toBe("2023-12-24");
   });
 });

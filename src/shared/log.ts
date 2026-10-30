@@ -107,3 +107,14 @@ export function currentRating(
 ): number | null {
   return inLogOrder(entries).at(-1)?.rating ?? null;
 }
+
+// The earliest date among `entries`, or null when none is dated. A creation date is never used in
+// its place: it is when the entry was logged, not when the Media Item was experienced.
+export function firstLogDate(entries: readonly { date: string | null }[]): string | null {
+  return (
+    entries
+      .map((entry) => entry.date)
+      .filter((date) => date !== null)
+      .toSorted()[0] ?? null
+  );
+}

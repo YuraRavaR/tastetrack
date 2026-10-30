@@ -42,6 +42,20 @@ export function RatingStars({ rating }: { rating: number }) {
   );
 }
 
+// A Rating shown as one filled star and its number, read out the same way.
+export function RatingValue({ rating }: { rating: number }) {
+  return (
+    <span
+      role="img"
+      aria-label={t("rating.stars", { stars: rating })}
+      className="flex items-center gap-1.5"
+    >
+      <StarShape fill={1} className="size-4.5" />
+      {t("rating.value", { stars: rating })}
+    </span>
+  );
+}
+
 // Picks a Rating in half stars: each star is two radio buttons, its left and right halves, so the
 // arrow keys step through the Ratings half a star at a time.
 export function RatingInput({
