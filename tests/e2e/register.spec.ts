@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { chooseFromAccountMenu, logOut } from "../support/navigation";
 import { createUser, uniqueUsername } from "../support/users";
 
 test("a User generates an Invite Code and a friend registers with it", { tag: "@smoke" }, async ({
@@ -8,13 +9,13 @@ test("a User generates an Invite Code and a friend registers with it", { tag: "@
   await page.request.post("/api/auth/login", { data: inviter });
 
   await page.goto("/");
-  await page.getByRole("link", { name: "Invites" }).click();
+  await chooseFromAccountMenu(page, "Invites");
   await page.getByRole("button", { name: "Generate an Invite Code" }).click();
   const active = page.getByRole("list", { name: "Active Invite Codes" }).getByRole("listitem");
   await expect(active).toHaveCount(1);
   await expect(active).toContainText(/Expires [A-Z][a-z]{2} \d{1,2}, \d{4}/);
   const code = await active.getByRole("code").textContent();
-  await page.getByRole("button", { name: "Log out" }).click();
+  await logOut(page);
 
   await page.getByRole("link", { name: "Register" }).click();
   await expect(page.getByRole("heading", { name: "Register" })).toBeVisible();

@@ -10,7 +10,9 @@ export function HomePage() {
   const [searching, setSearching] = useState(false);
   return (
     <div className="flex flex-col gap-8">
-      <FilmSearch labelAsHeading onSearchingChange={setSearching} />
+      <div className="w-full max-w-3xl">
+        <FilmSearch labelAsHeading onSearchingChange={setSearching} />
+      </div>
       {!searching && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
           <HomeLogSection />
