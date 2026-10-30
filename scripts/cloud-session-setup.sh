@@ -9,6 +9,20 @@ set -uo pipefail
 
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/..}" || exit 0
 
+# A new session can start from a cached clone that is behind GitHub, with origin's refs just as
+# stale. On startup, catch the branch up, then run the updated copy of this script.
+hook_input=""
+IFS= read -r -t 1 -d '' hook_input
+if [ -z "${CLOUD_SETUP_PULLED:-}" ] && echo "$hook_input" | grep -q '"source": *"startup"'; then
+  before="$(git rev-parse HEAD)"
+  if ! git pull --ff-only --quiet >/dev/null 2>&1; then
+    echo "Cloud session: git pull failed, so this session works from $(git log -1 --oneline)."
+  elif [ "$(git rev-parse HEAD)" != "$before" ]; then
+    echo "Cloud session: the clone was behind GitHub; pulled up to $(git log -1 --oneline)."
+  fi
+  CLOUD_SETUP_PULLED=1 exec bash "$0" </dev/null
+fi
+
 known_failures() {
   cat <<'EOF'
 Two test failures here come from the container, not the change under test:
