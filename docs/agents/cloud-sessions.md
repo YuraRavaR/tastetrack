@@ -45,6 +45,10 @@ Bump both majors here when `.nvmrc` or `packageManager` moves to a new one.
 
 **Environment variables:** `WRANGLER_SEND_METRICS=false`. Leave `BASE_URL` unset, since it points the tests at a deployed environment (see ADR-0006), and leave `CI` unset, since it adds the GitHub reporter.
 
+## Skills
+
+`.claude/settings.json` enables the `mattpocock-skills` plugin for everyone who works in this repo, cloud sessions included, because a cloud session sees only what the repo declares. `/implement <issue>` lives in `.claude/skills/implement/` and builds on that plugin.
+
 ## Known failures in the container
 
 The hook's output lists the test failures that come from the container rather than the code, so the agent sees them at the start of each session. That list in `scripts/cloud-session-setup.sh` is the one to keep current.
