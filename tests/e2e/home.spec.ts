@@ -200,6 +200,7 @@ test("a film on the Watchlist marked Watched from search moves to the Log once t
   const log = page.getByRole("region", { name: "Latest in your Log" });
   const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
   await expect(watchlist.getByRole("listitem")).toContainText("Alien (1979)");
+  await expect(watchlist.getByRole("link", { name: "See your Watchlist" })).toBeVisible();
   const search = page.getByRole("searchbox", { name: "Search films" });
 
   await search.fill("alien");
