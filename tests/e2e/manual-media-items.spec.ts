@@ -100,7 +100,9 @@ test("adding a film with the same title and year again warns first, then adds it
   await expect(searchResult(page, `${wedding} (2019)`)).toHaveCount(2);
 });
 
-test("a thumbnail without a poster is named No poster and shows no caption", async ({ page }) => {
+test("a thumbnail without a poster shows no caption, and the film's banner does", async ({
+  page,
+}) => {
   await logInNewUser(page.request);
   await page.goto("/");
   await page.getByRole("searchbox", { name: "Search films" }).fill("весілля олени");
@@ -112,7 +114,7 @@ test("a thumbnail without a poster is named No poster and shows no caption", asy
   await expect(searchResult(page, wedding).getByRole("img", { name: "No poster" })).toHaveText("");
   await searchResult(page, wedding).getByRole("link", { name: wedding }).click();
 
-  await expect(page.getByRole("main").getByRole("img", { name: "No poster" })).toHaveText("");
+  await expect(page.getByRole("main").getByRole("img", { name: "No poster" })).toHaveText(/\S/);
 });
 
 test("a film added manually but never logged or planned is still reached from search, to delete it", async ({

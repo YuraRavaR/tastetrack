@@ -13,6 +13,7 @@ import type {
 } from "../../shared/api";
 import { maxMetadataFills } from "../../shared/catalog";
 import {
+  backdropUrls,
   type FilmDetails,
   filmDetails,
   posterPathOf,
@@ -75,6 +76,7 @@ export const mediaItemColumns = {
     ukrainianTitle: tmdbCache.ukrainianTitle,
     year: tmdbCache.year,
     posterPath: tmdbCache.posterPath,
+    backdropPath: tmdbCache.backdropPath,
     runtime: tmdbCache.runtime,
     genres: tmdbCache.genres,
   },
@@ -109,6 +111,7 @@ function toMetadata(cached: CachedMetadata): FilmMetadata {
       cached.ukrainianTitle && cached.ukrainianTitle !== title ? cached.ukrainianTitle : null,
     year: cached.year,
     posterUrl: posterUrl(cached.posterPath),
+    backdropUrls: backdropUrls(cached.backdropPath),
     runtime: cached.runtime,
     genres: cached.genres ?? [],
   };
@@ -126,6 +129,7 @@ function fromManual(id: number, manual: ManualMetadata): FilmMetadata {
     ukrainianTitle: null,
     year: manual.year,
     posterUrl: null,
+    backdropUrls: null,
     runtime: manual.runtime,
     genres: manual.genres ?? [],
   };
@@ -157,7 +161,7 @@ function byExternalReference({ source, mediaType, id }: ExternalReference) {
 }
 
 // What a search result alone says about a film: its title in the language the search ran in,
-// unless that is just TMDB falling back to the Original Title. No runtime or genres.
+// unless that is just TMDB falling back to the Original Title. No backdrop, runtime or genres.
 function fromSearchResult(result: AddCatalogItemRequest): CachedMetadata {
   const translated = result.title !== result.originalTitle ? result.title : null;
   return {
@@ -166,6 +170,7 @@ function fromSearchResult(result: AddCatalogItemRequest): CachedMetadata {
     originalTitle: result.originalTitle,
     year: result.year,
     posterPath: posterPathOf(result.posterUrl),
+    backdropPath: null,
     runtime: null,
     genres: null,
   };
@@ -211,17 +216,19 @@ export async function storeDetails(
   // An upsert from a select needs a where clause, or SQLite reads "on" as a join's.
   await db.run(sql`
     insert into ${tmdbCache} (media_type, external_id, english_title, ukrainian_title,
-      original_title, year, poster_path, runtime, genres, updated_at, detailed_at, checked_at)
+      original_title, year, poster_path, backdrop_path, runtime, genres, updated_at, detailed_at,
+      checked_at)
     select value ->> 'mediaType', value ->> 'externalId', value ->> 'englishTitle',
       value ->> 'ukrainianTitle', value ->> 'originalTitle', value ->> 'year',
-      value ->> 'posterPath', value ->> 'runtime', value -> 'genres', ${at}, ${at}, null
+      value ->> 'posterPath', value ->> 'backdropPath', value ->> 'runtime', value -> 'genres',
+      ${at}, ${at}, null
     from json_each(${rows}) where true
     on conflict (media_type, external_id) do update set
       english_title = excluded.english_title, ukrainian_title = excluded.ukrainian_title,
       original_title = excluded.original_title, year = excluded.year,
-      poster_path = excluded.poster_path, runtime = excluded.runtime, genres = excluded.genres,
-      updated_at = excluded.updated_at, detailed_at = excluded.detailed_at,
-      checked_at = excluded.checked_at`);
+      poster_path = excluded.poster_path, backdrop_path = excluded.backdrop_path,
+      runtime = excluded.runtime, genres = excluded.genres, updated_at = excluded.updated_at,
+      detailed_at = excluded.detailed_at, checked_at = excluded.checked_at`);
 }
 
 export interface AddedMediaItem {

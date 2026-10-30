@@ -9,6 +9,7 @@ interface FakeFilm {
   original_title: string;
   release_date: string;
   poster_path: string | null;
+  backdrop_path: string | null;
   // Localized Titles by TMDB language. Like TMDB, a missing one comes back as the Original Title.
   titles: Partial<Record<SearchLanguage, string>>;
   runtime: number;
@@ -21,15 +22,18 @@ const films: FakeFilm[] = [
     original_title: "Alien",
     release_date: "1979-05-25",
     poster_path: "/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
+    backdrop_path: "/AmR3JG1VQVxU8TfAvljUhfSFUOx.jpg",
     titles: { "en-US": "Alien", "uk-UA": "Чужий" },
     runtime: 117,
     genres: ["Horror", "Science Fiction"],
   },
+  // Its backdrop is left out, so tests can meet a film with a poster and no backdrop.
   {
     id: 679,
     original_title: "Aliens",
     release_date: "1986-07-18",
     poster_path: "/r1x5JGpyqZU8PYhbs4UcrO1Xb6x.jpg",
+    backdrop_path: null,
     titles: { "en-US": "Aliens", "uk-UA": "Чужі" },
     runtime: 137,
     genres: ["Action", "Thriller", "Science Fiction"],
@@ -39,6 +43,7 @@ const films: FakeFilm[] = [
     original_title: "Le Fabuleux Destin d'Amélie Poulain",
     release_date: "2001-04-25",
     poster_path: "/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
+    backdrop_path: "/6n53UI4mX9QMfe2S0Pgt8mGebY1.jpg",
     titles: { "en-US": "Amélie", "uk-UA": "Амелі" },
     runtime: 122,
     genres: ["Comedy", "Romance"],
@@ -48,6 +53,7 @@ const films: FakeFilm[] = [
     original_title: "Тіні забутих предків",
     release_date: "1965-10-18",
     poster_path: "/znV2lj6cbJGO7LZCAafXoDtvt2w.jpg",
+    backdrop_path: "/9UQoFWYiNU1NIz7pQlg5Wnub9In.jpg",
     titles: { "en-US": "Shadows of Forgotten Ancestors", "uk-UA": "Тіні забутих предків" },
     runtime: 97,
     genres: ["Drama", "Romance"],
@@ -58,6 +64,7 @@ const films: FakeFilm[] = [
     original_title: "The Matrix",
     release_date: "1999-03-30",
     poster_path: null,
+    backdrop_path: "/tlm8UkiQsitc8rSuIAscQDCnP8d.jpg",
     titles: { "en-US": "The Matrix", "uk-UA": "Матриця" },
     runtime: 136,
     genres: ["Action", "Science Fiction"],
@@ -68,6 +75,7 @@ const films: FakeFilm[] = [
     original_title: "TMDB Fake Details Failure",
     release_date: "2020-01-01",
     poster_path: null,
+    backdrop_path: null,
     titles: { "en-US": "TMDB Fake Details Failure" },
     runtime: 90,
     genres: ["Drama"],
@@ -108,6 +116,7 @@ function newFilm(id: string): FakeFilm {
     original_title: `New film ${id}`,
     release_date: "2020-01-01",
     poster_path: null,
+    backdrop_path: null,
     titles: {},
     runtime: 90,
     genres: [],

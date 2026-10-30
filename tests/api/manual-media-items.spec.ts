@@ -40,6 +40,7 @@ test("a User adds a film by hand, with its Original Title, year, runtime and gen
       ukrainianTitle: null,
       year: 1965,
       posterUrl: null,
+      backdropUrls: null,
       runtime: 97,
       genres: ["Drama", "Romance"],
     },
@@ -59,6 +60,7 @@ test("only a title is needed, and the Original Title is then the title", async (
     ukrainianTitle: null,
     year: null,
     posterUrl: null,
+    backdropUrls: null,
     runtime: null,
     genres: [],
   });

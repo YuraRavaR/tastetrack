@@ -142,7 +142,8 @@ export const mediaItems = sqliteTable(
 
 // The disposable TMDB metadata cache (ADR-0004), keyed by External Reference; the External Source
 // is TMDB for every row. It can be wiped at any time without losing User data. A row filled from
-// a search result alone, when the details call failed, has no detailedAt and no runtime or genres.
+// a search result alone, when the details call failed, has no detailedAt, no backdrop and no
+// runtime or genres. A row filled before backdrops were kept has none until the cron refreshes it.
 // ukrainianTitle is null when TMDB has no Ukrainian title. englishTitle is TMDB's English title,
 // which TMDB itself falls back to the Original Title for; it is null only in a row filled from a
 // search result that didn't run in English. checkedAt is when the cron last tried to refresh the
@@ -157,6 +158,7 @@ export const tmdbCache = sqliteTable(
     originalTitle: text("original_title").notNull(),
     year: integer("year"),
     posterPath: text("poster_path"),
+    backdropPath: text("backdrop_path"),
     runtime: integer("runtime"),
     genres: text("genres", { mode: "json" }).$type<string[]>(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
