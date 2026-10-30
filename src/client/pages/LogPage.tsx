@@ -67,7 +67,7 @@ export function LogPage() {
 function LogEntryItem({ entry, loading }: { entry: LogEntry; loading: boolean }) {
   return (
     <li className="flex gap-3 px-3 py-3">
-      <Poster item={entry.mediaItem} size="thumbnail" />
+      <Poster subject={entry.mediaItem} size="thumbnail" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <Link
           to={`/items/${entry.mediaItem.id}`}

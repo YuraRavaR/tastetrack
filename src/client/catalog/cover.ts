@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import type { MediaItem, MediaType } from "../../shared/api";
 import type { MessageId } from "../i18n/t";
-import type { Found } from "./found";
+import { type Found, foundMediaType } from "./found";
 
 export type CoverShape = "2:3";
 
@@ -26,25 +26,21 @@ export function coverShape(mediaType: MediaType): CoverShape {
 
 export interface Cover {
   url: string | null;
-  // Null for a search result not yet in the catalog.
+  // Null for a TMDB search result, which names no Media Item.
   mediaItemId: number | null;
   mediaType: MediaType;
 }
 
-export function coverOf(item: MediaItem | Found): Cover {
-  if (!("kind" in item)) {
+export function coverOf(subject: MediaItem | Found): Cover {
+  if (!("kind" in subject)) {
     return {
-      url: item.metadata?.posterUrl ?? null,
-      mediaItemId: item.id,
-      mediaType: item.mediaType,
+      url: subject.metadata?.posterUrl ?? null,
+      mediaItemId: subject.id,
+      mediaType: subject.mediaType,
     };
   }
-  if (item.kind === "manual") return coverOf(item.mediaItem);
-  return {
-    url: item.posterUrl,
-    mediaItemId: null,
-    mediaType: item.externalReference.mediaType,
-  };
+  if (subject.kind === "manual") return coverOf(subject.mediaItem);
+  return { url: subject.posterUrl, mediaItemId: null, mediaType: foundMediaType(subject) };
 }
 
 export interface Placeholder {
@@ -67,8 +63,8 @@ const placeholders: readonly Placeholder[] = [
   { icon: Glasses, caption: "poster.caption.incognito" },
 ];
 
-// One of the placeholders, the same for a film every time, by its Media Item's id. A search result
-// not yet in the catalog has no id, so it gets the film icon.
+// One of the placeholders, the same for a Media Item every time, by its id. A search result that
+// names no Media Item gets the film icon.
 export function placeholderFor(mediaItemId: number | null): Placeholder {
   if (mediaItemId === null) return filmPlaceholder;
   return placeholders[mediaItemId % placeholders.length] ?? filmPlaceholder;

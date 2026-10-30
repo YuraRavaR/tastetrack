@@ -86,7 +86,7 @@ export function HomeBacklogSection() {
 function HomeBacklogItem({ item, loading }: { item: ListItem; loading: boolean }) {
   return (
     <li className="flex gap-3 px-3 py-3">
-      <Poster item={item.mediaItem} size="thumbnail" />
+      <Poster subject={item.mediaItem} size="thumbnail" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <Link
           to={`/items/${item.mediaItem.id}`}

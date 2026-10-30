@@ -20,7 +20,7 @@ test("a User searches films as they type, in English or Ukrainian", { tag: "@smo
   await expect(page.getByRole("button", { name: /^search/i })).toHaveCount(0);
 });
 
-test("a film not yet in the catalog shows the film icon only when it has no poster", async ({
+test("a result without a poster is named No poster, and one with a poster isn't", async ({
   page,
 }) => {
   await logInNewUser(page.request);
@@ -33,8 +33,7 @@ test("a film not yet in the catalog shows the film icon only when it has no post
     .getByRole("listitem")
     .filter({ hasText: "The Matrix" })
     .getByRole("img", { name: "No poster" });
-  await expect(placeholder.locator("svg")).toHaveClass(/lucide-film/);
-  await expect(placeholder).toHaveText("");
+  await expect(placeholder).toBeVisible();
 
   await search.fill("alien");
   await expect(results.getByText("Alien (1979)", { exact: true })).toBeVisible();

@@ -75,7 +75,7 @@ export function SharedListPage() {
             const mediaItem = fill.filled(item.mediaItem);
             return (
               <li key={item.position} className="flex gap-3 px-3 py-3">
-                <Poster item={mediaItem} size="thumbnail" />
+                <Poster subject={mediaItem} size="thumbnail" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <FilmTitle metadata={mediaItem.metadata} loading={fill.loading(item.mediaItem)} />
                   {item.note && (
