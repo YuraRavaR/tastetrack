@@ -1,14 +1,12 @@
-import { ListPlus } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { ItemHistoryResponse, LogEntry } from "../../shared/api";
 import * as api from "../api";
-import { filmLabel } from "../catalog/film-label";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
+import { FilmActions } from "../components/FilmActions";
 import { FilmBanner } from "../components/FilmBanner";
-import { FilmListsDialog, type ListsFilm } from "../components/FilmListsDialog";
 import { FilmFacts, FilmTitle } from "../components/FilmTitle";
 import { ItemHistoryRow } from "../components/ItemHistoryRow";
 import { ItemHistoryStats } from "../components/ItemHistoryStats";
@@ -33,12 +31,12 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
   }
 }
 
-// One film's Item History: a banner, tiles for how the User watched and rated it, and every Log
-// Entry, newest first, each of which can be edited or deleted. The Worker sends them in Log Order,
-// and the page only reverses that for display. After an edit or a delete it reloads, so the order and
-// the Current Rating are always the Worker's. The film can be added to or taken off the User's
-// Lists. A film the User added manually can be edited too, or deleted with everything that goes
-// with it.
+// One film's Item History: a banner, tiles for how the User watched and rated it, the actions they
+// can take on it, and every Log Entry, newest first, each of which can be edited or deleted. A film
+// with no Log Entries has no tiles, and says what will show where its entries go. The Worker sends
+// them in Log Order, and the page only reverses that for display. After a new entry, an edit or a
+// delete it reloads, so the order and the Current Rating are always the Worker's. A film the User
+// added manually can be edited too, or deleted with everything that goes with it.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();
@@ -48,7 +46,6 @@ export function ItemHistoryPage() {
   const [deleting, setDeleting] = useState<LogEntry | null>(null);
   const [editingFilm, setEditingFilm] = useState(false);
   const [deletingFilm, setDeletingFilm] = useState(false);
-  const [listing, setListing] = useState<ListsFilm | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,26 +83,19 @@ export function ItemHistoryPage() {
           <FilmTitle metadata={mediaItem.metadata} />
         </h1>
         <FilmFacts metadata={mediaItem.metadata} />
-        {logEntries.length === 0 && (
-          <p className="text-muted-foreground text-sm">{t("itemHistory.notExperienced")}</p>
-        )}
       </div>
       {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            setListing({
-              label: mediaItem.metadata ? filmLabel(mediaItem.metadata) : t("film.unknown"),
-              mediaItem: async () => mediaItem,
-            })
-          }
-        >
-          <ListPlus aria-hidden />
-          {t("filmLists.open")}
-        </Button>
-      </div>
+      <FilmActions
+        history={state.history}
+        onLogged={reload}
+        onPlanned={(inBacklog) =>
+          setState((current) =>
+            current.status === "loaded"
+              ? { ...current, history: { ...current.history, inBacklog } }
+              : current,
+          )
+        }
+      />
       {manual && (
         <div className="flex flex-col gap-3">
           <p className="text-muted-foreground text-sm">{t("manualItem.addedByYou")}</p>
@@ -119,11 +109,11 @@ export function ItemHistoryPage() {
           </div>
         </div>
       )}
-      {logEntries.length > 0 && (
-        <div className="flex flex-col gap-2.5">
-          <h2 id={historyHeadingId} className="font-semibold text-lg tracking-tight">
-            {mediaWord(mediaItem.mediaType, "history")}
-          </h2>
+      <div className="flex flex-col gap-2.5">
+        <h2 id={historyHeadingId} className="font-semibold text-lg tracking-tight">
+          {mediaWord(mediaItem.mediaType, "history")}
+        </h2>
+        {logEntries.length > 0 ? (
           <ul
             aria-labelledby={historyHeadingId}
             className="flex flex-col divide-y rounded-lg border bg-card"
@@ -137,8 +127,15 @@ export function ItemHistoryPage() {
               />
             ))}
           </ul>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col gap-1 rounded-lg border border-input border-dashed px-4 py-5 text-center">
+            <p className="font-medium">{mediaWord(mediaItem.mediaType, "historyEmpty")}</p>
+            <p className="text-muted-foreground text-sm">
+              {mediaWord(mediaItem.mediaType, "historyEmptyHint")}
+            </p>
+          </div>
+        )}
+      </div>
       <EditLogEntryDialog
         entry={editing}
         onClose={() => setEditing(null)}
@@ -151,7 +148,6 @@ export function ItemHistoryPage() {
           setEditing(null);
         }}
       />
-      <FilmListsDialog film={listing} onClose={() => setListing(null)} />
       <DeleteLogEntryDialog
         entry={deleting}
         onClose={() => setDeleting(null)}

@@ -229,7 +229,7 @@ test("a User opens a film's Item History from the Log, edits an entry and delete
   await page.getByRole("button", { name: "Actions for Oct 1, 2026" }).click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
   await confirm.getByRole("button", { name: "Delete" }).click();
-  await expect(page.getByText("Not watched yet")).toBeVisible();
+  await expect(page.getByText("No viewings yet")).toBeVisible();
   await expect(entries).toHaveCount(0);
   await expect(stats).toHaveCount(0);
 });

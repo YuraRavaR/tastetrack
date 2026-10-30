@@ -20,7 +20,7 @@ import {
   toStars,
 } from "../../shared/log";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
-import { takeOffBacklog } from "../lists/backlog";
+import { isInBacklog, takeOffBacklog } from "../lists/backlog";
 
 const logEntryColumns = {
   id: logEntries.id,
@@ -173,7 +173,7 @@ export async function userLog(
 }
 
 // The User's Item History of a Media Item, or null when there is no such Media Item they may see.
-// Two queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
+// Three queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
 // columns would collide.
 export async function itemHistory(
   db: DrizzleD1Database,
@@ -181,7 +181,7 @@ export async function itemHistory(
   mediaItemId: number,
   now: Date,
 ): Promise<ItemHistoryResponse | null> {
-  const [[item], rows] = await Promise.all([
+  const [[item], rows, inBacklog] = await Promise.all([
     db
       .select(mediaItemColumns)
       .from(mediaItems)
@@ -190,6 +190,7 @@ export async function itemHistory(
     selectLog(db, now)
       .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))
       .orderBy(logEntries.id),
+    isInBacklog(db, userId, mediaItemId),
   ]);
   if (!item) return null;
   const current = currentRating(rows);
@@ -197,6 +198,7 @@ export async function itemHistory(
     mediaItem: toMediaItem(item),
     logEntries: inLogOrder(rows).map(toLogEntry),
     currentRating: current === null ? null : toStars(current),
+    inBacklog,
   };
 }
 

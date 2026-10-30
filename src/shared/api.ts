@@ -490,13 +490,15 @@ export const MediaItemParams = z.object({
   mediaItemId: z.coerce.number().int().positive().openapi({ example: 42 }),
 });
 
-// One User's Item History of a Media Item: every Log Entry for it in Log Order, and the Current
-// Rating, which is the last one's Rating. A film the User hasn't experienced has neither.
+// One User's Item History of a Media Item: every Log Entry for it in Log Order, the Current Rating,
+// which is the last one's Rating, and whether it is in their Backlog. A film the User hasn't
+// experienced has neither Log Entries nor a Current Rating.
 export const ItemHistoryResponse = z
   .object({
     mediaItem: MediaItem,
     logEntries: z.array(LogEntry),
     currentRating: Rating.nullable(),
+    inBacklog: z.boolean(),
   })
   .openapi("ItemHistoryResponse");
 

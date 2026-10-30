@@ -1,4 +1,4 @@
-import { Bookmark, Check, ListPlus, X } from "lucide-react";
+import { Bookmark, Check, ListPlus } from "lucide-react";
 import { useId, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -25,25 +25,10 @@ import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
 import { Poster } from "./Poster";
 import { SearchField } from "./SearchField";
-import { UndoLine } from "./UndoLine";
-
-// What the toast says after each of the User's actions on a result, but logging, which says more.
-const actionMessages = {
-  putBack: "backlog.putBack",
-  planned: "backlog.planned",
-  unplanned: "backlog.takenOff",
-  added: "manualItem.added",
-} as const;
+import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
 // The User's last action on a result, which the toast reports.
-type LastAction =
-  | {
-      kind: "logged";
-      found: Found;
-      mediaItemId: number;
-      removedFromBacklog: RemovedListItem | null;
-    }
-  | { kind: keyof typeof actionMessages; found: Found };
+type LastAction = FilmAction & { found: Found };
 
 // What the toast fills in: the film, and the Backlog of its Media Type.
 function actionValues(found: Found) {
@@ -176,8 +161,6 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
     setLastAction({ kind: "added", found });
   }
 
-  const takenOff = lastAction?.kind === "logged" ? lastAction.removedFromBacklog : null;
-
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
@@ -196,49 +179,15 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
         {search.status === "searching" && t("search.searching")}
         {search.status === "done" && search.results.length === 0 && t("search.none")}
       </p>
-      {/* A toast floats above the tab bar, so it shows from any result and never moves the list. */}
-      <div
-        role="status"
-        className="fixed inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-2 rounded-lg border bg-popover py-1 pr-1 pl-4 text-popover-foreground text-sm shadow-lg empty:hidden md:inset-x-auto md:bottom-6 md:left-1/2 md:w-max md:max-w-xl md:-translate-x-1/2"
-      >
+      <Toast onDismiss={() => setLastAction(null)}>
         {lastAction && (
-          <>
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              {lastAction.kind === "logged" ? (
-                <>
-                  <p>
-                    {t("logEntry.saved", { film: foundLabel(lastAction.found) })}{" "}
-                    <Link
-                      to="/log"
-                      className="text-primary-strong underline-offset-4 hover:underline"
-                    >
-                      {t("log.view")}
-                    </Link>
-                  </p>
-                  {takenOff && (
-                    <UndoLine
-                      message={t("backlog.takenOff", actionValues(lastAction.found))}
-                      onUndo={() => undo(lastAction.found, lastAction.mediaItemId, takenOff)}
-                    />
-                  )}
-                </>
-              ) : (
-                <p>{t(actionMessages[lastAction.kind], actionValues(lastAction.found))}</p>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-11 md:size-9"
-              aria-label={t("search.dismiss")}
-              title={t("search.dismiss")}
-              onClick={() => setLastAction(null)}
-            >
-              <X aria-hidden />
-            </Button>
-          </>
+          <FilmActionMessage
+            action={lastAction}
+            {...actionValues(lastAction.found)}
+            onUndo={(mediaItemId, removed) => undo(lastAction.found, mediaItemId, removed)}
+          />
         )}
-      </div>
+      </Toast>
       {planError && (
         <p role="alert" className="text-destructive text-sm">
           {planError === "backlog_full"
@@ -359,8 +308,8 @@ function SearchResult({
             className="size-11 md:size-9"
             disabled={planning}
             aria-pressed={inBacklog}
-            aria-label={t("search.planned")}
-            title={t("search.planned")}
+            aria-label={mediaWord(foundMediaType(found), "planned")}
+            title={mediaWord(foundMediaType(found), "planned")}
             onClick={onTogglePlanned}
           >
             <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
