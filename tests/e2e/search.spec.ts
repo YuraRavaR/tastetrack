@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { alien, newFilm } from "../support/films";
+import { alien, aliens, amelie, newFilm } from "../support/films";
 import { callsRealTmdb } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
 
@@ -99,6 +99,27 @@ test("a User opens a result's film page and goes Back to the same results", asyn
       .getByRole("list", { name: "Search results" })
       .getByRole("link", { name: "Alien (1979)", exact: true }),
   ).toBeVisible();
+});
+
+test("going Back from a film's page returns to where the User was in the results", async ({
+  page,
+}) => {
+  await logInNewUser(page.request);
+  await Promise.all([alien(page.request), aliens(page.request), amelie(page.request)]);
+  await page.setViewportSize({ width: 390, height: 420 });
+  await page.goto("/?q=a");
+  const film = page.getByRole("link", { name: /^Amélie/ });
+  // In the middle of the screen, clear of the tab bar, so clicking it doesn't scroll the page.
+  await film.evaluate((link) => link.scrollIntoView({ block: "center" }));
+  const scrolled = await page.evaluate(() => window.scrollY);
+  expect(scrolled).toBeGreaterThan(0);
+
+  await film.click();
+  await expect(page).toHaveURL(/\/items\/\d+$/);
+  await page.goBack();
+
+  await expect(film).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrolled);
 });
 
 test("a film not in the catalog has a plain title, until the User adds it", async ({ page }) => {

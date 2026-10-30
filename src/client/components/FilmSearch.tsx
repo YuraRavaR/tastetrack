@@ -17,7 +17,7 @@ import {
   mediaItemOf,
 } from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
-import { useSearchQuery } from "../catalog/use-search-query";
+import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
@@ -66,6 +66,7 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
   const inputId = useId();
   const [query, setQuery] = useSearchQuery();
   const search = useCatalogSearch(query);
+  const rememberScroll = useResultsScroll(search.status === "done");
   const [logging, setLogging] = useState<Found | null>(null);
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const [addingManually, setAddingManually] = useState(false);
@@ -260,6 +261,7 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
               key={foundKey(found)}
               found={found}
               mediaItemId={mediaItemIdOf(found)}
+              onOpened={rememberScroll}
               inLog={inLog(found)}
               inBacklog={inBacklog(found)}
               planning={planning.has(foundKey(found))}
@@ -300,6 +302,7 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
 function SearchResult({
   found,
   mediaItemId,
+  onOpened,
   inLog,
   inBacklog,
   planning,
@@ -309,6 +312,7 @@ function SearchResult({
 }: {
   found: Found;
   mediaItemId: number | null;
+  onOpened: () => void;
   inLog: boolean;
   inBacklog: boolean;
   planning: boolean;
@@ -331,6 +335,7 @@ function SearchResult({
           {mediaItemId !== null ? (
             <Link
               to={`/items/${mediaItemId}`}
+              onClick={onOpened}
               className="break-words font-semibold underline-offset-4 hover:underline focus-visible:underline"
             >
               {foundLabel(found)}
