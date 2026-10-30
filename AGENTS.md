@@ -36,3 +36,7 @@ Default vocabulary: needs-triage, needs-info, ready-for-agent, ready-for-human, 
 ### Domain docs
 
 Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Cloud sessions
+
+Setting up or debugging a Claude Code cloud session: see `docs/agents/cloud-sessions.md`.
