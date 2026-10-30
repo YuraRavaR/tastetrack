@@ -58,7 +58,7 @@ After Save, the dialog closes and the toast "Added {film} to your Log." appears 
 | Key | Text | New? |
 | --- | --- | --- |
 | Eyebrow | Watched | reuses `search.watched` |
-| Dialog title | {film} | replaces `logEntry.title` "Log {film}" |
+| Dialog title | {film}, its label without the year: "Alien", "Чужий (Alien)" | replaces `logEntry.title` "Log {film}" |
 | Date chips | Today · Yesterday · Other date · No date | new, except `logEntry.noDate` |
 | Date input | Date watched (accessible name) | new |
 | Review placeholder | What stayed with you? | new |

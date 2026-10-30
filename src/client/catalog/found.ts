@@ -6,7 +6,7 @@ import type {
 } from "../../shared/api";
 import * as api from "../api";
 import { t } from "../i18n/t";
-import { filmLabel, filmYearAndRuntime } from "./film-label";
+import { filmLabel, filmName, filmYearAndRuntime } from "./film-label";
 
 // A film that search found: one of the User's own Manual Media Items, or a TMDB result, which
 // joins the catalog once a User acts on it, if none has yet.
@@ -55,6 +55,13 @@ export function foundLabel(found: Found): string {
   if (found.kind === "catalog") return filmLabel(found);
   const metadata = found.mediaItem.metadata;
   return metadata ? filmLabel(metadata) : t("film.unknown");
+}
+
+// "Alien", as filmName writes it.
+export function foundName(found: Found): string {
+  if (found.kind === "catalog") return filmName(found);
+  const metadata = found.mediaItem.metadata;
+  return metadata ? filmName(metadata) : t("film.unknown");
 }
 
 // "2001 · 122 min" as far as it is known. A TMDB result has no runtime until it joins the catalog.

@@ -15,7 +15,7 @@ test("a User marks a search result Watched, rates it and finds it in their Log",
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
 
   await alien.getByRole("button", { name: "Watched" }).click();
-  const dialog = page.getByRole("dialog", { name: "Alien (1979)" });
+  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await dialog.getByRole("radio", { name: "4.5 stars" }).check();
   await dialog.getByLabel("Review").fill("Still terrifying.");
   await dialog.getByRole("button", { name: "Save" }).click();
@@ -43,7 +43,7 @@ async function openWatchedDialog(page: Page) {
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) })
     .getByRole("button", { name: "Watched" })
     .click();
-  return page.getByRole("dialog", { name: "Alien (1979)" });
+  return page.getByRole("dialog", { name: "Alien", exact: true });
 }
 
 async function saveRatedEntry(page: Page, dialog: Locator) {
@@ -200,7 +200,7 @@ test("a User opens a film's Item History from the Log, edits an entry and delete
   // Moving the 2001 entry after the other makes it newest, and its Rating current.
   await page.getByRole("button", { name: "Actions for Sep 15, 2001" }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
   await expect(editing.getByRole("radio", { name: "3 stars" })).toBeChecked();
   await expect(editing.getByLabel("Review")).toHaveValue("First time.");
   await editing.getByLabel("Date watched").fill("2026-10-02");
@@ -286,7 +286,7 @@ test('the "⋯" menu holds Edit, a separator and Delete, and the page works afte
 
   // A dialog opened from the menu hands the page back when it closes.
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
   await editing.getByRole("button", { name: "Cancel" }).click();
   await expect(editing).toBeHidden();
   await page.getByRole("button", { name: "Add to list" }).click();
@@ -303,7 +303,7 @@ test("Rewatch is on when the film is already in the Log, and can be turned off",
     .getByRole("list", { name: "Search results" })
     .getByRole("listitem")
     .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
-  const dialog = page.getByRole("dialog", { name: "Alien (1979)" });
+  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   const rewatch = dialog.getByRole("switch", { name: "Rewatch" });
 
   await alien.getByRole("button", { name: "Watched" }).click();
@@ -335,7 +335,7 @@ test("editing opens on the chip that matches the entry's date", async ({ page })
     { rating: 4, date: "2001-09-15" },
   ]);
   await page.goto(`/items/${id}`);
-  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
 
   for (const [row, chip] of [
     ["Mar 15, 2026", "Today"],
@@ -368,7 +368,7 @@ test("Delete in the edit dialog asks first, then removes the entry", async ({ pa
 
   await page.getByRole("button", { name: "Actions for Sep 15, 2001" }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien" });
   await editing.getByRole("button", { name: "Delete" }).click();
   const confirm = page.getByRole("alertdialog", { name: "Delete this entry?" });
   await expect(editing).toBeHidden();

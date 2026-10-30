@@ -18,6 +18,11 @@ export function filmLabel({ title, originalTitle, year }: Titled): string {
   return title;
 }
 
+// The label without its year, for where the year shows apart: "Alien", "Чужий (Alien)".
+export function filmName({ title, originalTitle }: Omit<Titled, "year">): string {
+  return filmLabel({ title, originalTitle, year: null });
+}
+
 export interface Described {
   runtime: number | null;
   genres: string[];

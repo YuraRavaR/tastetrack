@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filmFacts, filmLabel, filmYearAndRuntime } from "./film-label";
+import { filmFacts, filmLabel, filmName, filmYearAndRuntime } from "./film-label";
 
 describe("a search result's label", () => {
   it("is the title and year when the title is the Original Title", () => {
@@ -15,6 +15,13 @@ describe("a search result's label", () => {
   it("leaves out an unknown year", () => {
     expect(filmLabel({ title: "Alien", originalTitle: "Alien", year: null })).toBe("Alien");
     expect(filmLabel({ title: "Чужий", originalTitle: "Alien", year: null })).toBe("Чужий (Alien)");
+  });
+});
+
+describe("a film's name", () => {
+  it("is its label without the year", () => {
+    expect(filmName({ title: "Alien", originalTitle: "Alien" })).toBe("Alien");
+    expect(filmName({ title: "Чужий", originalTitle: "Alien" })).toBe("Чужий (Alien)");
   });
 });
 

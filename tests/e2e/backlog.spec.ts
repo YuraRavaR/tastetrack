@@ -112,7 +112,7 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
   await search(page, "alien");
 
   await alien.getByRole("button", { name: "Watched" }).click();
-  const dialog = page.getByRole("dialog", { name: "Alien (1979)" });
+  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await expect(dialog.getByText("Saving takes it off your Watchlist")).toBeVisible();
   await dialog.getByRole("radio", { name: "4 stars" }).check();
   await dialog.getByRole("button", { name: "Save" }).click();

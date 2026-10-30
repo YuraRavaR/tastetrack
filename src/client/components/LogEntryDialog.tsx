@@ -18,12 +18,12 @@ import { cn } from "@/lib/utils";
 import type { LogEntry, MediaItem, MediaType } from "../../shared/api";
 import { earliestLogDate, latestLogDate, maxReviewLength } from "../../shared/log";
 import * as api from "../api";
-import { filmLabel, filmYearAndRuntime } from "../catalog/film-label";
+import { filmName, filmYearAndRuntime } from "../catalog/film-label";
 import {
   type Found,
   foundKey,
-  foundLabel,
   foundMediaType,
+  foundName,
   foundYearAndRuntime,
   mediaItemOf,
 } from "../catalog/found";
@@ -74,7 +74,7 @@ export function LogEntryDialog({
             key={foundKey(found)}
             subject={found}
             mediaType={foundMediaType(found)}
-            title={foundLabel(found)}
+            title={foundName(found)}
             yearAndRuntime={foundYearAndRuntime(found)}
             initial={{ rating: null, date: userToday(), review: "", revisit: inLog }}
             hint={
@@ -116,7 +116,7 @@ export function EditLogEntryDialog({
             subject={entry.mediaItem}
             mediaType={entry.mediaItem.mediaType}
             title={t("logEntry.editTitle", {
-              film: metadata ? filmLabel(metadata) : t("film.unknown"),
+              film: metadata ? filmName(metadata) : t("film.unknown"),
             })}
             yearAndRuntime={metadata ? filmYearAndRuntime(metadata) : null}
             initial={{
