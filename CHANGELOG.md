@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0](https://github.com/YuraRavaR/tastetrack/compare/v0.4.0...v0.5.0) (2026-10-30)
+
+
+### Features
+
+* add a film to Lists from home search and from its page ([#60](https://github.com/YuraRavaR/tastetrack/issues/60)) ([70cc984](https://github.com/YuraRavaR/tastetrack/commit/70cc984b65bc7610271903a711bf3e3b09ac629a))
+* lead home with the search and the latest Log Entries ([#67](https://github.com/YuraRavaR/tastetrack/issues/67)) ([8ef785b](https://github.com/YuraRavaR/tastetrack/commit/8ef785b3255a815ec442b9fd8ee8ddca7fc82d73))
+* navigate by section with a bottom tab bar and an account menu ([#79](https://github.com/YuraRavaR/tastetrack/issues/79)) ([74bbfda](https://github.com/YuraRavaR/tastetrack/commit/74bbfda298602a31065730ab2d0f6e9da974432e)), closes [#58](https://github.com/YuraRavaR/tastetrack/issues/58)
+* repaint the app in Gold · Paper, with red only for destructive actions ([#78](https://github.com/YuraRavaR/tastetrack/issues/78)) ([1ddf1f1](https://github.com/YuraRavaR/tastetrack/commit/1ddf1f1c7e41b2d3a5c73b2a5b65f40c7c9920c1)), closes [#63](https://github.com/YuraRavaR/tastetrack/issues/63)
+* show the top of the Watchlist beside the Log on home ([#77](https://github.com/YuraRavaR/tastetrack/issues/77)) ([f43a64d](https://github.com/YuraRavaR/tastetrack/commit/f43a64d619d014abd4f216132afa17b565b7eebd))
+
 ## [0.4.0](https://github.com/YuraRavaR/tastetrack/compare/v0.3.0...v0.4.0) (2026-10-26)
 
 
