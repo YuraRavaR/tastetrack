@@ -17,7 +17,25 @@ test("a User searches films as they type, in English or Ukrainian", { tag: "@smo
   await search.fill("чужий");
   await expect(results.getByText("Чужий (Alien, 1979)", { exact: true })).toBeVisible();
   await expect(results.getByText("Alien (1979)", { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /search/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^search/i })).toHaveCount(0);
+});
+
+test("a User clears the search with one click and can type again", async ({ page }) => {
+  await logInNewUser(page.request);
+  await page.goto("/");
+  const search = page.getByRole("searchbox", { name: "Search films" });
+  const results = page.getByRole("list", { name: "Search results" });
+  const clear = page.getByRole("button", { name: "Clear search" });
+
+  await expect(clear).toHaveCount(0);
+  await search.fill("alien");
+  await expect(results.getByText("Alien (1979)", { exact: true })).toBeVisible();
+  await clear.click();
+
+  await expect(search).toHaveValue("");
+  await expect(search).toBeFocused();
+  await expect(results).toHaveCount(0);
+  await expect(clear).toHaveCount(0);
 });
 
 test("typing a title makes one search once the User pauses", async ({ page }) => {

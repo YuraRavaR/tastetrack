@@ -1,10 +1,9 @@
 import { ListCheck } from "lucide-react";
 import { useId, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { List } from "../../shared/api";
-import { maxSearchQueryLength } from "../../shared/catalog";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import {
@@ -18,6 +17,7 @@ import {
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { t } from "../i18n/t";
 import { Poster } from "./Poster";
+import { SearchField } from "./SearchField";
 
 // Search as you type, as on the home page, the User's own Manual Media Items first, where each
 // film not yet in the List can be added to its end. `onAdded` reloads the List, which then marks
@@ -55,15 +55,7 @@ export function AddToListSearch({ list, onAdded }: { list: List; onAdded: () => 
     <section aria-label={t("list.addLabel")} className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
         <Label htmlFor={inputId}>{t("search.label")}</Label>
-        <Input
-          id={inputId}
-          type="search"
-          autoComplete="off"
-          maxLength={maxSearchQueryLength}
-          placeholder={t("search.placeholder")}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
+        <SearchField id={inputId} value={query} onChange={setQuery} />
       </div>
       <p aria-live="polite" className="text-muted-foreground text-sm empty:hidden">
         {search.status === "searching" && t("search.searching")}
@@ -96,10 +88,10 @@ export function AddToListSearch({ list, onAdded }: { list: List; onAdded: () => 
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="break-words">{foundLabel(found)}</span>
                   {inList.has(key) && (
-                    <span className="flex items-center gap-1 text-muted-foreground text-sm">
-                      <ListCheck aria-hidden className="size-4 text-primary" />
+                    <Badge variant="soft">
+                      <ListCheck aria-hidden />
                       {t("list.inList")}
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 {!inList.has(key) && (
