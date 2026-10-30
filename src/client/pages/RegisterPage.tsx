@@ -116,7 +116,7 @@ export function RegisterPage() {
         </form>
         <p className="text-center text-muted-foreground text-sm">
           {t("register.loginPrompt")}{" "}
-          <Link to="/login" className="text-primary underline-offset-4 hover:underline">
+          <Link to="/login" className="text-primary-strong underline-offset-4 hover:underline">
             {t("register.loginLink")}
           </Link>
         </p>

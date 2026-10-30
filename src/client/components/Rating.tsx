@@ -19,7 +19,7 @@ function StarShape({ fill, className }: { fill: 0 | 0.5 | 1; className: string }
             fill === 1 ? "w-full" : "w-1/2",
           )}
         >
-          <Star className={cn("fill-primary text-primary", className)} />
+          <Star className={cn("fill-primary text-primary-strong", className)} />
         </span>
       )}
     </span>
@@ -72,7 +72,7 @@ export function RatingInput({
                 aria-label={t("rating.stars", { stars: rating })}
                 aria-invalid={invalid || undefined}
                 className={cn(
-                  "absolute inset-y-0 w-1/2 cursor-pointer appearance-none rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                  "absolute inset-y-0 w-1/2 cursor-pointer appearance-none rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
                   rating === star ? "right-0" : "left-0",
                 )}
               />

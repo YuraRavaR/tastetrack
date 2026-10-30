@@ -84,6 +84,7 @@ export const en = {
   "newPassword.failed": "Couldn't set your password. Please try again.",
   "search.label": "Search films",
   "search.placeholder": "Title in English or Ukrainian",
+  "search.clear": "Clear search",
   "search.resultsLabel": "Search results",
   "search.searching": "Searching…",
   "search.none": "No films found.",

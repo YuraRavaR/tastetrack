@@ -1,11 +1,10 @@
 import { Bookmark, CircleCheck, ListPlus, PencilLine } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { RemovedListItem } from "../../shared/api";
-import { maxSearchQueryLength } from "../../shared/catalog";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import {
@@ -22,6 +21,7 @@ import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
 import { Poster } from "./Poster";
+import { SearchField } from "./SearchField";
 import { UndoLine } from "./UndoLine";
 
 // What the status line says after the User's last action on a result.
@@ -161,15 +161,7 @@ export function FilmSearch({
         ) : (
           <Label htmlFor={inputId}>{t("search.label")}</Label>
         )}
-        <Input
-          id={inputId}
-          type="search"
-          autoComplete="off"
-          maxLength={maxSearchQueryLength}
-          placeholder={t("search.placeholder")}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
+        <SearchField id={inputId} value={query} onChange={setQuery} />
       </div>
       <p aria-live="polite" className="text-muted-foreground text-sm empty:hidden">
         {search.status === "searching" && t("search.searching")}
@@ -180,7 +172,7 @@ export function FilmSearch({
           <>
             <p>
               {t("logEntry.saved", { film: foundLabel(lastAction.found) })}{" "}
-              <Link to="/log" className="text-primary underline-offset-4 hover:underline">
+              <Link to="/log" className="text-primary-strong underline-offset-4 hover:underline">
                 {t("log.view")}
               </Link>
             </p>
@@ -297,16 +289,16 @@ function SearchResult({
             </span>
           )}
           {inLog && (
-            <span className="flex items-center gap-1 text-muted-foreground text-sm">
-              <CircleCheck aria-hidden className="size-4 text-primary" />
+            <Badge variant="soft">
+              <CircleCheck aria-hidden />
               {t("search.inLog")}
-            </span>
+            </Badge>
           )}
           {inBacklog && (
-            <span className="flex items-center gap-1 text-muted-foreground text-sm">
-              <Bookmark aria-hidden className="size-4 text-primary" />
+            <Badge variant="soft">
+              <Bookmark aria-hidden />
               {t("search.inBacklog")}
-            </span>
+            </Badge>
           )}
         </div>
       </div>

@@ -1,69 +1,80 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fontsource-variable/fraunces/wght-italic.css";
 
 /*
- * Theme tokens: the one place the app's colours, radius and font are set. Components use the
+ * Theme tokens: the one place the app's colours, radius and fonts are set. Components use the
  * semantic utilities these generate (bg-primary, text-muted-foreground, rounded-lg, font-sans),
  * never raw colours, so restyling the app means editing only this file. Dark mode follows the
  * system setting.
+ *
+ * Gold is too light to read on a light surface: fills use `primary`, with `primary-foreground` on
+ * them, and text, icons and outlines use `primary-strong`. Red is for destructive actions and errors, never the accent.
  */
 :root {
   --font:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --radius: 0.625rem;
+  /* The app name only. Everything else is in the sans, which has Cyrillic. */
+  --font-brand: "Fraunces Variable", Georgia, serif;
+  --radius: 0.875rem;
 
-  --background: oklch(0.985 0.002 75);
+  --background: oklch(0.97 0.012 80);
   --foreground: oklch(0.2 0.01 50);
-  --card: oklch(1 0 0);
+  --card: oklch(0.995 0.006 85);
   --card-foreground: oklch(0.2 0.01 50);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.995 0.006 85);
   --popover-foreground: oklch(0.2 0.01 50);
-  --primary: oklch(0.5 0.17 25);
-  --primary-foreground: oklch(0.985 0.002 75);
-  --secondary: oklch(0.95 0.006 60);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --secondary: oklch(0.935 0.016 75);
   --secondary-foreground: oklch(0.25 0.01 50);
-  --muted: oklch(0.95 0.006 60);
-  --muted-foreground: oklch(0.5 0.015 50);
-  --accent: oklch(0.94 0.012 40);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --accent: oklch(0.93 0.035 85);
   --accent-foreground: oklch(0.25 0.01 50);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(0.46 0.18 25);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0.008 60);
-  --input: oklch(0.88 0.008 60);
-  --ring: oklch(0.5 0.17 25);
+  --border: oklch(0.88 0.015 75);
+  --input: oklch(0.85 0.015 75);
+  --ring: oklch(0.55 0.012 55);
   /* Dims the page behind a dialog. */
   --overlay: oklch(0.2 0.01 50 / 50%);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.17 0.006 50);
+    --background: oklch(0.18 0.01 60);
     --foreground: oklch(0.96 0.004 75);
-    --card: oklch(0.21 0.007 50);
+    --card: oklch(0.22 0.012 60);
     --card-foreground: oklch(0.96 0.004 75);
-    --popover: oklch(0.21 0.007 50);
+    --popover: oklch(0.22 0.012 60);
     --popover-foreground: oklch(0.96 0.004 75);
-    --primary: oklch(0.68 0.16 25);
+    --primary: oklch(0.84 0.16 90);
     --primary-foreground: oklch(0.17 0.006 50);
-    --secondary: oklch(0.27 0.008 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --secondary: oklch(0.28 0.014 60);
     --secondary-foreground: oklch(0.96 0.004 75);
-    --muted: oklch(0.27 0.008 50);
-    --muted-foreground: oklch(0.72 0.012 60);
-    --accent: oklch(0.29 0.012 40);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --accent: oklch(0.3 0.03 85);
     --accent-foreground: oklch(0.96 0.004 75);
-    --destructive: oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(1 0 0 / 12%);
-    --input: oklch(1 0 0 / 16%);
-    --ring: oklch(0.68 0.16 25);
+    --destructive: oklch(0.66 0.2 22);
+    --destructive-foreground: oklch(0.17 0.006 50);
+    --border: oklch(1 0 0 / 11%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.66 0.012 60);
     --overlay: oklch(0 0 0 / 60%);
   }
 }
 
 @theme inline {
   --font-sans: var(--font);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --font-brand: var(--font-brand);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --color-background: var(--background);
@@ -74,6 +85,8 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
