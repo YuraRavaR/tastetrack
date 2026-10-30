@@ -1,6 +1,7 @@
-// The logged-in User's Backlog and own Lists: reading them, marking Media Items Planned, making,
-// renaming and deleting Lists and adding to them, reordering, noting and removing List Items, and
-// sharing any of them through a Share Link, which anyone can open without logging in.
+// The logged-in User's Backlog and own Lists: reading them, marking Media Items Planned and taking
+// them off again, making, renaming and deleting Lists and adding to them, reordering, noting and
+// removing List Items, and sharing any of them through a Share Link, which anyone can open without
+// logging in.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   BacklogQuery,
@@ -28,7 +29,7 @@ import { maxListItems, maxLists } from "../shared/lists";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import { fillMissingMetadata } from "./catalog/media-items";
 import { type AppEnv, tmdbConfig } from "./env";
-import { plan, userBacklog } from "./lists/backlog";
+import { plan, removeFromBacklog, userBacklog } from "./lists/backlog";
 import { editListItem, removeListItem } from "./lists/list-items";
 import {
   createShareLink,
@@ -100,6 +101,31 @@ const planRoute = createRoute({
     409: {
       content: { "application/json": { schema: ErrorResponse } },
       description: `The Backlog already holds ${maxListItems} items (\`backlog_full\`)`,
+    },
+  },
+});
+
+const unplanRoute = createRoute({
+  method: "delete",
+  path: "/backlog/items/{mediaItemId}",
+  summary: "Take a Media Item off the Backlog of its Media Type",
+  description:
+    "The mirror of marking a Media Item Planned, for a caller that holds no List Item id. Removes " +
+    "only its List Item in the logged-in User's Backlog: the Media Item, its place on the User's " +
+    "Lists and their Log Entries for it stay. The items after it move up one place.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: MediaItemParams },
+  responses: {
+    204: { description: "The Media Item is off the Backlog" },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Media Item id isn't a positive integer (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
+    404: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Media Item isn't in the User's Backlog (`unknown_list_item`)",
     },
   },
 });
@@ -483,6 +509,13 @@ listRoutes.openapi(planRoute, async (c) => {
   if (!planned.ok)
     return c.json({ error: planned.error }, planned.error === "backlog_full" ? 409 : 400);
   return c.json({ listItem: planned.listItem }, planned.created ? 201 : 200);
+});
+
+listRoutes.openapi(unplanRoute, async (c) => {
+  if (!(await removeFromBacklog(c.var.db, c.var.userId, c.req.valid("param").mediaItemId))) {
+    return c.json({ error: "unknown_list_item" }, 404);
+  }
+  return c.body(null, 204);
 });
 
 listRoutes.openapi(editRoute, async (c) => {

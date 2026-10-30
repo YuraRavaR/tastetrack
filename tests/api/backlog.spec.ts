@@ -226,6 +226,81 @@ test("another User's Backlog item, or one already removed, can be neither edited
   await other.dispose();
 });
 
+test("the User takes a film off the Backlog by its Media Item, and the rest keep their order", async ({
+  request,
+}) => {
+  await logInNewUser(request);
+  const first = await plan(request, { mediaItemId: (await alien(request)).id });
+  const second = await plan(request, { mediaItemId: (await aliens(request)).id });
+  const third = await plan(request, { mediaItemId: (await amelie(request)).id });
+
+  const response = await request.delete(`/api/backlog/items/${second.mediaItem.id}`);
+
+  expect(response.status()).toBe(204);
+  expect((await theBacklog(request)).items).toEqual([first, { ...third, position: 1 }]);
+});
+
+test("taking a film off keeps it on the User's Lists and in their Log", async ({ request }) => {
+  await logInNewUser(request);
+  const mediaItem = await alien(request);
+  const { logEntry } = await logFilm(request, mediaItem.id);
+  await plan(request, { mediaItemId: mediaItem.id });
+  const list = await (
+    await request.post("/api/lists", { data: { name: "Horror", mediaType: "film" } })
+  ).json();
+  const added = await request.post(`/api/lists/${list.list.id}/items`, {
+    data: { mediaItemId: mediaItem.id },
+  });
+  expect(added.status(), await added.text()).toBe(201);
+
+  const response = await request.delete(`/api/backlog/items/${mediaItem.id}`);
+
+  expect(response.status()).toBe(204);
+  expect((await theBacklog(request)).items).toEqual([]);
+  const kept = await (await request.get(`/api/lists/${list.list.id}`)).json();
+  expect(titlesOf(kept.list.items)).toEqual(["Alien"]);
+  expect((await (await request.get("/api/log-entries")).json()).logEntries).toEqual([logEntry]);
+});
+
+test("taking off a film that isn't on the Backlog is a 404", async ({ request }) => {
+  await logInNewUser(request);
+  const planned = await plan(request, { mediaItemId: (await alien(request)).id });
+  const neverPlanned = await aliens(request);
+  expect((await request.delete(`/api/backlog/items/${planned.mediaItem.id}`)).status()).toBe(204);
+
+  for (const id of [planned.mediaItem.id, neverPlanned.id, 2_000_000_000]) {
+    const response = await request.delete(`/api/backlog/items/${id}`);
+    expect(response.status(), `taking off ${id}`).toBe(404);
+    expect(await response.json()).toEqual({ error: "unknown_list_item" });
+  }
+});
+
+test("taking off a Media Item id that isn't a positive integer is a 400", async ({ request }) => {
+  await logInNewUser(request);
+
+  const response = await request.delete("/api/backlog/items/nope");
+
+  expect(response.status()).toBe(400);
+  expect(await response.json()).toEqual({ error: "invalid_request" });
+});
+
+test("taking a film off never touches another User's Backlog", async ({ request, playwright }) => {
+  await logInNewUser(request);
+  const mediaItemId = (await alien(request)).id;
+  await plan(request, { mediaItemId });
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+  await logInNewUser(other);
+  const theirs = await plan(other, { mediaItemId });
+
+  expect((await request.delete(`/api/backlog/items/${mediaItemId}`)).status()).toBe(204);
+  // Now only the other User has it, and that doesn't count as this User's.
+  expect((await request.delete(`/api/backlog/items/${mediaItemId}`)).status()).toBe(404);
+
+  expect((await theBacklog(other)).items).toEqual([theirs]);
+  expect((await theBacklog(request)).items).toEqual([]);
+  await other.dispose();
+});
+
 test("at 1,000 films the Backlog is full, until the User removes one", async ({ request }) => {
   const user = await logInNewUser(request);
   await fillBacklog(request, user, 999);
@@ -284,6 +359,7 @@ test("the Backlog can be neither deleted nor renamed", async ({ request }) => {
 test("without a session, the Backlog and its items are a 401", async ({ request }) => {
   expect((await request.get("/api/backlog", { params: { mediaType: "film" } })).status()).toBe(401);
   expect((await request.post("/api/backlog/items", { data: {} })).status()).toBe(401);
+  expect((await request.delete("/api/backlog/items/1")).status()).toBe(401);
   expect((await request.patch("/api/list-items/1", { data: {} })).status()).toBe(401);
   expect((await request.delete("/api/list-items/1")).status()).toBe(401);
 });
@@ -293,6 +369,8 @@ test("the OpenAPI spec describes the Backlog", async ({ request }) => {
 
   expect(spec.paths["/api/backlog"].get.security).toEqual([{ session: [] }]);
   expect(spec.paths["/api/backlog/items"].post.responses["409"]).toBeDefined();
+  expect(spec.paths["/api/backlog/items/{mediaItemId}"].delete.responses["204"]).toBeDefined();
+  expect(spec.paths["/api/backlog/items/{mediaItemId}"].delete.responses["404"]).toBeDefined();
   expect(spec.paths["/api/list-items/{listItemId}"].patch.responses["404"]).toBeDefined();
   expect(spec.paths["/api/list-items/{listItemId}"].delete.responses["204"]).toBeDefined();
   expect(spec.paths["/api/log-entries"].post.responses["201"]).toBeDefined();

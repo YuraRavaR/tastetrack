@@ -156,13 +156,32 @@ function userBacklogs(db: DrizzleD1Database, userId: number) {
     .where(and(eq(lists.userId, userId), eq(lists.kind, "backlog")));
 }
 
-// Takes a Media Item off the User's Backlog, for the batch that logs it: the first statement reads
-// where it was and its Note, so that planning it back there can undo this; the second removes it.
-export function takeOffBacklog(db: DrizzleD1Database, userId: number, mediaItemId: number) {
-  const inBacklog = and(
+// The Media Item's List Item in the User's Backlog of its Media Type.
+function inBacklogOf(db: DrizzleD1Database, userId: number, mediaItemId: number) {
+  return and(
     inArray(listItems.listId, userBacklogs(db, userId)),
     eq(listItems.mediaItemId, mediaItemId),
   );
+}
+
+// Removes a Media Item from the User's Backlog, and nothing else: its other List Items and any Log
+// Entries for it stay. False when it isn't there.
+export async function removeFromBacklog(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaItemId: number,
+): Promise<boolean> {
+  const removed = await db
+    .delete(listItems)
+    .where(inBacklogOf(db, userId, mediaItemId))
+    .returning({ id: listItems.id });
+  return removed.length > 0;
+}
+
+// Takes a Media Item off the User's Backlog, for the batch that logs it: the first statement reads
+// where it was and its Note, so that planning it back there can undo this; the second removes it.
+export function takeOffBacklog(db: DrizzleD1Database, userId: number, mediaItemId: number) {
+  const inBacklog = inBacklogOf(db, userId, mediaItemId);
   return [
     db.select({ position: listIndex, note: listItems.note }).from(listItems).where(inBacklog),
     db.delete(listItems).where(inBacklog),

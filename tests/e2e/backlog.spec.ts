@@ -25,7 +25,10 @@ test("a User plans films from search, then orders and notes their Watchlist", {
   const alien = searchResult(page, "Alien (1979)");
   await alien.getByRole("button", { name: "Want to watch" }).click();
   await expect(alien.getByText("On your Watchlist")).toBeVisible();
-  await expect(alien.getByRole("button", { name: "Want to watch" })).toHaveCount(0);
+  await expect(alien.getByRole("button", { name: "Want to watch" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await search(page, "aliens");
   const aliens = searchResult(page, "Aliens (1986)");
   await aliens.getByRole("button", { name: "Want to watch" }).click();
@@ -61,6 +64,38 @@ test("a User plans films from search, then orders and notes their Watchlist", {
   await expect(items.last()).toContainText("Watch with Olena.");
 });
 
+test("the bookmark in search puts a film on the Watchlist and takes it off again", async ({
+  page,
+}) => {
+  await logInNewUser(page.request);
+  await page.goto("/");
+  await search(page, "alien");
+  const alien = searchResult(page, "Alien (1979)");
+  const bookmark = alien.getByRole("button", { name: "Want to watch" });
+  await expect(bookmark).toHaveAttribute("aria-pressed", "false");
+
+  await bookmark.click();
+
+  await expect(page.getByText("Put Alien (1979) on your Watchlist.")).toBeVisible();
+  await expect(bookmark).toHaveAttribute("aria-pressed", "true");
+  await expect(alien.getByText("On your Watchlist")).toBeVisible();
+
+  await bookmark.click();
+
+  await expect(page.getByText("Took Alien (1979) off your Watchlist.")).toBeVisible();
+  await expect(bookmark).toHaveAttribute("aria-pressed", "false");
+  await expect(alien.getByText("On your Watchlist")).toHaveCount(0);
+  await page.getByRole("button", { name: "Dismiss" }).click();
+  await expect(page.getByText("Took Alien (1979) off your Watchlist.")).toHaveCount(0);
+
+  // It is off for good, not only on this screen.
+  await page.reload();
+  await search(page, "alien");
+  await expect(bookmark).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("link", { name: "Watchlist" }).click();
+  await expect(page.getByText("Your Watchlist is empty.")).toBeVisible();
+});
+
 test("logging a planned film takes it off the Watchlist, and Undo puts it back", async ({
   page,
 }) => {
@@ -86,8 +121,13 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
   await expect(alien.getByText("On your Watchlist")).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText("Put Alien (1979) back on your Watchlist.")).toBeVisible();
-  await expect(alien.getByText("On your Watchlist")).toBeVisible();
+  // One mark: the pressed bookmark already shows the Watchlist.
   await expect(alien.getByText("In your Log")).toBeVisible();
+  await expect(alien.getByText("On your Watchlist")).toHaveCount(0);
+  await expect(alien.getByRole("button", { name: "Want to watch" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await page.getByRole("link", { name: "Watchlist" }).click();
   const items = page.getByRole("list", { name: "Watchlist" }).getByRole("listitem");
   await expect(items.first()).toContainText("Alien (1979)");
