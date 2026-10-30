@@ -52,10 +52,6 @@ export function foundLabel(found: Found): string {
   return metadata ? filmLabel(metadata) : t("film.unknown");
 }
 
-export function foundPosterUrl(found: Found): string | null {
-  return found.kind === "catalog" ? found.posterUrl : null;
-}
-
 // The film's Media Item, adding a TMDB result to the catalog first; null when that fails.
 export async function mediaItemOf(found: Found): Promise<MediaItem | null> {
   return found.kind === "manual" ? found.mediaItem : api.addToCatalog(found);

@@ -6,14 +6,7 @@ import { Label } from "@/components/ui/label";
 import type { List } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
-import {
-  type Found,
-  foundKey,
-  foundLabel,
-  foundPosterUrl,
-  mediaItemKey,
-  mediaItemOf,
-} from "../catalog/found";
+import { type Found, foundKey, foundLabel, mediaItemKey, mediaItemOf } from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
@@ -85,7 +78,7 @@ export function AddToListSearch({ list, onAdded }: { list: List; onAdded: () => 
             const key = foundKey(found);
             return (
               <li key={key} className="flex items-center gap-3 px-3 py-2">
-                <Poster url={foundPosterUrl(found)} />
+                <Poster subject={found} size="thumbnail" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="break-words">{foundLabel(found)}</span>
                   {inList.has(key) && (

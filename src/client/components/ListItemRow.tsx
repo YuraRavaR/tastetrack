@@ -34,7 +34,7 @@ export function ListItemRow({
   return (
     <li className="flex flex-col gap-3 px-3 py-3">
       <div className="flex gap-3">
-        <Poster url={item.mediaItem.metadata?.posterUrl ?? null} />
+        <Poster subject={item.mediaItem} size="thumbnail" />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <Link
             to={`/items/${item.mediaItem.id}`}

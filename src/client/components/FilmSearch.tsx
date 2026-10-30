@@ -13,7 +13,6 @@ import {
   foundLabel,
   foundManual,
   foundMediaType,
-  foundPosterUrl,
   mediaItemOf,
 } from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
@@ -314,7 +313,7 @@ function SearchResult({
 
   return (
     <li className="flex items-start gap-3 p-3 md:items-center">
-      <Poster url={foundPosterUrl(found)} className="h-21 w-14 md:h-18 md:w-12" />
+      <Poster subject={found} size="search" />
       <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           {found.kind === "manual" ? (
