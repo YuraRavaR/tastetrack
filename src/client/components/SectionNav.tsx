@@ -1,5 +1,6 @@
 import { Bookmark, Clock, House, List, type LucideIcon } from "lucide-react";
 import { NavLink } from "react-router";
+import { pageMediaType } from "../i18n/media-words";
 import { type MessageId, t } from "../i18n/t";
 
 // The app's sections, the one list the header and the tab bar both render. A Media Type is a
@@ -7,7 +8,7 @@ import { type MessageId, t } from "../i18n/t";
 const sections: { to: string; icon: LucideIcon; label: MessageId }[] = [
   { to: "/", icon: House, label: "home.nav" },
   { to: "/log", icon: Clock, label: "log.nav" },
-  { to: "/watchlist", icon: Bookmark, label: "backlog.nav" },
+  { to: "/watchlist", icon: Bookmark, label: `mediaType.${pageMediaType}.backlog` },
   { to: "/lists", icon: List, label: "lists.nav" },
 ];
 

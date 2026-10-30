@@ -7,6 +7,7 @@ import { ListItemRow, listItemLabel } from "../components/ListItemRow";
 import { NoteDialog } from "../components/NoteDialog";
 import { ShareLinkPanel } from "../components/ShareLinkPanel";
 import { UndoLine } from "../components/UndoLine";
+import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
 
@@ -34,6 +35,7 @@ async function putBack({ mediaItem, position, note }: ListItem) {
 // be moved, noted or removed, and a removal undone. After each change the page reloads, so the
 // order is always the Worker's.
 export function BacklogPage() {
+  const backlogName = mediaWord(pageMediaType, "backlog");
   const [state, setState] = useState<BacklogState>({ status: "loading" });
   const reload = async () => setState(await loadBacklog());
   const editing = useListItemEditing({ reload, putBack });
@@ -55,7 +57,9 @@ export function BacklogPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h1 className="font-semibold text-2xl tracking-tight">{t("backlog.title")}</h1>
+        <h1 className="font-semibold text-2xl tracking-tight">
+          {t("backlog.title", { backlogName })}
+        </h1>
         {state.status === "loaded" && state.backlog.items.length > 0 && (
           <p className="text-muted-foreground text-sm">
             {t("films.count", { count: state.backlog.items.length })}
@@ -72,32 +76,31 @@ export function BacklogPage() {
       <div role="status" className="text-sm empty:hidden">
         {removed && (
           <UndoLine
-            message={t("backlog.removed", { film: listItemLabel(removed) })}
+            message={t("backlog.removed", { backlogName, film: listItemLabel(removed) })}
             onUndo={() => editing.undo(removed)}
           />
         )}
       </div>
       {error && (
         <p role="alert" className="text-destructive text-sm">
-          {error === "full" ? t("backlog.full", { max: maxListItems }) : t("backlog.updateFailed")}
+          {error === "full"
+            ? t("backlog.full", { backlogName, max: maxListItems })
+            : t("backlog.updateFailed", { backlogName })}
         </p>
       )}
       {state.status === "loading" && (
-        <p className="text-muted-foreground text-sm">{t("backlog.loading")}</p>
+        <p className="text-muted-foreground text-sm">{t("backlog.loading", { backlogName })}</p>
       )}
       {state.status === "failed" && (
         <p role="alert" className="text-destructive text-sm">
-          {t("backlog.unavailable")}
+          {t("backlog.unavailable", { backlogName })}
         </p>
       )}
       {state.status === "loaded" && state.backlog.items.length === 0 && (
-        <p className="text-muted-foreground text-sm">{t("backlog.empty")}</p>
+        <p className="text-muted-foreground text-sm">{t("backlog.empty", { backlogName })}</p>
       )}
       {state.status === "loaded" && state.backlog.items.length > 0 && (
-        <ul
-          aria-label={t("backlog.listLabel")}
-          className="flex flex-col divide-y rounded-lg border"
-        >
+        <ul aria-label={backlogName} className="flex flex-col divide-y rounded-lg border">
           {state.backlog.items.map((item, index, items) => (
             <ListItemRow
               key={item.id}

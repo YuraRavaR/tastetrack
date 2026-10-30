@@ -12,10 +12,12 @@ import {
   foundKey,
   foundLabel,
   foundManual,
+  foundMediaType,
   foundPosterUrl,
   mediaItemOf,
 } from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
+import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
@@ -42,6 +44,11 @@ type LastAction =
     }
   | { kind: keyof typeof actionMessages; found: Found };
 
+// What the toast fills in: the film, and the Backlog of its Media Type.
+function actionValues(found: Found) {
+  return { film: foundLabel(found), backlogName: mediaWord(foundMediaType(found), "backlog") };
+}
+
 type PlanError = "backlog_full" | "unavailable";
 
 // Search as you type, with no button: results follow a short pause in typing, the User's own
@@ -58,6 +65,8 @@ export function FilmSearch({
   labelAsHeading?: boolean;
   onSearchingChange?: (searching: boolean) => void;
 }) {
+  const searchLabel = mediaWord(pageMediaType, "search");
+  const backlogName = mediaWord(pageMediaType, "backlog");
   const inputId = useId();
   const [query, setQuery] = useState("");
   const search = useCatalogSearch(query);
@@ -166,11 +175,11 @@ export function FilmSearch({
         {labelAsHeading ? (
           <h1 className="font-semibold text-2xl tracking-tight">
             <Label htmlFor={inputId} className="font-semibold text-2xl leading-8">
-              {t("search.label")}
+              {searchLabel}
             </Label>
           </h1>
         ) : (
-          <Label htmlFor={inputId}>{t("search.label")}</Label>
+          <Label htmlFor={inputId}>{searchLabel}</Label>
         )}
         <SearchField id={inputId} value={query} onChange={setQuery} />
       </div>
@@ -199,13 +208,13 @@ export function FilmSearch({
                   </p>
                   {takenOff && (
                     <UndoLine
-                      message={t("backlog.takenOff", { film: foundLabel(lastAction.found) })}
+                      message={t("backlog.takenOff", actionValues(lastAction.found))}
                       onUndo={() => undo(lastAction.found, lastAction.mediaItemId, takenOff)}
                     />
                   )}
                 </>
               ) : (
-                <p>{t(actionMessages[lastAction.kind], { film: foundLabel(lastAction.found) })}</p>
+                <p>{t(actionMessages[lastAction.kind], actionValues(lastAction.found))}</p>
               )}
             </div>
             <Button
@@ -224,8 +233,8 @@ export function FilmSearch({
       {planError && (
         <p role="alert" className="text-destructive text-sm">
           {planError === "backlog_full"
-            ? t("backlog.full", { max: maxListItems })
-            : t("backlog.updateFailed")}
+            ? t("backlog.full", { backlogName, max: maxListItems })
+            : t("backlog.updateFailed", { backlogName })}
         </p>
       )}
       {search.status === "failed" && (
@@ -297,7 +306,11 @@ function SearchResult({
   onListed: () => void;
 }) {
   // One mark: a film back on the Watchlist for a Revisit shows its pressed bookmark.
-  const mark = inLog ? t("search.inLog") : inBacklog ? t("search.inBacklog") : null;
+  const mark = inLog
+    ? t("search.inLog")
+    : inBacklog
+      ? t("search.inBacklog", { backlogName: mediaWord(foundMediaType(found), "backlog") })
+      : null;
 
   return (
     <li className="flex items-start gap-3 p-3 md:items-center">
@@ -351,7 +364,7 @@ function SearchResult({
             onClick={onExperienced}
           >
             <Check aria-hidden />
-            {t("search.watched")}
+            {mediaWord(foundMediaType(found), "experienced")}
           </Button>
         </div>
       </div>

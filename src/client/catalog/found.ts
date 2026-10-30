@@ -1,4 +1,9 @@
-import type { CatalogSearchResult, ManualSearchResult, MediaItem } from "../../shared/api";
+import type {
+  CatalogSearchResult,
+  ManualSearchResult,
+  MediaItem,
+  MediaType,
+} from "../../shared/api";
 import * as api from "../api";
 import { t } from "../i18n/t";
 import { filmLabel } from "./film-label";
@@ -34,6 +39,10 @@ export function mediaItemKey(mediaItem: MediaItem): string {
 export function foundKey(found: Found): string {
   if (found.kind === "manual") return mediaItemKey(found.mediaItem);
   return `${found.externalReference.source}:${found.externalReference.id}`;
+}
+
+export function foundMediaType(found: Found): MediaType {
+  return found.kind === "manual" ? found.mediaItem.mediaType : found.externalReference.mediaType;
 }
 
 // "Alien (1979)", as filmLabel writes it.
