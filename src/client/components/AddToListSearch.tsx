@@ -15,6 +15,7 @@ import {
   mediaItemOf,
 } from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { Poster } from "./Poster";
 import { SearchField } from "./SearchField";
@@ -54,7 +55,7 @@ export function AddToListSearch({ list, onAdded }: { list: List; onAdded: () => 
   return (
     <section aria-label={t("list.addLabel")} className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <Label htmlFor={inputId}>{t("search.label")}</Label>
+        <Label htmlFor={inputId}>{mediaWord(list.mediaType, "search")}</Label>
         <SearchField id={inputId} value={query} onChange={setQuery} />
       </div>
       <p aria-live="polite" className="text-muted-foreground text-sm empty:hidden">

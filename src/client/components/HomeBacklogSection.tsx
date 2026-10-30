@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import type { Backlog, ListItem } from "../../shared/api";
 import * as api from "../api";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
+import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { FilmFacts, FilmTitle } from "./FilmTitle";
 import { Poster } from "./Poster";
@@ -18,6 +19,7 @@ const shown = 5;
 // linking to its Item History, and a link to the whole Watchlist. Its heading shows whatever state
 // the Backlog is in.
 export function HomeBacklogSection() {
+  const backlogName = mediaWord(pageMediaType, "backlog");
   const headingId = useId();
   const [state, setState] = useState<BacklogState>({ status: "loading" });
   const next = state.status === "loaded" ? state.backlog.items.slice(0, shown) : [];
@@ -42,28 +44,28 @@ export function HomeBacklogSection() {
     <section aria-labelledby={headingId}>
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <h2 id={headingId} className="font-semibold text-lg tracking-tight">
-          {t("home.backlog.title")}
+          {t("home.backlog.title", { backlogName })}
         </h2>
         {state.status === "loaded" && state.backlog.items.length > 0 && (
           <Link
             to="/watchlist"
             className="whitespace-nowrap text-muted-foreground text-sm underline-offset-4 hover:text-foreground hover:underline"
           >
-            {t("home.backlog.all", { count: state.backlog.items.length })}
+            {t("home.backlog.all", { backlogName, count: state.backlog.items.length })}
           </Link>
         )}
       </div>
       {state.status === "loading" && (
-        <p className="text-muted-foreground text-sm">{t("backlog.loading")}</p>
+        <p className="text-muted-foreground text-sm">{t("backlog.loading", { backlogName })}</p>
       )}
       {state.status === "failed" && (
         <p role="alert" className="text-destructive text-sm">
-          {t("backlog.unavailable")}
+          {t("backlog.unavailable", { backlogName })}
         </p>
       )}
       {state.status === "loaded" && state.backlog.items.length === 0 && (
         <p className="rounded-lg border px-3 py-4 text-muted-foreground text-sm">
-          {t("backlog.empty")}
+          {t("backlog.empty", { backlogName })}
         </p>
       )}
       {next.length > 0 && (
