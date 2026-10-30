@@ -329,6 +329,17 @@ export const en = {
   "film.runtime": "{minutes} min",
   "film.runtimeAndGenres": "{runtime} · {genres}",
   "films.count": "{count, plural, one {# film} other {# films}}",
+  "poster.none": "No poster",
+  "poster.caption.popcorn": "Eaten with the popcorn.",
+  "poster.caption.ghost": "This poster is a ghost.",
+  "poster.caption.makeup": "Still in makeup.",
+  "poster.caption.projector": "Lost in the projector.",
+  "poster.caption.notFound": "404: poster not found.",
+  "poster.caption.napping": "The poster is napping.",
+  "poster.caption.cat": "The cat knocked it down.",
+  "poster.caption.cannes": "Flew off to Cannes.",
+  "poster.caption.imagine": "Imagine something great.",
+  "poster.caption.incognito": "Poster went incognito.",
 } as const;
 
 export type MessageId = keyof typeof en;

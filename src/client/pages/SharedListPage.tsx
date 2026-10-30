@@ -72,12 +72,12 @@ export function SharedListPage() {
       ) : (
         <ul aria-label={list.title} className="flex flex-col divide-y rounded-lg border">
           {list.items.map((item) => {
-            const metadata = fill.filled(item.mediaItem).metadata;
+            const mediaItem = fill.filled(item.mediaItem);
             return (
               <li key={item.position} className="flex gap-3 px-3 py-3">
-                <Poster url={metadata?.posterUrl ?? null} />
+                <Poster item={mediaItem} size="thumbnail" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                  <FilmTitle metadata={metadata} loading={fill.loading(item.mediaItem)} />
+                  <FilmTitle metadata={mediaItem.metadata} loading={fill.loading(item.mediaItem)} />
                   {item.note && (
                     <p className="whitespace-pre-line break-words text-sm">{item.note}</p>
                   )}

@@ -85,7 +85,7 @@ export function HomeLogSection() {
 function HomeLogEntry({ entry, loading }: { entry: LogEntry; loading: boolean }) {
   return (
     <li className="flex gap-3 px-3 py-3">
-      <Poster url={entry.mediaItem.metadata?.posterUrl ?? null} />
+      <Poster item={entry.mediaItem} size="thumbnail" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <Link
           to={`/items/${entry.mediaItem.id}`}

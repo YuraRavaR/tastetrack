@@ -78,7 +78,7 @@ export function ItemHistoryPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-4">
-        <Poster url={mediaItem.metadata?.posterUrl ?? null} />
+        <Poster item={mediaItem} size="thumbnail" />
         <div className="flex min-w-0 flex-col gap-2">
           <h1 className="font-semibold text-2xl tracking-tight">
             <FilmTitle metadata={mediaItem.metadata} />
