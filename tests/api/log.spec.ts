@@ -384,6 +384,7 @@ test("a film's Item History has its Log Entries in Log Order, and the last one's
     mediaItem: alienItem,
     logEntries: [backdated, latest],
     currentRating: 4,
+    inBacklog: false,
   });
 });
 
@@ -402,7 +403,32 @@ test("the Item History of a film the User hasn't logged is empty, with no Curren
     mediaItem,
     logEntries: [],
     currentRating: null,
+    inBacklog: false,
   });
+});
+
+test("the Item History says whether the film is on the User's own Backlog", async ({
+  request,
+  playwright,
+}) => {
+  await logInNewUser(request);
+  const { id } = await addAlien(request);
+  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+  await logInNewUser(other);
+  expect((await other.post("/api/backlog/items", { data: { mediaItemId: id } })).status()).toBe(
+    201,
+  );
+  expect((await itemHistory(other, id)).inBacklog).toBe(true);
+  await other.dispose();
+  expect((await itemHistory(request, id)).inBacklog).toBe(false);
+
+  expect((await request.post("/api/backlog/items", { data: { mediaItemId: id } })).status()).toBe(
+    201,
+  );
+  expect((await itemHistory(request, id)).inBacklog).toBe(true);
+
+  expect((await request.delete(`/api/backlog/items/${id}`)).status()).toBe(204);
+  expect((await itemHistory(request, id)).inBacklog).toBe(false);
 });
 
 test("the Item History of an unknown Media Item is a 404", async ({ request }) => {

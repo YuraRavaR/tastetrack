@@ -130,7 +130,7 @@ test("a film added manually but never logged or planned is still reached from se
 
   await searchResult(page, wedding).getByRole("link", { name: wedding }).click();
 
-  await expect(page.getByText("Not watched yet")).toBeVisible();
+  await expect(page.getByText("No viewings yet")).toBeVisible();
   await page.getByRole("button", { name: "Delete film" }).click();
   const confirm = page.getByRole("alertdialog", { name: `Delete ${wedding}?` });
   await expect(confirm).toContainText("You have no Log Entries for it.");

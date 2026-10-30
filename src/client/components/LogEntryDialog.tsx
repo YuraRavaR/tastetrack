@@ -42,6 +42,21 @@ const userTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 const userToday = () => latestLogDate(new Date(), userTimeZone());
 
+// A new Log Entry's form: a Revisit when the User already has a Log Entry for the film.
+const newEntry = (inLog: boolean): FormValues => ({
+  rating: null,
+  date: userToday(),
+  review: "",
+  revisit: inLog,
+});
+
+// What the form warns of when saving takes the film off the Backlog.
+function backlogHint(mediaType: MediaType, inBacklog: boolean): string | null {
+  return inBacklog
+    ? t("logEntry.backlogHint", { backlogName: mediaWord(mediaType, "backlog") })
+    : null;
+}
+
 // Marks a film search found Experienced: asks for a Rating, and optionally a date, a Review and
 // whether it is a Revisit, then adds a TMDB result to the catalog and records the Log Entry, which
 // takes the film off the Backlog. `found` is the film to log; the dialog is open while it is set.
@@ -76,18 +91,48 @@ export function LogEntryDialog({
             mediaType={foundMediaType(found)}
             title={foundName(found)}
             yearAndRuntime={foundYearAndRuntime(found)}
-            initial={{ rating: null, date: userToday(), review: "", revisit: inLog }}
-            hint={
-              inBacklog
-                ? t("logEntry.backlogHint", {
-                    backlogName: mediaWord(foundMediaType(found), "backlog"),
-                  })
-                : null
-            }
+            initial={newEntry(inLog)}
+            hint={backlogHint(foundMediaType(found), inBacklog)}
             save={save}
             onSaved={(saved) => onLogged(found, saved)}
           />
         )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Marks a film Experienced from its page, as LogEntryDialog does from search, for a Media Item that
+// is already in the catalog. The dialog is open while `open` is set.
+export function MediaItemLogEntryDialog({
+  mediaItem,
+  open,
+  inLog,
+  inBacklog,
+  onClose,
+  onLogged,
+}: {
+  mediaItem: MediaItem;
+  open: boolean;
+  inLog: boolean;
+  inBacklog: boolean;
+  onClose: () => void;
+  onLogged: (saved: api.SavedLogEntry) => void;
+}) {
+  const { metadata, mediaType } = mediaItem;
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent showCloseButton={false} className={sheetClasses}>
+        <LogEntryForm
+          subject={mediaItem}
+          mediaType={mediaType}
+          title={metadata ? filmName(metadata) : t("film.unknown")}
+          yearAndRuntime={metadata ? filmYearAndRuntime(metadata) : null}
+          initial={newEntry(inLog)}
+          hint={backlogHint(mediaType, inBacklog)}
+          save={(fields) => api.createLogEntry({ mediaItemId: mediaItem.id, ...fields })}
+          onSaved={onLogged}
+        />
       </DialogContent>
     </Dialog>
   );

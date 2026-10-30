@@ -164,6 +164,19 @@ function inBacklogOf(db: DrizzleD1Database, userId: number, mediaItemId: number)
   );
 }
 
+// Whether the Media Item is in the User's Backlog of its Media Type.
+export async function isInBacklog(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaItemId: number,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: listItems.id })
+    .from(listItems)
+    .where(inBacklogOf(db, userId, mediaItemId));
+  return rows.length > 0;
+}
+
 // Removes a Media Item from the User's Backlog, and nothing else: its other List Items and any Log
 // Entries for it stay. False when it isn't there.
 export async function removeFromBacklog(
