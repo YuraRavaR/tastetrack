@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { chooseFromAccountMenu } from "../support/navigation";
 import { logInNewUser } from "../support/users";
 
 test("a User sets their Display Name and changes their password in Settings", async ({ page }) => {
   const user = await logInNewUser(page.request);
   await page.goto("/");
 
-  await page.getByRole("link", { name: "Settings" }).click();
+  await chooseFromAccountMenu(page, "Settings");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 
   const displayNameSection = page.getByRole("region", { name: "Display Name" });

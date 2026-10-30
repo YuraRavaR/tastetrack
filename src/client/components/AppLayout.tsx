@@ -1,70 +1,44 @@
-import { Settings } from "lucide-react";
-import { Link, Outlet } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Link, Outlet, useMatch } from "react-router";
+import { cn } from "@/lib/utils";
+import { version } from "../../../package.json";
 import tmdbLogo from "../assets/tmdb-logo.svg";
 import { useAuth } from "../auth";
 import { t } from "../i18n/t";
+import { AccountMenu } from "./AccountMenu";
+import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 
-// The frame of every page: a header with the app name and, once logged in, the User, the Log,
-// Watchlist, Lists, Invites and Settings pages and a logout action, above a single content
-// column, and a footer crediting TMDB as its terms require (ADR-0004). Mobile first: the column
-// fills a phone screen and stops widening on larger ones, the header wraps rather than overflow,
-// Settings is an icon, and the User's Display Name shows only where there is room. A User who
-// must set a new password gets only the logout action.
+// The frame of every page: a header above a content column, and a footer with the app version and
+// the credit TMDB's terms require (ADR-0004). Header and footer stop at `max-w-6xl`, which home
+// uses for its blocks side by side; every other page keeps the narrower column. Logged out, the
+// header holds only the app name. A logged-in User gets the sections, in a bottom tab bar on a
+// phone and in the header from `md`, and the account menu. A User who must set a new password gets
+// only the account menu, to log out.
 export function AppLayout() {
-  const { state, logOut } = useAuth();
+  const { state } = useAuth();
+  const authenticated = state.status === "authenticated";
+  const wide = useMatch("/") !== null;
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex min-h-14 w-full max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2 sm:py-0">
-          <Link to="/" className="font-brand font-semibold text-lg italic tracking-tight">
+    <div className="flex min-h-svh flex-col pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
+      <header className="border-b bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex min-h-14 w-full max-w-6xl items-center gap-7 px-4 md:min-h-15 md:px-6">
+          <Link
+            to="/"
+            className="flex min-h-11 items-center font-brand font-semibold text-lg italic tracking-tight"
+          >
             {t("app.name")}
           </Link>
-          {state.status === "passwordChangeRequired" && (
-            <Button variant="outline" size="sm" onClick={() => logOut()}>
-              {t("auth.logout")}
-            </Button>
-          )}
-          {state.status === "authenticated" && (
-            <div className="flex min-w-0 items-center sm:gap-3">
-              <span className="hidden truncate text-muted-foreground text-sm sm:inline">
-                {state.user.displayName}
-              </span>
-              <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
-                <Link to="/log">{t("log.nav")}</Link>
-              </Button>
-              <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
-                <Link to="/watchlist">{t("backlog.nav")}</Link>
-              </Button>
-              <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
-                <Link to="/lists">{t("lists.nav")}</Link>
-              </Button>
-              <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
-                <Link to="/invites">{t("invites.nav")}</Link>
-              </Button>
-              <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild>
-                <Link to="/settings" aria-label={t("settings.nav")} title={t("settings.nav")}>
-                  <Settings aria-hidden />
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-1 px-2 sm:ml-0 sm:px-3"
-                onClick={() => logOut()}
-              >
-                {t("auth.logout")}
-              </Button>
-            </div>
-          )}
+          {authenticated && <SectionHeaderLinks />}
+          {(authenticated || state.status === "passwordChangeRequired") && <AccountMenu />}
         </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
+      <main
+        className={cn("mx-auto w-full flex-1 px-4 py-6 md:px-6", wide ? "max-w-6xl" : "max-w-3xl")}
+      >
         <Outlet />
       </main>
       <footer className="border-t">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:gap-4">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:gap-4 md:px-6">
           <a
             href="https://www.themoviedb.org/"
             target="_blank"
@@ -74,8 +48,10 @@ export function AppLayout() {
             <img src={tmdbLogo} alt={t("attribution.tmdbLogo")} className="h-3 w-auto" />
           </a>
           <p className="text-muted-foreground text-xs">{t("attribution.tmdb")}</p>
+          <p className="shrink-0 text-muted-foreground text-xs">{t("app.version", { version })}</p>
         </div>
       </footer>
+      {authenticated && <SectionTabBar />}
     </div>
   );
 }

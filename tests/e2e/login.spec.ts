@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { logOut } from "../support/navigation";
 import { createUser } from "../support/users";
 
 test("a logged-out visitor is sent to the login page", async ({ page }) => {
@@ -23,7 +24,7 @@ test("a User logs in, lands where they were going, and logs out", { tag: "@smoke
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("banner")).toContainText(user.username);
 
-  await page.getByRole("button", { name: "Log out" }).click();
+  await logOut(page);
 
   await expect(page).toHaveURL("/login");
   await page.reload();

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { logOut } from "../support/navigation";
 import { createUser, resetPassword } from "../support/users";
 
 test("a User who logs in with a Temporary Password must set their own first", async ({ page }) => {
@@ -42,7 +43,7 @@ test("a User with a Temporary Password can log out instead", async ({ page }) =>
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL("/new-password");
 
-  await page.getByRole("button", { name: "Log out" }).click();
+  await logOut(page);
 
   await expect(page).toHaveURL("/login");
 });

@@ -45,7 +45,7 @@ test("a User shares a List, and someone logged out opens its Share Link", {
   await expect(items.first()).toContainText("Start here.");
   await expect(items.last()).toContainText("Aliens (1986)");
   await expect(visit.getByText("My secret.")).toHaveCount(0);
-  await expect(visit.getByRole("button", { name: "Log out" })).toHaveCount(0);
+  await expect(visit.getByRole("button", { name: "Account menu" })).toHaveCount(0);
 
   // The owner stops sharing; the link stops working.
   await page.getByRole("button", { name: "Stop sharing" }).click();
