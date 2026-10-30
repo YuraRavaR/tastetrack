@@ -264,7 +264,7 @@ export const en = {
   "itemHistory.notFound": "There's no such film.",
   "itemHistory.notExperienced": "Not watched yet",
   "itemHistory.experiencedCount": "{count, plural, one {Once} other {# times}}",
-  "itemHistory.yourRating": "Your rating",
+  "itemHistory.currentRating": "Your rating",
   "itemHistory.noFirstDate": "–",
   "manualItem.newTitle": "Add a film manually",
   "manualItem.newDescription": "For a film search doesn't find. Only you will see it.",

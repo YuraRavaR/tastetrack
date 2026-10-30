@@ -9,12 +9,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { LogEntry } from "../../shared/api";
-import { formatCalendarDate, t } from "../i18n/t";
+import { t } from "../i18n/t";
+import { logEntryDateLabel } from "./LogEntryDetails";
 import { RatingStars } from "./Rating";
 
 // One compact row of an Item History: the date, Rating and Revisit mark, the start of the Review,
 // and a "⋯" menu to edit or delete the Log Entry.
-export function ItemHistoryEntry({
+export function ItemHistoryRow({
   entry,
   onEdit,
   onDelete,
@@ -23,7 +24,7 @@ export function ItemHistoryEntry({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const date = entry.date ? formatCalendarDate(entry.date) : t("logEntry.noDate");
+  const date = logEntryDateLabel(entry);
   return (
     <li className="flex items-center gap-2 py-2 pr-1 pl-3">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">

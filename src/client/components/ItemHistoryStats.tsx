@@ -18,7 +18,9 @@ function Stat({
   return (
     <div className="flex min-w-0 flex-col gap-1 rounded-lg border bg-card px-3 py-2.5">
       <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className={cn("flex min-h-7 items-center font-semibold", className)}>{children}</dd>
+      <dd className={cn("flex min-h-7 items-center font-semibold text-lg", className)}>
+        {children}
+      </dd>
     </div>
   );
 }
@@ -31,10 +33,10 @@ export function ItemHistoryStats({ history }: { history: ItemHistoryResponse }) 
   const firstDate = firstLogDate(logEntries);
   return (
     <dl className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:grid-cols-3">
-      <Stat label={mediaWord(mediaItem.mediaType, "experienced")} className="text-lg">
+      <Stat label={mediaWord(mediaItem.mediaType, "experienced")}>
         {t("itemHistory.experiencedCount", { count: logEntries.length })}
       </Stat>
-      <Stat label={t("itemHistory.yourRating")} className="text-lg">
+      <Stat label={t("itemHistory.currentRating")}>
         {currentRating !== null && <RatingValue rating={currentRating} />}
       </Stat>
       <Stat

@@ -146,9 +146,10 @@ test("the tiles name a film watched once, and a dash stands in for a date none h
   await openAlienFromLog(page);
 
   await expect(page.getByRole("term")).toHaveText(["Watched", "Your rating", "First watched"]);
-  await expect(page.getByRole("definition")).toHaveText(["Once", "3.5", "–"]);
-  await expect(page.getByRole("img", { name: "3.5 stars" }).first()).toBeVisible();
-  await expect(page.getByRole("img", { name: "No date" })).toBeVisible();
+  const stats = page.getByRole("definition");
+  await expect(stats).toHaveText(["Once", "3.5", "–"]);
+  await expect(stats.getByRole("img", { name: "3.5 stars" })).toBeVisible();
+  await expect(stats.getByRole("img", { name: "No date" })).toBeVisible();
 });
 
 test("Viewings lists the newest first, with undated entries at the bottom", async ({ page }) => {

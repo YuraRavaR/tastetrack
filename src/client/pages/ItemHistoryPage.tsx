@@ -9,7 +9,7 @@ import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { FilmListsDialog, type ListsFilm } from "../components/FilmListsDialog";
 import { FilmFacts, FilmTitle } from "../components/FilmTitle";
-import { ItemHistoryEntry } from "../components/ItemHistoryEntry";
+import { ItemHistoryRow } from "../components/ItemHistoryRow";
 import { ItemHistoryStats } from "../components/ItemHistoryStats";
 import { EditLogEntryDialog } from "../components/LogEntryDialog";
 import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
@@ -131,7 +131,7 @@ export function ItemHistoryPage() {
             className="flex flex-col divide-y rounded-lg border bg-card"
           >
             {logEntries.toReversed().map((entry) => (
-              <ItemHistoryEntry
+              <ItemHistoryRow
                 key={entry.id}
                 entry={entry}
                 onEdit={() => setEditing(entry)}
