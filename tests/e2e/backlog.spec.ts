@@ -85,6 +85,8 @@ test("the bookmark in search puts a film on the Watchlist and takes it off again
   await expect(page.getByText("Took Alien (1979) off your Watchlist.")).toBeVisible();
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
   await expect(alien.getByText("On your Watchlist")).toHaveCount(0);
+  await page.getByRole("button", { name: "Dismiss" }).click();
+  await expect(page.getByText("Took Alien (1979) off your Watchlist.")).toHaveCount(0);
 
   // It is off for good, not only on this screen.
   await page.reload();

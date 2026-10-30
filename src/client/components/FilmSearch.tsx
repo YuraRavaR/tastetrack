@@ -1,4 +1,4 @@
-import { Bookmark, Check, ListPlus } from "lucide-react";
+import { Bookmark, Check, ListPlus, X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,15 @@ import { Poster } from "./Poster";
 import { SearchField } from "./SearchField";
 import { UndoLine } from "./UndoLine";
 
-// What the status line says after the User's last action on a result.
+// What the toast says after each of the User's actions on a result, but logging, which says more.
+const actionMessages = {
+  putBack: "backlog.putBack",
+  planned: "backlog.planned",
+  unplanned: "backlog.takenOff",
+  added: "manualItem.added",
+} as const;
+
+// The User's last action on a result, which the toast reports.
 type LastAction =
   | {
       kind: "logged";
@@ -32,10 +40,7 @@ type LastAction =
       mediaItemId: number;
       removedFromBacklog: RemovedListItem | null;
     }
-  | { kind: "putBack"; found: Found }
-  | { kind: "planned"; found: Found }
-  | { kind: "unplanned"; found: Found }
-  | { kind: "added"; found: Found };
+  | { kind: keyof typeof actionMessages; found: Found };
 
 type PlanError = "backlog_full" | "unavailable";
 
@@ -173,34 +178,47 @@ export function FilmSearch({
         {search.status === "searching" && t("search.searching")}
         {search.status === "done" && search.results.length === 0 && t("search.none")}
       </p>
-      <div role="status" className="flex flex-col gap-1 text-sm empty:hidden">
-        {lastAction?.kind === "logged" && (
+      {/* A toast floats above the tab bar, so it shows from any result and never moves the list. */}
+      <div
+        role="status"
+        className="fixed inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-2 rounded-lg border bg-popover py-1 pr-1 pl-4 text-popover-foreground text-sm shadow-lg empty:hidden md:inset-x-auto md:bottom-6 md:left-1/2 md:w-max md:max-w-xl md:-translate-x-1/2"
+      >
+        {lastAction && (
           <>
-            <p>
-              {t("logEntry.saved", { film: foundLabel(lastAction.found) })}{" "}
-              <Link to="/log" className="text-primary-strong underline-offset-4 hover:underline">
-                {t("log.view")}
-              </Link>
-            </p>
-            {takenOff && (
-              <UndoLine
-                message={t("backlog.takenOff", { film: foundLabel(lastAction.found) })}
-                onUndo={() => undo(lastAction.found, lastAction.mediaItemId, takenOff)}
-              />
-            )}
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              {lastAction.kind === "logged" ? (
+                <>
+                  <p>
+                    {t("logEntry.saved", { film: foundLabel(lastAction.found) })}{" "}
+                    <Link
+                      to="/log"
+                      className="text-primary-strong underline-offset-4 hover:underline"
+                    >
+                      {t("log.view")}
+                    </Link>
+                  </p>
+                  {takenOff && (
+                    <UndoLine
+                      message={t("backlog.takenOff", { film: foundLabel(lastAction.found) })}
+                      onUndo={() => undo(lastAction.found, lastAction.mediaItemId, takenOff)}
+                    />
+                  )}
+                </>
+              ) : (
+                <p>{t(actionMessages[lastAction.kind], { film: foundLabel(lastAction.found) })}</p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-11 md:size-9"
+              aria-label={t("search.dismiss")}
+              title={t("search.dismiss")}
+              onClick={() => setLastAction(null)}
+            >
+              <X aria-hidden />
+            </Button>
           </>
-        )}
-        {lastAction?.kind === "putBack" && (
-          <p>{t("backlog.putBack", { film: foundLabel(lastAction.found) })}</p>
-        )}
-        {lastAction?.kind === "planned" && (
-          <p>{t("backlog.planned", { film: foundLabel(lastAction.found) })}</p>
-        )}
-        {lastAction?.kind === "unplanned" && (
-          <p>{t("backlog.takenOff", { film: foundLabel(lastAction.found) })}</p>
-        )}
-        {lastAction?.kind === "added" && (
-          <p>{t("manualItem.added", { film: foundLabel(lastAction.found) })}</p>
         )}
       </div>
       {planError && (
