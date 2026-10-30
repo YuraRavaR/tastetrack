@@ -1,4 +1,4 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
+import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien.
@@ -76,6 +76,16 @@ async function logAlien(api: APIRequestContext, entries: object[]) {
   }
 }
 
+// Opens the Item History of the film logAlien logged, from the Log.
+async function openAlienFromLog(page: Page) {
+  await page.goto("/log");
+  await page
+    .getByRole("link", { name: /^Alien \(1979\)/ })
+    .first()
+    .click();
+  await expect(page.getByRole("heading", { name: /^Alien \(1979\)/ })).toBeVisible();
+}
+
 test("a User opens a film's Item History from the Log, edits an entry and deletes entries", {
   tag: "@smoke",
 }, async ({ page }) => {
@@ -84,53 +94,107 @@ test("a User opens a film's Item History from the Log, edits an entry and delete
     { rating: 3, date: "2001-09-15", review: "First time." },
     { rating: 4.5, date: "2026-10-01" },
   ]);
-  await page.goto("/log");
-  await page
-    .getByRole("link", { name: /^Alien \(1979\)/ })
-    .first()
-    .click();
+  await openAlienFromLog(page);
 
-  await expect(page.getByRole("heading", { name: /^Alien \(1979\)/ })).toBeVisible();
-  await expect(page.getByText("Watched 2 times")).toBeVisible();
-  const currentRating = page.getByRole("definition");
-  await expect(currentRating.getByRole("img", { name: "4.5 stars" })).toBeVisible();
-  const entries = page.getByRole("list", { name: "Item History" }).getByRole("listitem");
-  await expect(entries.first()).toContainText("Sep 15, 2001");
+  const stats = page.getByRole("definition");
+  await expect(stats).toHaveText(["2 times", "4.5", "Sep 15, 2001"]);
+  const entries = page.getByRole("list", { name: "Viewings" }).getByRole("listitem");
+  await expect(entries.first()).toContainText("Oct 1, 2026");
 
-  // Moving the 2001 entry after the other makes it last, and its Rating current.
-  await entries.filter({ hasText: "Sep 15, 2001" }).getByRole("button", { name: "Edit" }).click();
+  // Moving the 2001 entry after the other makes it newest, and its Rating current.
+  await page.getByRole("button", { name: "Actions for Sep 15, 2001" }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
   const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
   await expect(editing.getByRole("radio", { name: "3 stars" })).toBeChecked();
   await expect(editing.getByLabel("Review")).toHaveValue("First time.");
   await editing.getByLabel("Date").fill("2026-10-02");
   await editing.getByRole("button", { name: "Save" }).click();
   await expect(editing).toBeHidden();
-  await expect(entries.first()).toContainText("Oct 1, 2026");
-  await expect(entries.last()).toContainText("Oct 2, 2026");
-  await expect(currentRating.getByRole("img", { name: "3 stars" })).toBeVisible();
+  await expect(entries.first()).toContainText("Oct 2, 2026");
+  await expect(entries.last()).toContainText("Oct 1, 2026");
+  await expect(stats).toHaveText(["2 times", "3", "Oct 1, 2026"]);
 
   // Deleting asks first, and cancelling keeps the entry.
-  const deleteLast = entries
-    .filter({ hasText: "Oct 2, 2026" })
-    .getByRole("button", { name: "Delete" });
-  await deleteLast.click();
+  const actionsForNewest = page.getByRole("button", { name: "Actions for Oct 2, 2026" });
+  await actionsForNewest.click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
   const confirm = page.getByRole("alertdialog", { name: "Delete this entry?" });
   await confirm.getByRole("button", { name: "Cancel" }).click();
   await expect(confirm).toBeHidden();
   await expect(entries).toHaveCount(2);
-  await deleteLast.click();
+  await actionsForNewest.click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
   await confirm.getByRole("button", { name: "Delete" }).click();
   await expect(confirm).toBeHidden();
   await expect(entries).toHaveCount(1);
-  await expect(page.getByText("Watched once")).toBeVisible();
-  await expect(currentRating.getByRole("img", { name: "4.5 stars" })).toBeVisible();
+  await expect(stats).toHaveText(["Once", "4.5", "Oct 1, 2026"]);
 
-  // Deleting the only entry leaves the film not watched, with no Current Rating.
-  await entries.getByRole("button", { name: "Delete" }).click();
+  // Deleting the only entry leaves the film not watched, with no tiles.
+  await page.getByRole("button", { name: "Actions for Oct 1, 2026" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
   await confirm.getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText("Not watched yet")).toBeVisible();
   await expect(entries).toHaveCount(0);
-  await expect(currentRating).toHaveCount(0);
+  await expect(stats).toHaveCount(0);
+});
+
+test("the tiles name a film watched once, and a dash stands in for a date none has", async ({
+  page,
+}) => {
+  await logInNewUser(page.request);
+  await logAlien(page.request, [{ rating: 3.5 }]);
+  await openAlienFromLog(page);
+
+  await expect(page.getByRole("term")).toHaveText(["Watched", "Your rating", "First watched"]);
+  const stats = page.getByRole("definition");
+  await expect(stats).toHaveText(["Once", "3.5", "–"]);
+  await expect(stats.getByRole("img", { name: "3.5 stars" })).toBeVisible();
+  await expect(stats.getByRole("img", { name: "No date" })).toBeVisible();
+});
+
+test("Viewings lists the newest first, with undated entries at the bottom", async ({ page }) => {
+  await logInNewUser(page.request);
+  await logAlien(page.request, [
+    { rating: 2, date: "2019-03-02", review: "Too slow for me." },
+    { rating: 3 },
+    { rating: 4, date: "2026-10-11", revisit: true },
+  ]);
+  await openAlienFromLog(page);
+
+  await expect(page.getByRole("heading", { name: "Viewings", level: 2 })).toBeVisible();
+  const entries = page.getByRole("list", { name: "Viewings" }).getByRole("listitem");
+  await expect(entries).toHaveCount(3);
+  await expect(entries.nth(0)).toContainText("Oct 11, 2026");
+  await expect(entries.nth(0).getByText("Rewatch", { exact: true })).toBeVisible();
+  await expect(entries.nth(1)).toContainText("Mar 2, 2019");
+  await expect(entries.nth(1).getByRole("img", { name: "2 stars" })).toBeVisible();
+  await expect(entries.nth(1).getByText("Too slow for me.")).toBeVisible();
+  await expect(entries.nth(2)).toContainText("No date");
+  await expect(entries.nth(2).getByRole("button", { name: "Actions for No date" })).toBeVisible();
+
+  // The display order changes nothing else: the Current Rating is still the last in Log Order.
+  await expect(page.getByRole("definition")).toHaveText(["3 times", "4", "Mar 2, 2019"]);
+});
+
+test('the "⋯" menu holds Edit, a separator and Delete, and the page works after it', async ({
+  page,
+}) => {
+  await logInNewUser(page.request);
+  await logAlien(page.request, [{ rating: 3, date: "2001-09-15" }]);
+  await openAlienFromLog(page);
+
+  await page.getByRole("button", { name: "Actions for Sep 15, 2001" }).click();
+  const menu = page.getByRole("menu");
+  await expect(menu.getByRole("menuitem")).toHaveText(["Edit", "Delete"]);
+  await expect(menu.getByRole("separator")).toBeVisible();
+
+  // A dialog opened from the menu hands the page back when it closes.
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  const editing = page.getByRole("dialog", { name: "Edit your entry for Alien (1979)" });
+  await editing.getByRole("button", { name: "Cancel" }).click();
+  await expect(editing).toBeHidden();
+  await page.getByRole("button", { name: "Add to list" }).click();
+  await expect(page.getByRole("dialog", { name: "Lists for Alien (1979)" })).toBeVisible();
 });
 
 test("Rewatch is ticked when the film is already in the Log, and can be unticked", async ({

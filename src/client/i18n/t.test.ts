@@ -45,14 +45,13 @@ describe("what deleting a Manual Media Item deletes with it", () => {
 
 describe("how many times a film was watched", () => {
   it.each([
-    [0, "Not watched yet"],
-    [1, "Watched once"],
-    [2, "Watched 2 times"],
-    [5, "Watched 5 times"],
-    [11, "Watched 11 times"],
-    [21, "Watched 21 times"],
+    [1, "Once"],
+    [2, "2 times"],
+    [5, "5 times"],
+    [11, "11 times"],
+    [21, "21 times"],
   ])("%i → %s", (count, expected) => {
-    expect(t("itemHistory.timesExperienced", { count })).toBe(expected);
+    expect(t("itemHistory.experiencedCount", { count })).toBe(expected);
   });
 });
 
