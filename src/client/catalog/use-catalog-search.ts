@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as api from "../api";
 import { type Found, foundIn } from "./found";
 
@@ -14,11 +14,13 @@ export interface CatalogSearch {
 
 const idle: CatalogSearch = { status: "idle", results: [] };
 
-// Searches the catalog for `query` once it has stopped changing for searchDelayMs. A newer query
-// cancels the pending or running search, so an older answer never replaces a newer one.
+// Searches the catalog for `query` once it has stopped changing for searchDelayMs, but the query
+// the page opens with, which no one typed, at once. A newer query cancels the pending or running
+// search, so an older answer never replaces a newer one.
 export function useCatalogSearch(query: string): CatalogSearch {
   const [search, setSearch] = useState<CatalogSearch>(idle);
   const trimmed = query.trim();
+  const openingQuery = useRef<string | null>(trimmed);
 
   useEffect(() => {
     if (!trimmed) {
@@ -26,7 +28,9 @@ export function useCatalogSearch(query: string): CatalogSearch {
       return;
     }
     const controller = new AbortController();
+    const delay = trimmed === openingQuery.current ? 0 : searchDelayMs;
     const timer = setTimeout(async () => {
+      openingQuery.current = null;
       setSearch((current) => ({ ...current, status: "searching" }));
       const outcome = await api.searchCatalog(trimmed, controller.signal);
       if (controller.signal.aborted) return;
@@ -35,7 +39,7 @@ export function useCatalogSearch(query: string): CatalogSearch {
           ? { status: "done", results: foundIn(outcome.manualResults, outcome.results) }
           : { status: "failed", results: [] },
       );
-    }, searchDelayMs);
+    }, delay);
     return () => {
       clearTimeout(timer);
       controller.abort();

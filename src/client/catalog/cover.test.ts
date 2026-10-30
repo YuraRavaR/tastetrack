@@ -59,20 +59,27 @@ describe("a cover", () => {
     expect(coverOf(found)).toEqual({ url: null, mediaItemId: 42, mediaType: "film" });
   });
 
-  it("names no Media Item for a TMDB result", () => {
-    const found: Found = {
-      kind: "catalog",
-      externalReference: { source: "tmdb", mediaType: "film", id: "348" },
-      title: "Alien",
-      originalTitle: "Alien",
-      year: 1979,
-      posterUrl,
-      titleLanguage: "en",
-      inLog: false,
-      inBacklog: false,
-    };
+  const tmdbResult: Found = {
+    kind: "catalog",
+    externalReference: { source: "tmdb", mediaType: "film", id: "348" },
+    title: "Alien",
+    originalTitle: "Alien",
+    year: 1979,
+    posterUrl,
+    titleLanguage: "en",
+    mediaItemId: null,
+    inLog: false,
+    inBacklog: false,
+  };
 
-    expect(coverOf(found)).toEqual({ url: posterUrl, mediaItemId: null, mediaType: "film" });
+  it("names no Media Item for a TMDB result not in the catalog", () => {
+    expect(coverOf(tmdbResult)).toEqual({ url: posterUrl, mediaItemId: null, mediaType: "film" });
+  });
+
+  it("names the Media Item of a TMDB result in the catalog", () => {
+    const found: Found = { ...tmdbResult, mediaItemId: 42 };
+
+    expect(coverOf(found)).toEqual({ url: posterUrl, mediaItemId: 42, mediaType: "film" });
   });
 
   it("is 2:3 for a film", () => {

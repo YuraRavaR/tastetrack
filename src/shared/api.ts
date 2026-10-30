@@ -176,8 +176,9 @@ export const ExternalReference = z
 export type ExternalReference = z.infer<typeof ExternalReference>;
 
 // The title is the Localized Title in the query's language, or the Original Title when the
-// External Source has none; titleLanguage says which language that query ran in. inLog marks a
-// film the User already has a Log Entry for, and inBacklog one in the User's Backlog.
+// External Source has none; titleLanguage says which language that query ran in. mediaItemId is
+// the film's Media Item, null until it joins the catalog. inLog marks a film the User already has
+// a Log Entry for, and inBacklog one in the User's Backlog.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -188,6 +189,7 @@ export const CatalogSearchResult = z
       example: "https://image.tmdb.org/t/p/w92/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
     }),
     titleLanguage: z.enum(["en", "uk"]).openapi({ example: "uk" }),
+    mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
     inLog: z.boolean(),
     inBacklog: z.boolean(),
   })
@@ -196,9 +198,13 @@ export const CatalogSearchResult = z
 export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
 
 // A search result as the client got it, to add its film to the catalog. The details call
-// replaces what it says; it stands in only when that call fails. inLog and inBacklog, if sent,
-// are ignored.
-export const AddCatalogItemRequest = CatalogSearchResult.omit({ inLog: true, inBacklog: true })
+// replaces what it says; it stands in only when that call fails. mediaItemId, inLog and inBacklog,
+// if sent, are ignored.
+export const AddCatalogItemRequest = CatalogSearchResult.omit({
+  mediaItemId: true,
+  inLog: true,
+  inBacklog: true,
+})
   .extend({
     externalReference: ExternalReference.extend({
       id: z

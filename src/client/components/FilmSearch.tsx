@@ -1,5 +1,5 @@
 import { Bookmark, Check, ListPlus, X } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,12 @@ import {
   foundKey,
   foundLabel,
   foundManual,
+  foundMediaItemId,
   foundMediaType,
   mediaItemOf,
 } from "../catalog/found";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
+import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
@@ -51,24 +53,20 @@ function actionValues(found: Found) {
 type PlanError = "backlog_full" | "unavailable";
 
 // Search as you type, with no button: results follow a short pause in typing, the User's own
-// Manual Media Items first. Any result can be marked Watched, which records a Log Entry for it, as
+// Manual Media Items first, and the query lives in the URL. A result with a Media Item links to its
+// film's page. Any result can be marked Watched, which records a Log Entry for it, as
 // a Revisit by default if it is in the Log, and takes it off the Watchlist with an undo. Want to
 // watch is a toggle, which puts a result on the Watchlist or takes it off again, and any result can
 // be added to or taken off the User's Lists. Below the results, a film search doesn't find can be
 // added by hand, and then shows first. With `labelAsHeading` the field's label is the page's
-// heading, and `onSearchingChange` hears when the field starts or stops holding a query.
-export function FilmSearch({
-  labelAsHeading = false,
-  onSearchingChange,
-}: {
-  labelAsHeading?: boolean;
-  onSearchingChange?: (searching: boolean) => void;
-}) {
+// heading.
+export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolean }) {
   const searchLabel = mediaWord(pageMediaType, "search");
   const backlogName = mediaWord(pageMediaType, "backlog");
   const inputId = useId();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useSearchQuery();
   const search = useCatalogSearch(query);
+  const rememberScroll = useResultsScroll(search.status === "done");
   const [logging, setLogging] = useState<Found | null>(null);
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const [addingManually, setAddingManually] = useState(false);
@@ -81,16 +79,16 @@ export function FilmSearch({
   // Results put on or taken off the Watchlist since the search ran, by whether they are on it.
   const [plannedNow, setPlannedNow] = useState<ReadonlyMap<string, boolean>>(new Map());
   const [planning, setPlanning] = useState<ReadonlySet<string>>(new Set());
+  // Results that joined the catalog since the search ran, by their Media Item's id.
+  const [catalogedNow, setCatalogedNow] = useState<ReadonlyMap<string, number>>(new Map());
 
   const inLog = (found: Found) => found.inLog || loggedNow.has(foundKey(found));
   const inBacklog = (found: Found) => plannedNow.get(foundKey(found)) ?? found.inBacklog;
+  const mediaItemIdOf = (found: Found) => {
+    return catalogedNow.get(foundKey(found)) ?? foundMediaItemId(found);
+  };
 
   const trimmed = query.trim();
-  const searching = trimmed !== "";
-
-  useEffect(() => {
-    onSearchingChange?.(searching);
-  }, [searching, onSearchingChange]);
   const searched = new Set(search.results.map(foundKey));
   const results = [
     ...(added.query === trimmed
@@ -98,6 +96,17 @@ export function FilmSearch({
       : []),
     ...search.results,
   ];
+
+  function markCataloged(found: Found, mediaItemId: number) {
+    setCatalogedNow((current) => new Map(current).set(foundKey(found), mediaItemId));
+  }
+
+  // Adds a result to the catalog, as mediaItemOf does, so that it links to its page from now on.
+  async function addToCatalog(found: Found) {
+    const mediaItem = await mediaItemOf(found);
+    if (mediaItem) markCataloged(found, mediaItem.id);
+    return mediaItem;
+  }
 
   function markPlanned(found: Found, planned: boolean) {
     setPlannedNow((current) => new Map(current).set(foundKey(found), planned));
@@ -116,7 +125,7 @@ export function FilmSearch({
     const adding = !inBacklog(found);
     setPlanError(null);
     setPlanningOf(found, true);
-    const mediaItem = await mediaItemOf(found);
+    const mediaItem = await addToCatalog(found);
     const outcome = !mediaItem
       ? ({ ok: false, error: "unavailable" } as const)
       : adding
@@ -141,6 +150,7 @@ export function FilmSearch({
       removedFromBacklog: saved.removedFromBacklog,
     });
     setLoggedNow((current) => new Set(current).add(foundKey(found)));
+    markCataloged(found, saved.logEntry.mediaItem.id);
     if (saved.removedFromBacklog) markPlanned(found, false);
   }
 
@@ -250,13 +260,15 @@ export function FilmSearch({
             <SearchResult
               key={foundKey(found)}
               found={found}
+              mediaItemId={mediaItemIdOf(found)}
+              onOpened={rememberScroll}
               inLog={inLog(found)}
               inBacklog={inBacklog(found)}
               planning={planning.has(foundKey(found))}
               onExperienced={() => setLogging(found)}
               onTogglePlanned={() => togglePlanned(found)}
               onListed={() =>
-                setListing({ label: foundLabel(found), mediaItem: () => mediaItemOf(found) })
+                setListing({ label: foundLabel(found), mediaItem: () => addToCatalog(found) })
               }
             />
           ))}
@@ -289,6 +301,8 @@ export function FilmSearch({
 
 function SearchResult({
   found,
+  mediaItemId,
+  onOpened,
   inLog,
   inBacklog,
   planning,
@@ -297,6 +311,8 @@ function SearchResult({
   onListed,
 }: {
   found: Found;
+  mediaItemId: number | null;
+  onOpened: () => void;
   inLog: boolean;
   inBacklog: boolean;
   planning: boolean;
@@ -316,10 +332,10 @@ function SearchResult({
       <Poster subject={found} size="search" />
       <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          {found.kind === "manual" ? (
-            // A Manual Media Item's page is where it is edited or deleted, logged or not.
+          {mediaItemId !== null ? (
             <Link
-              to={`/items/${found.mediaItem.id}`}
+              to={`/items/${mediaItemId}`}
+              onClick={onOpened}
               className="break-words font-semibold underline-offset-4 hover:underline focus-visible:underline"
             >
               {foundLabel(found)}

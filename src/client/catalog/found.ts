@@ -9,7 +9,7 @@ import { t } from "../i18n/t";
 import { filmLabel } from "./film-label";
 
 // A film that search found: one of the User's own Manual Media Items, or a TMDB result, which
-// joins the catalog only once the User acts on it.
+// joins the catalog once a User acts on it, if none has yet.
 export type Found =
   | ({ kind: "manual" } & ManualSearchResult)
   | ({ kind: "catalog" } & CatalogSearchResult);
@@ -43,6 +43,11 @@ export function foundKey(found: Found): string {
 
 export function foundMediaType(found: Found): MediaType {
   return found.kind === "manual" ? found.mediaItem.mediaType : found.externalReference.mediaType;
+}
+
+// The film's Media Item's id, null for a TMDB result not in the catalog yet.
+export function foundMediaItemId(found: Found): number | null {
+  return found.kind === "manual" ? found.mediaItem.id : found.mediaItemId;
 }
 
 // "Alien (1979)", as filmLabel writes it.

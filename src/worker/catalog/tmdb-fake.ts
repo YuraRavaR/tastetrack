@@ -98,19 +98,37 @@ const failingQuery = "tmdb fake failure";
 
 const serviceOffline = { success: false, status_code: 9, status_message: "Service offline." };
 
+// Searching for this and a number finds a film of that id that isn't in `films`, so a test can
+// watch a film no one has added join the catalog, on a local D1 that outlives each test run.
+const newFilmQuery = /^tmdb fake new film (\d+)$/;
+
+function newFilm(id: string): FakeFilm {
+  return {
+    id: Number(id),
+    original_title: `New film ${id}`,
+    release_date: "2020-01-01",
+    poster_path: null,
+    titles: {},
+    runtime: 90,
+    genres: [],
+  };
+}
+
 tmdbFake.get("/3/search/movie", (c) => {
   if (c.req.query("query") === failingQuery) {
     return c.json(serviceOffline, 503);
   }
-  const query = fold(c.req.query("query") ?? "");
+  const asked = c.req.query("query") ?? "";
+  const newFilmId = newFilmQuery.exec(asked)?.[1];
+  const query = fold(asked);
   const language: SearchLanguage = c.req.query("language") === "uk-UA" ? "uk-UA" : "en-US";
-  const matches = query
-    ? films.filter((film) =>
+  const matches = newFilmId
+    ? [newFilm(newFilmId)]
+    : films.filter((film) =>
         [film.original_title, ...Object.values(film.titles)].some((title) =>
-          fold(title).includes(query),
+          query ? fold(title).includes(query) : false,
         ),
-      )
-    : [];
+      );
   const results = matches.map(({ id, original_title, release_date, poster_path, titles }) => ({
     id,
     original_title,

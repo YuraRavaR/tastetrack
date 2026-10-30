@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSearchQuery } from "../catalog/use-search-query";
 import { FilmSearch } from "../components/FilmSearch";
 import { HomeBacklogSection } from "../components/HomeBacklogSection";
 import { HomeLogSection } from "../components/HomeLogSection";
@@ -7,11 +7,12 @@ import { HomeLogSection } from "../components/HomeLogSection";
 // their Backlog. The sections hide while the search holds a query, and mount afresh when it is
 // cleared, so they show what the User just logged from the results.
 export function HomePage() {
-  const [searching, setSearching] = useState(false);
+  const [query] = useSearchQuery();
+  const searching = query.trim() !== "";
   return (
     <div className="flex flex-col gap-8">
       <div className="w-full max-w-3xl">
-        <FilmSearch labelAsHeading onSearchingChange={setSearching} />
+        <FilmSearch labelAsHeading />
       </div>
       {!searching && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
