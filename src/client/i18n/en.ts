@@ -135,6 +135,8 @@ export const en = {
   "log.view": "See your Log",
   "home.log.title": "Latest in your Log",
   "home.log.all": "{count, plural, one {See your Log} other {All # in your Log}}",
+  "home.backlog.title": "Next on your Watchlist",
+  "home.backlog.all": "{count, plural, one {See your Watchlist} other {All # on your Watchlist}}",
   "backlog.nav": "Watchlist",
   "backlog.title": "Your Watchlist",
   "backlog.listLabel": "Watchlist",
