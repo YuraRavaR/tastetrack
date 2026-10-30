@@ -331,7 +331,7 @@ export async function fillMissingMetadata(
 }
 
 // The ids of the catalog-backed Media Items for these External Source ids of one Media Type, by
-// External Source id. A film not in the catalog yet has no entry.
+// External Source id. A work not in the catalog yet has no entry.
 export async function mediaItemIdsByExternalId(
   db: DrizzleD1Database,
   source: "tmdb",

@@ -83,6 +83,9 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
 
   const inLog = (found: Found) => found.inLog || loggedNow.has(foundKey(found));
   const inBacklog = (found: Found) => plannedNow.get(foundKey(found)) ?? found.inBacklog;
+  const mediaItemIdOf = (found: Found) => {
+    return catalogedNow.get(foundKey(found)) ?? foundMediaItemId(found);
+  };
 
   const trimmed = query.trim();
   const searched = new Set(search.results.map(foundKey));
@@ -97,8 +100,8 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
     setCatalogedNow((current) => new Map(current).set(foundKey(found), mediaItemId));
   }
 
-  // The film's Media Item, as mediaItemOf gives it, and the result now links to its page.
-  async function catalogedMediaItem(found: Found) {
+  // Adds a result to the catalog, as mediaItemOf does, so that it links to its page from now on.
+  async function addToCatalog(found: Found) {
     const mediaItem = await mediaItemOf(found);
     if (mediaItem) markCataloged(found, mediaItem.id);
     return mediaItem;
@@ -121,7 +124,7 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
     const adding = !inBacklog(found);
     setPlanError(null);
     setPlanningOf(found, true);
-    const mediaItem = await catalogedMediaItem(found);
+    const mediaItem = await addToCatalog(found);
     const outcome = !mediaItem
       ? ({ ok: false, error: "unavailable" } as const)
       : adding
@@ -256,14 +259,14 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
             <SearchResult
               key={foundKey(found)}
               found={found}
-              mediaItemId={catalogedNow.get(foundKey(found)) ?? foundMediaItemId(found)}
+              mediaItemId={mediaItemIdOf(found)}
               inLog={inLog(found)}
               inBacklog={inBacklog(found)}
               planning={planning.has(foundKey(found))}
               onExperienced={() => setLogging(found)}
               onTogglePlanned={() => togglePlanned(found)}
               onListed={() =>
-                setListing({ label: foundLabel(found), mediaItem: () => catalogedMediaItem(found) })
+                setListing({ label: foundLabel(found), mediaItem: () => addToCatalog(found) })
               }
             />
           ))}
