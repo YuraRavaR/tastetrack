@@ -1,9 +1,9 @@
-import { Bookmark, CircleCheck, ListPlus, PencilLine } from "lucide-react";
+import { Bookmark, Check, ListPlus } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { RemovedListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
@@ -33,17 +33,19 @@ type LastAction =
       removedFromBacklog: RemovedListItem | null;
     }
   | { kind: "putBack"; found: Found }
+  | { kind: "planned"; found: Found }
+  | { kind: "unplanned"; found: Found }
   | { kind: "added"; found: Found };
 
 type PlanError = "backlog_full" | "unavailable";
 
 // Search as you type, with no button: results follow a short pause in typing, the User's own
 // Manual Media Items first. Any result can be marked Watched, which records a Log Entry for it, as
-// a Revisit by default if it is in the Log, and takes it off the Watchlist with an undo. A result
-// not on the Watchlist can be marked Want to watch, which puts it there, and any can be added to
-// or taken off the User's Lists. Below the results, a film search doesn't find can be added by
-// hand, and then shows first. With `labelAsHeading` the field's label is the page's heading, and
-// `onSearchingChange` hears when the field starts or stops holding a query.
+// a Revisit by default if it is in the Log, and takes it off the Watchlist with an undo. Want to
+// watch is a toggle, which puts a result on the Watchlist or takes it off again, and any result can
+// be added to or taken off the User's Lists. Below the results, a film search doesn't find can be
+// added by hand, and then shows first. With `labelAsHeading` the field's label is the page's
+// heading, and `onSearchingChange` hears when the field starts or stops holding a query.
 export function FilmSearch({
   labelAsHeading = false,
   onSearchingChange,
@@ -97,19 +99,23 @@ export function FilmSearch({
     });
   }
 
-  async function planned(found: Found) {
+  async function togglePlanned(found: Found) {
+    const adding = !inBacklog(found);
     setPlanError(null);
     setPlanningOf(found, true);
     const mediaItem = await mediaItemOf(found);
-    const outcome = mediaItem
-      ? await api.plan({ mediaItemId: mediaItem.id })
-      : ({ ok: false, error: "unavailable" } as const);
+    const outcome = !mediaItem
+      ? ({ ok: false, error: "unavailable" } as const)
+      : adding
+        ? await api.plan({ mediaItemId: mediaItem.id })
+        : await api.removeFromBacklog(mediaItem.id);
     setPlanningOf(found, false);
     if (!outcome.ok) {
       setPlanError(outcome.error);
       return;
     }
-    markPlanned(found, true);
+    markPlanned(found, adding);
+    setLastAction({ kind: adding ? "planned" : "unplanned", found });
   }
 
   function logged(found: Found, saved: api.SavedLogEntry) {
@@ -187,6 +193,12 @@ export function FilmSearch({
         {lastAction?.kind === "putBack" && (
           <p>{t("backlog.putBack", { film: foundLabel(lastAction.found) })}</p>
         )}
+        {lastAction?.kind === "planned" && (
+          <p>{t("backlog.planned", { film: foundLabel(lastAction.found) })}</p>
+        )}
+        {lastAction?.kind === "unplanned" && (
+          <p>{t("backlog.takenOff", { film: foundLabel(lastAction.found) })}</p>
+        )}
         {lastAction?.kind === "added" && (
           <p>{t("manualItem.added", { film: foundLabel(lastAction.found) })}</p>
         )}
@@ -206,7 +218,7 @@ export function FilmSearch({
       {results.length > 0 && (
         <ul
           aria-label={t("search.resultsLabel")}
-          className="flex flex-col divide-y rounded-lg border"
+          className="flex flex-col divide-y rounded-lg border bg-card"
         >
           {results.map((found) => (
             <SearchResult
@@ -216,7 +228,7 @@ export function FilmSearch({
               inBacklog={inBacklog(found)}
               planning={planning.has(foundKey(found))}
               onExperienced={() => setLogging(found)}
-              onPlanned={() => planned(found)}
+              onTogglePlanned={() => togglePlanned(found)}
               onListed={() =>
                 setListing({ label: foundLabel(found), mediaItem: () => mediaItemOf(found) })
               }
@@ -255,7 +267,7 @@ function SearchResult({
   inBacklog,
   planning,
   onExperienced,
-  onPlanned,
+  onTogglePlanned,
   onListed,
 }: {
   found: Found;
@@ -263,59 +275,67 @@ function SearchResult({
   inBacklog: boolean;
   planning: boolean;
   onExperienced: () => void;
-  onPlanned: () => void;
+  onTogglePlanned: () => void;
   onListed: () => void;
 }) {
+  // One mark: a film back on the Watchlist for a Revisit shows its pressed bookmark.
+  const mark = inLog ? t("search.inLog") : inBacklog ? t("search.inBacklog") : null;
+
   return (
-    <li className="flex flex-col gap-2 px-3 py-2 sm:flex-row sm:items-center sm:gap-3">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Poster url={foundPosterUrl(found)} />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+    <li className="flex items-start gap-3 p-3 md:items-center">
+      <Poster url={foundPosterUrl(found)} className="h-21 w-14 md:h-18 md:w-12" />
+      <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           {found.kind === "manual" ? (
             // A Manual Media Item's page is where it is edited or deleted, logged or not.
             <Link
               to={`/items/${found.mediaItem.id}`}
-              className="break-words underline-offset-4 hover:underline focus-visible:underline"
+              className="break-words font-semibold underline-offset-4 hover:underline focus-visible:underline"
             >
               {foundLabel(found)}
             </Link>
           ) : (
-            <span className="break-words">{foundLabel(found)}</span>
+            <span className="break-words font-semibold">{foundLabel(found)}</span>
           )}
-          {found.kind === "manual" && (
-            <span className="flex items-center gap-1 text-muted-foreground text-sm">
-              <PencilLine aria-hidden className="size-4" />
-              {t("search.addedByYou")}
-            </span>
-          )}
-          {inLog && (
-            <Badge variant="soft">
-              <CircleCheck aria-hidden />
-              {t("search.inLog")}
-            </Badge>
-          )}
-          {inBacklog && (
-            <Badge variant="soft">
-              <Bookmark aria-hidden />
-              {t("search.inBacklog")}
-            </Badge>
-          )}
+          <span className="flex flex-wrap items-center gap-x-2 text-xs empty:hidden">
+            {found.kind === "manual" && (
+              <span className="font-medium text-muted-foreground">{t("search.addedByYou")}</span>
+            )}
+            {mark && <span className="font-semibold text-primary-strong">{mark}</span>}
+          </span>
         </div>
-      </div>
-      <div className="flex shrink-0 flex-wrap justify-end gap-2 self-end sm:self-auto">
-        {/* An icon alone on a phone, so the three actions fit one line. */}
-        <Button variant="outline" size="sm" onClick={onListed} title={t("filmLists.open")}>
-          <ListPlus aria-hidden />
-          <span className="sr-only sm:not-sr-only">{t("filmLists.open")}</span>
-        </Button>
-        {!inBacklog && (
-          <Button variant="outline" size="sm" disabled={planning} onClick={onPlanned}>
-            {t("search.planned")}
+        <div className="flex shrink-0 gap-2">
+          {/* The source order is the desktop's, where the Tab key is used; a phone leads with Watched. */}
+          <Button
+            variant={inBacklog ? "pressed" : "outline"}
+            size="icon"
+            className="size-11 md:size-9"
+            disabled={planning}
+            aria-pressed={inBacklog}
+            aria-label={t("search.planned")}
+            title={t("search.planned")}
+            onClick={onTogglePlanned}
+          >
+            <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
           </Button>
-        )}
-        <Button variant="outline" size="sm" onClick={onExperienced}>
-          {t("search.watched")}
-        </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-11 md:size-9"
+            aria-label={t("filmLists.open")}
+            title={t("filmLists.open")}
+            onClick={onListed}
+          >
+            <ListPlus aria-hidden />
+          </Button>
+          <Button
+            className="order-first h-11 font-semibold md:order-none md:h-9"
+            onClick={onExperienced}
+          >
+            <Check aria-hidden />
+            {t("search.watched")}
+          </Button>
+        </div>
       </div>
     </li>
   );

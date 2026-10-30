@@ -151,6 +151,7 @@ export const en = {
   "backlog.updateFailed": "Couldn't update your Watchlist. Please try again.",
   "backlog.full":
     "Your Watchlist is full: it holds up to {max, number} films. Remove or log some to make room.",
+  "backlog.planned": "Put {film} on your Watchlist.",
   "backlog.removed": "Removed {film} from your Watchlist.",
   "backlog.takenOff": "Took {film} off your Watchlist.",
   "backlog.putBack": "Put {film} back on your Watchlist.",

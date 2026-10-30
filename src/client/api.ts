@@ -464,6 +464,20 @@ export async function plan(request: PlanRequest): Promise<PlanResult> {
   }
 }
 
+// Takes a Media Item off the Backlog. It is off too when it already was.
+export async function removeFromBacklog(
+  mediaItemId: number,
+): Promise<{ ok: true } | { ok: false; error: "unavailable" }> {
+  try {
+    const response = await fetch(`/api/backlog/items/${mediaItemId}`, { method: "DELETE" });
+    return response.ok || response.status === 404
+      ? { ok: true }
+      : { ok: false, error: "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
 // The edited List Item, or null when it couldn't be saved.
 export async function editListItem(
   listItemId: number,
