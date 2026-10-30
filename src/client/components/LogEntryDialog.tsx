@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { LogEntry, MediaItem } from "../../shared/api";
+import type { LogEntry, MediaItem, MediaType } from "../../shared/api";
 import { earliestLogDate, latestLogDate, maxReviewLength } from "../../shared/log";
 import * as api from "../api";
 import { filmLabel, filmYearAndRuntime } from "../catalog/film-label";
@@ -36,7 +36,7 @@ import { RatingInput } from "./Rating";
 // A bottom sheet below `md`, with no swipe to close, and a centred dialog from `md`. Its form's
 // body scrolls between a header and a footer that stay put.
 const sheetClasses =
-  "top-auto bottom-0 left-0 flex max-h-[calc(100dvh-3rem)] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-t-[28px] rounded-b-none border-x-0 border-b-0 p-0 max-md:data-[state=closed]:slide-out-to-bottom-8 max-md:data-[state=open]:slide-in-from-bottom-8 sm:max-w-none md:top-[72px] md:bottom-auto md:left-[50%] md:max-h-[calc(100dvh-9rem)] md:w-[calc(100%-2rem)] md:max-w-[480px] md:translate-x-[-50%] md:rounded-lg md:border";
+  "top-auto bottom-0 left-0 flex max-h-[calc(100dvh-3rem)] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-t-sheet rounded-b-none border-x-0 border-b-0 p-0 data-[state=closed]:slide-out-to-bottom-8 data-[state=open]:slide-in-from-bottom-8 sm:max-w-none md:top-[72px] md:bottom-auto md:left-[50%] md:max-h-[calc(100dvh-9rem)] md:w-[calc(100%-2rem)] md:max-w-[480px] md:translate-x-[-50%] md:rounded-lg md:border md:data-[state=closed]:slide-out-to-bottom-0 md:data-[state=open]:slide-in-from-bottom-0";
 
 const userTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -180,7 +180,7 @@ function LogEntryForm({
   onDelete,
 }: {
   subject: MediaItem | Found;
-  mediaType: MediaItem["mediaType"];
+  mediaType: MediaType;
   title: string;
   yearAndRuntime: string | null;
   initial: FormValues;
@@ -200,7 +200,8 @@ function LogEntryForm({
   const [revisit, setRevisit] = useState(initial.revisit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
-  const dateError = error !== null && error !== "rating" && error !== "unavailable";
+  const dateError =
+    error === "invalid_date" || error === "date_too_early" || error === "date_in_future";
 
   // An error can be scrolled out of the body, as the footer stays put.
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -302,7 +303,7 @@ function LogEntryForm({
           {chip === "other" && (
             <Input
               type="date"
-              aria-label={t("logEntry.dateWatched")}
+              aria-label={mediaWord(mediaType, "dateExperienced")}
               min={earliestLogDate}
               max={today}
               value={otherDate}

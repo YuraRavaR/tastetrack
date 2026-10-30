@@ -32,7 +32,7 @@ test("a User marks a search result Watched, rates it and finds it in their Log",
 });
 
 // Opens the dialog for Alien from search, with the browser's clock on a day the Worker accepts.
-async function openWatched(page: Page) {
+async function openWatchedDialog(page: Page) {
   await page.clock.setFixedTime(new Date("2026-03-15T12:00:00"));
   await logInNewUser(page.request);
   await page.goto("/");
@@ -46,7 +46,7 @@ async function openWatched(page: Page) {
   return page.getByRole("dialog", { name: "Alien (1979)" });
 }
 
-async function savedEntry(page: Page, dialog: Locator) {
+async function saveRatedEntry(page: Page, dialog: Locator) {
   await dialog.getByRole("radio", { name: "3 stars" }).check();
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog).toBeHidden();
@@ -55,7 +55,7 @@ async function savedEntry(page: Page, dialog: Locator) {
 }
 
 test("a new Log Entry is dated today unless the User says otherwise", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
 
   await expect(dialog.getByRole("button", { name: "Today" })).toHaveAttribute(
     "aria-pressed",
@@ -63,21 +63,21 @@ test("a new Log Entry is dated today unless the User says otherwise", async ({ p
   );
   await expect(dialog.getByLabel("Date watched")).toHaveCount(0);
 
-  const entry = await savedEntry(page, dialog);
+  const entry = await saveRatedEntry(page, dialog);
   await expect(entry.getByText("Mar 15, 2026")).toBeVisible();
 });
 
 test("Yesterday dates a Log Entry the day before", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
 
   await dialog.getByRole("button", { name: "Yesterday" }).click();
 
-  const entry = await savedEntry(page, dialog);
+  const entry = await saveRatedEntry(page, dialog);
   await expect(entry.getByText("Mar 14, 2026")).toBeVisible();
 });
 
 test("Other date saves the date in its field, bounded by 1900 and today", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
 
   await dialog.getByRole("button", { name: "Other date" }).click();
   const date = dialog.getByLabel("Date watched");
@@ -85,12 +85,12 @@ test("Other date saves the date in its field, bounded by 1900 and today", async 
   await expect(date).toHaveAttribute("max", "2026-03-15");
   await date.fill("2001-09-15");
 
-  const entry = await savedEntry(page, dialog);
+  const entry = await saveRatedEntry(page, dialog);
   await expect(entry.getByText("Sep 15, 2001")).toBeVisible();
 });
 
 test("Other date with an empty field asks for a date", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
 
   await dialog.getByRole("radio", { name: "3 stars" }).check();
   await dialog.getByRole("button", { name: "Other date" }).click();
@@ -102,28 +102,28 @@ test("Other date with an empty field asks for a date", async ({ page }) => {
 });
 
 test("No date saves an undated Log Entry", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
 
   await dialog.getByRole("button", { name: "No date" }).click();
 
-  const entry = await savedEntry(page, dialog);
+  const entry = await saveRatedEntry(page, dialog);
   await expect(entry.getByText("No date")).toBeVisible();
 });
 
 test("a Rating is required, and Rewatch is kept", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
 
   await dialog.getByRole("switch", { name: "Rewatch" }).check();
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog.getByRole("alert")).toHaveText("Choose a Rating.");
 
-  const entry = await savedEntry(page, dialog);
+  const entry = await saveRatedEntry(page, dialog);
   await expect(entry.getByRole("img", { name: "3 stars" })).toBeVisible();
   await expect(entry.getByText("Rewatch", { exact: true })).toBeVisible();
 });
 
 test("the dialog shows the film, and its Rating as a number", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
 
   await expect(dialog).toHaveAccessibleDescription("1979");
   await expect(dialog.getByText("–", { exact: true })).toBeVisible();
@@ -133,7 +133,7 @@ test("the dialog shows the film, and its Rating as a number", async ({ page }) =
 });
 
 test("Close, Cancel and Esc close the dialog without saving", async ({ page }) => {
-  const dialog = await openWatched(page);
+  const dialog = await openWatchedDialog(page);
   const alien = page
     .getByRole("list", { name: "Search results" })
     .getByRole("listitem")

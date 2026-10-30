@@ -99,7 +99,7 @@ export function RatingInput({
             </span>
           ))}
         </div>
-        <span className="font-semibold text-[26px] tabular-nums md:text-2xl">
+        <span className="font-semibold text-2xl tabular-nums">
           {value === null ? t("rating.none") : t("rating.value", { stars: value })}
         </span>
       </div>
