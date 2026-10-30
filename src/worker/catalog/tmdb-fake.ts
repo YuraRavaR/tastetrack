@@ -98,9 +98,27 @@ const failingQuery = "tmdb fake failure";
 
 const serviceOffline = { success: false, status_code: 9, status_message: "Service offline." };
 
+// Searching for this and a number finds a film of that id that isn't in `films`, so a test can
+// watch a film no one has added join the catalog, on a local D1 that outlives each test run.
+const newFilmQuery = /^tmdb fake new film (\d+)$/;
+
 tmdbFake.get("/3/search/movie", (c) => {
   if (c.req.query("query") === failingQuery) {
     return c.json(serviceOffline, 503);
+  }
+  const newFilmId = newFilmQuery.exec(c.req.query("query") ?? "")?.[1];
+  if (newFilmId) {
+    const title = `New film ${newFilmId}`;
+    const results = [
+      {
+        id: Number(newFilmId),
+        original_title: title,
+        release_date: "2020-01-01",
+        poster_path: null,
+        title,
+      },
+    ];
+    return c.json({ page: 1, results, total_pages: 1, total_results: 1 });
   }
   const query = fold(c.req.query("query") ?? "");
   const language: SearchLanguage = c.req.query("language") === "uk-UA" ? "uk-UA" : "en-US";

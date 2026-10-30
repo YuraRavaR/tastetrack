@@ -26,7 +26,7 @@ export function coverShape(mediaType: MediaType): CoverShape {
 
 export interface Cover {
   url: string | null;
-  // Null for a TMDB search result, which names no Media Item.
+  // Null for a TMDB search result not in the catalog yet, which has no Media Item.
   mediaItemId: number | null;
   mediaType: MediaType;
 }
@@ -40,7 +40,11 @@ export function coverOf(subject: MediaItem | Found): Cover {
     };
   }
   if (subject.kind === "manual") return coverOf(subject.mediaItem);
-  return { url: subject.posterUrl, mediaItemId: null, mediaType: foundMediaType(subject) };
+  return {
+    url: subject.posterUrl,
+    mediaItemId: subject.mediaItemId,
+    mediaType: foundMediaType(subject),
+  };
 }
 
 export interface Placeholder {

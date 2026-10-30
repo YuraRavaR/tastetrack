@@ -29,6 +29,13 @@ export const alien = (request: APIRequestContext) => film(request, "alien", "348
 export const aliens = (request: APIRequestContext) => film(request, "aliens", "679");
 export const amelie = (request: APIRequestContext) => film(request, "amelie", "194");
 
+// A query the TMDB fake answers with one film no one has added yet, whatever earlier test runs left
+// in local D1, and that film's label. Only the fake knows it, so skip the test on real TMDB.
+export function newFilm() {
+  const id = String(Math.floor(Math.random() * 1e12));
+  return { id, query: `tmdb fake new film ${id}`, label: `New film ${id} (2020)` };
+}
+
 // Films the TMDB cache tests take out of the cache. Each is used from the catalog by the tests of
 // one file alone, which run one after another, so no other test meets it on a cold cache: Shadows
 // by the API tests and The Matrix by the end-to-end one.

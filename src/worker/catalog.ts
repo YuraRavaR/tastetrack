@@ -28,7 +28,7 @@ import {
   manualMediaItemUsage,
   manualSearch,
 } from "./catalog/manual-media-items";
-import { addFromSearch, catalogMediaItems } from "./catalog/media-items";
+import { addFromSearch, catalogMediaItems, mediaItemIdsByExternalId } from "./catalog/media-items";
 import { searchFilms, TmdbUnavailable } from "./catalog/tmdb";
 import { type AppEnv, tmdbConfig } from "./env";
 import { plannedExternalIds } from "./lists/backlog";
@@ -40,9 +40,9 @@ const searchRoute = createRoute({
   summary: "Search the catalog by title, in English or Ukrainian",
   description:
     "One TMDB search in the query's language: uk-UA when the query has a Cyrillic letter, " +
-    "otherwise en-US. Results come in TMDB's order, titled in that language, and marked when " +
-    "the User has a Log Entry for them and when they are in the User's Backlog. Before them, to " +
-    "be listed first, come up to " +
+    "otherwise en-US. Results come in TMDB's order, titled in that language, with their Media " +
+    "Item's id once they are in the catalog, and marked when the User has a Log Entry for them " +
+    "and when they are in the User's Backlog. Before them, to be listed first, come up to " +
     `${maxManualSearchResults} of the User's own Manual Media Items whose title or Original ` +
     "Title contains the query, regardless of case, in title order and marked the same way.",
   middleware: [requireUser] as const,
@@ -257,13 +257,15 @@ catalogRoutes.openapi(searchRoute, async (c) => {
     return c.json({ error: "catalog_unavailable" }, 502);
   }
   const ids = matches.map((match) => match.externalReference.id);
-  const [manualResults, logged, planned] = await Promise.all([
+  const [manualResults, mediaItemIds, logged, planned] = await Promise.all([
     manual,
+    mediaItemIdsByExternalId(c.var.db, "tmdb", mediaType, ids),
     loggedExternalIds(c.var.db, c.var.userId, "tmdb", mediaType, ids),
     plannedExternalIds(c.var.db, c.var.userId, "tmdb", mediaType, ids),
   ]);
   const results = matches.map((match) => ({
     ...match,
+    mediaItemId: mediaItemIds.get(match.externalReference.id) ?? null,
     inLog: logged.has(match.externalReference.id),
     inBacklog: planned.has(match.externalReference.id),
   }));

@@ -17,7 +17,9 @@ import { SharedListPage } from "./pages/SharedListPage";
 export function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      {/* No transitions: the search field's value is the URL, and a controlled field has to
+          update in the keystroke's own render. */}
+      <BrowserRouter useTransitions={false}>
         <Routes>
           <Route element={<AppLayout />}>
             <Route path="/login" element={<LoginPage />} />

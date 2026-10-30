@@ -45,6 +45,11 @@ export function foundMediaType(found: Found): MediaType {
   return found.kind === "manual" ? found.mediaItem.mediaType : found.externalReference.mediaType;
 }
 
+// The film's Media Item's id, null for a TMDB result not in the catalog yet.
+export function foundMediaItemId(found: Found): number | null {
+  return found.kind === "manual" ? found.mediaItem.id : found.mediaItemId;
+}
+
 // "Alien (1979)", as filmLabel writes it.
 export function foundLabel(found: Found): string {
   if (found.kind === "catalog") return filmLabel(found);

@@ -9,6 +9,7 @@ import type {
   ExternalReference,
   FilmMetadata,
   MediaItem,
+  MediaType,
 } from "../../shared/api";
 import { maxMetadataFills } from "../../shared/catalog";
 import {
@@ -327,6 +328,30 @@ export async function fillMissingMetadata(
     const filled = item.externalReference && details.get(item.externalReference.id);
     if (filled) item.metadata = toMetadata(filled);
   }
+}
+
+// The ids of the catalog-backed Media Items for these External Source ids of one Media Type, by
+// External Source id. A film not in the catalog yet has no entry.
+export async function mediaItemIdsByExternalId(
+  db: DrizzleD1Database,
+  source: "tmdb",
+  mediaType: MediaType,
+  externalIds: string[],
+): Promise<Map<string, number>> {
+  if (externalIds.length === 0) return new Map();
+  const rows = await db
+    .select({ id: mediaItems.id, externalId: mediaItems.externalId })
+    .from(mediaItems)
+    .where(
+      and(
+        eq(mediaItems.externalSource, source),
+        eq(mediaItems.mediaType, mediaType),
+        inArray(mediaItems.externalId, externalIds),
+      ),
+    );
+  return new Map(
+    rows.flatMap((row) => (row.externalId === null ? [] : [[row.externalId, row.id]])),
+  );
 }
 
 // The catalog-backed Media Items with these ids, in the order given, with their metadata filled

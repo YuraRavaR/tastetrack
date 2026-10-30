@@ -1,4 +1,5 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import { alien, amelie, newFilm, searchResult } from "../support/films";
 import { callsRealTmdb } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
 
@@ -20,16 +21,59 @@ test("an English query finds the film with its title, Original Title, year and p
 
   const results = await search(request, "alien");
 
-  expect(results).toContainEqual({
-    externalReference: { source: "tmdb", mediaType: "film", id: "348" },
-    title: "Alien",
-    originalTitle: "Alien",
-    year: 1979,
-    posterUrl: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w92\/\w+\.jpg$/),
-    titleLanguage: "en",
-    inLog: false,
-    inBacklog: false,
-  });
+  expect(results).toContainEqual(
+    expect.objectContaining({
+      externalReference: { source: "tmdb", mediaType: "film", id: "348" },
+      title: "Alien",
+      originalTitle: "Alien",
+      year: 1979,
+      posterUrl: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w92\/\w+\.jpg$/),
+      titleLanguage: "en",
+      inLog: false,
+      inBacklog: false,
+    }),
+  );
+});
+
+test("a result names its Media Item once the film is in the catalog, and null until then", async ({
+  request,
+}) => {
+  test.skip(callsRealTmdb(), "Only the TMDB fake has a film no one has added");
+  await logInNewUser(request);
+  const { id, query } = newFilm();
+
+  const before = await searchResult(request, query, id);
+  expect(before.mediaItemId).toBeNull();
+
+  const added = await request.post("/api/catalog/items", { data: before });
+  expect(added.status(), await added.text()).toBe(201);
+  const { mediaItem } = await added.json();
+
+  expect((await searchResult(request, query, id)).mediaItemId).toBe(mediaItem.id);
+});
+
+// ADR-0009: a search takes a fixed number of D1 queries, however many results it brings.
+test("a search with 1 result and one with many take the same number of queries", async ({
+  request,
+}) => {
+  test.skip(callsRealTmdb(), "Only the TMDB fake has a query with exactly 1 result");
+  await logInNewUser(request);
+  await Promise.all([alien(request), amelie(request)]);
+  const queriesFor = async (query: string) => {
+    const response = await request.get("/api/catalog/search", {
+      params: { mediaType: "film", query },
+    });
+    const { results } = await response.json();
+    return { results, queries: response.headers()["x-d1-query-count"] };
+  };
+
+  const one = await queriesFor("amelie");
+  const many = await queriesFor("a");
+
+  expect(one.results).toHaveLength(1);
+  expect(many.results.length).toBeGreaterThan(1);
+  expect(one.queries).toMatch(/^\d+$/);
+  expect(many.queries).toBe(one.queries);
 });
 
 test("a Ukrainian query is answered in Ukrainian, with the Original Title alongside", async ({
