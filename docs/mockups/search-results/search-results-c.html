@@ -93,23 +93,31 @@ main .col { padding-block: 16px 24px; display: flex; flex-direction: column; gap
 .results { padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 .result {
   padding: 12px; display: grid; gap: 3px 12px;
-  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-columns: 72px minmax(0, 1fr);
   grid-template-areas: "poster info" "poster actions";
   align-items: start;
 }
 .result + .result { border-top: 1px solid var(--border); }
-.poster { grid-area: poster; width: 56px; height: 84px; border-radius: 6px; background: var(--muted); color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+.poster { grid-area: poster; width: 72px; height: 108px; border-radius: 6px; background: var(--muted); color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
 .info { grid-area: info; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .title { font-size: 16px; font-weight: 600; line-height: 1.3; }
 a.title:hover { text-decoration: underline; text-underline-offset: 4px; }
 .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 13px; color: var(--muted-foreground); }
 .mark { font-size: 12px; font-weight: 600; color: var(--primary-strong); }
-.mark[hidden] { display: none; }
+.mark[hidden], .meta[hidden], .lists[hidden] { display: none; }
+.mark.rating { display: flex; align-items: center; gap: 4px; }
+.mark.rating[hidden] { display: none; }
 .mark.manual { font-weight: 500; color: var(--muted-foreground); }
-.actions { grid-area: actions; margin-top: 6px; display: flex; gap: 8px; }
+.lists { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.lists a { padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; }
+.actions { grid-area: actions; margin-top: 6px; display: flex; gap: 6px; }
 .btn { height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; }
-.btn-primary { padding: 0 16px; border: 0; background: var(--primary); color: var(--primary-foreground); font-weight: 600; }
-.btn-icon { width: 44px; padding: 0; border: 1px solid var(--border); background: var(--card); }
+.btn-watch { padding: 0 8px; font-size: 14px; white-space: nowrap; border: 1px solid var(--border); background: var(--card); font-weight: 600; }
+.btn-watch.done { border-color: var(--primary-strong); background: var(--primary-soft); color: var(--primary-strong); }
+.btn-watch svg { display: none; }
+.btn-watch.done svg { display: block; }
+@media (max-width: 379.98px) { .btn-watch.done svg { display: none; } }
+.btn-icon { width: 44px; flex-shrink: 0; padding: 0; border: 1px solid var(--border); background: var(--card); }
 .btn-icon[aria-pressed="true"] { border-color: var(--primary-strong); background: var(--primary-soft); color: var(--primary-strong); }
 .btn-icon[aria-pressed="true"] svg { fill: currentColor; }
 .manual-add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
@@ -142,9 +150,9 @@ footer .tmdb { font-weight: 700; letter-spacing: 0.04em; }
   .search input { font-size: 15px; }
   .result { padding: 12px 14px; gap: 0 14px; align-items: center; grid-template-columns: 48px minmax(0, 1fr) auto; grid-template-areas: "poster info actions"; }
   .poster { width: 48px; height: 72px; border-radius: 4px; }
-  .actions { margin-top: 0; }
+  .actions { margin-top: 0; gap: 8px; }
   .btn { height: 36px; font-size: 14px; }
-  .btn-primary { padding: 0 14px; }
+  .btn-watch { width: 150px; padding: 0 8px; white-space: nowrap; }
   .btn-icon { width: 36px; }
   .btn-sm { height: 32px; }
   .tabs { display: none; }
@@ -205,10 +213,11 @@ footer .tmdb { font-weight: 700; letter-spacing: 0.04em; }
 <span class="poster"><svg class="i" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></span>
 <div class="info">
 <span class="title"></span>
-<span class="meta"><span class="year"></span><span class="mark log" hidden>In your Log</span><span class="mark watchlist" hidden>On your Watchlist</span><span class="mark manual" hidden>Added by you</span></span>
+<span class="meta"><a href="#" class="mark rating" title="See your viewings" hidden><svg class="i" width="13" height="13" viewBox="0 0 24 24" style="fill: currentColor; stroke: none" role="img" aria-label="Rating"><path d="M12 3l2.8 5.8 6.2.9-4.5 4.4 1.1 6.3L12 17.5l-5.6 3 1.1-6.3L3 9.7l6.2-.9z"></path></svg><span></span></a><span class="mark manual" hidden>Added by you</span></span>
+<span class="lists" hidden><svg class="i" width="14" height="14" viewBox="0 0 24 24" role="img" aria-label="Lists"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg></span>
 </div>
 <div class="actions">
-<button type="button" class="btn btn-primary watched"><svg class="i" width="16" height="16" viewBox="0 0 24 24" stroke-width="2.25" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Watched</button>
+<button type="button" class="btn btn-watch watched"><svg class="i" width="16" height="16" viewBox="0 0 24 24" stroke-width="2.25" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg><span>Mark watched</span></button>
 <button type="button" class="btn btn-icon plan" aria-label="Want to watch" title="Want to watch"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
 <button type="button" class="btn btn-icon" aria-label="Add to list" title="Add to list"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg></button>
 </div>
@@ -219,12 +228,12 @@ footer .tmdb { font-weight: 700; letter-spacing: 0.04em; }
 // The results: a Manual Media Item first, then TMDB. A result whose film has a Media Item
 // links to its page; the last two aren't in the catalog yet, so their titles are plain text.
 const results = [
-  { title: "Paris at Dawn", year: "2019", manual: true, href: "#" },
-  { title: "Paris, Texas", year: "1984 · 145 min", log: true, href: "#" },
-  { title: "Paris, 13th District", year: "2021 · 105 min", href: "film-page-unwatched-a.html" },
-  { title: "Midnight in Paris", year: "2011 · 94 min", watchlist: true, href: "#" },
-  { title: "Paris Is Burning", year: "1990 · 71 min" },
-  { title: "Last Tango in Paris", year: "1972 · 129 min" },
+  { title: "Paris at Dawn (2019)", manual: true, href: "#" },
+  { title: "Paris, Texas (1984)", rating: "4", viewings: "2 viewings", lists: ["Road movies"], href: "#" },
+  { title: "Paris, 13th District (2021)", href: "film-page-unwatched-a.html" },
+  { title: "Midnight in Paris (2011)", watchlist: true, lists: ["Date night", "Comedy", "+1"], href: "#" },
+  { title: "Paris Is Burning (1990)", rating: "4.5", viewings: "1 viewing", watchlist: true },
+  { title: "Last Tango in Paris (1972)" },
 ];
 const list = document.querySelector(".results");
 const template = document.getElementById("result");
@@ -251,23 +260,38 @@ for (const film of results) {
   } else {
     title.textContent = film.title;
   }
-  row.querySelector(".year").textContent = film.year;
-  row.querySelector(".log").hidden = !film.log;
-  row.querySelector(".manual").hidden = !film.manual;
-  const mark = row.querySelector(".watchlist");
-  const plan = row.querySelector(".plan");
-  const setPlanned = (on) => {
-    mark.hidden = !on;
-    plan.setAttribute("aria-pressed", String(on));
+  const meta = row.querySelector(".meta");
+  const rating = row.querySelector(".rating");
+  const watched = row.querySelector(".watched");
+  const setLogged = (viewings) => {
+    const logged = !!viewings;
+    rating.hidden = !logged;
+    if (logged) rating.querySelector("span").textContent = `${film.rating ?? "4"} · ${viewings}`;
+    meta.hidden = !logged && !film.manual;
+    watched.classList.toggle("done", logged);
+    watched.querySelector("span").textContent = logged ? "Watched again" : "Mark watched";
   };
+  setLogged(film.viewings);
+  row.querySelector(".manual").hidden = !film.manual;
+  const lists = row.querySelector(".lists");
+  lists.hidden = !film.lists;
+  for (const name of film.lists ?? []) {
+    const chip = document.createElement("a");
+    chip.href = "#";
+    chip.textContent = name;
+    lists.append(chip);
+  }
+  const plan = row.querySelector(".plan");
+  const setPlanned = (on) => plan.setAttribute("aria-pressed", String(on));
   setPlanned(!!film.watchlist);
   plan.addEventListener("click", () => {
     const on = plan.getAttribute("aria-pressed") !== "true";
     setPlanned(on);
     say(on ? `Put ${film.title} on your Watchlist.` : `Took ${film.title} off your Watchlist.`);
   });
-  row.querySelector(".watched").addEventListener("click", () => {
+  watched.addEventListener("click", () => {
     setPlanned(false);
+    setLogged(film.viewings ?? "1 viewing");
     say(`Added ${film.title} to your Log.`);
   });
   list.append(row);

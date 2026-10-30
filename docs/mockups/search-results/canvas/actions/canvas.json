@@ -1,0 +1,45 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-30T09:40:00Z" },
+  "title": "TasteTrack search actions",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 402, "h": 874, "title": "A, phone", "is_interactive": true },
+    "AWeb.dc.html": { "x": 482, "y": 0, "w": 1280, "h": 874, "title": "A, web", "is_interactive": true },
+    "BPhone.dc.html": { "x": 0, "y": 1240, "w": 402, "h": 874, "title": "B, phone", "is_interactive": true },
+    "BWeb.dc.html": { "x": 482, "y": 1240, "w": 1280, "h": 874, "title": "B, web", "is_interactive": true },
+    "CPhone.dc.html": { "x": 0, "y": 2480, "w": 402, "h": 874, "title": "C, phone", "is_interactive": true },
+    "CWeb.dc.html": { "x": 482, "y": 2480, "w": 1280, "h": 874, "title": "C, web", "is_interactive": true },
+    "Again1.dc.html": { "x": 0, "y": 3720, "w": 402, "h": 874, "title": "1. Tap Watched", "is_interactive": true },
+    "Again2.dc.html": { "x": 482, "y": 3720, "w": 402, "h": 874, "title": "2. Split button", "is_interactive": true },
+    "Again3.dc.html": { "x": 964, "y": 3720, "w": 402, "h": 874, "title": "3. Watched again, picked", "is_interactive": true },
+    "AgainSheet.dc.html": { "x": 1446, "y": 3720, "w": 402, "h": 874, "title": "What all three open", "is_interactive": true },
+    "Again3Web.dc.html": { "x": 1928, "y": 3720, "w": 1280, "h": 874, "title": "3. Watched again, picked, web", "is_interactive": true },
+    "PosterStretch.dc.html": { "x": 0, "y": 4960, "w": 402, "h": 874, "title": "Stretches with each row", "is_interactive": true },
+    "PosterTall.dc.html": { "x": 482, "y": 4960, "w": 402, "h": 874, "title": "One larger size, 72×108", "is_interactive": true }
+  },
+  "order": [
+    "Main.dc.html",
+    "AWeb.dc.html",
+    "BPhone.dc.html",
+    "BWeb.dc.html",
+    "CPhone.dc.html",
+    "CWeb.dc.html",
+    "Again1.dc.html",
+    "Again2.dc.html",
+    "Again3.dc.html",
+    "AgainSheet.dc.html",
+    "Again3Web.dc.html",
+    "PosterStretch.dc.html",
+    "PosterTall.dc.html"
+  ],
+  "notes": {
+    "rowA": { "x": 0, "y": -250, "text": "A · The button shows the state", "kind": "title1", "maxW": 1762 },
+    "rowB": { "x": 0, "y": 990, "text": "B · A plain Log verb, the check on the poster", "kind": "title1", "maxW": 1762 },
+    "rowC": { "x": 0, "y": 2230, "text": "C · Three equal icon toggles", "kind": "title1", "maxW": 1762 },
+    "rowAgain": { "x": 0, "y": 3470, "text": "A · Watching it again, with a new Rating", "kind": "title1", "maxW": 3208 },
+    "rowPoster": { "x": 0, "y": 4710, "text": "The poster on a phone", "kind": "title1", "maxW": 884 }
+  },
+  "designSystems": []
+}

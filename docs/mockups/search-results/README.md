@@ -1,7 +1,7 @@
 # Search results and the film's page before a first viewing
 
-**Issue:** #62, "Reach a film's page from search, and log or plan it from there".
-**Picked:** search results from variant C, "icon actions", and the film's page from variant A, "button row" (2026-10-29).
+**Issue:** #62, "Reach a film's page from search, and log or plan it from there". The revision is #82.
+**Picked:** search results from variant C, "icon actions", and the film's page from variant A, "button row" (2026-10-29). The search actions were revised on 2026-10-30, after #62 shipped: see [Revision: the button shows the state](#revision-the-button-shows-the-state). Where the two differ, the revision wins.
 **Canvas:** <https://claude.ai/artifact/PXhUJMGWLrn8NDnxr8NwxM> (private). It has three variants in rows. Each row shows the search and the film's page, on an iPhone 17 Pro (402×874) and on the web.
 
 ## Files
@@ -17,7 +17,28 @@
 | `film-page-unwatched-a-1440-light.png`, `-1440-dark.png` | Desktop |
 | `film-page-watched.html` | The same page once the film has been watched 3 times: film-page C with the same actions under the stat tiles. Watched again adds an entry; `#watchlist` works here too. |
 | `film-page-watched-390-light.png`, `-390-dark.png`, `-1440-light.png`, `-1440-dark.png` | Phone and desktop |
+| `canvas/actions/` | The revision's canvas: variants A, B and C of the actions, and the three ways to log a rewatch. `Again3.dc.html` and `Again3Web.dc.html` are the picks, with `PosterTall.dc.html` for the poster, and `AgainSheet.dc.html` is the sheet they open. Its canvas is <https://claude.ai/artifact/QQecXvfzwCFQJkJeUZV6dP> (private). |
 | `canvas/` | All three variants as canvas sources. `C.dc.html` and `CWeb.dc.html` are the picked search, `AFilm.dc.html` and `AFilmWeb.dc.html` are the picked page, and `Watched.dc.html` and `WatchedWeb.dc.html` are the page once watched. |
+
+## Revision: the button shows the state
+
+Seen live, a gold Watched with a check on every row read as "you've already watched all of these". Watched is an action, and a filled button with a check looks like a state. So gold now means done, and only that.
+
+**Picked:** variant A, "the button shows the state", with mechanism 3, "Watched again". Not picked: B, a plain "+ Log" with a check on the poster, which said the same thing twice; C, three equal icons, where an eye without a label is unclear and Watched stops being the main action. Mechanism 1, tapping "✓ Watched", doesn't say what the tap does, and could read as undoing it. Mechanism 2, a split button, is the most complex control for an unlabelled ↻.
+
+This replaces the Meta line, the Actions and step 4 of the section below:
+
+- **Not logged.** **Mark watched** is an outline button, in the same weight as the icon buttons, and opens `LogEntryDialog`.
+- **In the Log.** The button reads **Watched again** with a rotate icon, in `border-primary-strong bg-primary-soft text-primary-strong`. It opens `LogEntryDialog` with Rewatch on. Each rewatch is a new Log Entry with its own Rating, and the Current Rating follows the last one.
+- **Meta line.** The Current Rating and the Item History's size, "★ 4 · 2 viewings", in `text-primary-strong text-xs font-semibold`, linking to the film's page. It replaces "In your Log". "On your Watchlist" goes too, since the pressed bookmark says that. "Added by you" stays.
+- **Lists.** Under the meta line, a `List` icon named "Lists", then a chip for each of the User's Lists that hold the film, in `text-muted-foreground`, each linking to its List. Two chips at most, oldest List first, then "+{n}" for the rest. There is no line for a film on no List.
+- **Poster.** 72×108 on a phone, the same for every row, top-aligned: a row with a Rating and Lists is taller than the old 84px poster. `Poster`'s 48×72 stays from `md`, where the text sits beside it. On a phone the three buttons have to fit beside that poster: the first is `text-sm` with 8px of padding, the gap is 6px, the icon buttons never shrink below 44px, and under 380px "Watched again" drops its icon. A poster that stretched with each row was not picked: a 2:3 image would crop harder the taller the row, and the column would be uneven.
+- **Order.** Mark watched or Watched again, the bookmark, Add to list, on a phone and from `md` alike, so the source order is the visual one. From `md` the first button is 150px wide, so the columns line up.
+- **The dialog.** The eyebrow reads "Watched again" for a film in the Log. Beside the Rating's legend, the hint "Last time ★ 4 · 12 Mar 2024" comes from the film's Item History, loaded when the dialog opens. The stars start empty, so the old Rating isn't saved by reflex.
+
+Search needs more from the API: the Current Rating, the number of Log Entries and the Lists holding each result, in a fixed number of D1 queries however many results there are (ADR-0009).
+
+**Later: the runtime.** The User wants the runtime in the meta line, as "117 min" before the Rating, and the canvas shows it there. It is left out of this revision and of the screenshots. TMDB's search doesn't return a runtime, only the details call per film does, and ADR-0004 limits those. A cached film or a Manual Media Item is cheap to show, but a search can bring 20 films that aren't cached, on every pause in typing.
 
 ## Why these
 
@@ -80,6 +101,11 @@ So the page changes in only two places between the states. Before the first view
 | Want to watch, pressed | On your Watchlist | reuses `search.inBacklog` |
 | Primary on a watched film | Watched again | new |
 | Toasts | Put {film} on your Watchlist. · Took {film} off your Watchlist. | the second is new |
+| Watched, not logged | Mark watched | new, in the revision |
+| Watched, in the Log | Watched again | shared with the film's page |
+| Meta line | {rating} · {count} viewings | new, in the revision |
+| Lists icon | Lists (accessible name) | new, in the revision |
+| Dialog hint | Last time {rating} · {date} | new, in the revision |
 
 ## Open questions
 

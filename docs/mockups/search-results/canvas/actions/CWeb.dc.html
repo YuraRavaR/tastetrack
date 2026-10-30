@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search actions C, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500..700&amp;display=swap">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ring:oklch(0.55 0.012 55);--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;--logo:"Fraunces",Georgia,serif}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ring:oklch(0.66 0.012 60)}
+.tt a{color:inherit;text-decoration:none}
+.tt a:hover{text-decoration:underline;text-underline-offset:3px}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+</style>
+</helmet>
+<div class="{{theme}}" style="min-height: 874px; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased">
+
+<header style="padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; background: var(--card); border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 500">
+<a href="#" style="font-family: var(--logo); font-style: italic; font-size: 21px; font-weight: 600; letter-spacing: -0.01em">TasteTrack</a>
+<a href="#">Home</a><a href="#" style="color: var(--mfg)">Log</a><a href="#" style="color: var(--mfg)">Watchlist</a><a href="#" style="color: var(--mfg)">Lists</a>
+</header>
+
+<main style="width: 100%; max-width: 72rem; margin: 0 auto; box-sizing: border-box; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Search films</h1>
+<div style="height: 44px; padding: 0 14px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; font-size: 15px">wa</div>
+
+<ul aria-label="Search results" style="margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 14px; background: var(--card)">
+<sc-for list="{{films}}" as="f" hint-placeholder-count="5">
+<li style="padding: 12px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; border-top: {{f.bt}}">
+<span style="width: 48px; height: 72px; flex-shrink: 0; border-radius: 4px; background: var(--muted); color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9"></path></svg></span>
+<div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+<a href="#" style="font-size: 16px; font-weight: 600; line-height: 1.3">{{f.title}}</a>
+<sc-if value="{{f.hasLists}}" hint-placeholder-val="{{false}}"><a href="#" style="font-size: 12px; color: var(--mfg)">{{f.listNames}}</a></sc-if>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" aria-label="Watched" title="Watched" aria-pressed="{{f.loggedAttr}}" onClick="{{f.log}}" style="width: 36px; height: 36px; flex-shrink: 0; border: 1px solid {{f.wBorder}}; border-radius: 10px; background: {{f.wBg}}; color: {{f.wFg}}; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3" fill="{{f.wFill}}"></circle></svg></button>
+<button type="button" aria-label="Want to watch" title="Want to watch" aria-pressed="{{f.plannedAttr}}" onClick="{{f.plan}}" style="width: 36px; height: 36px; flex-shrink: 0; border: 1px solid {{f.bBorder}}; border-radius: 10px; background: {{f.bBg}}; color: {{f.bFg}}; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{f.bFill}}" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
+<button type="button" aria-label="{{f.listLabel}}" title="{{f.listLabel}}" style="position: relative; width: 36px; height: 36px; flex-shrink: 0; border: 1px solid {{f.lBorder}}; border-radius: 10px; background: {{f.lBg}}; color: {{f.lFg}}; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>
+<sc-if value="{{f.hasLists}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 999px; border: 2px solid var(--card); background: var(--pstrong); color: var(--card); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{f.listCount}}</span></sc-if>
+</button>
+</div>
+</li>
+</sc-for>
+</ul>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":true},"$preview":{"width":1280,"height":874}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      logged: { meetin: true, bezango: true },
+      planned: { meetin: true, waking: true },
+    };
+  }
+  toggle(field, id) {
+    const next = { ...this.state[field] };
+    next[id] = !next[id];
+    this.setState({ [field]: next });
+  }
+  renderVals() {
+    const films = [
+      { id: "meetin", title: "Meetin' WA (1986)", lists: "In Godard", count: 1 },
+      { id: "bezango", title: "Bezango, WA (2015)", lists: "", count: 0 },
+      { id: "anacortes", title: "Anacortes, WA (2026)", lists: "", count: 0 },
+      { id: "waking", title: "Waking Life (2001)", lists: "In Weird nights, Animation +1", count: 3 },
+      { id: "wailing", title: "The Wailing (2016)", lists: "In Horror", count: 1 },
+    ];
+    return {
+      theme: "tt" + ((this.props.dark ?? true) ? " dark" : ""),
+      films: films.map((film, index) => {
+        const logged = !!this.state.logged[film.id];
+        const planned = !!this.state.planned[film.id];
+        const listed = film.count > 0;
+        return {
+          title: film.title,
+          bt: index === 0 ? "0" : "1px solid var(--border)",
+          hasLists: listed,
+          listNames: film.lists,
+          listCount: film.count,
+          listLabel: listed ? film.lists : "Add to list",
+          loggedAttr: String(logged),
+          plannedAttr: String(planned),
+          wBorder: logged ? "var(--pstrong)" : "var(--border)",
+          wBg: logged ? "var(--psoft)" : "transparent",
+          wFg: logged ? "var(--pstrong)" : "var(--fg)",
+          wFill: logged ? "currentColor" : "none",
+          bBorder: planned ? "var(--pstrong)" : "var(--border)",
+          bBg: planned ? "var(--psoft)" : "transparent",
+          bFg: planned ? "var(--pstrong)" : "var(--fg)",
+          bFill: planned ? "currentColor" : "none",
+          lBorder: listed ? "var(--pstrong)" : "var(--border)",
+          lBg: listed ? "var(--psoft)" : "transparent",
+          lFg: listed ? "var(--pstrong)" : "var(--fg)",
+          log: () => this.toggle("logged", film.id),
+          plan: () => this.toggle("planned", film.id),
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

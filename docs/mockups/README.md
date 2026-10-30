@@ -37,4 +37,4 @@ Shoots every `.html` in the folder at 390 and 1440 px, in light and dark, with t
 | [`accent/`](accent/) | Accent colour, ground and display font | #63 | Gold · Paper |
 | [`navigation/`](navigation/) | Header, bottom tab bar and home with several Media Types | #58 (phone header), new issues to come | Variant A, by section |
 | [`log-entry-dialog/`](log-entry-dialog/) | The "Watched" dialog: Rating, date, Review, Rewatch; a bottom sheet on a phone | none yet | Variant A, full form |
-| [`search-results/`](search-results/) | Search results, and the film's page before a first viewing | #62 | Search C, icon actions; page A, button row |
+| [`search-results/`](search-results/) | Search results, and the film's page before a first viewing | #62, revision #82 | Search C, icon actions, revised to A with "Watched again"; page A, button row |
