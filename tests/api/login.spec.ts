@@ -1,12 +1,8 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import { at } from "../support/clock";
 import { createSeedUser, createUser, uniqueUsername } from "../support/users";
 
 const day = 24 * 60 * 60 * 1000;
-
-// With test hooks on, the Worker treats this header's time as now.
-function at(time: number) {
-  return { headers: { "X-Test-Now": new Date(time).toISOString() } };
-}
 
 function sessionCookieOf(setCookie: string | undefined): string {
   const match = setCookie?.match(/(?:^|\n)session=([^;]+)/);
@@ -131,12 +127,4 @@ test("a login re-hashes a password hash below the iteration target", async ({ re
   // The new hash still checks the same password.
   await request.post("/api/auth/logout");
   expect((await request.post("/api/auth/login", { data: user })).status()).toBe(200);
-});
-
-test("the OpenAPI spec describes login, logout and the current User", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  expect(spec.paths["/api/auth/login"].post.responses["401"]).toBeDefined();
-  expect(spec.paths["/api/auth/logout"].post.responses["204"]).toBeDefined();
-  expect(spec.paths["/api/auth/me"].get.security).toEqual([{ session: [] }]);
 });

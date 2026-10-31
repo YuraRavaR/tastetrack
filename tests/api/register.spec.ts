@@ -1,12 +1,8 @@
 import { type APIRequestContext, test as base, expect } from "@playwright/test";
+import { at } from "../support/clock";
 import { createUser, uniqueUsername } from "../support/users";
 
 const day = 24 * 60 * 60 * 1000;
-
-// With test hooks on, the Worker treats this header's time as now.
-function at(time: number) {
-  return { headers: { "X-Test-Now": new Date(time).toISOString() } };
-}
 
 // `request` is the issuer, logged in; `invitee` is a separate client with no session.
 const test = base.extend<{ invitee: APIRequestContext }>({

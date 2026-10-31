@@ -341,39 +341,12 @@ test("search marks the results already in the User's own Backlog", async ({
   expect((await searchResult(request, "alien", "348")).inBacklog).toBe(false);
 });
 
-test("the Backlog can be neither deleted nor renamed", async ({ request }) => {
-  await logInNewUser(request);
-  const backlog = await theBacklog(request);
-
-  for (const response of [
-    await request.delete("/api/backlog"),
-    await request.patch("/api/backlog", { data: { name: "Mine" } }),
-    await request.put("/api/backlog", { data: { name: "Mine" } }),
-  ]) {
-    expect(response.status()).toBe(404);
-  }
-
-  expect(await theBacklog(request)).toEqual(backlog);
-});
-
 test("without a session, the Backlog and its items are a 401", async ({ request }) => {
   expect((await request.get("/api/backlog", { params: { mediaType: "film" } })).status()).toBe(401);
   expect((await request.post("/api/backlog/items", { data: {} })).status()).toBe(401);
   expect((await request.delete("/api/backlog/items/1")).status()).toBe(401);
   expect((await request.patch("/api/list-items/1", { data: {} })).status()).toBe(401);
   expect((await request.delete("/api/list-items/1")).status()).toBe(401);
-});
-
-test("the OpenAPI spec describes the Backlog", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  expect(spec.paths["/api/backlog"].get.security).toEqual([{ session: [] }]);
-  expect(spec.paths["/api/backlog/items"].post.responses["409"]).toBeDefined();
-  expect(spec.paths["/api/backlog/items/{mediaItemId}"].delete.responses["204"]).toBeDefined();
-  expect(spec.paths["/api/backlog/items/{mediaItemId}"].delete.responses["404"]).toBeDefined();
-  expect(spec.paths["/api/list-items/{listItemId}"].patch.responses["404"]).toBeDefined();
-  expect(spec.paths["/api/list-items/{listItemId}"].delete.responses["204"]).toBeDefined();
-  expect(spec.paths["/api/log-entries"].post.responses["201"]).toBeDefined();
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.

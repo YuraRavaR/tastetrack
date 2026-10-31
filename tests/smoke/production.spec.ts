@@ -11,22 +11,6 @@ test("health reports ok, with no D1 query count", async ({ request }) => {
   expect(response.headers()["x-d1-query-count"]).toBeUndefined();
 });
 
-// The test-only manual cron trigger lives at this path when test hooks are on.
-test("the manual cron trigger is a 404, with no D1 query count", async ({ request }) => {
-  const response = await request.post("/api/test/cron");
-
-  expect(response.status()).toBe(404);
-  expect(response.headers()["x-d1-query-count"]).toBeUndefined();
-});
-
-// The PBKDF2 spike endpoint (issue #6) lives at this path when test hooks are on.
-test("the PBKDF2 spike endpoint is a 404, with no D1 query count", async ({ request }) => {
-  const response = await request.get("/api/test/pbkdf2?iterations=1");
-
-  expect(response.status()).toBe(404);
-  expect(response.headers()["x-d1-query-count"]).toBeUndefined();
-});
-
 // Creates seed Users, without an Invite Code, when test hooks are on. A 404 here means no seed
 // User can exist in production.
 test("the seed User route is a 404, with no D1 query count", async ({ request }) => {

@@ -8,7 +8,7 @@ Production is the top level of `wrangler.jsonc`: the `tastetrack` Worker and the
 2. Merging the release PR tags the release (`vX.Y.Z`) and creates a GitHub release. release.yml then calls [production.yml](../.github/workflows/production.yml) with the tag.
 3. The deploy job waits for a reviewer's approval on the `production` environment. **Take the D1 export below before approving.**
 4. After approval it applies D1 migrations to the production database, then deploys the Worker.
-5. A smoke test runs against the deployed URL: health is ok, the manual cron trigger is a 404, and no response carries the `X-D1-Query-Count` header. A failing smoke test fails the workflow.
+5. A smoke test runs against the deployed URL: health is ok, the seed User route is a 404, and no response carries the `X-D1-Query-Count` header. A failing smoke test fails the workflow.
 
 The same smoke test (`pnpm test:smoke`) runs on every PR against a local Worker with the top-level config, so it is known to pass before a release.
 

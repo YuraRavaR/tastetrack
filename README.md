@@ -75,17 +75,13 @@ The `local` env searches a TMDB fake with fixed data (`src/worker/catalog/tmdb-f
 
 - the `X-D1-Query-Count` response header;
 - the `X-Test-Now` request header, an ISO time the Worker treats as now, so tests can step past session expiry;
-- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `DELETE /api/test/users/:username`, which removes one until Users can remove their own accounts, `POST /api/test/users/:username/backlog` and `POST /api/test/lists/:listId/items`, which fill a User's Backlog or a List with placeholder films so tests reach the 1,000-item limit, read-outs of what the API never reports, such as a User's password iterations and who invited them, `POST /api/test/cron`, which runs the Cron Trigger's TMDB cache refresh on demand (at the `X-Test-Now` time, when given), `DELETE /api/test/tmdb-cache/film/:id`, which takes one film out of the TMDB cache so tests can load a page on a cold cache, and the TMDB fake.
+- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `DELETE /api/test/users/:username`, which removes one until Users can remove their own accounts, `POST /api/test/users/:username/backlog` and `POST /api/test/lists/:listId/items`, which fill a User's Backlog or a List with placeholder films so tests reach the 1,000-item limit, read-outs of what the API never reports, such as a User's password iterations and who invited them, `DELETE /api/test/tmdb-cache/film/:id`, which takes one film out of the TMDB cache so tests can load a page on a cold cache, and the TMDB fake.
 
 Test seed Users therefore exist only in local and staging. The factories in `tests/support/users.ts` give each Playwright worker one seed User, which issues an Invite Code for every other test User; those register through the public API like real ones, each with a unique Username, so tests share no mutable fixtures.
 
 The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
 
 The `cli` Playwright project runs the Operator CLI against local D1 only, so `pnpm test:deployed` leaves it out. The `smoke` Playwright project runs against the top-level config locally, and against production after every deploy, to prove the hooks stay off there.
-
-### PBKDF2 spike
-
-`GET /api/test/pbkdf2?iterations=N` runs one simulated login with N PBKDF2-SHA256 iterations. Local Wrangler doesn't enforce CPU limits, so the iteration target in ADR-0007 is measured on staging: with Wrangler logged in to the staging account, `node scripts/pbkdf2-spike.ts <staging-url> [iterations ...]` tails the staging Worker and prints the CPU time per iteration count.
 
 ## CI, staging and production
 

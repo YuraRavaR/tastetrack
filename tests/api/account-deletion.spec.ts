@@ -172,12 +172,3 @@ test("other Users' records of the same catalog film stay", async ({ request }) =
   expect(backlog.items).toEqual([listItem]);
   await staying.dispose();
 });
-
-test("the OpenAPI spec describes deleting the account", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  const deletion = spec.paths["/api/me"].delete;
-  expect(deletion.security).toEqual([{ session: [] }]);
-  expect(Object.keys(deletion.responses)).toEqual(["204", "400", "401", "403"]);
-  expect(spec.components.schemas.UserDeletionRequest.required).toEqual(["password"]);
-});

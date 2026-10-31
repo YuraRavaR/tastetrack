@@ -1,15 +1,9 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { searchResultRow } from "../support/films";
 import { logInNewUser } from "../support/users";
 
 // A film neither the TMDB fake nor the real TMDB knows, so only the User's own copy is found.
 const wedding = "Весілля Олени та Тараса";
-
-function searchResult(page: Page, label: string) {
-  return page
-    .getByRole("list", { name: "Search results" })
-    .getByRole("listitem")
-    .filter({ has: page.getByText(label, { exact: true }) });
-}
 
 test("a User adds a film search doesn't find, logs it, edits it, and deletes it with its Log Entry", async ({
   page,
@@ -32,7 +26,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
 
   await expect(adding).toBeHidden();
   await expect(page.getByText(`Added ${wedding} (2019). Only you can see it.`)).toBeVisible();
-  const film = searchResult(page, `${wedding} (2019)`);
+  const film = searchResultRow(page, `${wedding} (2019)`);
   await expect(film.getByText("Added by you")).toBeVisible();
 
   // It is planned and logged like any film.
@@ -84,7 +78,7 @@ test("adding a film with the same title and year again warns first, then adds it
   expect(created.status()).toBe(201);
   await page.goto("/");
   await page.getByRole("searchbox", { name: "Search films" }).fill("весілля олени");
-  await expect(searchResult(page, `${wedding} (2019)`)).toHaveCount(1);
+  await expect(searchResultRow(page, `${wedding} (2019)`)).toHaveCount(1);
 
   await page.getByRole("button", { name: "Add manually" }).click();
   const adding = page.getByRole("dialog", { name: "Add a film manually" });
@@ -97,7 +91,7 @@ test("adding a film with the same title and year again warns first, then adds it
   );
   await adding.getByRole("button", { name: "Add anyway" }).click();
   await expect(adding).toBeHidden();
-  await expect(searchResult(page, `${wedding} (2019)`)).toHaveCount(2);
+  await expect(searchResultRow(page, `${wedding} (2019)`)).toHaveCount(2);
 });
 
 test("a thumbnail without a poster shows no caption, and the film's banner does", async ({
@@ -111,8 +105,10 @@ test("a thumbnail without a poster shows no caption, and the film's banner does"
   await adding.getByLabel("Title", { exact: true }).fill(wedding);
   await adding.getByRole("button", { name: "Add", exact: true }).click();
 
-  await expect(searchResult(page, wedding).getByRole("img", { name: "No poster" })).toHaveText("");
-  await searchResult(page, wedding).getByRole("link", { name: wedding }).click();
+  await expect(searchResultRow(page, wedding).getByRole("img", { name: "No poster" })).toHaveText(
+    "",
+  );
+  await searchResultRow(page, wedding).getByRole("link", { name: wedding }).click();
 
   await expect(page.getByRole("main").getByRole("img", { name: "No poster" })).toHaveText(/\S/);
 });
@@ -128,7 +124,7 @@ test("a film added manually but never logged or planned is still reached from se
   await adding.getByLabel("Title", { exact: true }).fill(wedding);
   await adding.getByRole("button", { name: "Add", exact: true }).click();
 
-  await searchResult(page, wedding).getByRole("link", { name: wedding }).click();
+  await searchResultRow(page, wedding).getByRole("link", { name: wedding }).click();
 
   await expect(page.getByText("No viewings yet")).toBeVisible();
   await page.getByRole("button", { name: "Delete film" }).click();

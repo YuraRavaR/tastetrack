@@ -13,7 +13,7 @@ import {
 import { describe, expect, it } from "vitest";
 import type { MediaItem } from "../../shared/api";
 import { t } from "../i18n/t";
-import { coverOf, coverShape, placeholderFor } from "./cover";
+import { coverOf, placeholderFor } from "./cover";
 import type { Found } from "./found";
 
 const posterUrl = "https://image.tmdb.org/t/p/w92/alien.jpg";
@@ -87,10 +87,6 @@ describe("a cover", () => {
     const found: Found = { ...tmdbResult, mediaItemId: 42 };
 
     expect(coverOf(found)).toEqual({ url: posterUrl, mediaItemId: 42, mediaType: "film" });
-  });
-
-  it("is 2:3 for a film", () => {
-    expect(coverShape("film")).toBe("2:3");
   });
 });
 

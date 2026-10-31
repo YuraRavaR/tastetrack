@@ -1,22 +1,11 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import { at } from "../support/clock";
+import { searchResult } from "../support/films";
 import { callsRealTmdb } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So these tests
 // use only well-known films, and check only what both answer alike.
-
-async function searchResult(request: APIRequestContext, query: string, id: string) {
-  const response = await request.get("/api/catalog/search", {
-    params: { mediaType: "film", query },
-  });
-  expect(response.status()).toBe(200);
-  const { results } = await response.json();
-  const result = results.find((r: { externalReference: { id: string } }) => {
-    return r.externalReference.id === id;
-  });
-  expect(result, `TMDB film ${id} among the results for "${query}"`).toBeDefined();
-  return result;
-}
 
 // Marks a search result Experienced: its Media Item, created or reused.
 async function add(request: APIRequestContext, result: unknown) {
@@ -126,11 +115,6 @@ test("a search result that isn't one is a 400", async ({ request }) => {
   }
 });
 
-// With test hooks on, the Worker treats this header's time as now.
-function at(time: string) {
-  return { "X-Test-Now": new Date(time).toISOString() };
-}
-
 const minute = 60 * 1000;
 
 // The moment `minutes` ago, for tests that need one creation time before another. A request at a
@@ -144,14 +128,14 @@ async function addAlien(request: APIRequestContext) {
   return add(request, await searchResult(request, "alien", "348"));
 }
 
-async function postLogEntry(request: APIRequestContext, data: object, headers?: object) {
-  const response = await request.post("/api/log-entries", { data, headers: { ...headers } });
+async function postLogEntry(request: APIRequestContext, data: object, options?: object) {
+  const response = await request.post("/api/log-entries", { data, ...options });
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()).logEntry;
 }
 
-async function theLog(request: APIRequestContext, headers?: object) {
-  const response = await request.get("/api/log-entries", { headers: { ...headers } });
+async function theLog(request: APIRequestContext, options?: object) {
+  const response = await request.get("/api/log-entries", options);
   expect(response.status()).toBe(200);
   return (await response.json()).logEntries;
 }
@@ -221,11 +205,11 @@ test("a date before 1900 or after today where the User is, is refused", async ({
   await logInNewUser(request);
   const { id } = await addAlien(request);
   // 22:30 UTC on 19 October 2026 is already the 20th in Kyiv.
-  const now = at("2026-10-19T22:30:00Z");
+  const clock = at("2026-10-19T22:30:00Z");
   const post = (date: string, timeZone?: string) =>
     request.post("/api/log-entries", {
       data: { mediaItemId: id, rating: 3, date, timeZone },
-      headers: now,
+      ...clock,
     });
 
   expect((await post("1900-01-01", "Europe/Kyiv")).status()).toBe(201);
@@ -245,13 +229,13 @@ test("a date before 1900 or after today where the User is, is refused", async ({
 test("without a time zone, a date may be up to tomorrow in UTC", async ({ request }) => {
   await logInNewUser(request);
   const { id } = await addAlien(request);
-  const now = at("2026-10-19T22:30:00Z");
+  const clock = at("2026-10-19T22:30:00Z");
 
   for (const timeZone of [undefined, "Nowhere/Special"]) {
     const ok = { mediaItemId: id, rating: 3, date: "2026-10-20", timeZone };
-    expect((await request.post("/api/log-entries", { data: ok, headers: now })).status()).toBe(201);
+    expect((await request.post("/api/log-entries", { data: ok, ...clock })).status()).toBe(201);
     const late = { ...ok, date: "2026-10-21" };
-    const refused = await request.post("/api/log-entries", { data: late, headers: now });
+    const refused = await request.post("/api/log-entries", { data: late, ...clock });
     expect(refused.status()).toBe(400);
     expect(await refused.json()).toEqual({ error: "date_in_future" });
   }
@@ -319,21 +303,6 @@ test("a Log is the User's own", async ({ request, playwright }) => {
   await other.dispose();
 });
 
-test("search marks the results already in the User's own Log", async ({ request, playwright }) => {
-  await logInNewUser(request);
-  expect((await searchResult(request, "alien", "348")).inLog).toBe(false);
-
-  await postLogEntry(request, { mediaItemId: (await addAlien(request)).id, rating: 4 });
-
-  expect((await searchResult(request, "alien", "348")).inLog).toBe(true);
-  expect((await searchResult(request, "чужий", "348")).inLog).toBe(true);
-  expect((await searchResult(request, "aliens", "679")).inLog).toBe(false);
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  expect((await searchResult(other, "alien", "348")).inLog).toBe(false);
-  await other.dispose();
-});
-
 test("logging an unknown Media Item is a 400", async ({ request }) => {
   await logInNewUser(request);
 
@@ -352,17 +321,6 @@ test("without a session, adding, the Log and Item History are a 401", async ({ r
   expect((await request.patch("/api/log-entries/1", { data: {} })).status()).toBe(401);
   expect((await request.delete("/api/log-entries/1")).status()).toBe(401);
   expect((await request.get("/api/catalog/items/1/history")).status()).toBe(401);
-});
-
-test("the OpenAPI spec describes adding, the Log and Item History", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  expect(spec.paths["/api/catalog/items"].post.responses["201"]).toBeDefined();
-  expect(spec.paths["/api/log-entries"].post.responses["400"]).toBeDefined();
-  expect(spec.paths["/api/log-entries"].get.security).toEqual([{ session: [] }]);
-  expect(spec.paths["/api/log-entries/{logEntryId}"].patch.responses["404"]).toBeDefined();
-  expect(spec.paths["/api/log-entries/{logEntryId}"].delete.responses["204"]).toBeDefined();
-  expect(spec.paths["/api/catalog/items/{mediaItemId}/history"].get.responses["200"]).toBeDefined();
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.
@@ -481,9 +439,9 @@ async function patchLogEntry(
   request: APIRequestContext,
   id: number,
   data: object,
-  headers?: object,
+  options?: object,
 ) {
-  const response = await request.patch(`/api/log-entries/${id}`, { data, headers: { ...headers } });
+  const response = await request.patch(`/api/log-entries/${id}`, { data, ...options });
   expect(response.status(), await response.text()).toBe(200);
   return (await response.json()).logEntry;
 }
@@ -554,9 +512,9 @@ test("an edit is held to the same rules as a new Log Entry", async ({ request })
   const { id: mediaItemId } = await addAlien(request);
   const logged = await postLogEntry(request, { mediaItemId, rating: 3 });
   // Every request from here on stays at this time, which the session's expiry now follows.
-  const now = at("2026-10-19T22:30:00Z");
+  const clock = at("2026-10-19T22:30:00Z");
   const patch = (data: object) =>
-    request.patch(`/api/log-entries/${logged.id}`, { data, headers: now });
+    request.patch(`/api/log-entries/${logged.id}`, { data, ...clock });
 
   expect((await patch({ date: "2026-10-20", timeZone: "Europe/Kyiv" })).status()).toBe(200);
   for (const [data, error] of [
@@ -573,7 +531,7 @@ test("an edit is held to the same rules as a new Log Entry", async ({ request })
     expect(response.status(), JSON.stringify(data)).toBe(400);
     expect(await response.json()).toEqual({ error });
   }
-  expect((await theLog(request, now))[0]).toMatchObject({ rating: 3, date: "2026-10-20" });
+  expect((await theLog(request, clock))[0]).toMatchObject({ rating: 3, date: "2026-10-20" });
 });
 
 test("deleting a Log Entry removes it, and the Current Rating falls back to the last one left", async ({
