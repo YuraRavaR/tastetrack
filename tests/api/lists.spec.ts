@@ -1,6 +1,7 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import type { ListItemEditRequest } from "@shared/api";
 import { ListItemsController } from "../support/api/controllers/ListItemsController";
+import { LogController } from "../support/api/controllers/LogController";
 import { expectBody } from "../support/api/responses";
 import { alien, aliens, amelie, titlesOf } from "../support/films";
 import { createList, fillList } from "../support/lists";
@@ -361,13 +362,12 @@ test("a film's Lists load in the same number of queries for 1 List as for 100", 
 });
 
 async function logFilm(request: APIRequestContext, mediaItemId: number) {
-  const response = await request.post("/api/log-entries", { data: { mediaItemId, rating: 4 } });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).logEntry;
+  const logged = new LogController(request).createLogEntry({ mediaItemId, rating: 4 });
+  return (await expectBody(logged, 201)).logEntry;
 }
 
 async function theLog(request: APIRequestContext) {
-  return (await (await request.get("/api/log-entries")).json()).logEntries;
+  return (await expectBody(new LogController(request).getLogEntries())).logEntries;
 }
 
 test("removing a List Item or deleting a List leaves the Log untouched", async ({ request }) => {

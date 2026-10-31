@@ -1,4 +1,8 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import type { LogEntryEditRequest, NewLogEntryRequest } from "@shared/api";
+import type { RequestOptions } from "../support/api/controllers/BaseController";
+import { LogController } from "../support/api/controllers/LogController";
+import { expectBody } from "../support/api/responses";
 import { at } from "../support/clock";
 import { searchResult } from "../support/films";
 import { callsRealTmdb } from "../support/tmdb";
@@ -128,16 +132,17 @@ async function addAlien(request: APIRequestContext) {
   return add(request, await searchResult(request, "alien", "348"));
 }
 
-async function postLogEntry(request: APIRequestContext, data: object, options?: object) {
-  const response = await request.post("/api/log-entries", { data, ...options });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).logEntry;
+async function postLogEntry(
+  request: APIRequestContext,
+  data: NewLogEntryRequest,
+  options?: RequestOptions,
+) {
+  const logged = new LogController(request).createLogEntry(data, options);
+  return (await expectBody(logged, 201)).logEntry;
 }
 
-async function theLog(request: APIRequestContext, options?: object) {
-  const response = await request.get("/api/log-entries", options);
-  expect(response.status()).toBe(200);
-  return (await response.json()).logEntries;
+async function theLog(request: APIRequestContext, options?: RequestOptions) {
+  return (await expectBody(new LogController(request).getLogEntries(options))).logEntries;
 }
 
 test("a User logs a film with a Rating and sees it in their Log", async ({ request }) => {
@@ -438,12 +443,11 @@ test("the Item History of an unknown Media Item is a 404", async ({ request }) =
 async function patchLogEntry(
   request: APIRequestContext,
   id: number,
-  data: object,
-  options?: object,
+  data: LogEntryEditRequest,
+  options?: RequestOptions,
 ) {
-  const response = await request.patch(`/api/log-entries/${id}`, { data, ...options });
-  expect(response.status(), await response.text()).toBe(200);
-  return (await response.json()).logEntry;
+  const edited = new LogController(request).updateLogEntry(id, data, options);
+  return (await expectBody(edited)).logEntry;
 }
 
 test("every field of a Log Entry can be edited, and its creation time stays", async ({

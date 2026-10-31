@@ -5,6 +5,11 @@ export const endpoints = {
     logout: "/api/auth/logout",
     currentUser: "/api/auth/me",
   },
+  backlog: {
+    collection: "/api/backlog",
+    items: "/api/backlog/items",
+    itemByMediaItem: (mediaItemId: number) => `/api/backlog/items/${mediaItemId}`,
+  },
   catalog: {
     search: "/api/catalog/search",
     items: "/api/catalog/items",
@@ -17,6 +22,10 @@ export const endpoints = {
     collection: "/api/lists",
     byId: (listId: number) => `/api/lists/${listId}`,
     items: (listId: number) => `/api/lists/${listId}/items`,
+  },
+  logEntries: {
+    collection: "/api/log-entries",
+    byId: (logEntryId: number) => `/api/log-entries/${logEntryId}`,
   },
   // Exists only where test hooks are on (local and staging).
   testHooks: {

@@ -1,15 +1,16 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
-import type { ListItemEditRequest } from "@shared/api";
+import type { ListItemEditRequest, PlanRequest } from "@shared/api";
+import { BacklogController } from "../support/api/controllers/BacklogController";
 import { ListItemsController } from "../support/api/controllers/ListItemsController";
+import { LogController } from "../support/api/controllers/LogController";
 import { expectBody } from "../support/api/responses";
 import { fillBacklog } from "../support/backlog";
 import { alien, aliens, amelie, searchResult, titlesOf } from "../support/films";
 import { logInNewUser } from "../support/users";
 
 async function theBacklog(request: APIRequestContext) {
-  const response = await request.get("/api/backlog", { params: { mediaType: "film" } });
-  expect(response.status(), await response.text()).toBe(200);
-  return (await response.json()).backlog;
+  const backlog = new BacklogController(request).getBacklog({ mediaType: "film" });
+  return (await expectBody(backlog)).backlog;
 }
 
 test("a new User has an empty, private film Backlog from registration", async ({ request }) => {
@@ -25,10 +26,8 @@ test("a new User has an empty, private film Backlog from registration", async ({
 });
 
 // Marks a Media Item Planned: its List Item in the Backlog.
-async function plan(request: APIRequestContext, data: object) {
-  const response = await request.post("/api/backlog/items", { data });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).listItem;
+async function plan(request: APIRequestContext, data: PlanRequest) {
+  return (await expectBody(new BacklogController(request).addBacklogItem(data), 201)).listItem;
 }
 
 test("marking a film Planned adds it to the Backlog, without a Log Entry", async ({ request }) => {
@@ -120,9 +119,7 @@ test("the User adds a Note to a Backlog item, changes it and clears it", async (
 });
 
 async function logFilm(request: APIRequestContext, mediaItemId: number) {
-  const response = await request.post("/api/log-entries", { data: { mediaItemId, rating: 4 } });
-  expect(response.status(), await response.text()).toBe(201);
-  return response.json();
+  return expectBody(new LogController(request).createLogEntry({ mediaItemId, rating: 4 }), 201);
 }
 
 test("logging a film takes it off the Backlog, and planning it back where it was undoes that", async ({
@@ -179,7 +176,7 @@ test("deleting a Log Entry leaves the Backlog untouched", async ({ request }) =>
   const replanned = await plan(request, { mediaItemId: aliensItem.id });
 
   for (const { id } of [alienEntry, aliensEntry]) {
-    expect((await request.delete(`/api/log-entries/${id}`)).status()).toBe(204);
+    expect((await new LogController(request).deleteLogEntry(id)).status()).toBe(204);
   }
 
   expect((await theBacklog(request)).items).toEqual([replanned]);
