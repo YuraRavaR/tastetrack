@@ -1,3 +1,5 @@
+export const day = 24 * 60 * 60 * 1000;
+
 // The options for a request at `time`: with test hooks on, the Worker treats this header's time as
 // now.
 export function at(time: number | string) {

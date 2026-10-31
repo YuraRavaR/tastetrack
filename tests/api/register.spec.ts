@@ -1,27 +1,24 @@
-import { type APIRequestContext, test as base, expect } from "@playwright/test";
-import { at } from "../support/clock";
+import type { ApiClient } from "../support/api/ApiClient";
+import type { RequestOptions } from "../support/api/controllers/BaseController";
+import { endpoints } from "../support/api/endpoints";
+import { bodyOf } from "../support/api/responses";
+import { at, day } from "../support/clock";
+import { test as base, expect } from "../support/fixtures";
 import { createUser, uniqueUsername } from "../support/users";
 
-const day = 24 * 60 * 60 * 1000;
-
-// `request` is the issuer, logged in; `invitee` is a separate client with no session.
-const test = base.extend<{ invitee: APIRequestContext }>({
-  request: async ({ request }, use) => {
-    const issuer = await createUser();
-    expect((await request.post("/api/auth/login", { data: issuer })).status()).toBe(200);
-    await use(request);
+// `issuer` is a logged-in client that issues the Invite Codes; `invitee` is a client with no session.
+const test = base.extend<{ issuer: ApiClient; invitee: ApiClient }>({
+  issuer: async ({ loggedInApi }, use) => {
+    await use(loggedInApi);
   },
-  invitee: async ({ playwright, baseURL }, use) => {
-    const invitee = await playwright.request.newContext({ baseURL });
-    await use(invitee);
-    await invitee.dispose();
+  invitee: async ({ createApiClient }, use) => {
+    await use(await createApiClient());
   },
 });
 
-async function issueCode(request: APIRequestContext, options = {}): Promise<string> {
-  const response = await request.post("/api/invite-codes", options);
-  expect(response.status()).toBe(201);
-  return (await response.json()).inviteCode.code;
+async function issueCode(issuer: ApiClient, options?: RequestOptions): Promise<string> {
+  const { inviteCode } = await bodyOf(issuer.inviteCodes.issueInviteCode(options), 201);
+  return inviteCode.code;
 }
 
 function newInvitee(inviteCode: string) {
@@ -29,142 +26,126 @@ function newInvitee(inviteCode: string) {
 }
 
 test("an invitee registers with an Invite Code, is logged in, and the code becomes used", async ({
-  request,
+  issuer,
   invitee,
 }) => {
-  const registration = newInvitee(await issueCode(request));
+  const registration = newInvitee(await issueCode(issuer));
 
-  const response = await invitee.post("/api/auth/register", { data: registration });
+  const registered = await bodyOf(invitee.auth.register(registration), 201);
 
-  expect(response.status()).toBe(201);
-  expect(await response.json()).toEqual({
+  expect(registered).toEqual({
     user: { username: registration.username, displayName: registration.username },
   });
-  expect(await (await invitee.get("/api/auth/me")).json()).toEqual({
+  expect(await bodyOf(invitee.auth.getCurrentUser())).toEqual({
     user: { username: registration.username, displayName: registration.username },
   });
-  expect(await (await request.get("/api/invite-codes")).json()).toEqual({ inviteCodes: [] });
-  await invitee.post("/api/auth/logout");
-  const login = await invitee.post("/api/auth/login", {
-    data: { username: registration.username, password: registration.password },
+  expect(await bodyOf(issuer.inviteCodes.listActiveInviteCodes())).toEqual({ inviteCodes: [] });
+  await invitee.auth.logout();
+  const login = await invitee.auth.login({
+    username: registration.username,
+    password: registration.password,
   });
   expect(login.status()).toBe(200);
 });
 
-test("a used Invite Code is refused", async ({ request, invitee }) => {
-  const code = await issueCode(request);
-  expect((await invitee.post("/api/auth/register", { data: newInvitee(code) })).status()).toBe(201);
-  await invitee.post("/api/auth/logout");
+test("a used Invite Code is refused", async ({ issuer, invitee }) => {
+  const code = await issueCode(issuer);
+  expect((await invitee.auth.register(newInvitee(code))).status()).toBe(201);
+  await invitee.auth.logout();
 
-  const second = await invitee.post("/api/auth/register", { data: newInvitee(code) });
+  const second = await bodyOf(invitee.auth.register(newInvitee(code)), 400);
 
-  expect(second.status()).toBe(400);
-  expect(await second.json()).toEqual({ error: "invite_code_used" });
-  expect((await invitee.get("/api/auth/me")).status()).toBe(401);
+  expect(second).toEqual({ error: "invite_code_used" });
+  expect((await invitee.auth.getCurrentUser()).status()).toBe(401);
 });
 
-test("an Invite Code is refused once 7 days have passed", async ({ request, invitee }) => {
+test("an Invite Code is refused once 7 days have passed", async ({ issuer, invitee }) => {
   const issuedAt = Date.now();
-  const code = await issueCode(request, at(issuedAt));
+  const code = await issueCode(issuer, at(issuedAt));
 
-  const lastMoment = await invitee.post("/api/auth/register", {
-    data: newInvitee(code),
-    ...at(issuedAt + 7 * day),
-  });
+  const lastMoment = await bodyOf(
+    invitee.auth.register(newInvitee(code), at(issuedAt + 7 * day)),
+    400,
+  );
 
-  expect(lastMoment.status()).toBe(400);
-  expect(await lastMoment.json()).toEqual({ error: "invite_code_expired" });
-  const justBefore = await invitee.post("/api/auth/register", {
-    data: newInvitee(code),
-    ...at(issuedAt + 7 * day - 1000),
-  });
+  expect(lastMoment).toEqual({ error: "invite_code_expired" });
+  const justBefore = await invitee.auth.register(newInvitee(code), at(issuedAt + 7 * day - 1000));
   expect(justBefore.status()).toBe(201);
 });
 
 test("an unknown Invite Code is refused", async ({ invitee }) => {
-  const response = await invitee.post("/api/auth/register", {
-    data: newInvitee("AAAA-BBBB-CCCC"),
-  });
+  const unknown = await bodyOf(invitee.auth.register(newInvitee("AAAA-BBBB-CCCC")), 400);
 
-  expect(response.status()).toBe(400);
-  expect(await response.json()).toEqual({ error: "invite_code_unknown" });
+  expect(unknown).toEqual({ error: "invite_code_unknown" });
 });
 
 test("an Invite Code works typed in lower case, without dashes or with spaces around", async ({
-  request,
+  issuer,
   invitee,
 }) => {
-  const code = await issueCode(request);
+  const code = await issueCode(issuer);
   const typed = ` ${code.replaceAll("-", "").toLowerCase()} `;
 
-  const response = await invitee.post("/api/auth/register", { data: newInvitee(typed) });
+  const response = await invitee.auth.register(newInvitee(typed));
 
   expect(response.status()).toBe(201);
 });
 
 test("a Username taken in another letter case is refused and the code stays usable", async ({
-  request,
+  issuer,
   invitee,
 }) => {
   const existing = await createUser();
-  const code = await issueCode(request);
+  const code = await issueCode(issuer);
 
-  const taken = await invitee.post("/api/auth/register", {
-    data: { ...newInvitee(code), username: existing.username.toUpperCase() },
-  });
+  const taken = await bodyOf(
+    invitee.auth.register({ ...newInvitee(code), username: existing.username.toUpperCase() }),
+    409,
+  );
 
-  expect(taken.status()).toBe(409);
-  expect(await taken.json()).toEqual({ error: "username_taken" });
-  expect((await (await request.get("/api/invite-codes")).json()).inviteCodes).toHaveLength(1);
-  expect((await invitee.post("/api/auth/register", { data: newInvitee(code) })).status()).toBe(201);
+  expect(taken).toEqual({ error: "username_taken" });
+  expect((await bodyOf(issuer.inviteCodes.listActiveInviteCodes())).inviteCodes).toHaveLength(1);
+  expect((await invitee.auth.register(newInvitee(code))).status()).toBe(201);
 });
 
-test("a Username is 3–30 letters, digits or underscores", async ({ request, invitee }) => {
-  const code = await issueCode(request);
+test("a Username is 3–30 letters, digits or underscores", async ({ issuer, invitee }) => {
+  const code = await issueCode(issuer);
 
   for (const username of ["ab", "a".repeat(31), "has space", "ім_я", "dash-ed"]) {
-    const response = await invitee.post("/api/auth/register", {
-      data: { ...newInvitee(code), username },
-    });
+    const response = await invitee.auth.register({ ...newInvitee(code), username });
     expect(response.status(), username).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });
   }
   const longest = `${uniqueUsername()}_ABCDEFGHIJ`.slice(0, 30);
-  const accepted = await invitee.post("/api/auth/register", {
-    data: { ...newInvitee(code), username: longest },
-  });
+  const accepted = await invitee.auth.register({ ...newInvitee(code), username: longest });
   expect(accepted.status()).toBe(201);
 });
 
 test("any password of 10–128 characters is accepted, with no composition rules", async ({
-  request,
+  issuer,
   invitee,
 }) => {
   for (const password of ["x".repeat(9), "x".repeat(129)]) {
-    const code = await issueCode(request);
-    const response = await invitee.post("/api/auth/register", {
-      data: { ...newInvitee(code), password },
-    });
+    const code = await issueCode(issuer);
+    const response = await invitee.auth.register({ ...newInvitee(code), password });
     expect(response.status(), `${password.length} characters`).toBe(400);
   }
 
   for (const password of ["aaaaaaaaaa", "x".repeat(128), "correct horse battery staple"]) {
-    const code = await issueCode(request);
-    const response = await invitee.post("/api/auth/register", {
-      data: { ...newInvitee(code), password },
-    });
+    const code = await issueCode(issuer);
+    const response = await invitee.auth.register({ ...newInvitee(code), password });
     expect(response.status(), `${password.length} characters`).toBe(201);
-    await invitee.post("/api/auth/logout");
+    await invitee.auth.logout();
   }
 });
 
 // Who invited whom isn't shown in the app yet, so a test hook reads it.
-test("the new User records who invited them", async ({ request, invitee }) => {
-  const issuer = (await (await request.get("/api/auth/me")).json()).user.username;
-  const registration = newInvitee(await issueCode(request));
+test("the new User records who invited them", async ({ issuer, invitee, request }) => {
+  const { user } = await bodyOf(issuer.auth.getCurrentUser());
+  const registration = newInvitee(await issueCode(issuer));
 
-  await invitee.post("/api/auth/register", { data: registration });
+  await invitee.auth.register(registration);
 
-  const invitedBy = await request.get(`/api/test/users/${registration.username}/invited-by`);
-  expect(await invitedBy.json()).toEqual({ invitedBy: issuer });
+  const invitedBy = endpoints.testHooks.invitedBy(registration.username);
+  expect(await bodyOf(request.get(invitedBy))).toEqual({ invitedBy: user.username });
 });

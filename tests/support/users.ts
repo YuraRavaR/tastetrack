@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { type APIRequestContext, expect, request, test } from "@playwright/test";
+import { ApiClient } from "./api/ApiClient";
+import { bodyOf } from "./api/responses";
 
 export interface TestUser {
   username: string;
@@ -61,15 +63,11 @@ export async function createUser(): Promise<TestUser> {
   if (!baseURL) throw new Error("createUser needs the project's baseURL");
   const api = await request.newContext({ baseURL });
   try {
-    const seed = await seedFor(api, baseURL);
-    expect((await api.post("/api/auth/login", { data: seed })).status()).toBe(200);
-    const issued = await api.post("/api/invite-codes");
-    expect(issued.status()).toBe(201);
+    const { auth, inviteCodes } = new ApiClient(api);
+    await bodyOf(auth.login(await seedFor(api, baseURL)));
+    const { inviteCode } = await bodyOf(inviteCodes.issueInviteCode(), 201);
     const user = { username: uniqueUsername(), password };
-    const registered = await api.post("/api/auth/register", {
-      data: { ...user, inviteCode: (await issued.json()).inviteCode.code },
-    });
-    expect(registered.status()).toBe(201);
+    await bodyOf(auth.register({ ...user, inviteCode: inviteCode.code }), 201);
     return user;
   } finally {
     await api.dispose();

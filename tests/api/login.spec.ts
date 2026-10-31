@@ -1,8 +1,8 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
-import { at } from "../support/clock";
-import { createSeedUser, createUser, uniqueUsername } from "../support/users";
-
-const day = 24 * 60 * 60 * 1000;
+import { endpoints } from "../support/api/endpoints";
+import { bodyOf } from "../support/api/responses";
+import { at, day } from "../support/clock";
+import { expect, test } from "../support/fixtures";
+import { createSeedUser, uniqueUsername } from "../support/users";
 
 function sessionCookieOf(setCookie: string | undefined): string {
   const match = setCookie?.match(/(?:^|\n)session=([^;]+)/);
@@ -10,121 +10,107 @@ function sessionCookieOf(setCookie: string | undefined): string {
   return match[1];
 }
 
-async function me(request: APIRequestContext, options = {}) {
-  return request.get("/api/auth/me", options);
-}
+test("a User logs in with their Username and password", async ({ api, registeredUser }) => {
+  const login = await bodyOf(api.auth.login(registeredUser));
 
-test("a User logs in with their Username and password", async ({ request }) => {
-  const user = await createUser();
-
-  const login = await request.post("/api/auth/login", { data: user });
-
-  expect(login.status()).toBe(200);
-  expect(await login.json()).toEqual({
-    user: { username: user.username, displayName: user.username },
+  expect(login).toEqual({
+    user: { username: registeredUser.username, displayName: registeredUser.username },
     passwordChangeRequired: false,
   });
-  const current = await me(request);
-  expect(current.status()).toBe(200);
-  expect(await current.json()).toEqual({
-    user: { username: user.username, displayName: user.username },
+  expect(await bodyOf(api.auth.getCurrentUser())).toEqual({
+    user: { username: registeredUser.username, displayName: registeredUser.username },
   });
 });
 
-test("the Username matches in any letter case", async ({ request }) => {
-  const user = await createUser();
+test("the Username matches in any letter case", async ({ api, registeredUser }) => {
+  const login = await bodyOf(
+    api.auth.login({ ...registeredUser, username: registeredUser.username.toUpperCase() }),
+  );
 
-  const login = await request.post("/api/auth/login", {
-    data: { username: user.username.toUpperCase(), password: user.password },
-  });
-
-  expect(login.status()).toBe(200);
-  expect(await login.json()).toEqual({
-    user: { username: user.username, displayName: user.username },
+  expect(login).toEqual({
+    user: { username: registeredUser.username, displayName: registeredUser.username },
     passwordChangeRequired: false,
   });
 });
 
-test("an unknown Username and a wrong password get the same error", async ({ request }) => {
-  const user = await createUser();
+test("an unknown Username and a wrong password get the same error", async ({
+  api,
+  registeredUser,
+}) => {
+  const wrongPassword = await bodyOf(
+    api.auth.login({ ...registeredUser, password: "not the password" }),
+    401,
+  );
+  const unknownUsername = await bodyOf(
+    api.auth.login({ ...registeredUser, username: uniqueUsername() }),
+    401,
+  );
 
-  const wrongPassword = await request.post("/api/auth/login", {
-    data: { username: user.username, password: "not the password" },
-  });
-  const unknownUsername = await request.post("/api/auth/login", {
-    data: { username: uniqueUsername(), password: user.password },
-  });
-
-  expect(wrongPassword.status()).toBe(401);
-  expect(unknownUsername.status()).toBe(401);
-  expect(await wrongPassword.json()).toEqual({ error: "invalid_credentials" });
-  expect(await unknownUsername.json()).toEqual({ error: "invalid_credentials" });
-  expect((await me(request)).status()).toBe(401);
+  expect(wrongPassword).toEqual({ error: "invalid_credentials" });
+  expect(unknownUsername).toEqual({ error: "invalid_credentials" });
+  expect((await api.auth.getCurrentUser()).status()).toBe(401);
 });
 
-test("without a session, the current User is a 401", async ({ request }) => {
-  const response = await me(request);
-
-  expect(response.status()).toBe(401);
-  expect(await response.json()).toEqual({ error: "unauthenticated" });
+test("without a session, the current User is a 401", async ({ api }) => {
+  expect(await bodyOf(api.auth.getCurrentUser(), 401)).toEqual({ error: "unauthenticated" });
 });
 
-test("a session stays valid for 30 days from the last activity", async ({ request }) => {
-  const user = await createUser();
+test("a session stays valid for 30 days from the last activity", async ({
+  api,
+  registeredUser,
+}) => {
   const start = Date.now();
-  await request.post("/api/auth/login", { data: user, ...at(start) });
+  await api.auth.login(registeredUser, at(start));
 
-  expect((await me(request, at(start + 29 * day))).status()).toBe(200);
+  expect((await api.auth.getCurrentUser(at(start + 29 * day))).status()).toBe(200);
   // 58 days after login, but only 29 after the last activity.
-  expect((await me(request, at(start + 58 * day))).status()).toBe(200);
-  expect((await me(request, at(start + 88 * day))).status()).toBe(401);
+  expect((await api.auth.getCurrentUser(at(start + 58 * day))).status()).toBe(200);
+  expect((await api.auth.getCurrentUser(at(start + 88 * day))).status()).toBe(401);
 });
 
-test("a session ends to the second 30 days after the last activity", async ({ request }) => {
-  const user = await createUser();
+test("a session ends to the second 30 days after the last activity", async ({
+  api,
+  registeredUser,
+}) => {
   const start = Date.now();
-  await request.post("/api/auth/login", { data: user, ...at(start) });
+  await api.auth.login(registeredUser, at(start));
 
-  expect((await me(request, at(start + 30 * day - 1000))).status()).toBe(200);
-  expect((await me(request, at(start + 60 * day))).status()).toBe(401);
+  expect((await api.auth.getCurrentUser(at(start + 30 * day - 1000))).status()).toBe(200);
+  expect((await api.auth.getCurrentUser(at(start + 60 * day))).status()).toBe(401);
 });
 
-test("logging out ends the session on the server", async ({ request }) => {
-  const user = await createUser();
-  const login = await request.post("/api/auth/login", { data: user });
+test("logging out ends the session on the server", async ({ api, registeredUser }) => {
+  const login = await api.auth.login(registeredUser);
   const token = sessionCookieOf(login.headers()["set-cookie"]);
 
-  const logout = await request.post("/api/auth/logout");
+  const logout = await api.auth.logout();
 
   expect(logout.status()).toBe(204);
-  expect((await me(request)).status()).toBe(401);
+  expect((await api.auth.getCurrentUser()).status()).toBe(401);
   // A copy of the cookie taken before logout no longer works.
-  const replayed = await me(request, { headers: { cookie: `session=${token}` } });
+  const replayed = await api.auth.getCurrentUser({ headers: { cookie: `session=${token}` } });
   expect(replayed.status()).toBe(401);
 });
 
-test("logging out ends only that session", async ({ request, playwright, baseURL }) => {
-  const user = await createUser();
-  const otherDevice = await playwright.request.newContext({ baseURL });
-  await request.post("/api/auth/login", { data: user });
-  await otherDevice.post("/api/auth/login", { data: user });
+test("logging out ends only that session", async ({ api, loggedInUser, createApiClient }) => {
+  const otherDevice = await createApiClient();
+  await otherDevice.auth.login(loggedInUser);
 
-  await request.post("/api/auth/logout");
+  await api.auth.logout();
 
-  expect((await me(otherDevice)).status()).toBe(200);
-  await otherDevice.dispose();
+  expect((await otherDevice.auth.getCurrentUser()).status()).toBe(200);
 });
 
-test("a login re-hashes a password hash below the iteration target", async ({ request }) => {
+test("a login re-hashes a password hash below the iteration target", async ({ api, request }) => {
   const user = await createSeedUser(request, { passwordIterations: 1000 });
-  const iterations = `/api/test/users/${user.username}/password-iterations`;
-  expect(await (await request.get(iterations)).json()).toEqual({ iterations: 1000 });
+  const iterations = endpoints.testHooks.passwordIterations(user.username);
+  expect(await bodyOf(request.get(iterations))).toEqual({ iterations: 1000 });
 
-  const login = await request.post("/api/auth/login", { data: user });
+  const login = await api.auth.login(user);
 
   expect(login.status()).toBe(200);
-  expect(await (await request.get(iterations)).json()).toEqual({ iterations: 20_000 });
+  expect(await bodyOf(request.get(iterations))).toEqual({ iterations: 20_000 });
   // The new hash still checks the same password.
-  await request.post("/api/auth/logout");
-  expect((await request.post("/api/auth/login", { data: user })).status()).toBe(200);
+  await api.auth.logout();
+  expect((await api.auth.login(user)).status()).toBe(200);
 });
