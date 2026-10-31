@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.6.0](https://github.com/YuraRavaR/tastetrack/compare/v0.5.0...v0.6.0) (2026-10-31)
+
+
+### Features
+
+* lead the film's page with stat tiles and newest-first Viewings ([#91](https://github.com/YuraRavaR/tastetrack/issues/91)) ([4e09828](https://github.com/YuraRavaR/tastetrack/commit/4e098281b8089b3c4c855f9cc122fdc1f6b0d23e))
+* link search results to the film's page and keep the query in the URL ([#90](https://github.com/YuraRavaR/tastetrack/issues/90)) ([f0d8e0b](https://github.com/YuraRavaR/tastetrack/commit/f0d8e0b3d9924621983b3a21fbab4d8a111cf908))
+* log and plan a film from its page ([#94](https://github.com/YuraRavaR/tastetrack/issues/94)) ([d101772](https://github.com/YuraRavaR/tastetrack/commit/d10177260c11d9cc2455f6848c67e7b7928fc4ea)), closes [#74](https://github.com/YuraRavaR/tastetrack/issues/74)
+* open the film's page with its TMDB backdrop ([#92](https://github.com/YuraRavaR/tastetrack/issues/92)) ([12ca465](https://github.com/YuraRavaR/tastetrack/commit/12ca46520b6effd07f2a38820d87d70fa797d509)), closes [#72](https://github.com/YuraRavaR/tastetrack/issues/72)
+* rebuild the Watched dialog with date chips, Today by default ([#93](https://github.com/YuraRavaR/tastetrack/issues/93)) ([15f7799](https://github.com/YuraRavaR/tastetrack/commit/15f77999ef51c646cf58aa1dbd9be1f3511f70dd))
+* show a playful placeholder for a film without a poster ([#89](https://github.com/YuraRavaR/tastetrack/issues/89)) ([0c12867](https://github.com/YuraRavaR/tastetrack/commit/0c12867d4ee2ddd933de54b98b32391da1677349))
+* show a search result's Rating and Lists, with Mark watched and Watched again ([#95](https://github.com/YuraRavaR/tastetrack/issues/95)) ([2cb121f](https://github.com/YuraRavaR/tastetrack/commit/2cb121fdef557eae1d7e8d3f01d51d8cb1cd7a98)), closes [#82](https://github.com/YuraRavaR/tastetrack/issues/82)
+* take a film off the Watchlist from search, with Watched as the main action ([#80](https://github.com/YuraRavaR/tastetrack/issues/80)) ([80012e9](https://github.com/YuraRavaR/tastetrack/commit/80012e9309bad0eb6507fc1c80f3d40db18d9a85))
+
+
+### Reverts
+
+* remove the Claude Code cloud session setup ([#88](https://github.com/YuraRavaR/tastetrack/issues/88)) ([7dc4319](https://github.com/YuraRavaR/tastetrack/commit/7dc43194e9cf2e5ce6e9d4a0034837906ff0b5e8))
+
 ## [0.5.0](https://github.com/YuraRavaR/tastetrack/compare/v0.4.0...v0.5.0) (2026-10-30)
 
 
