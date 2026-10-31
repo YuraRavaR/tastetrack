@@ -1,13 +1,13 @@
-import type { TestUser } from "../../users";
+import type { LoginRequest, RegisterRequest } from "../../../../src/shared/api";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
 
 export class AuthController extends BaseController {
-  register(registration: TestUser & { inviteCode: string }, options?: RequestOptions) {
+  register(registration: RegisterRequest, options?: RequestOptions) {
     return this.requestContext.post(endpoints.auth.register, { ...options, data: registration });
   }
 
-  login(credentials: TestUser, options?: RequestOptions) {
+  login(credentials: LoginRequest, options?: RequestOptions) {
     return this.requestContext.post(endpoints.auth.login, { ...options, data: credentials });
   }
 

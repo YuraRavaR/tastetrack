@@ -1,5 +1,5 @@
 import { endpoints } from "../support/api/endpoints";
-import { bodyOf } from "../support/api/responses";
+import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { expect, test } from "../support/fixtures";
 import { createSeedUser, uniqueUsername } from "../support/users";
@@ -11,19 +11,19 @@ function sessionCookieOf(setCookie: string | undefined): string {
 }
 
 test("a User logs in with their Username and password", async ({ api, registeredUser }) => {
-  const login = await bodyOf(api.auth.login(registeredUser));
+  const login = await expectBody(api.auth.login(registeredUser));
 
   expect(login).toEqual({
     user: { username: registeredUser.username, displayName: registeredUser.username },
     passwordChangeRequired: false,
   });
-  expect(await bodyOf(api.auth.getCurrentUser())).toEqual({
+  expect(await expectBody(api.auth.getCurrentUser())).toEqual({
     user: { username: registeredUser.username, displayName: registeredUser.username },
   });
 });
 
 test("the Username matches in any letter case", async ({ api, registeredUser }) => {
-  const login = await bodyOf(
+  const login = await expectBody(
     api.auth.login({ ...registeredUser, username: registeredUser.username.toUpperCase() }),
   );
 
@@ -37,11 +37,11 @@ test("an unknown Username and a wrong password get the same error", async ({
   api,
   registeredUser,
 }) => {
-  const wrongPassword = await bodyOf(
+  const wrongPassword = await expectBody(
     api.auth.login({ ...registeredUser, password: "not the password" }),
     401,
   );
-  const unknownUsername = await bodyOf(
+  const unknownUsername = await expectBody(
     api.auth.login({ ...registeredUser, username: uniqueUsername() }),
     401,
   );
@@ -52,7 +52,7 @@ test("an unknown Username and a wrong password get the same error", async ({
 });
 
 test("without a session, the current User is a 401", async ({ api }) => {
-  expect(await bodyOf(api.auth.getCurrentUser(), 401)).toEqual({ error: "unauthenticated" });
+  expect(await expectBody(api.auth.getCurrentUser(), 401)).toEqual({ error: "unauthenticated" });
 });
 
 test("a session stays valid for 30 days from the last activity", async ({
@@ -104,12 +104,12 @@ test("logging out ends only that session", async ({ api, loggedInUser, createApi
 test("a login re-hashes a password hash below the iteration target", async ({ api, request }) => {
   const user = await createSeedUser(request, { passwordIterations: 1000 });
   const iterations = endpoints.testHooks.passwordIterations(user.username);
-  expect(await bodyOf(request.get(iterations))).toEqual({ iterations: 1000 });
+  expect(await expectBody(request.get(iterations))).toEqual({ iterations: 1000 });
 
   const login = await api.auth.login(user);
 
   expect(login.status()).toBe(200);
-  expect(await bodyOf(request.get(iterations))).toEqual({ iterations: 20_000 });
+  expect(await expectBody(request.get(iterations))).toEqual({ iterations: 20_000 });
   // The new hash still checks the same password.
   await api.auth.logout();
   expect((await api.auth.login(user)).status()).toBe(200);

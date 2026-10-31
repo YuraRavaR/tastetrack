@@ -1,4 +1,5 @@
-import { bodyOf } from "../support/api/responses";
+import { InviteCodeResponse } from "../../src/shared/api";
+import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { expect, test } from "../support/fixtures";
 
@@ -7,11 +8,15 @@ test("a User generates an Invite Code valid for 7 days and sees it as active", a
 }) => {
   const now = Date.now();
 
-  const { inviteCode } = await bodyOf(loggedInApi.inviteCodes.issueInviteCode(at(now)), 201);
+  const { inviteCode } = await expectBody(
+    loggedInApi.inviteCodes.issueInviteCode(at(now)),
+    201,
+    InviteCodeResponse,
+  );
 
   expect(inviteCode.code).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/);
   expect(inviteCode.expiresAt).toBe(new Date(now + 7 * day).toISOString());
-  expect(await bodyOf(loggedInApi.inviteCodes.listActiveInviteCodes(at(now)))).toEqual({
+  expect(await expectBody(loggedInApi.inviteCodes.listActiveInviteCodes(at(now)))).toEqual({
     inviteCodes: [inviteCode],
   });
 });
@@ -24,10 +29,10 @@ test("a sixth active Invite Code is refused until one of the five expires", asyn
     expect((await loggedInApi.inviteCodes.issueInviteCode(at(now))).status()).toBe(201);
   }
 
-  const sixth = await bodyOf(loggedInApi.inviteCodes.issueInviteCode(at(now)), 409);
+  const sixth = await expectBody(loggedInApi.inviteCodes.issueInviteCode(at(now)), 409);
 
   expect(sixth).toEqual({ error: "invite_code_limit" });
-  const active = await bodyOf(loggedInApi.inviteCodes.listActiveInviteCodes(at(now)));
+  const active = await expectBody(loggedInApi.inviteCodes.listActiveInviteCodes(at(now)));
   expect(active.inviteCodes).toHaveLength(5);
   // Once the five expire they no longer count.
   expect((await loggedInApi.inviteCodes.issueInviteCode(at(now + 7 * day))).status()).toBe(201);
