@@ -1,9 +1,27 @@
-import { expect, test } from "@playwright/test";
+import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 import { alien, aliens, amelie, newFilm } from "../support/films";
 import { callsRealTmdb } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker searches a TMDB fake; on staging, the real TMDB. Both know these films.
+
+function alienResult(page: Page) {
+  return page
+    .getByRole("list", { name: "Search results" })
+    .getByRole("listitem")
+    .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
+}
+
+async function createList(api: APIRequestContext, name: string, mediaItemId?: number) {
+  const made = await api.post("/api/lists", { data: { name, mediaType: "film" } });
+  expect(made.status(), await made.text()).toBe(201);
+  const { list } = await made.json();
+  if (mediaItemId !== undefined) {
+    const added = await api.post(`/api/lists/${list.id}/items`, { data: { mediaItemId } });
+    expect(added.status(), await added.text()).toBe(201);
+  }
+  return list;
+}
 
 test("a User searches films as they type, in English or Ukrainian", { tag: "@smoke" }, async ({
   page,
@@ -178,6 +196,184 @@ test("a URL with a query runs that search, and Home leaves it", async ({ page })
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("searchbox", { name: "Search films" })).toHaveValue("");
   await expect(page.getByRole("heading", { name: "Latest in your Log" })).toBeVisible();
+});
+
+test("a User marks a film watched, then logs a rewatch with a new Rating", async ({ page }) => {
+  await logInNewUser(page.request);
+  await page.goto("/?q=alien");
+  const result = alienResult(page);
+  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
+  const again = result.getByRole("button", { name: "Watched again" });
+  await expect(result.getByRole("button", { name: "Mark watched" })).toBeVisible();
+  let searches = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/catalog/search") searches += 1;
+  });
+
+  await result.getByRole("button", { name: "Mark watched" }).click();
+  await expect(dialog.getByText("Watched", { exact: true })).toBeVisible();
+  await expect(dialog.getByRole("switch", { name: "Rewatch" })).not.toBeChecked();
+  await expect(dialog.getByText("Last time")).toHaveCount(0);
+  await dialog.getByRole("radio", { name: "4 stars" }).check();
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
+
+  await expect(result.getByRole("button", { name: "Mark watched" })).toHaveCount(0);
+  await expect(result.getByRole("link", { name: "4 · 1 viewing" })).toBeVisible();
+
+  await again.click();
+  await expect(dialog.getByText("Watched again", { exact: true })).toBeVisible();
+  await expect(dialog.getByRole("switch", { name: "Rewatch" })).toBeChecked();
+  await expect(dialog.getByText("Last time")).toContainText("Last time 4 ·");
+  await expect(dialog.getByRole("radio", { checked: true })).toHaveCount(0);
+  await dialog.getByRole("radio", { name: "2.5 stars" }).check();
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
+
+  await expect(result.getByRole("link", { name: "2.5 · 2 viewings" })).toBeVisible();
+  expect(searches).toBe(0);
+  await result.getByRole("link", { name: "2.5 · 2 viewings" }).click();
+  await expect(page).toHaveURL(/\/items\/\d+$/);
+});
+
+test("a backdated rewatch leaves the row's Current Rating as it was", async ({ page }) => {
+  await logInNewUser(page.request);
+  const { id: mediaItemId } = await alien(page.request);
+  await page.request.post("/api/log-entries", {
+    data: { mediaItemId, rating: 4, date: "2024-03-12" },
+  });
+  await page.goto("/?q=alien");
+  const result = alienResult(page);
+  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
+
+  await result.getByRole("button", { name: "Watched again" }).click();
+  await expect(dialog.getByText("Last time")).toHaveText("Last time 4 · Mar 12, 2024");
+  await dialog.getByRole("radio", { name: "1 star", exact: true }).check();
+  await dialog.getByRole("button", { name: "Other date" }).click();
+  await dialog.getByLabel("Date watched").fill("2020-01-01");
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
+
+  await expect(result.getByRole("link", { name: "4 · 2 viewings" })).toBeVisible();
+});
+
+test("the hint leaves out the date of a Log Entry with none", async ({ page }) => {
+  await logInNewUser(page.request);
+  const { id: mediaItemId } = await alien(page.request);
+  await page.request.post("/api/log-entries", { data: { mediaItemId, rating: 3.5 } });
+  await page.goto("/?q=alien");
+
+  await alienResult(page).getByRole("button", { name: "Watched again" }).click();
+
+  await expect(page.getByRole("dialog").getByText("Last time")).toHaveText("Last time 3.5");
+});
+
+test("a result shows two of its Lists, then how many more, each linking to its List", async ({
+  page,
+}) => {
+  await logInNewUser(page.request);
+  const { id: mediaItemId } = await alien(page.request);
+  const first = await createList(page.request, "First", mediaItemId);
+  await createList(page.request, "Second", mediaItemId);
+  await createList(page.request, "Third", mediaItemId);
+  await page.goto("/?q=alien");
+  const result = alienResult(page);
+
+  await expect(result.getByRole("img", { name: "Lists" })).toBeVisible();
+  await expect(result.getByRole("link", { name: "First", exact: true })).toBeVisible();
+  await expect(result.getByRole("link", { name: "Second", exact: true })).toBeVisible();
+  await expect(result.getByRole("link", { name: "Third", exact: true })).toHaveCount(0);
+  await expect(result.getByText("+1", { exact: true })).toBeVisible();
+
+  await result.getByRole("link", { name: "First", exact: true }).click();
+  await expect(page).toHaveURL(`/lists/${first.id}`);
+});
+
+test("a result's List chips follow Add to list, without a new search", async ({ page }) => {
+  await logInNewUser(page.request);
+  await createList(page.request, "Horror");
+  await page.goto("/?q=alien");
+  const result = alienResult(page);
+  const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
+  const horror = dialog.getByRole("checkbox", { name: "Horror" });
+  const chip = result.getByRole("link", { name: "Horror", exact: true });
+  await expect(result.getByRole("img", { name: "Lists" })).toHaveCount(0);
+
+  await result.getByRole("button", { name: "Add to list" }).click();
+  await horror.click();
+  await expect(horror).toBeChecked();
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(chip).toBeVisible();
+
+  await result.getByRole("button", { name: "Add to list" }).click();
+  await horror.click();
+  await expect(horror).not.toBeChecked();
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(chip).toHaveCount(0);
+  await expect(result.getByRole("img", { name: "Lists" })).toHaveCount(0);
+});
+
+test("a result's List chips follow a change still saving when the dialog closes", async ({
+  page,
+}) => {
+  await logInNewUser(page.request);
+  await createList(page.request, "Horror");
+  await page.goto("/?q=alien");
+  const result = alienResult(page);
+  await page.route("**/api/lists/*/items", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.continue();
+  });
+
+  await result.getByRole("button", { name: "Add to list" }).click();
+  const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
+  await dialog.getByRole("checkbox", { name: "Horror" }).click();
+  await dialog.getByRole("button", { name: "Done" }).click();
+
+  await expect(result.getByRole("link", { name: "Horror", exact: true })).toBeVisible();
+});
+
+test("a result's actions keep one order, and fit a 360px phone", async ({ page }) => {
+  await logInNewUser(page.request);
+  const { id: mediaItemId } = await alien(page.request);
+  await page.request.post("/api/log-entries", { data: { mediaItemId, rating: 4 } });
+  await page.goto("/?q=alien");
+  const result = alienResult(page);
+  const poster = result.locator("img");
+  const again = result.getByRole("button", { name: "Watched again" });
+  const bookmark = result.getByRole("button", { name: "Want to watch" });
+  const addToList = result.getByRole("button", { name: "Add to list" });
+
+  await page.setViewportSize({ width: 360, height: 740 });
+  await expect(again).toBeVisible();
+  await expect(again.locator("svg")).toBeHidden();
+  await expect(poster).toHaveCSS("width", "72px");
+  await expect(poster).toHaveCSS("height", "108px");
+  await expect(again).toHaveCSS("height", "44px");
+  await expect(bookmark).toHaveCSS("width", "44px");
+  await expect(addToList).toHaveCSS("height", "44px");
+  const fits = await page.evaluate(() => {
+    return document.documentElement.scrollWidth <= document.documentElement.clientWidth;
+  });
+  expect(fits).toBe(true);
+  const [left, middle, right] = await Promise.all(
+    [again, bookmark, addToList].map(async (button) => (await button.boundingBox())?.x ?? 0),
+  );
+  expect(left).toBeLessThan(middle ?? 0);
+  expect(middle).toBeLessThan(right ?? 0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(again.locator("svg")).toBeVisible();
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(again).toHaveCSS("width", "150px");
+  await expect(again).toHaveCSS("height", "36px");
+  await expect(addToList).toHaveCSS("width", "36px");
+  await expect(poster).toHaveCSS("width", "48px");
+  const [wideLeft, wideRight] = await Promise.all(
+    [again, addToList].map(async (button) => (await button.boundingBox())?.x ?? 0),
+  );
+  expect(wideLeft).toBeLessThan(wideRight ?? 0);
 });
 
 test("TMDB is credited with its logo and notice", { tag: "@smoke" }, async ({ page }) => {

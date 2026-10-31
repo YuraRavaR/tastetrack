@@ -25,9 +25,18 @@ export function foundIn(
   ];
 }
 
-// The film as a Manual Media Item the User just made: in neither their Log nor their Backlog.
+// The film as a Manual Media Item the User just made: in neither their Log, their Backlog nor their
+// Lists.
 export function foundManual(mediaItem: MediaItem): Found {
-  return { kind: "manual", mediaItem, inLog: false, inBacklog: false };
+  return {
+    kind: "manual",
+    mediaItem,
+    inLog: false,
+    inBacklog: false,
+    currentRating: null,
+    logEntryCount: 0,
+    lists: [],
+  };
 }
 
 // A key that names the same film whether it is a search result or a Media Item already made.

@@ -1,5 +1,5 @@
 import { Star } from "lucide-react";
-import { useId } from "react";
+import { type ReactNode, useId } from "react";
 import { cn } from "@/lib/utils";
 import { ratingStars } from "../../shared/log";
 import { t } from "../i18n/t";
@@ -58,20 +58,25 @@ export function RatingValue({ rating }: { rating: number }) {
 
 // Picks a Rating in half stars: each star is two radio buttons, its left and right halves, so the
 // arrow keys step through the Ratings half a star at a time. The Rating shows as a number beside
-// the stars, and `error` says under them what's wrong.
+// the stars, `hint` sits beside the legend, and `error` says under them what's wrong.
 export function RatingInput({
   value,
   onChange,
+  hint = null,
   error,
 }: {
   value: number | null;
   onChange: (rating: number) => void;
+  hint?: ReactNode;
   error: string | null;
 }) {
   const name = useId();
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 font-medium text-sm">{t("rating.label")}</legend>
+      <legend className="mb-2 flex w-full items-baseline justify-between gap-2 font-medium text-sm">
+        {t("rating.label")}
+        {hint}
+      </legend>
       <div className="flex items-center gap-3.5">
         <div className="flex gap-0.5">
           {starNumbers.map((star) => (

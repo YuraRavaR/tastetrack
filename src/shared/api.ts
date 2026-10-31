@@ -175,10 +175,37 @@ export const ExternalReference = z
 
 export type ExternalReference = z.infer<typeof ExternalReference>;
 
+const Rating = z
+  .number()
+  .min(ratingStars.min)
+  .max(ratingStars.max)
+  .multipleOf(ratingStars.step)
+  .openapi({ example: 4.5, description: "Stars, 0.5 to 5 in half-star steps" });
+
+// One of the User's own Lists holding a search result.
+export const HoldingList = z
+  .object({
+    id: z.int().openapi({ example: 5 }),
+    name: z.string().openapi({ example: "Horror nights" }),
+  })
+  .openapi("HoldingList");
+
+export type HoldingList = z.infer<typeof HoldingList>;
+
+// What a search result shows of the User's own: inLog marks a film they have a Log Entry for, with
+// its Current Rating and how many they have, inBacklog one in their Backlog, and lists their Lists
+// holding it, oldest first. A film not in the catalog has none of these.
+const UserMarks = {
+  inLog: z.boolean(),
+  inBacklog: z.boolean(),
+  currentRating: Rating.nullable(),
+  logEntryCount: z.int().min(0).openapi({ example: 2 }),
+  lists: z.array(HoldingList),
+};
+
 // The title is the Localized Title in the query's language, or the Original Title when the
 // External Source has none; titleLanguage says which language that query ran in. mediaItemId is
-// the film's Media Item, null until it joins the catalog. inLog marks a film the User already has
-// a Log Entry for, and inBacklog one in the User's Backlog.
+// the film's Media Item, null until it joins the catalog.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -190,20 +217,22 @@ export const CatalogSearchResult = z
     }),
     titleLanguage: z.enum(["en", "uk"]).openapi({ example: "uk" }),
     mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
-    inLog: z.boolean(),
-    inBacklog: z.boolean(),
+    ...UserMarks,
   })
   .openapi("CatalogSearchResult");
 
 export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
 
 // A search result as the client got it, to add its film to the catalog. The details call
-// replaces what it says; it stands in only when that call fails. mediaItemId, inLog and inBacklog,
+// replaces what it says; it stands in only when that call fails. mediaItemId and the User's marks,
 // if sent, are ignored.
 export const AddCatalogItemRequest = CatalogSearchResult.omit({
   mediaItemId: true,
   inLog: true,
   inBacklog: true,
+  currentRating: true,
+  logEntryCount: true,
+  lists: true,
 })
   .extend({
     externalReference: ExternalReference.extend({
@@ -269,8 +298,7 @@ export type MediaItem = z.infer<typeof MediaItem>;
 export const ManualSearchResult = z
   .object({
     mediaItem: MediaItem,
-    inLog: z.boolean(),
-    inBacklog: z.boolean(),
+    ...UserMarks,
   })
   .openapi("ManualSearchResult");
 
@@ -397,13 +425,6 @@ const LogDate = z
   .regex(/^\d{4}-\d{2}-\d{2}$/)
   .openapi({ example: "2026-10-18", description: "A calendar day, YYYY-MM-DD" });
 
-const Rating = z
-  .number()
-  .min(ratingStars.min)
-  .max(ratingStars.max)
-  .multipleOf(ratingStars.step)
-  .openapi({ example: 4.5, description: "Stars, 0.5 to 5 in half-star steps" });
-
 // timeZone is the User's IANA time zone, which sets the latest date allowed: today there. When it
 // is missing or unknown, the latest date is tomorrow in UTC. An empty Review counts as none.
 export const NewLogEntryRequest = z
@@ -470,10 +491,12 @@ export const RemovedListItem = z
 
 export type RemovedListItem = z.infer<typeof RemovedListItem>;
 
-// A new Log Entry, and where its Media Item was in the User's Backlog before logging it took it
-// off, or null when it wasn't there.
+// A new Log Entry, where its Media Item was in the User's Backlog before logging it took it off, or
+// null when it wasn't there, and the Media Item's Current Rating and number of Log Entries now.
 export const NewLogEntryResponse = LogEntryResponse.extend({
   removedFromBacklog: RemovedListItem.nullable(),
+  currentRating: Rating,
+  logEntryCount: z.int().positive().openapi({ example: 2 }),
 }).openapi("NewLogEntryResponse");
 
 export type NewLogEntryResponse = z.infer<typeof NewLogEntryResponse>;

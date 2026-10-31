@@ -202,24 +202,20 @@ export async function deleteManualMediaItem(
 }
 
 // The User's own Manual Media Items of the Media Type whose title or Original Title contains the
-// query, compared as a User reads them, in title order, each marked when the User has a Log Entry
-// for it and when it is in their Backlog. One query, however many match.
+// query, compared as a User reads them, in title order, each marked when it is in their Backlog.
+// One query, however many match.
 export async function manualSearch(
   db: DrizzleD1Database,
   userId: number,
   mediaType: MediaType,
   query: string,
-): Promise<ManualSearchResult[]> {
+): Promise<Pick<ManualSearchResult, "mediaItem" | "inBacklog">[]> {
   const key = textKey(query);
-  // The outer columns are written out, since Drizzle leaves them unqualified in a query without
-  // joins, where they would mean the inner tables'.
+  // The outer column is written out, since Drizzle leaves it unqualified in a query without joins,
+  // where it would mean the inner tables'.
   const rows = await db
     .select({
       ...mediaItemColumns,
-      inLog: sql<number>`exists (
-        select 1 from ${logEntries}
-        where ${logEntries.userId} = ${userId} and ${logEntries.mediaItemId} = media_items.id
-      )`,
       inBacklog: sql<number>`exists (
         select 1 from ${listItems} inner join ${lists} on ${lists.id} = ${listItems.listId}
         where ${lists.userId} = ${userId} and ${lists.kind} = 'backlog'
@@ -240,7 +236,6 @@ export async function manualSearch(
     .limit(maxManualSearchResults);
   return rows.map((row) => ({
     mediaItem: toMediaItem(row),
-    inLog: Boolean(row.inLog),
     inBacklog: Boolean(row.inBacklog),
   }));
 }

@@ -7,6 +7,7 @@ import { t } from "./t";
 describe("a film's words", () => {
   it.each([
     ["experienced", "Watched"],
+    ["markExperienced", "Mark watched"],
     ["backlog", "Watchlist"],
     ["search", "Search films"],
     ["tab", "Films"],
@@ -26,6 +27,15 @@ describe.each(MediaType.options)("the %s Backlog's name", (mediaType) => {
 
   it("is what a shared Backlog is called", () => {
     expect(sharedListTitle(null, mediaType, "Olena")).toBe(`Olena's ${backlogName}`);
+  });
+});
+
+describe("a Rating with its viewings", () => {
+  it.each([
+    [4, 1, "4 · 1 viewing"],
+    [4.5, 2, "4.5 · 2 viewings"],
+  ])("%d after %i → %s", (rating, count, expected) => {
+    expect(mediaWord("film", "ratingAndCount", { rating, count })).toBe(expected);
   });
 });
 
