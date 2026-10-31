@@ -131,6 +131,15 @@ function at(time: string) {
   return { "X-Test-Now": new Date(time).toISOString() };
 }
 
+const minute = 60 * 1000;
+
+// The moment `minutes` ago, for tests that need one creation time before another. A request at a
+// test time sets the session's expiry from that time, so a fixed date would end the session for
+// the test's later requests once the real date passes that expiry.
+function minutesAgo(minutes: number) {
+  return new Date(Date.now() - minutes * minute).toISOString();
+}
+
 async function addAlien(request: APIRequestContext) {
   return add(request, await searchResult(request, "alien", "348"));
 }
@@ -141,8 +150,8 @@ async function postLogEntry(request: APIRequestContext, data: object, headers?: 
   return (await response.json()).logEntry;
 }
 
-async function theLog(request: APIRequestContext) {
-  const response = await request.get("/api/log-entries");
+async function theLog(request: APIRequestContext, headers?: object) {
+  const response = await request.get("/api/log-entries", { headers: { ...headers } });
   expect(response.status()).toBe(200);
   return (await response.json()).logEntries;
 }
@@ -255,11 +264,11 @@ test("the Log lists undated entries first, then by date, then by creation time",
   const { id } = await addAlien(request);
   const entry = (name: string, date: string | null, createdAt: string) =>
     postLogEntry(request, { mediaItemId: id, rating: 3, date, review: name }, at(createdAt));
-  await entry("2024, logged first", "2024-06-01", "2026-10-01T10:00:00Z");
-  await entry("undated, logged later", null, "2026-10-03T10:00:00Z");
-  await entry("2024 again, logged later", "2024-06-01", "2026-10-02T10:00:00Z");
-  await entry("1999, logged last", "1999-03-31", "2026-10-04T10:00:00Z");
-  await entry("undated, logged earlier", null, "2026-10-01T09:00:00Z");
+  await entry("2024, logged first", "2024-06-01", minutesAgo(40));
+  await entry("undated, logged later", null, minutesAgo(20));
+  await entry("2024 again, logged later", "2024-06-01", minutesAgo(30));
+  await entry("1999, logged last", "1999-03-31", minutesAgo(10));
+  await entry("undated, logged earlier", null, minutesAgo(50));
 
   const reviews = (await theLog(request)).map((e: { review: string }) => e.review);
 
@@ -398,13 +407,13 @@ test("a film's Item History has its Log Entries in Log Order, and the last one's
   const latest = await postLogEntry(
     request,
     { mediaItemId: alienItem.id, rating: 4, date: "2026-10-01", review: "Still terrifying." },
-    at("2026-10-01T20:00:00Z"),
+    at(minutesAgo(20)),
   );
   // Logged later, but backdated: it goes first and doesn't set the Current Rating.
   const backdated = await postLogEntry(
     request,
     { mediaItemId: alienItem.id, rating: 2, date: "1999-03-31" },
-    at("2026-10-02T20:00:00Z"),
+    at(minutesAgo(10)),
   );
   await postLogEntry(request, { mediaItemId: aliensItem.id, rating: 5 });
 
@@ -487,14 +496,14 @@ test("every field of a Log Entry can be edited, and its creation time stays", as
   const logged = await postLogEntry(
     request,
     { mediaItemId, rating: 3, date: "2026-10-01", review: "Fine." },
-    at("2026-10-01T10:00:00Z"),
+    at(minutesAgo(20)),
   );
 
   const edited = await patchLogEntry(
     request,
     logged.id,
     { rating: 4.5, date: "1999-03-31", review: "  Still terrifying.  ", revisit: true },
-    at("2026-10-02T10:00:00Z"),
+    at(minutesAgo(10)),
   );
 
   expect(edited).toEqual({
@@ -517,9 +526,9 @@ test("editing a date or Rating updates Log Order and the Current Rating at once"
   const { id: mediaItemId } = await addAlien(request);
   const entry = (review: string, rating: number, createdAt: string) =>
     postLogEntry(request, { mediaItemId, rating, date: "2026-10-01", review }, at(createdAt));
-  const first = await entry("first", 2, "2026-10-01T10:00:00Z");
-  await entry("second", 3, "2026-10-01T11:00:00Z");
-  const third = await entry("third", 4, "2026-10-01T12:00:00Z");
+  const first = await entry("first", 2, minutesAgo(30));
+  await entry("second", 3, minutesAgo(20));
+  const third = await entry("third", 4, minutesAgo(10));
   const reviews = async () => (await theLog(request)).map((e: { review: string }) => e.review);
 
   // Editing the Rating moves nothing among same-day entries, but the last entry's sets the
@@ -544,6 +553,7 @@ test("an edit is held to the same rules as a new Log Entry", async ({ request })
   await logInNewUser(request);
   const { id: mediaItemId } = await addAlien(request);
   const logged = await postLogEntry(request, { mediaItemId, rating: 3 });
+  // Every request from here on stays at this time, which the session's expiry now follows.
   const now = at("2026-10-19T22:30:00Z");
   const patch = (data: object) =>
     request.patch(`/api/log-entries/${logged.id}`, { data, headers: now });
@@ -563,7 +573,7 @@ test("an edit is held to the same rules as a new Log Entry", async ({ request })
     expect(response.status(), JSON.stringify(data)).toBe(400);
     expect(await response.json()).toEqual({ error });
   }
-  expect((await theLog(request))[0]).toMatchObject({ rating: 3, date: "2026-10-20" });
+  expect((await theLog(request, now))[0]).toMatchObject({ rating: 3, date: "2026-10-20" });
 });
 
 test("deleting a Log Entry removes it, and the Current Rating falls back to the last one left", async ({
