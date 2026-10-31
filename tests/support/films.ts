@@ -1,14 +1,13 @@
 import { type APIRequestContext, expect, type Page } from "@playwright/test";
+import { CatalogController } from "./api/controllers/CatalogController";
+import { expectBody } from "./api/responses";
 
 // Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So tests use
 // only well-known films, and check only what both answer alike.
 
 export async function searchResult(request: APIRequestContext, query: string, id: string) {
-  const response = await request.get("/api/catalog/search", {
-    params: { mediaType: "film", query },
-  });
-  expect(response.status()).toBe(200);
-  const { results } = await response.json();
+  const search = new CatalogController(request).searchCatalog({ mediaType: "film", query });
+  const { results } = await expectBody(search);
   const result = results.find((r: { externalReference: { id: string } }) => {
     return r.externalReference.id === id;
   });
@@ -26,9 +25,8 @@ export function searchResultRow(page: Page, label: string) {
 
 // A film's Media Item, as adding it from search makes or finds it.
 export async function film(request: APIRequestContext, query: string, id: string) {
-  const response = await request.post("/api/catalog/items", {
-    data: await searchResult(request, query, id),
-  });
+  const result = await searchResult(request, query, id);
+  const response = await new CatalogController(request).addCatalogItem(result);
   expect([200, 201]).toContain(response.status());
   return (await response.json()).mediaItem;
 }

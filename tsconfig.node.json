@@ -2,7 +2,8 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["es2023", "dom"],
-    "types": ["node"]
+    "types": ["node"],
+    "paths": { "@shared/*": ["./src/shared/*"] }
   },
   "include": ["*.config.ts", "tests", "scripts"]
 }

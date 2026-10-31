@@ -1,4 +1,4 @@
-import { InviteCodeResponse } from "../../src/shared/api";
+import { InviteCodeResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { expect, test } from "../support/fixtures";

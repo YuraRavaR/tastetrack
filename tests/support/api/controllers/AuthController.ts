@@ -1,4 +1,4 @@
-import type { LoginRequest, RegisterRequest } from "../../../../src/shared/api";
+import type { LoginRequest, RegisterRequest } from "@shared/api";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
 

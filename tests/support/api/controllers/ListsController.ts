@@ -1,8 +1,4 @@
-import type {
-  ListEditRequest,
-  NewListItemRequest,
-  NewListRequest,
-} from "../../../../src/shared/api";
+import type { ListEditRequest, NewListItemRequest, NewListRequest } from "@shared/api";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
 

@@ -5,7 +5,14 @@ export const endpoints = {
     logout: "/api/auth/logout",
     currentUser: "/api/auth/me",
   },
+  catalog: {
+    search: "/api/catalog/search",
+    items: "/api/catalog/items",
+  },
   inviteCodes: "/api/invite-codes",
+  listItems: {
+    byId: (listItemId: number) => `/api/list-items/${listItemId}`,
+  },
   lists: {
     collection: "/api/lists",
     byId: (listId: number) => `/api/lists/${listId}`,

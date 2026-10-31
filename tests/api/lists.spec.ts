@@ -1,4 +1,7 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import type { ListItemEditRequest } from "@shared/api";
+import { ListItemsController } from "../support/api/controllers/ListItemsController";
+import { expectBody } from "../support/api/responses";
 import { alien, aliens, amelie, titlesOf } from "../support/films";
 import { createList, fillList } from "../support/lists";
 import { logInNewUser } from "../support/users";
@@ -10,10 +13,8 @@ async function addToList(request: APIRequestContext, listId: number, data: objec
   return (await response.json()).listItem;
 }
 
-async function patchListItem(request: APIRequestContext, id: number, data: object) {
-  const response = await request.patch(`/api/list-items/${id}`, { data });
-  expect(response.status(), await response.text()).toBe(200);
-  return (await response.json()).listItem;
+async function patchListItem(request: APIRequestContext, id: number, data: ListItemEditRequest) {
+  return (await expectBody(new ListItemsController(request).updateListItem(id, data))).listItem;
 }
 
 async function theList(request: APIRequestContext, id: number) {
