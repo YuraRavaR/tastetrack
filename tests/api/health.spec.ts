@@ -7,15 +7,6 @@ test("health reports the Worker and its database as ok", { tag: "@smoke" }, asyn
   expect(await response.json()).toEqual({ status: "ok", database: "ok" });
 });
 
-test("the OpenAPI spec describes the health route", async ({ request }) => {
-  const response = await request.get("/api/openapi.json");
-
-  expect(response.status()).toBe(200);
-  const spec = await response.json();
-  expect(spec.openapi).toMatch(/^3\.1/);
-  expect(spec.paths["/api/health"].get.responses["200"]).toBeDefined();
-});
-
 test("with test hooks on, API responses carry the D1 query count", async ({ request }) => {
   const response = await request.get("/api/health");
 

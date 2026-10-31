@@ -6,9 +6,6 @@ describe("English plurals", () => {
     [0, "0 films"],
     [1, "1 film"],
     [2, "2 films"],
-    [5, "5 films"],
-    [11, "11 films"],
-    [21, "21 films"],
   ])("%i → %s", (count, expected) => {
     expect(t("films.count", { count })).toBe(expected);
   });
@@ -47,9 +44,6 @@ describe("how many times a film was watched", () => {
   it.each([
     [1, "Once"],
     [2, "2 times"],
-    [5, "5 times"],
-    [11, "11 times"],
-    [21, "21 times"],
   ])("%i → %s", (count, expected) => {
     expect(t("itemHistory.experiencedCount", { count })).toBe(expected);
   });

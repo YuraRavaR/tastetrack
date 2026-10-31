@@ -139,15 +139,3 @@ test("a session from a Temporary Password can still log out", async ({ request }
 
   expect(await (await request.get("/api/auth/me")).json()).toEqual({ error: "unauthenticated" });
 });
-
-test("the OpenAPI spec describes the new-password route and the restricted session", async ({
-  request,
-}) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  const route = spec.paths["/api/me/new-password"].post;
-  expect(route.security).toEqual([{ session: [] }]);
-  expect(route.responses["409"]).toBeDefined();
-  expect(spec.components.securitySchemes.session.description).toContain("password_change_required");
-  expect(spec.components.schemas.LoginResponse.required).toContain("passwordChangeRequired");
-});

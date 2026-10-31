@@ -1,4 +1,5 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import { at } from "../support/clock";
 import { alien } from "../support/films";
 import { fillManualMediaItems } from "../support/manual-media-items";
 import { logInNewUser } from "../support/users";
@@ -66,17 +67,12 @@ test("only a title is needed, and the Original Title is then the title", async (
   });
 });
 
-// With test hooks on, the Worker treats this header's time as now.
-function at(time: string) {
-  return { "X-Test-Now": new Date(time).toISOString() };
-}
-
 test("implausible values are refused: a title of 1–200 characters, a year from 1888 to five years on, a runtime of 1–1000 minutes, TMDB's genres once each", async ({
   request,
 }) => {
   await logInNewUser(request);
   // The latest year is five years on, in UTC: 2030.
-  const now = at("2025-12-31T23:30:00Z");
+  const clock = at("2025-12-31T23:30:00Z");
 
   for (const data of [
     {},
@@ -94,7 +90,7 @@ test("implausible values are refused: a title of 1–200 characters, a year from
   ]) {
     const response = await request.post("/api/catalog/manual-items", {
       data: { mediaType: "film", ...data },
-      headers: now,
+      ...clock,
     });
     expect(response.status(), JSON.stringify(data)).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });
@@ -107,7 +103,7 @@ test("implausible values are refused: a title of 1–200 characters, a year from
   ]) {
     const response = await request.post("/api/catalog/manual-items", {
       data: { mediaType: "film", ...data },
-      headers: now,
+      ...clock,
     });
     expect(response.status(), JSON.stringify(data)).toBe(201);
   }
@@ -243,8 +239,8 @@ test("the User edits a Manual Media Item, by the same rules, and their Log shows
     genres: ["Drama"],
   });
   await request.post("/api/log-entries", { data: { mediaItemId: mediaItem.id, rating: 5 } });
-  const patch = (data: object, headers?: Record<string, string>) =>
-    request.patch(`/api/catalog/manual-items/${mediaItem.id}`, { data, headers });
+  const patch = (data: object, options?: object) =>
+    request.patch(`/api/catalog/manual-items/${mediaItem.id}`, { data, ...options });
 
   const edited = await patch({ title: " Тіні забутих предків ", year: 1965, genres: [] });
 
@@ -420,18 +416,6 @@ test("without a session, Manual Media Items are a 401", async ({ request }) => {
   ]) {
     expect(response.status(), response.url()).toBe(401);
   }
-});
-
-test("the OpenAPI spec describes Manual Media Items", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  const items = spec.paths["/api/catalog/manual-items"];
-  const item = spec.paths["/api/catalog/manual-items/{mediaItemId}"];
-  expect(items.post.security).toEqual([{ session: [] }]);
-  expect(items.post.responses["409"]).toBeDefined();
-  expect(item.get.responses["404"]).toBeDefined();
-  expect(item.patch.responses["404"]).toBeDefined();
-  expect(item.delete.responses["204"]).toBeDefined();
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.

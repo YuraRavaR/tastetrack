@@ -8,31 +8,17 @@ import { type ErrorResponse, Password, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
 import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
-import { refreshCache } from "./catalog/cache-refresh";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { tmdbFake } from "./catalog/tmdb-fake";
-import { type AppEnv, testHooksOn, tmdbConfig } from "./env";
+import { type AppEnv, testHooksOn } from "./env";
 import { fillBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
-import { simulateLogin } from "./pbkdf2-spike";
 
 export const testHooks = new Hono<AppEnv>();
 
 testHooks.use(async (c, next) => {
   if (!testHooksOn(c.env)) return c.notFound();
   await next();
-});
-
-// Staging is public: well past the 10 ms budget, but not a way to burn CPU at will.
-const maxSpikeIterations = 1_000_000;
-
-testHooks.get("/pbkdf2", async (c) => {
-  const iterations = Number(c.req.query("iterations"));
-  if (!Number.isInteger(iterations) || iterations < 1 || iterations > maxSpikeIterations) {
-    return c.json({ error: "invalid_iterations" } satisfies ErrorResponse, 400);
-  }
-  const derivedKey = await simulateLogin(c.var.db, iterations);
-  return c.json({ iterations, derivedKey }, 200);
 });
 
 // Creates seed Users, who need no Invite Code. Test factories use one per worker to issue the
@@ -140,12 +126,6 @@ testHooks.post("/users/:username/manual-items", async (c) => {
   );
   if (!filled) return c.notFound();
   return c.body(null, 204);
-});
-
-// Runs the Cron Trigger's TMDB cache refresh now, at the request's time, so tests needn't wait
-// for the schedule.
-testHooks.post("/cron", async (c) => {
-  return c.json(await refreshCache(c.var.db, tmdbConfig(c.env), c.var.now), 200);
 });
 
 // Takes one film out of the TMDB cache, as the cron does once an entry expires, so tests can

@@ -1,25 +1,19 @@
 import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
-import { alien, aliens, amelie, newFilm } from "../support/films";
+import { alien, aliens, amelie, newFilm, searchResultRow } from "../support/films";
+import { createList } from "../support/lists";
 import { callsRealTmdb } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker searches a TMDB fake; on staging, the real TMDB. Both know these films.
 
 function alienResult(page: Page) {
-  return page
-    .getByRole("list", { name: "Search results" })
-    .getByRole("listitem")
-    .filter({ has: page.getByText("Alien (1979)", { exact: true }) });
+  return searchResultRow(page, "Alien (1979)");
 }
 
-async function createList(api: APIRequestContext, name: string, mediaItemId?: number) {
-  const made = await api.post("/api/lists", { data: { name, mediaType: "film" } });
-  expect(made.status(), await made.text()).toBe(201);
-  const { list } = await made.json();
-  if (mediaItemId !== undefined) {
-    const added = await api.post(`/api/lists/${list.id}/items`, { data: { mediaItemId } });
-    expect(added.status(), await added.text()).toBe(201);
-  }
+async function createListHolding(api: APIRequestContext, name: string, mediaItemId: number) {
+  const list = await createList(api, { name });
+  const added = await api.post(`/api/lists/${list.id}/items`, { data: { mediaItemId } });
+  expect(added.status(), await added.text()).toBe(201);
   return list;
 }
 
@@ -273,9 +267,9 @@ test("a result shows two of its Lists, then how many more, each linking to its L
 }) => {
   await logInNewUser(page.request);
   const { id: mediaItemId } = await alien(page.request);
-  const first = await createList(page.request, "First", mediaItemId);
-  await createList(page.request, "Second", mediaItemId);
-  await createList(page.request, "Third", mediaItemId);
+  const first = await createListHolding(page.request, "First", mediaItemId);
+  await createListHolding(page.request, "Second", mediaItemId);
+  await createListHolding(page.request, "Third", mediaItemId);
   await page.goto("/?q=alien");
   const result = alienResult(page);
 
@@ -291,7 +285,7 @@ test("a result shows two of its Lists, then how many more, each linking to its L
 
 test("a result's List chips follow Add to list, without a new search", async ({ page }) => {
   await logInNewUser(page.request);
-  await createList(page.request, "Horror");
+  await createList(page.request, { name: "Horror" });
   await page.goto("/?q=alien");
   const result = alienResult(page);
   const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
@@ -317,7 +311,7 @@ test("a result's List chips follow a change still saving when the dialog closes"
   page,
 }) => {
   await logInNewUser(page.request);
-  await createList(page.request, "Horror");
+  await createList(page.request, { name: "Horror" });
   await page.goto("/?q=alien");
   const result = alienResult(page);
   await page.route("**/api/lists/*/items", async (route) => {

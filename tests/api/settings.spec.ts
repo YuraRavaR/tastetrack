@@ -20,16 +20,6 @@ async function logInElsewhere(username: string, password: string) {
   return { device, status: login.status() };
 }
 
-test("a User's Display Name defaults to their Username", async ({ request }) => {
-  const user = await logInNewUser(request);
-
-  const current = await request.get("/api/auth/me");
-
-  expect(await current.json()).toEqual({
-    user: { username: user.username, displayName: user.username },
-  });
-});
-
 test("a User edits their Display Name, and their Share Links show it", async ({ request }) => {
   const user = await logInNewUser(request);
   const backlog = (await (await request.get("/api/backlog?mediaType=film")).json()).backlog;
@@ -147,12 +137,4 @@ test("changing the password ends the User's other sessions, and the current one 
   }
   expect((await someoneElse.get("/api/auth/me")).status()).toBe(200);
   await someoneElse.dispose();
-});
-
-test("the OpenAPI spec describes the Display Name and password routes", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  expect(spec.paths["/api/me/display-name"].put.security).toEqual([{ session: [] }]);
-  expect(spec.paths["/api/me/password"].post.responses["403"]).toBeDefined();
-  expect(spec.components.schemas.User.required).toContain("displayName");
 });

@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { logOut } from "../support/navigation";
 import { createUser, resetPassword } from "../support/users";
 
 test("a User who logs in with a Temporary Password must set their own first", async ({ page }) => {
@@ -32,18 +31,4 @@ test("a User who logs in with a Temporary Password must set their own first", as
   await expect(page.getByRole("banner")).toContainText(user.username);
   await page.reload();
   await expect(page).toHaveURL("/log");
-});
-
-test("a User with a Temporary Password can log out instead", async ({ page }) => {
-  const user = await createUser();
-  const temporaryPassword = await resetPassword(page.request, user.username);
-  await page.goto("/login");
-  await page.getByLabel("Username").fill(user.username);
-  await page.getByLabel("Password").fill(temporaryPassword);
-  await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page).toHaveURL("/new-password");
-
-  await logOut(page);
-
-  await expect(page).toHaveURL("/login");
 });

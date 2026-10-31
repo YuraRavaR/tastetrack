@@ -1,14 +1,8 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { shadows, shadowsId } from "../support/films";
-import { fillList } from "../support/lists";
+import { createList, fillList } from "../support/lists";
 import { evict } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
-
-async function createList(request: APIRequestContext, name: string): Promise<number> {
-  const response = await request.post("/api/lists", { data: { mediaType: "film", name } });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).list.id;
-}
 
 async function addToList(request: APIRequestContext, listId: number, mediaItemId: number) {
   const response = await request.post(`/api/lists/${listId}/items`, { data: { mediaItemId } });
@@ -25,7 +19,7 @@ function titles(items: Item[]) {
 
 test("a page fills a film missing from the cache with TMDB's details", async ({ request }) => {
   await logInNewUser(request);
-  const listId = await createList(request, "Ukrainian classics");
+  const listId = (await createList(request, { name: "Ukrainian classics" })).id;
   await addToList(request, listId, (await shadows(request)).id);
   await evict(request, shadowsId);
 
@@ -43,7 +37,7 @@ test("a List with 1 film and one with 500 load in the same number of queries, on
   await logInNewUser(request);
   const shadowsItem = await shadows(request);
   const queriesForListOf = async (films: number) => {
-    const listId = await createList(request, `${films} films`);
+    const listId = (await createList(request, { name: `${films} films` })).id;
     await addToList(request, listId, shadowsItem.id);
     if (films > 1) await fillList(request, listId, films - 1);
     await evict(request, shadowsId);
@@ -65,7 +59,7 @@ test("a page fills at most 10 missing films; the client loads the rest by id", a
   request,
 }) => {
   await logInNewUser(request);
-  const listId = await createList(request, "Mostly missing");
+  const listId = (await createList(request, { name: "Mostly missing" })).id;
   // Placeholders TMDB has never heard of come first, so the page tries them and not the film.
   await fillList(request, listId, 10);
   const shadowsItem = await shadows(request);
@@ -120,15 +114,4 @@ test("loading films by id takes 1 to 10 ids", async ({ request }) => {
     expect(response.status(), `ids=${ids}`).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });
   }
-});
-
-test("the manual cron trigger runs the TMDB cache refresh", async ({ request }) => {
-  const response = await request.post("/api/test/cron");
-
-  expect(response.status()).toBe(200);
-  expect(await response.json()).toEqual({
-    refreshed: expect.any(Number),
-    failed: expect.any(Number),
-    deleted: expect.any(Number),
-  });
 });

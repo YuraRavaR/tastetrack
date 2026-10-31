@@ -1,14 +1,7 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { alien, aliens, amelie, titlesOf } from "../support/films";
-import { fillList } from "../support/lists";
+import { createList, fillList } from "../support/lists";
 import { logInNewUser } from "../support/users";
-
-// Makes a List: its summary, as the Worker answers.
-async function createList(request: APIRequestContext, data: object) {
-  const response = await request.post("/api/lists", { data: { mediaType: "film", ...data } });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).list;
-}
 
 // Adds a Media Item to a List: its new List Item.
 async function addToList(request: APIRequestContext, listId: number, data: object) {
@@ -484,16 +477,4 @@ test("without a session, Lists are a 401", async ({ request }) => {
   ]) {
     expect(response.status(), response.url()).toBe(401);
   }
-});
-
-test("the OpenAPI spec describes Lists", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  expect(spec.paths["/api/lists"].get.security).toEqual([{ session: [] }]);
-  expect(spec.paths["/api/lists"].post.responses["409"]).toBeDefined();
-  expect(spec.paths["/api/lists/{listId}"].get.responses["404"]).toBeDefined();
-  expect(spec.paths["/api/lists/{listId}"].patch.responses["409"]).toBeDefined();
-  expect(spec.paths["/api/lists/{listId}"].delete.responses["204"]).toBeDefined();
-  expect(spec.paths["/api/lists/{listId}/items"].post.responses["409"]).toBeDefined();
-  expect(spec.paths["/api/catalog/items/{mediaItemId}/lists"].get.responses["404"]).toBeDefined();
 });

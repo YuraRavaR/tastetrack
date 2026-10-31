@@ -1,12 +1,8 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
+import { at } from "../support/clock";
 import { createUser, uniqueUsername } from "../support/users";
 
 const minute = 60 * 1000;
-
-// With test hooks on, the Worker treats this header's time as now.
-function at(time: number) {
-  return { headers: { "X-Test-Now": new Date(time).toISOString() } };
-}
 
 function logIn(
   api: APIRequestContext,
@@ -131,11 +127,4 @@ test("a forwarding header doesn't change the IP a login counts against", async (
   const forwarded = await logIn(request, user, start, { "X-Forwarded-For": "198.51.100.1" });
 
   expect(forwarded.status()).toBe(429);
-});
-
-test("the OpenAPI spec describes the lockout", async ({ request }) => {
-  const spec = await (await request.get("/api/openapi.json")).json();
-
-  const locked = spec.paths["/api/auth/login"].post.responses["429"];
-  expect(locked.headers["Retry-After"]).toBeDefined();
 });

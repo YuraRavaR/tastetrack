@@ -1,16 +1,10 @@
 import { expect, type Page, test } from "@playwright/test";
 import { fillBacklog } from "../support/backlog";
+import { searchResultRow } from "../support/films";
 import { logInNewUser } from "../support/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
 // TMDB matches whole words, so Aliens is searched for as "aliens": "alien" doesn't find it there.
-
-function searchResult(page: Page, label: string) {
-  return page
-    .getByRole("list", { name: "Search results" })
-    .getByRole("listitem")
-    .filter({ has: page.getByText(label, { exact: true }) });
-}
 
 async function search(page: Page, query: string) {
   await page.getByRole("searchbox", { name: "Search films" }).fill(query);
@@ -22,7 +16,7 @@ test("a User plans films from search, then orders and notes their Watchlist", {
   await logInNewUser(page.request);
   await page.goto("/");
   await search(page, "alien");
-  const alien = searchResult(page, "Alien (1979)");
+  const alien = searchResultRow(page, "Alien (1979)");
   await alien.getByRole("button", { name: "Want to watch" }).click();
   await expect(alien.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
   await expect(alien.getByRole("button", { name: "Want to watch" })).toHaveAttribute(
@@ -30,7 +24,7 @@ test("a User plans films from search, then orders and notes their Watchlist", {
     "true",
   );
   await search(page, "aliens");
-  const aliens = searchResult(page, "Aliens (1986)");
+  const aliens = searchResultRow(page, "Aliens (1986)");
   await aliens.getByRole("button", { name: "Want to watch" }).click();
   await expect(aliens.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
 
@@ -70,7 +64,7 @@ test("the bookmark in search puts a film on the Watchlist and takes it off again
   await logInNewUser(page.request);
   await page.goto("/");
   await search(page, "alien");
-  const alien = searchResult(page, "Alien (1979)");
+  const alien = searchResultRow(page, "Alien (1979)");
   const bookmark = alien.getByRole("button", { name: "Want to watch" });
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
 
@@ -102,11 +96,11 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
   await logInNewUser(page.request);
   await page.goto("/");
   await search(page, "alien");
-  const alien = searchResult(page, "Alien (1979)");
+  const alien = searchResultRow(page, "Alien (1979)");
   await alien.getByRole("button", { name: "Want to watch" }).click();
   await expect(alien.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
   await search(page, "aliens");
-  const aliens = searchResult(page, "Aliens (1986)");
+  const aliens = searchResultRow(page, "Aliens (1986)");
   await aliens.getByRole("button", { name: "Want to watch" }).click();
   await expect(aliens.getByRole("button", { name: "Want to watch", pressed: true })).toBeVisible();
   await search(page, "alien");
@@ -137,9 +131,11 @@ test("removing a film from the Watchlist can be undone", async ({ page }) => {
   await logInNewUser(page.request);
   await page.goto("/");
   await search(page, "alien");
-  await searchResult(page, "Alien (1979)").getByRole("button", { name: "Want to watch" }).click();
+  await searchResultRow(page, "Alien (1979)")
+    .getByRole("button", { name: "Want to watch" })
+    .click();
   await expect(
-    searchResult(page, "Alien (1979)").getByRole("button", {
+    searchResultRow(page, "Alien (1979)").getByRole("button", {
       name: "Want to watch",
       pressed: true,
     }),
@@ -161,7 +157,9 @@ test("a full Watchlist says to remove or log some films", async ({ page }) => {
   await page.goto("/");
   await search(page, "alien");
 
-  await searchResult(page, "Alien (1979)").getByRole("button", { name: "Want to watch" }).click();
+  await searchResultRow(page, "Alien (1979)")
+    .getByRole("button", { name: "Want to watch" })
+    .click();
 
   await expect(page.getByRole("alert")).toHaveText(
     "Your Watchlist is full: it holds up to 1,000 films. Remove or log some to make room.",
@@ -172,9 +170,11 @@ test("the Watchlist and a film's page show its runtime and genres", async ({ pag
   await logInNewUser(page.request);
   await page.goto("/");
   await search(page, "alien");
-  await searchResult(page, "Alien (1979)").getByRole("button", { name: "Want to watch" }).click();
+  await searchResultRow(page, "Alien (1979)")
+    .getByRole("button", { name: "Want to watch" })
+    .click();
   await expect(
-    searchResult(page, "Alien (1979)").getByRole("button", {
+    searchResultRow(page, "Alien (1979)").getByRole("button", {
       name: "Want to watch",
       pressed: true,
     }),

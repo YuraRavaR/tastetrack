@@ -1,17 +1,11 @@
 import { type APIRequestContext, expect, request as requests, test } from "@playwright/test";
 import { alien, aliens } from "../support/films";
-import { fillList } from "../support/lists";
+import { createList, fillList } from "../support/lists";
 import { logInNewUser } from "../support/users";
 
 // A request context with no session: a visitor holding nothing but the link.
 function visitor() {
   return requests.newContext({ baseURL: test.info().project.use.baseURL });
-}
-
-async function createList(request: APIRequestContext, data: object) {
-  const response = await request.post("/api/lists", { data: { mediaType: "film", ...data } });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).list;
 }
 
 async function theList(request: APIRequestContext, id: number) {

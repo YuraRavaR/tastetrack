@@ -1,5 +1,6 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { alien, amelie, newFilm, searchResult } from "../support/films";
+import { createList } from "../support/lists";
 import { callsRealTmdb } from "../support/tmdb";
 import { logInNewUser } from "../support/users";
 
@@ -10,13 +11,6 @@ import { logInNewUser } from "../support/users";
 async function logEntry(request: APIRequestContext, data: object) {
   const response = await request.post("/api/log-entries", { data });
   expect(response.status(), await response.text()).toBe(201);
-}
-
-// Makes a List: its summary, as the Worker answers.
-async function createList(request: APIRequestContext, name: string) {
-  const response = await request.post("/api/lists", { data: { name, mediaType: "film" } });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).list;
 }
 
 async function addToList(request: APIRequestContext, listId: number, mediaItemId: number) {
@@ -71,6 +65,8 @@ test("a result carries the Current Rating and how many Log Entries the User has"
     currentRating: 4.5,
     logEntryCount: 2,
   });
+  expect((await searchResult(request, "чужий", "348")).inLog).toBe(true);
+  expect((await searchResult(request, "aliens", "679")).inLog).toBe(false);
 });
 
 test("a result shows the User's own Lists holding the film, oldest first, and not the Backlog", async ({
@@ -78,9 +74,9 @@ test("a result shows the User's own Lists holding the film, oldest first, and no
 }) => {
   await logInNewUser(request);
   const { id: mediaItemId } = await alien(request);
-  const older = await createList(request, "Older");
-  const newer = await createList(request, "Newer");
-  await createList(request, "Without it");
+  const older = await createList(request, { name: "Older" });
+  const newer = await createList(request, { name: "Newer" });
+  await createList(request, { name: "Without it" });
 
   await addToList(request, newer.id, mediaItemId);
   await addToList(request, older.id, mediaItemId);
@@ -103,7 +99,7 @@ test("another User's Log Entries and Lists never show on a result", async ({
   const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
   await logInNewUser(other);
   await logEntry(other, { mediaItemId, rating: 1 });
-  await addToList(other, (await createList(other, "Theirs")).id, mediaItemId);
+  await addToList(other, (await createList(other, { name: "Theirs" })).id, mediaItemId);
   await other.dispose();
 
   expect(await searchResult(request, "alien", "348")).toMatchObject({
@@ -124,7 +120,7 @@ test("a User's Manual Media Item carries its Current Rating, Log Entries and Lis
   });
   expect(added.status(), await added.text()).toBe(201);
   const { mediaItem } = await added.json();
-  const list = await createList(request, "Hand-made");
+  const list = await createList(request, { name: "Hand-made" });
 
   await logEntry(request, { mediaItemId: mediaItem.id, rating: 3 });
   await addToList(request, list.id, mediaItem.id);
@@ -144,23 +140,7 @@ test("a User's Manual Media Item carries its Current Rating, Log Entries and Lis
   ]);
 });
 
-test("a film not in the catalog has no Current Rating, Log Entries or Lists", async ({
-  request,
-}) => {
-  test.skip(callsRealTmdb(), "Only the TMDB fake has a film no one has added");
-  await logInNewUser(request);
-  const { id, query } = newFilm();
-
-  expect(await searchResult(request, query, id)).toMatchObject({
-    mediaItemId: null,
-    inLog: false,
-    currentRating: null,
-    logEntryCount: 0,
-    lists: [],
-  });
-});
-
-test("a result names its Media Item once the film is in the catalog, and null until then", async ({
+test("a result names its Media Item once the film is in the catalog; until then it has none, and no Current Rating, Log Entries or Lists", async ({
   request,
 }) => {
   test.skip(callsRealTmdb(), "Only the TMDB fake has a film no one has added");
@@ -168,7 +148,13 @@ test("a result names its Media Item once the film is in the catalog, and null un
   const { id, query } = newFilm();
 
   const before = await searchResult(request, query, id);
-  expect(before.mediaItemId).toBeNull();
+  expect(before).toMatchObject({
+    mediaItemId: null,
+    inLog: false,
+    currentRating: null,
+    logEntryCount: 0,
+    lists: [],
+  });
 
   const added = await request.post("/api/catalog/items", { data: before });
   expect(added.status(), await added.text()).toBe(201);
@@ -188,7 +174,7 @@ test("a search with 1 result and one with many take the same number of queries",
   await logEntry(request, { mediaItemId: film.id, rating: 4 });
   await logEntry(request, { mediaItemId: film.id, rating: 5 });
   for (const name of ["One", "Two", "Three", "Four"]) {
-    await addToList(request, (await createList(request, name)).id, film.id);
+    await addToList(request, (await createList(request, { name })).id, film.id);
   }
   const queriesFor = async (query: string) => {
     const response = await request.get("/api/catalog/search", {

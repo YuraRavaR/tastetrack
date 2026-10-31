@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { fillBacklog } from "../support/backlog";
-import { alien, aliens, amelie } from "../support/films";
+import { alien, aliens, amelie, searchResultRow } from "../support/films";
 import { logInNewUser } from "../support/users";
 
 test("a new User's home leads with the search, an empty Log and an empty Watchlist", async ({
@@ -23,7 +23,6 @@ test("a new User's home leads with the search, an empty Log and an empty Watchli
     watchlist.getByText("Your Watchlist is empty. Search for a film and mark it Want to watch."),
   ).toBeVisible();
   await expect(watchlist.getByRole("link")).toHaveCount(0);
-  await expect(page.getByText("The server is up")).toHaveCount(0);
 });
 
 test("home shows the latest five Log Entries, latest first, and links to the whole Log", async ({
@@ -158,36 +157,7 @@ test("a long Note on home stays on one line, without scrolling a phone sideways"
   expect(scrollsSideways).toBe(false);
 });
 
-test("searching hides the Log, which shows a film just logged once the search is cleared", async ({
-  page,
-}) => {
-  await logInNewUser(page.request);
-  await page.goto("/");
-  const log = page.getByRole("region", { name: "Latest in your Log" });
-  await expect(log.getByText(/Your Log is empty/)).toBeVisible();
-  const search = page.getByRole("searchbox", { name: "Search films" });
-
-  await search.fill("alien");
-  await expect(log).toBeHidden();
-  await page
-    .getByRole("list", { name: "Search results" })
-    .getByRole("listitem")
-    .filter({ has: page.getByText("Alien (1979)", { exact: true }) })
-    .getByRole("button", { name: "Mark watched" })
-    .click();
-  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
-  await dialog.getByRole("radio", { name: "4 stars" }).check();
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toBeHidden();
-  await expect(log).toBeHidden();
-  await search.fill("");
-
-  await expect(log.getByRole("listitem")).toHaveCount(1);
-  await expect(log.getByRole("listitem")).toContainText("Alien (1979)");
-  await expect(log.getByRole("link", { name: "See your Log" })).toBeVisible();
-});
-
-test("a film on the Watchlist marked Watched from search moves to the Log once the search is cleared", async ({
+test("searching hides the Log and the Watchlist, and a film marked Watched from search moves between them once the search is cleared", async ({
   page,
 }) => {
   await logInNewUser(page.request);
@@ -199,25 +169,25 @@ test("a film on the Watchlist marked Watched from search moves to the Log once t
   await page.goto("/");
   const log = page.getByRole("region", { name: "Latest in your Log" });
   const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
+  await expect(log.getByText(/Your Log is empty/)).toBeVisible();
   await expect(watchlist.getByRole("listitem")).toContainText("Alien (1979)");
   await expect(watchlist.getByRole("link", { name: "See your Watchlist" })).toBeVisible();
   const search = page.getByRole("searchbox", { name: "Search films" });
 
   await search.fill("alien");
+  await expect(log).toBeHidden();
   await expect(watchlist).toBeHidden();
-  await page
-    .getByRole("list", { name: "Search results" })
-    .getByRole("listitem")
-    .filter({ has: page.getByText("Alien (1979)", { exact: true }) })
-    .getByRole("button", { name: "Mark watched" })
-    .click();
+  await searchResultRow(page, "Alien (1979)").getByRole("button", { name: "Mark watched" }).click();
   const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
   await dialog.getByRole("radio", { name: "4 stars" }).check();
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog).toBeHidden();
+  await expect(log).toBeHidden();
   await search.fill("");
 
+  await expect(log.getByRole("listitem")).toHaveCount(1);
   await expect(log.getByRole("listitem")).toContainText("Alien (1979)");
+  await expect(log.getByRole("link", { name: "See your Log" })).toBeVisible();
   await expect(watchlist.getByText(/Your Watchlist is empty/)).toBeVisible();
   await expect(watchlist.getByRole("listitem")).toHaveCount(0);
 });
@@ -244,7 +214,9 @@ test("a Watchlist that fails to load says so under its heading, and the Log stil
   ).toContainText("Alien (1979)");
 });
 
-test("a Log that fails to load leaves the Watchlist showing", async ({ page }) => {
+test("a Log that fails to load says so under its heading, and the Watchlist and the search still work", async ({
+  page,
+}) => {
   await logInNewUser(page.request);
   const planned = await page.request.post("/api/backlog/items", {
     data: { mediaItemId: (await alien(page.request)).id },
@@ -254,25 +226,12 @@ test("a Log that fails to load leaves the Watchlist showing", async ({ page }) =
 
   await page.goto("/");
 
-  await expect(
-    page.getByRole("region", { name: "Latest in your Log" }).getByRole("alert"),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Next on your Watchlist" }).getByRole("listitem"),
-  ).toContainText("Alien (1979)");
-});
-
-test("a Log that fails to load says so under its heading, and the search still works", async ({
-  page,
-}) => {
-  await logInNewUser(page.request);
-  await page.route("**/api/log-entries", (route) => route.fulfill({ status: 500 }));
-
-  await page.goto("/");
-
   const log = page.getByRole("region", { name: "Latest in your Log" });
   await expect(log.getByRole("heading", { name: "Latest in your Log" })).toBeVisible();
   await expect(log.getByRole("alert")).toHaveText("Couldn't load your Log. Please try again.");
+  await expect(
+    page.getByRole("region", { name: "Next on your Watchlist" }).getByRole("listitem"),
+  ).toContainText("Alien (1979)");
   await page.getByRole("searchbox", { name: "Search films" }).fill("alien");
   await expect(
     page.getByRole("list", { name: "Search results" }).getByText("Alien (1979)", { exact: true }),
