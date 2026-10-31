@@ -13,15 +13,15 @@ test("a User logs in, lands where they were going, and logs out", { tag: "@smoke
   page,
 }) => {
   const user = await createUser();
-  await page.goto("/some/page");
+  await page.goto("/lists");
   await expect(page).toHaveURL("/login");
 
   await page.getByLabel("Username").fill(user.username);
   await page.getByLabel("Password").fill(user.password);
   await page.getByRole("button", { name: "Log in" }).click();
 
-  // An unknown page sends a logged-in User home.
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/lists");
+  await expect(page.getByRole("heading", { name: "Your Lists" })).toBeVisible();
   await expect(page.getByRole("banner")).toContainText(user.username);
 
   await logOut(page);
@@ -29,6 +29,19 @@ test("a User logs in, lands where they were going, and logs out", { tag: "@smoke
   await expect(page).toHaveURL("/login");
   await page.reload();
   await expect(page).toHaveURL("/login");
+});
+
+test("a User going to an unknown page lands on home after logging in", async ({ page }) => {
+  const user = await createUser();
+  await page.goto("/some/page");
+  await expect(page).toHaveURL("/login");
+
+  await page.getByLabel("Username").fill(user.username);
+  await page.getByLabel("Password").fill(user.password);
+  await page.getByRole("button", { name: "Log in" }).click();
+
+  await expect(page).toHaveURL("/");
+  await expect(page.getByRole("banner")).toContainText(user.username);
 });
 
 test("a wrong password shows an error and stays on the login page", async ({ page }) => {

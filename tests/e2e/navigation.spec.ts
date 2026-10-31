@@ -140,27 +140,29 @@ test.describe("on a phone", () => {
     await page.setViewportSize({ width: 360, height: 740 });
     await page.goto("/");
 
+    // The app name shows before the session has loaded and the tabs only after. Waiting for the
+    // tabs means everything below measures the whole frame.
+    const tabs = page.getByRole("navigation", { name: "Main" }).getByRole("link");
+    await expect(tabs).toHaveCount(sections.length);
+
     const header = page.getByRole("banner");
-    await expect(header.getByRole("link", { name: "TasteTrack" })).toBeVisible();
     expect(await heightOf(header)).toBeLessThanOrEqual(57);
     const sideways = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(sideways).toBe(0);
 
-    const tabs = page.getByRole("navigation", { name: "Main" }).getByRole("link");
     const controls = [
       header.getByRole("link", { name: "TasteTrack" }),
       header.getByRole("button", { name: "Account menu" }),
       ...(await tabs.all()),
     ];
-    expect(controls).toHaveLength(6);
     for (const control of controls) expect(await heightOf(control)).toBeGreaterThanOrEqual(44);
 
     const menu = await openAccountMenu(page);
-    const items = await menu.getByRole("menuitem").all();
-    expect(items).toHaveLength(3);
-    for (const item of items) expect(await heightOf(item)).toBeGreaterThanOrEqual(44);
+    const items = menu.getByRole("menuitem");
+    await expect(items).toHaveCount(3);
+    for (const item of await items.all()) expect(await heightOf(item)).toBeGreaterThanOrEqual(44);
   });
 
   test("the footer credits TMDB and shows the app version", async ({ page }) => {
