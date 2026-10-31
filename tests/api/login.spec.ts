@@ -84,7 +84,7 @@ test("a session stays valid for 30 days from the last activity", async ({ reques
   expect((await me(request, at(start + 88 * day))).status()).toBe(401);
 });
 
-test("a session with no activity ends 30 days after login", async ({ request }) => {
+test("a session ends to the second 30 days after the last activity", async ({ request }) => {
   const user = await createUser();
   const start = Date.now();
   await request.post("/api/auth/login", { data: user, ...at(start) });

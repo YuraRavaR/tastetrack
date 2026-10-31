@@ -40,43 +40,47 @@ describe("a Rating with its viewings", () => {
 });
 
 describe("sentences naming the Backlog", () => {
-  const backlogName = mediaWord("film", "backlog");
+  // Not the film Backlog's name: a sentence that hard-codes it would still read right with that.
+  const backlogName = "Reading List";
 
   it.each([
-    [1, "See your Watchlist"],
-    [2, "All 2 on your Watchlist"],
-  ])("%i films on home → %s", (count, expected) => {
+    [1, "See your Reading List"],
+    [2, "All 2 on your Reading List"],
+  ])("%i Media Items on home → %s", (count, expected) => {
     expect(t("home.backlog.all", { count, backlogName })).toBe(expected);
   });
 
-  it("read as they did for a film", () => {
-    expect(t("search.inBacklog", { backlogName })).toBe("On your Watchlist");
-    expect(t("home.backlog.title", { backlogName })).toBe("Next on your Watchlist");
-    expect(t("backlog.title", { backlogName })).toBe("Your Watchlist");
-    expect(t("backlog.loading", { backlogName })).toBe("Loading your Watchlist…");
+  it("take the name they are given", () => {
+    expect(t("search.inBacklog", { backlogName })).toBe("On your Reading List");
+    expect(t("logEntry.backlogHint", { backlogName })).toBe(
+      "Saving takes it off your Reading List",
+    );
+    expect(t("home.backlog.title", { backlogName })).toBe("Next on your Reading List");
+    expect(t("backlog.title", { backlogName })).toBe("Your Reading List");
+    expect(t("backlog.loading", { backlogName })).toBe("Loading your Reading List…");
     expect(t("backlog.empty", { backlogName })).toBe(
-      "Your Watchlist is empty. Search for a film and mark it Want to watch.",
+      "Your Reading List is empty. Search for a film and mark it Want to watch.",
     );
     expect(t("backlog.unavailable", { backlogName })).toBe(
-      "Couldn't load your Watchlist. Please try again.",
+      "Couldn't load your Reading List. Please try again.",
     );
     expect(t("backlog.updateFailed", { backlogName })).toBe(
-      "Couldn't update your Watchlist. Please try again.",
+      "Couldn't update your Reading List. Please try again.",
     );
     expect(t("backlog.full", { backlogName, max: 1000 })).toBe(
-      "Your Watchlist is full: it holds up to 1,000 films. Remove or log some to make room.",
+      "Your Reading List is full: it holds up to 1,000 films. Remove or log some to make room.",
     );
     expect(t("backlog.planned", { backlogName, film: "Alien" })).toBe(
-      "Put Alien on your Watchlist.",
+      "Put Alien on your Reading List.",
     );
     expect(t("backlog.removed", { backlogName, film: "Alien" })).toBe(
-      "Removed Alien from your Watchlist.",
+      "Removed Alien from your Reading List.",
     );
     expect(t("backlog.takenOff", { backlogName, film: "Alien" })).toBe(
-      "Took Alien off your Watchlist.",
+      "Took Alien off your Reading List.",
     );
     expect(t("backlog.putBack", { backlogName, film: "Alien" })).toBe(
-      "Put Alien back on your Watchlist.",
+      "Put Alien back on your Reading List.",
     );
   });
 });
