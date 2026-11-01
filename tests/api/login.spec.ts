@@ -1,7 +1,7 @@
 import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { expect, test } from "../support/fixtures";
-import { uniqueUsername } from "../support/users";
+import { uniqueUsername } from "../support/scenarios/users";
 
 function sessionCookieOf(setCookie: string | undefined): string {
   const match = setCookie?.match(/(?:^|\n)session=([^;]+)/);

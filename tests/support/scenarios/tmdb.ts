@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { type APIRequestContext, expect } from "@playwright/test";
-import { TestHooksController } from "./api/controllers/TestHooksController";
+import { TestHooksController } from "../api/controllers/TestHooksController";
 
 // Real TMDB is called on staging, and locally when .dev.vars sets TMDB_BASE_URL. Only the TMDB
 // fake can be made to fail.

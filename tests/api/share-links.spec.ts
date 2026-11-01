@@ -1,7 +1,7 @@
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { alien, aliens } from "../support/films";
 import { test as base, expect } from "../support/fixtures";
+import { alien, aliens } from "../support/scenarios/films";
 
 // `visitor` is a client with no session, holding nothing but the link.
 const test = base.extend<{ visitor: ApiClient }>({

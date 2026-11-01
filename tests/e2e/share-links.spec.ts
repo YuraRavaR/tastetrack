@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { alien, aliens } from "../support/films";
-import { logInNewUser } from "../support/users";
+import { alien, aliens } from "../support/scenarios/films";
+import { logInNewUser } from "../support/scenarios/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens.
 

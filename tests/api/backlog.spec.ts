@@ -1,9 +1,9 @@
 import type { PlanRequest } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { alien, aliens, amelie, searchResult, titlesOf } from "../support/films";
 import { expect, test } from "../support/fixtures";
-import { createUser } from "../support/users";
+import { alien, aliens, amelie, searchResult, titlesOf } from "../support/scenarios/films";
+import { createUser } from "../support/scenarios/users";
 
 async function theBacklog(api: ApiClient) {
   return (await expectBody(api.backlog.getBacklog({ mediaType: "film" }))).backlog;

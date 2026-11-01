@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import packageJson from "../../package.json" with { type: "json" };
 import { chooseFromAccountMenu, logOut, openAccountMenu } from "../support/navigation";
-import { createUser, logInNewUser, resetPassword } from "../support/users";
+import { createUser, logInNewUser, resetPassword } from "../support/scenarios/users";
 
 const sections = [
   { name: "Home", url: "/" },

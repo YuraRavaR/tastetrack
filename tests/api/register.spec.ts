@@ -3,7 +3,7 @@ import type { RequestOptions } from "../support/api/controllers/BaseController";
 import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { test as base, expect } from "../support/fixtures";
-import { createUser, uniqueUsername } from "../support/users";
+import { createUser, uniqueUsername } from "../support/scenarios/users";
 
 // `issuer` is a logged-in client that issues the Invite Codes; `invitee` is a client with no session.
 const test = base.extend<{ issuer: ApiClient; invitee: ApiClient }>({

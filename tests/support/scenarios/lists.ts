@@ -1,7 +1,7 @@
 import { type APIRequestContext, expect } from "@playwright/test";
-import { ListsController } from "./api/controllers/ListsController";
-import { TestHooksController } from "./api/controllers/TestHooksController";
-import { expectBody } from "./api/responses";
+import { ListsController } from "../api/controllers/ListsController";
+import { TestHooksController } from "../api/controllers/TestHooksController";
+import { expectBody } from "../api/responses";
 
 // Makes a List: its summary, as the Worker answers.
 export async function createList(

@@ -1,6 +1,6 @@
 import { expectBody } from "../support/api/responses";
-import { shadows, shadowsId } from "../support/films";
 import { expect, test } from "../support/fixtures";
+import { shadows, shadowsId } from "../support/scenarios/films";
 
 interface Item {
   mediaItem: { id: number; metadata: { title: string } | null };

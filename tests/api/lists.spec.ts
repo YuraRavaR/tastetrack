@@ -1,8 +1,8 @@
 import type { ListEditRequest, NewListItemRequest } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { alien, aliens, amelie, titlesOf } from "../support/films";
 import { expect, test } from "../support/fixtures";
+import { alien, aliens, amelie, titlesOf } from "../support/scenarios/films";
 
 // Makes a film List: its summary, as the Worker answers.
 async function createList(api: ApiClient, data: { name: string; description?: string }) {

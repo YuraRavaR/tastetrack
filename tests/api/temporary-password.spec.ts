@@ -1,6 +1,6 @@
 import { expectBody } from "../support/api/responses";
 import { test as base, expect } from "../support/fixtures";
-import type { TestUser } from "../support/users";
+import type { TestUser } from "../support/scenarios/users";
 
 const passwordChangeRequired = { error: "password_change_required" };
 

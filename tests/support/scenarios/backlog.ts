@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect } from "@playwright/test";
-import { TestHooksController } from "./api/controllers/TestHooksController";
+import { TestHooksController } from "../api/controllers/TestHooksController";
 import type { TestUser } from "./users";
 
 // Plans `count` placeholder films for the User through the test-hook route, which exists only

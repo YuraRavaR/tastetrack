@@ -1,7 +1,7 @@
-import { type APIRequestContext, expect, type Page } from "@playwright/test";
-import { ApiClient } from "./api/ApiClient";
-import { CatalogController } from "./api/controllers/CatalogController";
-import { expectBody } from "./api/responses";
+import { type APIRequestContext, expect } from "@playwright/test";
+import { ApiClient } from "../api/ApiClient";
+import { CatalogController } from "../api/controllers/CatalogController";
+import { expectBody } from "../api/responses";
 
 // Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So tests use
 // only well-known films, and check only what both answer alike.
@@ -21,14 +21,6 @@ export async function searchResult(client: CatalogClient, query: string, id: str
   });
   expect(result, `TMDB film ${id} among the results for "${query}"`).toBeDefined();
   return result;
-}
-
-// A search result on the page, by its label. `searchResult` is the same result from the API.
-export function searchResultRow(page: Page, label: string) {
-  return page
-    .getByRole("list", { name: "Search results" })
-    .getByRole("listitem")
-    .filter({ has: page.getByText(label, { exact: true }) });
 }
 
 // A film's Media Item, as adding it from search makes or finds it.

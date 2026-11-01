@@ -1,7 +1,7 @@
 import type { ApiClient } from "../support/api/ApiClient";
 import { at } from "../support/clock";
 import { expect, test } from "../support/fixtures";
-import { uniqueUsername } from "../support/users";
+import { uniqueUsername } from "../support/scenarios/users";
 
 const minute = 60 * 1000;
 

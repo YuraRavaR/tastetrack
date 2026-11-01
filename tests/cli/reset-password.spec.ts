@@ -1,6 +1,6 @@
 import { expect, request as requests, test } from "@playwright/test";
 import { runOperator } from "../support/operator";
-import { createUser, uniqueUsername } from "../support/users";
+import { createUser, uniqueUsername } from "../support/scenarios/users";
 
 // The Operator's password reset against the local D1 that the `local` Worker serves.
 

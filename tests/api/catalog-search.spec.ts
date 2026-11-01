@@ -1,7 +1,7 @@
 import { expectBody } from "../support/api/responses";
-import { alien, amelie, newFilm, searchResult } from "../support/films";
 import { expect, test } from "../support/fixtures";
-import { callsRealTmdb } from "../support/tmdb";
+import { alien, amelie, newFilm, searchResult } from "../support/scenarios/films";
+import { callsRealTmdb } from "../support/scenarios/tmdb";
 
 // Locally the Worker searches a TMDB fake with fixed data; on staging, the real TMDB. So these
 // tests look only for well-known films, and check that they are among the results.

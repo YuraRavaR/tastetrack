@@ -3,9 +3,9 @@ import type { ApiClient } from "../support/api/ApiClient";
 import type { RequestOptions } from "../support/api/controllers/BaseController";
 import { expectBody } from "../support/api/responses";
 import { at } from "../support/clock";
-import { alien, aliens, film, searchResult } from "../support/films";
 import { expect, test } from "../support/fixtures";
-import { callsRealTmdb } from "../support/tmdb";
+import { alien, aliens, film, searchResult } from "../support/scenarios/films";
+import { callsRealTmdb } from "../support/scenarios/tmdb";
 
 // Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So these tests
 // use only well-known films, and check only what both answer alike.

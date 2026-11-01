@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { type APIRequestContext, expect, request, test } from "@playwright/test";
-import { ApiClient } from "./api/ApiClient";
-import { TestHooksController } from "./api/controllers/TestHooksController";
-import { expectBody } from "./api/responses";
+import { ApiClient } from "../api/ApiClient";
+import { TestHooksController } from "../api/controllers/TestHooksController";
+import { expectBody } from "../api/responses";
 
 export interface TestUser {
   username: string;

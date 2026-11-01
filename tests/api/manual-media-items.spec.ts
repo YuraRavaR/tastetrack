@@ -3,9 +3,9 @@ import type { ApiClient } from "../support/api/ApiClient";
 import type { RequestOptions } from "../support/api/controllers/BaseController";
 import { expectBody } from "../support/api/responses";
 import { at } from "../support/clock";
-import { alien } from "../support/films";
 import { expect, test } from "../support/fixtures";
-import { createUser } from "../support/users";
+import { alien } from "../support/scenarios/films";
+import { createUser } from "../support/scenarios/users";
 
 // Makes a film Manual Media Item: the Media Item, as the Worker answers.
 async function createManual(api: ApiClient, data: Omit<NewManualMediaItemRequest, "mediaType">) {

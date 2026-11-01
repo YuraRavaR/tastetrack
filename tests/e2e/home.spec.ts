@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { fillBacklog } from "../support/backlog";
-import { alien, aliens, amelie, searchResultRow } from "../support/films";
-import { logInNewUser } from "../support/users";
+import { fillBacklog } from "../support/scenarios/backlog";
+import { alien, aliens, amelie } from "../support/scenarios/films";
+import { logInNewUser } from "../support/scenarios/users";
+import { searchResultRow } from "../support/ui/search-results";
 
 test("a new User's home leads with the search, an empty Log and an empty Watchlist", async ({
   page,

@@ -1,6 +1,6 @@
 import { type APIRequestContext, test as base, expect } from "@playwright/test";
 import { ApiClient } from "./api/ApiClient";
-import { createUser, type TestUser } from "./users";
+import { createUser, type TestUser } from "./scenarios/users";
 
 interface Fixtures {
   api: ApiClient;

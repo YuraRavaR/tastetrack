@@ -1,7 +1,7 @@
 import { expectBody } from "../support/api/responses";
-import { alien, amelie } from "../support/films";
 import { expect, test } from "../support/fixtures";
-import { uniqueUsername } from "../support/users";
+import { alien, amelie } from "../support/scenarios/films";
+import { uniqueUsername } from "../support/scenarios/users";
 
 test("deleting the account needs a session", async ({ api }) => {
   const deleted = await api.me.deleteAccount({ password: "correct horse battery" });

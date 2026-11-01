@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createUser, resetPassword } from "../support/users";
+import { createUser, resetPassword } from "../support/scenarios/users";
 
 test("a User who logs in with a Temporary Password must set their own first", async ({ page }) => {
   const user = await createUser();
