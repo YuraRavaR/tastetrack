@@ -8,6 +8,16 @@ export class TestHooksController extends BaseController {
     return this.requestContext.post(endpoints.testHooks.passwordReset(username), options);
   }
 
+  getInvitedBy(username: string, options?: RequestOptions) {
+    return this.requestContext.get(endpoints.testHooks.invitedBy(username), options);
+  }
+
+  // Of these records, those the database still holds, each kind in id order: the API shows a
+  // User's records only to them.
+  getStoredRecords(recordIds: Record<string, number[]>, options?: RequestOptions) {
+    return this.requestContext.post(endpoints.testHooks.records, { ...options, data: recordIds });
+  }
+
   fillBacklog(username: string, count: number, options?: RequestOptions) {
     return this.requestContext.post(endpoints.testHooks.backlog(username), {
       ...options,

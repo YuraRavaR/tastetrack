@@ -1,6 +1,5 @@
 import type { ApiClient } from "../support/api/ApiClient";
 import type { RequestOptions } from "../support/api/controllers/BaseController";
-import { endpoints } from "../support/api/endpoints";
 import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { test as base, expect } from "../support/fixtures";
@@ -142,12 +141,12 @@ test("any password of 10–128 characters is accepted, with no composition rules
 });
 
 // Who invited whom isn't shown in the app yet, so a test hook reads it.
-test("the new User records who invited them", async ({ issuer, invitee, request }) => {
+test("the new User records who invited them", async ({ issuer, invitee }) => {
   const { user } = await expectBody(issuer.auth.getCurrentUser());
   const registration = newInvitee(await issueCode(issuer));
 
   await invitee.auth.register(registration);
 
-  const invitedBy = endpoints.testHooks.invitedBy(registration.username);
-  expect(await expectBody(request.get(invitedBy))).toEqual({ invitedBy: user.username });
+  const invitedBy = issuer.testHooks.getInvitedBy(registration.username);
+  expect(await expectBody(invitedBy)).toEqual({ invitedBy: user.username });
 });

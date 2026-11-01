@@ -26,4 +26,8 @@ export class ListsController extends BaseController {
   addListItem(listId: number, listItem: NewListItemRequest, options?: RequestOptions) {
     return this.requestContext.post(endpoints.lists.items(listId), { ...options, data: listItem });
   }
+
+  createShareLink(listId: number, options?: RequestOptions) {
+    return this.requestContext.post(endpoints.lists.shareLink(listId), options);
+  }
 }

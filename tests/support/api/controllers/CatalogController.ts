@@ -1,4 +1,8 @@
-import type { AddCatalogItemRequest, CatalogSearchQuery } from "@shared/api";
+import type {
+  AddCatalogItemRequest,
+  CatalogSearchQuery,
+  NewManualMediaItemRequest,
+} from "@shared/api";
 import type { z } from "zod";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
@@ -10,6 +14,13 @@ export class CatalogController extends BaseController {
 
   addCatalogItem(searchResult: AddCatalogItemRequest, options?: RequestOptions) {
     return this.requestContext.post(endpoints.catalog.items, { ...options, data: searchResult });
+  }
+
+  addManualMediaItem(manualMediaItem: NewManualMediaItemRequest, options?: RequestOptions) {
+    return this.requestContext.post(endpoints.catalog.manualItems, {
+      ...options,
+      data: manualMediaItem,
+    });
   }
 
   getMediaItemLists(mediaItemId: number, options?: RequestOptions) {

@@ -13,6 +13,7 @@ export const endpoints = {
   catalog: {
     search: "/api/catalog/search",
     items: "/api/catalog/items",
+    manualItems: "/api/catalog/manual-items",
     mediaItemLists: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/lists`,
   },
   inviteCodes: "/api/invite-codes",
@@ -23,20 +24,27 @@ export const endpoints = {
     collection: "/api/lists",
     byId: (listId: number) => `/api/lists/${listId}`,
     items: (listId: number) => `/api/lists/${listId}/items`,
+    shareLink: (listId: number) => `/api/lists/${listId}/share-link`,
   },
   logEntries: {
     collection: "/api/log-entries",
     byId: (logEntryId: number) => `/api/log-entries/${logEntryId}`,
   },
   me: {
+    account: "/api/me",
     displayName: "/api/me/display-name",
     password: "/api/me/password",
     newPassword: "/api/me/new-password",
+  },
+  sharedLists: {
+    byToken: (token: string) => `/api/shared-lists/${token}`,
+    pageByToken: (token: string) => `/s/${token}`,
   },
   // Exists only where test hooks are on (local and staging).
   testHooks: {
     backlog: (username: string) => `/api/test/users/${username}/backlog`,
     listItems: (listId: number) => `/api/test/lists/${listId}/items`,
+    records: "/api/test/records",
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,
     invitedBy: (username: string) => `/api/test/users/${username}/invited-by`,
