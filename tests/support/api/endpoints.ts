@@ -29,6 +29,7 @@ export const endpoints = {
   },
   // Exists only where test hooks are on (local and staging).
   testHooks: {
+    backlog: (username: string) => `/api/test/users/${username}/backlog`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,
     invitedBy: (username: string) => `/api/test/users/${username}/invited-by`,
   },

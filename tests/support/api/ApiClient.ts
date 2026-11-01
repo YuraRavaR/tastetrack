@@ -6,6 +6,7 @@ import { InviteCodesController } from "./controllers/InviteCodesController";
 import { ListItemsController } from "./controllers/ListItemsController";
 import { ListsController } from "./controllers/ListsController";
 import { LogController } from "./controllers/LogController";
+import { TestHooksController } from "./controllers/TestHooksController";
 
 // One client of the API, such as a device or a visitor. Every controller shares `requestContext`,
 // and with it the client's session.
@@ -17,6 +18,7 @@ export class ApiClient {
   readonly listItems: ListItemsController;
   readonly lists: ListsController;
   readonly log: LogController;
+  readonly testHooks: TestHooksController;
 
   constructor(requestContext: APIRequestContext) {
     this.auth = new AuthController(requestContext);
@@ -26,5 +28,6 @@ export class ApiClient {
     this.listItems = new ListItemsController(requestContext);
     this.lists = new ListsController(requestContext);
     this.log = new LogController(requestContext);
+    this.testHooks = new TestHooksController(requestContext);
   }
 }

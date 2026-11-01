@@ -1,12 +1,20 @@
 import { type APIRequestContext, expect, type Page } from "@playwright/test";
+import { ApiClient } from "./api/ApiClient";
 import { CatalogController } from "./api/controllers/CatalogController";
 import { expectBody } from "./api/responses";
 
 // Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So tests use
 // only well-known films, and check only what both answer alike.
 
-export async function searchResult(request: APIRequestContext, query: string, id: string) {
-  const search = new CatalogController(request).searchCatalog({ mediaType: "film", query });
+// Specs on controllers pass their ApiClient; the rest, and end-to-end tests, a request context.
+type CatalogClient = ApiClient | APIRequestContext;
+
+function catalogOf(client: CatalogClient) {
+  return client instanceof ApiClient ? client.catalog : new CatalogController(client);
+}
+
+export async function searchResult(client: CatalogClient, query: string, id: string) {
+  const search = catalogOf(client).searchCatalog({ mediaType: "film", query });
   const { results } = await expectBody(search);
   const result = results.find((r: { externalReference: { id: string } }) => {
     return r.externalReference.id === id;
@@ -24,16 +32,16 @@ export function searchResultRow(page: Page, label: string) {
 }
 
 // A film's Media Item, as adding it from search makes or finds it.
-export async function film(request: APIRequestContext, query: string, id: string) {
-  const result = await searchResult(request, query, id);
-  const response = await new CatalogController(request).addCatalogItem(result);
+export async function film(client: CatalogClient, query: string, id: string) {
+  const result = await searchResult(client, query, id);
+  const response = await catalogOf(client).addCatalogItem(result);
   expect([200, 201]).toContain(response.status());
   return (await response.json()).mediaItem;
 }
 
-export const alien = (request: APIRequestContext) => film(request, "alien", "348");
-export const aliens = (request: APIRequestContext) => film(request, "aliens", "679");
-export const amelie = (request: APIRequestContext) => film(request, "amelie", "194");
+export const alien = (client: CatalogClient) => film(client, "alien", "348");
+export const aliens = (client: CatalogClient) => film(client, "aliens", "679");
+export const amelie = (client: CatalogClient) => film(client, "amelie", "194");
 
 // A query the TMDB fake answers with one film no one has added yet, whatever earlier test runs left
 // in local D1, and that film's label. Only the fake knows it, so skip the test on real TMDB.
