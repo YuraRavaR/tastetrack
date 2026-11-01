@@ -1,40 +1,39 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
-import type { ListItemEditRequest } from "@shared/api";
-import { ListItemsController } from "../support/api/controllers/ListItemsController";
-import { LogController } from "../support/api/controllers/LogController";
+import type { ListEditRequest, NewListItemRequest } from "@shared/api";
+import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { alien, aliens, amelie, titlesOf } from "../support/films";
-import { createList, fillList } from "../support/lists";
-import { logInNewUser } from "../support/users";
+import { expect, test } from "../support/fixtures";
+
+// Makes a film List: its summary, as the Worker answers.
+async function createList(api: ApiClient, data: { name: string; description?: string }) {
+  return (await expectBody(api.lists.createList({ mediaType: "film", ...data }), 201)).list;
+}
 
 // Adds a Media Item to a List: its new List Item.
-async function addToList(request: APIRequestContext, listId: number, data: object) {
-  const response = await request.post(`/api/lists/${listId}/items`, { data });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).listItem;
+async function addToList(api: ApiClient, listId: number, data: NewListItemRequest) {
+  return (await expectBody(api.lists.addListItem(listId, data), 201)).listItem;
 }
 
-async function patchListItem(request: APIRequestContext, id: number, data: ListItemEditRequest) {
-  return (await expectBody(new ListItemsController(request).updateListItem(id, data))).listItem;
+async function theList(api: ApiClient, id: number) {
+  return (await expectBody(api.lists.getList(id))).list;
 }
 
-async function theList(request: APIRequestContext, id: number) {
-  const response = await request.get(`/api/lists/${id}`);
-  expect(response.status(), await response.text()).toBe(200);
-  return (await response.json()).list;
+async function theLists(api: ApiClient) {
+  return (await expectBody(api.lists.getLists())).lists;
 }
 
 test("a User creates a film List with a name and a description, private and empty", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
+  const { list } = await expectBody(
+    loggedInApi.lists.createList({
+      name: "  Horror nights ",
+      description: " For October. ",
+      mediaType: "film",
+    }),
+    201,
+  );
 
-  const response = await request.post("/api/lists", {
-    data: { name: "  Horror nights ", description: " For October. ", mediaType: "film" },
-  });
-
-  expect(response.status()).toBe(201);
-  const { list } = await response.json();
   expect(list).toEqual({
     id: expect.any(Number),
     name: "Horror nights",
@@ -43,7 +42,7 @@ test("a User creates a film List with a name and a description, private and empt
     visibility: "private",
     itemCount: 0,
   });
-  expect(await theList(request, list.id)).toEqual({
+  expect(await theList(loggedInApi, list.id)).toEqual({
     id: list.id,
     name: "Horror nights",
     description: "For October.",
@@ -52,57 +51,46 @@ test("a User creates a film List with a name and a description, private and empt
     shareLink: null,
     items: [],
   });
-  const lists = await (await request.get("/api/lists")).json();
-  expect(lists).toEqual({ lists: [list] });
+  expect(await theLists(loggedInApi)).toEqual([list]);
 });
 
-test("the description is optional, and an empty one is none", async ({ request }) => {
-  await logInNewUser(request);
-
-  const withoutOne = await createList(request, { name: "Horror" });
-  const emptyOne = await createList(request, { name: "Comedy", description: "  " });
+test("the description is optional, and an empty one is none", async ({ loggedInApi }) => {
+  const withoutOne = await createList(loggedInApi, { name: "Horror" });
+  const emptyOne = await createList(loggedInApi, { name: "Comedy", description: "  " });
 
   expect(withoutOne.description).toBeNull();
   expect(emptyOne.description).toBeNull();
 });
 
 test("a User's List names are unique regardless of case, but not across Users", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const horror = await createList(request, { name: "Жахи" });
+  const horror = await createList(loggedInApi, { name: "Жахи" });
 
   for (const name of ["Жахи", "  жахи ", "ЖАХИ"]) {
-    const response = await request.post("/api/lists", { data: { name, mediaType: "film" } });
+    const response = await loggedInApi.lists.createList({ name, mediaType: "film" });
     expect(response.status(), name).toBe(409);
     expect(await response.json()).toEqual({ error: "list_name_taken" });
   }
 
-  expect((await (await request.get("/api/lists")).json()).lists).toEqual([horror]);
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  expect((await createList(other, { name: "Жахи" })).name).toBe("Жахи");
-  await other.dispose();
+  expect(await theLists(loggedInApi)).toEqual([horror]);
+  expect((await createList(otherUser, { name: "Жахи" })).name).toBe("Жахи");
 });
 
-test('reserved names such as "Watchlist" are refused', async ({ request }) => {
-  await logInNewUser(request);
-
+test('reserved names such as "Watchlist" are refused', async ({ loggedInApi }) => {
   for (const name of ["Watchlist", "watchlist", " WATCHLIST "]) {
-    const response = await request.post("/api/lists", { data: { name, mediaType: "film" } });
+    const response = await loggedInApi.lists.createList({ name, mediaType: "film" });
     expect(response.status(), name).toBe(400);
     expect(await response.json()).toEqual({ error: "list_name_reserved" });
   }
 
-  expect((await createList(request, { name: "My Watchlist" })).name).toBe("My Watchlist");
+  expect((await createList(loggedInApi, { name: "My Watchlist" })).name).toBe("My Watchlist");
 });
 
 test("a List needs a name of up to 100 characters, a known Media Type and a short description", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-
   for (const data of [
     { mediaType: "film" },
     { name: "   ", mediaType: "film" },
@@ -111,44 +99,48 @@ test("a List needs a name of up to 100 characters, a known Media Type and a shor
     { name: "Horror", mediaType: "book" },
     { name: "Horror", mediaType: "film", description: "x".repeat(1001) },
   ]) {
-    const response = await request.post("/api/lists", { data });
+    const response = await loggedInApi.lists.createList(data as never);
     expect(response.status(), JSON.stringify(data)).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });
   }
 
-  expect((await createList(request, { name: "x".repeat(100) })).name).toHaveLength(100);
-  expect((await (await request.get("/api/lists")).json()).lists).toHaveLength(1);
+  expect((await createList(loggedInApi, { name: "x".repeat(100) })).name).toHaveLength(100);
+  expect(await theLists(loggedInApi)).toHaveLength(1);
 });
 
 test("at 100 Lists the User can make no more, and the Backlog doesn't count", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
   await Promise.all(
-    Array.from({ length: 100 }, (_, i) => createList(request, { name: `List ${i + 1}` })),
+    Array.from({ length: 100 }, (_, i) => createList(loggedInApi, { name: `List ${i + 1}` })),
   );
 
-  const response = await request.post("/api/lists", {
-    data: { name: "One too many", mediaType: "film" },
-  });
+  const refused = await expectBody(
+    loggedInApi.lists.createList({ name: "One too many", mediaType: "film" }),
+    409,
+  );
 
-  expect(response.status()).toBe(409);
-  expect(await response.json()).toEqual({ error: "too_many_lists" });
-  expect((await (await request.get("/api/lists")).json()).lists).toHaveLength(100);
+  expect(refused).toEqual({ error: "too_many_lists" });
+  expect(await theLists(loggedInApi)).toHaveLength(100);
   // A taken name is still that, whatever the count.
-  const taken = await request.post("/api/lists", { data: { name: "list 1", mediaType: "film" } });
+  const taken = await loggedInApi.lists.createList({ name: "list 1", mediaType: "film" });
   expect(await taken.json()).toEqual({ error: "list_name_taken" });
 });
 
-test("films join a List at the end, and the User reorders and notes them", async ({ request }) => {
-  await logInNewUser(request);
-  const list = await createList(request, { name: "Space" });
-  const first = await addToList(request, list.id, { mediaItemId: (await alien(request)).id });
-  const second = await addToList(request, list.id, {
-    mediaItemId: (await aliens(request)).id,
+test("films join a List at the end, and the User reorders and notes them", async ({
+  loggedInApi,
+}) => {
+  const list = await createList(loggedInApi, { name: "Space" });
+  const first = await addToList(loggedInApi, list.id, {
+    mediaItemId: (await alien(loggedInApi)).id,
+  });
+  const second = await addToList(loggedInApi, list.id, {
+    mediaItemId: (await aliens(loggedInApi)).id,
     note: "  The sequel. ",
   });
-  const third = await addToList(request, list.id, { mediaItemId: (await amelie(request)).id });
+  const third = await addToList(loggedInApi, list.id, {
+    mediaItemId: (await amelie(loggedInApi)).id,
+  });
 
   expect(first).toEqual({
     id: expect.any(Number),
@@ -157,94 +149,97 @@ test("films join a List at the end, and the User reorders and notes them", async
     note: null,
   });
   expect(second).toMatchObject({ position: 1, note: "The sequel." });
-  expect((await theList(request, list.id)).items).toEqual([first, second, third]);
-  expect((await (await request.get("/api/lists")).json()).lists).toEqual([
-    { ...list, itemCount: 3 },
+  expect((await theList(loggedInApi, list.id)).items).toEqual([first, second, third]);
+  expect(await theLists(loggedInApi)).toEqual([{ ...list, itemCount: 3 }]);
+
+  await expectBody(loggedInApi.listItems.updateListItem(third.id, { position: 0 }));
+  const noted = await expectBody(
+    loggedInApi.listItems.updateListItem(first.id, { note: "Watch first." }),
+  );
+
+  expect(noted.listItem.note).toBe("Watch first.");
+  expect(titlesOf((await theList(loggedInApi, list.id)).items)).toEqual([
+    "Amélie",
+    "Alien",
+    "Aliens",
   ]);
-
-  await patchListItem(request, third.id, { position: 0 });
-  const noted = await patchListItem(request, first.id, { note: "Watch first." });
-
-  expect(noted.note).toBe("Watch first.");
-  expect(titlesOf((await theList(request, list.id)).items)).toEqual(["Amélie", "Alien", "Aliens"]);
 });
 
 test("adding a film already in the List is refused, and it keeps its place", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const list = await createList(request, { name: "Space" });
-  const mediaItemId = (await alien(request)).id;
-  const added = await addToList(request, list.id, { mediaItemId, note: "Mine." });
+  const list = await createList(loggedInApi, { name: "Space" });
+  const mediaItemId = (await alien(loggedInApi)).id;
+  const added = await addToList(loggedInApi, list.id, { mediaItemId, note: "Mine." });
 
-  const again = await request.post(`/api/lists/${list.id}/items`, {
-    data: { mediaItemId, note: "Replaced?" },
-  });
+  const again = await expectBody(
+    loggedInApi.lists.addListItem(list.id, { mediaItemId, note: "Replaced?" }),
+    409,
+  );
 
-  expect(again.status()).toBe(409);
-  expect(await again.json()).toEqual({ error: "already_in_list" });
-  expect((await theList(request, list.id)).items).toEqual([added]);
+  expect(again).toEqual({ error: "already_in_list" });
+  expect((await theList(loggedInApi, list.id)).items).toEqual([added]);
 });
 
-test("the same film can be in several Lists and the Backlog at once", async ({ request }) => {
-  await logInNewUser(request);
-  const mediaItemId = (await alien(request)).id;
-  const space = await createList(request, { name: "Space" });
-  const horror = await createList(request, { name: "Horror" });
-  const planned = await request.post("/api/backlog/items", { data: { mediaItemId } });
-  expect(planned.status()).toBe(201);
+test("the same film can be in several Lists and the Backlog at once", async ({ loggedInApi }) => {
+  const mediaItemId = (await alien(loggedInApi)).id;
+  const space = await createList(loggedInApi, { name: "Space" });
+  const horror = await createList(loggedInApi, { name: "Horror" });
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId }), 201);
 
-  await addToList(request, space.id, { mediaItemId });
-  await addToList(request, horror.id, { mediaItemId });
+  await addToList(loggedInApi, space.id, { mediaItemId });
+  await addToList(loggedInApi, horror.id, { mediaItemId });
 
-  expect((await theList(request, space.id)).items).toHaveLength(1);
-  expect((await theList(request, horror.id)).items).toHaveLength(1);
-  const { backlog } = await (await request.get("/api/backlog?mediaType=film")).json();
+  expect((await theList(loggedInApi, space.id)).items).toHaveLength(1);
+  expect((await theList(loggedInApi, horror.id)).items).toHaveLength(1);
+  const { backlog } = await expectBody(loggedInApi.backlog.getBacklog({ mediaType: "film" }));
   expect(backlog.items).toHaveLength(1);
 });
 
-test("adding an unknown Media Item is a 400", async ({ request }) => {
-  await logInNewUser(request);
-  const list = await createList(request, { name: "Space" });
+test("adding an unknown Media Item is a 400", async ({ loggedInApi }) => {
+  const list = await createList(loggedInApi, { name: "Space" });
 
-  const response = await request.post(`/api/lists/${list.id}/items`, {
-    data: { mediaItemId: 2_000_000_000 },
-  });
+  const refused = await expectBody(
+    loggedInApi.lists.addListItem(list.id, { mediaItemId: 2_000_000_000 }),
+    400,
+  );
 
-  expect(response.status()).toBe(400);
-  expect(await response.json()).toEqual({ error: "unknown_media_item" });
+  expect(refused).toEqual({ error: "unknown_media_item" });
 });
 
-test("at 1,000 films a List is full, until the User removes one", async ({ request }) => {
-  await logInNewUser(request);
-  const list = await createList(request, { name: "Everything" });
-  await fillList(request, list.id, 999);
-  const thousandth = await addToList(request, list.id, { mediaItemId: (await alien(request)).id });
-  const aliensItem = await aliens(request);
-
-  const full = await request.post(`/api/lists/${list.id}/items`, {
-    data: { mediaItemId: aliensItem.id },
+test("at 1,000 films a List is full, until the User removes one", async ({ loggedInApi }) => {
+  const list = await createList(loggedInApi, { name: "Everything" });
+  expect((await loggedInApi.testHooks.fillList(list.id, 999)).status()).toBe(204);
+  const thousandth = await addToList(loggedInApi, list.id, {
+    mediaItemId: (await alien(loggedInApi)).id,
   });
+  const aliensItem = await aliens(loggedInApi);
 
-  expect(full.status()).toBe(409);
-  expect(await full.json()).toEqual({ error: "list_full" });
+  const full = await expectBody(
+    loggedInApi.lists.addListItem(list.id, { mediaItemId: aliensItem.id }),
+    409,
+  );
+
+  expect(full).toEqual({ error: "list_full" });
   expect(thousandth.position).toBe(999);
   // A film already there is refused for that, not for the limit.
-  const again = await request.post(`/api/lists/${list.id}/items`, {
-    data: { mediaItemId: thousandth.mediaItem.id },
+  const again = await loggedInApi.lists.addListItem(list.id, {
+    mediaItemId: thousandth.mediaItem.id,
   });
   expect(await again.json()).toEqual({ error: "already_in_list" });
-  expect((await request.delete(`/api/list-items/${thousandth.id}`)).status()).toBe(204);
-  expect((await addToList(request, list.id, { mediaItemId: aliensItem.id })).position).toBe(999);
+  expect((await loggedInApi.listItems.deleteListItem(thousandth.id)).status()).toBe(204);
+  const freed = await addToList(loggedInApi, list.id, { mediaItemId: aliensItem.id });
+  expect(freed.position).toBe(999);
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.
-test("a List loads in the same number of queries for 1 film as for 1,000", async ({ request }) => {
-  await logInNewUser(request);
+test("a List loads in the same number of queries for 1 film as for 1,000", async ({
+  loggedInApi,
+}) => {
   const queriesForListOf = async (films: number) => {
-    const list = await createList(request, { name: `${films} films` });
-    await fillList(request, list.id, films);
-    const response = await request.get(`/api/lists/${list.id}`);
+    const list = await createList(loggedInApi, { name: `${films} films` });
+    expect((await loggedInApi.testHooks.fillList(list.id, films)).status()).toBe(204);
+    const response = await loggedInApi.lists.getList(list.id);
     expect(await response.json()).toMatchObject({ list: { items: { length: films } } });
     return response.headers()["x-d1-query-count"];
   };
@@ -257,48 +252,42 @@ test("a List loads in the same number of queries for 1 film as for 1,000", async
 });
 
 test("the Lists page loads in the same number of queries for 1 List as for 100", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  const queriesForListsOf = async (api: APIRequestContext, count: number) => {
-    await logInNewUser(api);
+  const queriesForListsOf = async (api: ApiClient, count: number) => {
     const lists = await Promise.all(
       Array.from({ length: count }, (_, i) => createList(api, { name: `List ${i + 1}` })),
     );
-    await Promise.all(lists.map((list) => fillList(api, list.id, 3)));
-    const response = await api.get("/api/lists");
+    await Promise.all(lists.map((list) => api.testHooks.fillList(list.id, 3)));
+    const response = await api.lists.getLists();
     const body = await response.json();
     expect(body.lists).toHaveLength(count);
     expect(body.lists.every((list: { itemCount: number }) => list.itemCount === 3)).toBe(true);
     return response.headers()["x-d1-query-count"];
   };
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
 
-  const one = await queriesForListsOf(request, 1);
-  const hundred = await queriesForListsOf(other, 100);
-  await other.dispose();
+  const one = await queriesForListsOf(loggedInApi, 1);
+  const hundred = await queriesForListsOf(otherUser, 100);
 
   expect(one).toMatch(/^\d+$/);
   expect(hundred).toBe(one);
 });
 
 // The User's film Lists as the picker on a film sees them: each with the film's List Item, or null.
-async function listsOf(request: APIRequestContext, mediaItemId: number) {
-  const response = await request.get(`/api/catalog/items/${mediaItemId}/lists`);
-  expect(response.status(), await response.text()).toBe(200);
-  return (await response.json()).lists;
+async function listsOf(api: ApiClient, mediaItemId: number) {
+  return (await expectBody(api.catalog.getMediaItemLists(mediaItemId))).lists;
 }
 
-test("a film's Lists say which hold it, where, and with what Note", async ({ request }) => {
-  await logInNewUser(request);
-  const mediaItemId = (await alien(request)).id;
-  const space = await createList(request, { name: "Space" });
-  const horror = await createList(request, { name: "Horror" });
-  const comfort = await createList(request, { name: "Comfort" });
-  await addToList(request, horror.id, { mediaItemId: (await aliens(request)).id });
-  const held = await addToList(request, horror.id, { mediaItemId, note: "Olena's favourite." });
+test("a film's Lists say which hold it, where, and with what Note", async ({ loggedInApi }) => {
+  const mediaItemId = (await alien(loggedInApi)).id;
+  const space = await createList(loggedInApi, { name: "Space" });
+  const horror = await createList(loggedInApi, { name: "Horror" });
+  const comfort = await createList(loggedInApi, { name: "Comfort" });
+  await addToList(loggedInApi, horror.id, { mediaItemId: (await aliens(loggedInApi)).id });
+  const held = await addToList(loggedInApi, horror.id, { mediaItemId, note: "Olena's favourite." });
 
-  expect(await listsOf(request, mediaItemId)).toEqual([
+  expect(await listsOf(loggedInApi, mediaItemId)).toEqual([
     { ...space, listItem: null },
     {
       ...horror,
@@ -310,127 +299,110 @@ test("a film's Lists say which hold it, where, and with what Note", async ({ req
 });
 
 test("a film's Lists leave out the Backlog and other Users' Lists", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const mediaItemId = (await alien(request)).id;
-  const planned = await request.post("/api/backlog/items", { data: { mediaItemId } });
-  expect(planned.status()).toBe(201);
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  await addToList(other, (await createList(other, { name: "Theirs" })).id, { mediaItemId });
-  await other.dispose();
+  const mediaItemId = (await alien(loggedInApi)).id;
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId }), 201);
+  await addToList(otherUser, (await createList(otherUser, { name: "Theirs" })).id, { mediaItemId });
 
-  expect(await listsOf(request, mediaItemId)).toEqual([]);
+  expect(await listsOf(loggedInApi, mediaItemId)).toEqual([]);
 });
 
-test("the Lists of an unknown Media Item are a 404", async ({ request }) => {
-  await logInNewUser(request);
+test("the Lists of an unknown Media Item are a 404", async ({ loggedInApi }) => {
+  const refused = await expectBody(loggedInApi.catalog.getMediaItemLists(2_000_000_000), 404);
 
-  const response = await request.get("/api/catalog/items/2000000000/lists");
-
-  expect(response.status()).toBe(404);
-  expect(await response.json()).toEqual({ error: "unknown_media_item" });
+  expect(refused).toEqual({ error: "unknown_media_item" });
 });
 
 test("a film's Lists load in the same number of queries for 1 List as for 100", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  const queriesForListsOf = async (api: APIRequestContext, count: number) => {
-    await logInNewUser(api);
+  const queriesForListsOf = async (api: ApiClient, count: number) => {
     const mediaItemId = (await alien(api)).id;
     const lists = await Promise.all(
       Array.from({ length: count }, (_, i) => createList(api, { name: `List ${i + 1}` })),
     );
     await Promise.all(lists.map((list) => addToList(api, list.id, { mediaItemId })));
-    const response = await api.get(`/api/catalog/items/${mediaItemId}/lists`);
+    const response = await api.catalog.getMediaItemLists(mediaItemId);
     const body = await response.json();
     expect(body.lists).toHaveLength(count);
     expect(body.lists.every((list: { listItem: unknown }) => list.listItem !== null)).toBe(true);
     return response.headers()["x-d1-query-count"];
   };
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
 
-  const one = await queriesForListsOf(request, 1);
-  const hundred = await queriesForListsOf(other, 100);
-  await other.dispose();
+  const one = await queriesForListsOf(loggedInApi, 1);
+  const hundred = await queriesForListsOf(otherUser, 100);
 
   expect(one).toMatch(/^\d+$/);
   expect(hundred).toBe(one);
 });
 
-async function logFilm(request: APIRequestContext, mediaItemId: number) {
-  const logged = new LogController(request).createLogEntry({ mediaItemId, rating: 4 });
-  return (await expectBody(logged, 201)).logEntry;
+async function logFilm(api: ApiClient, mediaItemId: number) {
+  return (await expectBody(api.log.createLogEntry({ mediaItemId, rating: 4 }), 201)).logEntry;
 }
 
-async function theLog(request: APIRequestContext) {
-  return (await expectBody(new LogController(request).getLogEntries())).logEntries;
-}
+test("removing a List Item or deleting a List leaves the Log untouched", async ({
+  loggedInApi,
+}) => {
+  const alienItem = await alien(loggedInApi);
+  const aliensItem = await aliens(loggedInApi);
+  const logEntries = [
+    await logFilm(loggedInApi, alienItem.id),
+    await logFilm(loggedInApi, aliensItem.id),
+  ];
+  const list = await createList(loggedInApi, { name: "Space" });
+  const first = await addToList(loggedInApi, list.id, { mediaItemId: alienItem.id });
+  const second = await addToList(loggedInApi, list.id, { mediaItemId: aliensItem.id });
 
-test("removing a List Item or deleting a List leaves the Log untouched", async ({ request }) => {
-  await logInNewUser(request);
-  const alienItem = await alien(request);
-  const aliensItem = await aliens(request);
-  const logEntries = [await logFilm(request, alienItem.id), await logFilm(request, aliensItem.id)];
-  const list = await createList(request, { name: "Space" });
-  const first = await addToList(request, list.id, { mediaItemId: alienItem.id });
-  const second = await addToList(request, list.id, { mediaItemId: aliensItem.id });
-
-  expect((await request.delete(`/api/list-items/${first.id}`)).status()).toBe(204);
-  expect((await theList(request, list.id)).items).toEqual([{ ...second, position: 0 }]);
-  const deleted = await request.delete(`/api/lists/${list.id}`);
+  expect((await loggedInApi.listItems.deleteListItem(first.id)).status()).toBe(204);
+  expect((await theList(loggedInApi, list.id)).items).toEqual([{ ...second, position: 0 }]);
+  const deleted = await loggedInApi.lists.deleteList(list.id);
 
   expect(deleted.status()).toBe(204);
-  expect((await request.get(`/api/lists/${list.id}`)).status()).toBe(404);
-  expect((await (await request.get("/api/lists")).json()).lists).toEqual([]);
-  expect(await theLog(request)).toEqual(logEntries);
+  expect((await loggedInApi.lists.getList(list.id)).status()).toBe(404);
+  expect(await theLists(loggedInApi)).toEqual([]);
+  expect((await expectBody(loggedInApi.log.getLogEntries())).logEntries).toEqual(logEntries);
   // Its items went with it.
-  const edited = await request.patch(`/api/list-items/${second.id}`, { data: { note: "Gone?" } });
+  const edited = await loggedInApi.listItems.updateListItem(second.id, { note: "Gone?" });
   expect(edited.status()).toBe(404);
 });
 
-test("deleting a List frees its name and its place among the 100", async ({ request }) => {
-  await logInNewUser(request);
+test("deleting a List frees its name and its place among the 100", async ({ loggedInApi }) => {
   const lists = await Promise.all(
-    Array.from({ length: 100 }, (_, i) => createList(request, { name: `List ${i + 1}` })),
+    Array.from({ length: 100 }, (_, i) => createList(loggedInApi, { name: `List ${i + 1}` })),
   );
 
-  expect((await request.delete(`/api/lists/${lists[0].id}`)).status()).toBe(204);
+  expect((await loggedInApi.lists.deleteList(lists[0].id)).status()).toBe(204);
 
-  expect((await createList(request, { name: "list 1" })).name).toBe("list 1");
+  expect((await createList(loggedInApi, { name: "list 1" })).name).toBe("list 1");
 });
 
 test("the User renames a List and changes its description, within the same name rules", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const list = await createList(request, { name: "Space", description: "Films in space." });
-  await createList(request, { name: "Horror" });
-  const patch = (data: object) => request.patch(`/api/lists/${list.id}`, { data });
+  const list = await createList(loggedInApi, { name: "Space", description: "Films in space." });
+  await createList(loggedInApi, { name: "Horror" });
+  const patch = (changes: ListEditRequest) => loggedInApi.lists.updateList(list.id, changes);
 
-  const renamed = await patch({ name: " Space horror " });
+  const renamed = await expectBody(patch({ name: " Space horror " }));
 
-  expect(renamed.status()).toBe(200);
-  expect((await renamed.json()).list).toEqual({ ...list, name: "Space horror" });
+  expect(renamed.list).toEqual({ ...list, name: "Space horror" });
   // Only the case changes: it is still its own name.
-  expect((await (await patch({ name: "SPACE HORROR" })).json()).list.name).toBe("SPACE HORROR");
-  const described = await patch({ description: "  " });
-  expect((await described.json()).list).toMatchObject({ name: "SPACE HORROR", description: null });
-  const taken = await patch({ name: "horror" });
-  expect(taken.status()).toBe(409);
-  expect(await taken.json()).toEqual({ error: "list_name_taken" });
-  const reserved = await patch({ name: "Watchlist" });
-  expect(reserved.status()).toBe(400);
-  expect(await reserved.json()).toEqual({ error: "list_name_reserved" });
+  expect((await expectBody(patch({ name: "SPACE HORROR" }))).list.name).toBe("SPACE HORROR");
+  const described = await expectBody(patch({ description: "  " }));
+  expect(described.list).toMatchObject({ name: "SPACE HORROR", description: null });
+  const taken = await expectBody(patch({ name: "horror" }), 409);
+  expect(taken).toEqual({ error: "list_name_taken" });
+  const reserved = await expectBody(patch({ name: "Watchlist" }), 400);
+  expect(reserved).toEqual({ error: "list_name_reserved" });
   for (const data of [{ name: "  " }, { mediaType: "film" }, { visibility: "link" }]) {
-    const refused = await patch(data);
+    const refused = await patch(data as never);
     expect(refused.status(), JSON.stringify(data)).toBe(400);
     expect(await refused.json()).toEqual({ error: "invalid_request" });
   }
-  expect(await theList(request, list.id)).toMatchObject({
+  expect(await theList(loggedInApi, list.id)).toMatchObject({
     name: "SPACE HORROR",
     description: null,
     mediaType: "film",
@@ -439,42 +411,38 @@ test("the User renames a List and changes its description, within the same name 
 });
 
 test("another User's List, the Backlog, or a deleted List can't be read, changed or added to", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const mediaItemId = (await alien(request)).id;
-  const { backlog } = await (await request.get("/api/backlog?mediaType=film")).json();
-  const deleted = await createList(request, { name: "Gone" });
-  expect((await request.delete(`/api/lists/${deleted.id}`)).status()).toBe(204);
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  const theirs = await createList(other, { name: "Theirs" });
+  const mediaItemId = (await alien(loggedInApi)).id;
+  const { backlog } = await expectBody(loggedInApi.backlog.getBacklog({ mediaType: "film" }));
+  const deleted = await createList(loggedInApi, { name: "Gone" });
+  expect((await loggedInApi.lists.deleteList(deleted.id)).status()).toBe(204);
+  const theirs = await createList(otherUser, { name: "Theirs" });
 
   for (const id of [theirs.id, backlog.id, deleted.id, 2_000_000_000]) {
     for (const response of [
-      await request.get(`/api/lists/${id}`),
-      await request.patch(`/api/lists/${id}`, { data: { name: "Mine now" } }),
-      await request.delete(`/api/lists/${id}`),
-      await request.post(`/api/lists/${id}/items`, { data: { mediaItemId } }),
+      await loggedInApi.lists.getList(id),
+      await loggedInApi.lists.updateList(id, { name: "Mine now" }),
+      await loggedInApi.lists.deleteList(id),
+      await loggedInApi.lists.addListItem(id, { mediaItemId }),
     ]) {
       expect(response.status(), `${response.url()} for List ${id}`).toBe(404);
       expect(await response.json()).toEqual({ error: "unknown_list" });
     }
   }
-  expect(await theList(other, theirs.id)).toMatchObject({ name: "Theirs", items: [] });
-  await other.dispose();
+  expect(await theList(otherUser, theirs.id)).toMatchObject({ name: "Theirs", items: [] });
 });
 
-test("without a session, Lists are a 401", async ({ request }) => {
+test("without a session, Lists are a 401", async ({ api }) => {
   for (const response of [
-    await request.get("/api/lists"),
-    await request.post("/api/lists", { data: {} }),
-    await request.get("/api/lists/1"),
-    await request.patch("/api/lists/1", { data: {} }),
-    await request.delete("/api/lists/1"),
-    await request.post("/api/lists/1/items", { data: {} }),
-    await request.get("/api/catalog/items/1/lists"),
+    await api.lists.getLists(),
+    await api.lists.createList({} as never),
+    await api.lists.getList(1),
+    await api.lists.updateList(1, {}),
+    await api.lists.deleteList(1),
+    await api.lists.addListItem(1, {} as never),
+    await api.catalog.getMediaItemLists(1),
   ]) {
     expect(response.status(), response.url()).toBe(401);
   }

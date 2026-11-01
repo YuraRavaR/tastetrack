@@ -11,4 +11,8 @@ export class CatalogController extends BaseController {
   addCatalogItem(searchResult: AddCatalogItemRequest, options?: RequestOptions) {
     return this.requestContext.post(endpoints.catalog.items, { ...options, data: searchResult });
   }
+
+  getMediaItemLists(mediaItemId: number, options?: RequestOptions) {
+    return this.requestContext.get(endpoints.catalog.mediaItemLists(mediaItemId), options);
+  }
 }

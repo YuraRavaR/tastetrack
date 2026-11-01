@@ -9,4 +9,11 @@ export class TestHooksController extends BaseController {
       data: { count },
     });
   }
+
+  fillList(listId: number, count: number, options?: RequestOptions) {
+    return this.requestContext.post(endpoints.testHooks.listItems(listId), {
+      ...options,
+      data: { count },
+    });
+  }
 }
