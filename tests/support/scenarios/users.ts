@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { type APIRequestContext, expect, request, test } from "@playwright/test";
+import { ApiClient } from "../api/ApiClient";
+import { TestHooksController } from "../api/controllers/TestHooksController";
+import { expectBody } from "../api/responses";
 
 export interface TestUser {
   username: string;
@@ -19,16 +22,9 @@ export function uniqueUsername(): string {
 
 // Creates a User without an Invite Code through the test-hook route, which exists only where test
 // hooks are on (local and staging), so such seed Users never exist in production.
-// `passwordIterations` makes a hash below the current target.
-export async function createSeedUser(
-  api: APIRequestContext,
-  options: { username?: string; passwordIterations?: number } = {},
-): Promise<TestUser> {
-  const user = { username: options.username ?? uniqueUsername(), password };
-  const response = await api.post("/api/test/users", {
-    data: { ...user, passwordIterations: options.passwordIterations },
-  });
-  expect(response.status()).toBe(201);
+async function createSeedUser(api: APIRequestContext): Promise<TestUser> {
+  const user = { username: `seed_${randomTail()}`, password };
+  await expectBody(new TestHooksController(api).createSeedUser(user), 201);
   return user;
 }
 
@@ -40,7 +36,7 @@ const seeds = new Map<string, Promise<TestUser>>();
 function seedFor(api: APIRequestContext, baseURL: string): Promise<TestUser> {
   let seed = seeds.get(baseURL);
   if (!seed) {
-    seed = createSeedUser(api, { username: `seed_${randomTail()}` });
+    seed = createSeedUser(api);
     seeds.set(baseURL, seed);
   }
   return seed;
@@ -61,15 +57,11 @@ export async function createUser(): Promise<TestUser> {
   if (!baseURL) throw new Error("createUser needs the project's baseURL");
   const api = await request.newContext({ baseURL });
   try {
-    const seed = await seedFor(api, baseURL);
-    expect((await api.post("/api/auth/login", { data: seed })).status()).toBe(200);
-    const issued = await api.post("/api/invite-codes");
-    expect(issued.status()).toBe(201);
+    const { auth, inviteCodes } = new ApiClient(api);
+    await expectBody(auth.login(await seedFor(api, baseURL)));
+    const { inviteCode } = await expectBody(inviteCodes.issueInviteCode(), 201);
     const user = { username: uniqueUsername(), password };
-    const registered = await api.post("/api/auth/register", {
-      data: { ...user, inviteCode: (await issued.json()).inviteCode.code },
-    });
-    expect(registered.status()).toBe(201);
+    await expectBody(auth.register({ ...user, inviteCode: inviteCode.code }), 201);
     return user;
   } finally {
     await api.dispose();
@@ -79,7 +71,6 @@ export async function createUser(): Promise<TestUser> {
 // Resets the User's password as the Operator does, through the test-hook route, and returns the
 // Temporary Password. Every session of theirs ends.
 export async function resetPassword(api: APIRequestContext, username: string): Promise<string> {
-  const response = await api.post(`/api/test/users/${username}/password-reset`);
-  expect(response.status()).toBe(200);
-  return (await response.json()).temporaryPassword;
+  const reset = new TestHooksController(api).resetPassword(username);
+  return (await expectBody(reset)).temporaryPassword;
 }

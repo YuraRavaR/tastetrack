@@ -1,18 +1,21 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
-import { fillBacklog } from "../support/backlog";
-import { alien, aliens, amelie, searchResult, titlesOf } from "../support/films";
-import { logInNewUser } from "../support/users";
+import { BacklogResponse, ListItemResponse, type PlanRequest } from "@shared/api";
+import type { ApiClient } from "../support/api/ApiClient";
+import { expectBody } from "../support/api/responses";
+import { expect, test } from "../support/fixtures";
+import { alien, aliens, amelie, searchResult, titlesOf } from "../support/scenarios/films";
+import { createUser } from "../support/scenarios/users";
 
-async function theBacklog(request: APIRequestContext) {
-  const response = await request.get("/api/backlog", { params: { mediaType: "film" } });
-  expect(response.status(), await response.text()).toBe(200);
-  return (await response.json()).backlog;
+async function theBacklog(api: ApiClient) {
+  return (await expectBody(api.backlog.getBacklog({ mediaType: "film" }))).backlog;
 }
 
-test("a new User has an empty, private film Backlog from registration", async ({ request }) => {
-  await logInNewUser(request);
+async function theLog(api: ApiClient) {
+  return (await expectBody(api.log.getLogEntries())).logEntries;
+}
 
-  expect(await theBacklog(request)).toEqual({
+test("a new User has an empty, private film Backlog from registration", async ({ loggedInApi }) => {
+  const backlog = loggedInApi.backlog.getBacklog({ mediaType: "film" });
+  expect((await expectBody(backlog, 200, BacklogResponse)).backlog).toEqual({
     id: expect.any(Number),
     mediaType: "film",
     visibility: "private",
@@ -22,349 +25,328 @@ test("a new User has an empty, private film Backlog from registration", async ({
 });
 
 // Marks a Media Item Planned: its List Item in the Backlog.
-async function plan(request: APIRequestContext, data: object) {
-  const response = await request.post("/api/backlog/items", { data });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).listItem;
+async function plan(api: ApiClient, data: PlanRequest) {
+  return (await expectBody(api.backlog.addBacklogItem(data), 201)).listItem;
 }
 
-test("marking a film Planned adds it to the Backlog, without a Log Entry", async ({ request }) => {
-  await logInNewUser(request);
-  const mediaItem = await alien(request);
+test("marking a film Planned adds it to the Backlog, without a Log Entry", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await alien(loggedInApi);
 
-  const response = await request.post("/api/backlog/items", {
-    data: { mediaItemId: mediaItem.id },
-  });
+  const { listItem } = await expectBody(
+    loggedInApi.backlog.addBacklogItem({ mediaItemId: mediaItem.id }),
+    201,
+    ListItemResponse,
+  );
 
-  expect(response.status()).toBe(201);
-  const { listItem } = await response.json();
   expect(listItem).toEqual({ id: expect.any(Number), mediaItem, position: 0, note: null });
-  expect((await theBacklog(request)).items).toEqual([listItem]);
-  expect((await (await request.get("/api/log-entries")).json()).logEntries).toEqual([]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([listItem]);
+  expect(await theLog(loggedInApi)).toEqual([]);
 });
 
 test("films join the Backlog at the end, and planning one again keeps its place", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const first = await plan(request, { mediaItemId: (await alien(request)).id });
-  const second = await plan(request, { mediaItemId: (await aliens(request)).id });
+  const first = await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
+  const second = await plan(loggedInApi, { mediaItemId: (await aliens(loggedInApi)).id });
 
-  const again = await request.post("/api/backlog/items", {
-    data: { mediaItemId: first.mediaItem.id },
-  });
+  const again = await expectBody(
+    loggedInApi.backlog.addBacklogItem({ mediaItemId: first.mediaItem.id }),
+  );
 
-  expect(again.status()).toBe(200);
-  expect((await again.json()).listItem).toEqual(first);
+  expect(again.listItem).toEqual(first);
   expect(second.position).toBe(1);
-  expect((await theBacklog(request)).items).toEqual([first, second]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([first, second]);
 });
 
-test("planning an unknown Media Item is a 400", async ({ request }) => {
-  await logInNewUser(request);
+test("planning an unknown Media Item is a 400", async ({ loggedInApi }) => {
+  const refused = await expectBody(
+    loggedInApi.backlog.addBacklogItem({ mediaItemId: 2_000_000_000 }),
+    400,
+  );
 
-  const response = await request.post("/api/backlog/items", {
-    data: { mediaItemId: 2_000_000_000 },
-  });
-
-  expect(response.status()).toBe(400);
-  expect(await response.json()).toEqual({ error: "unknown_media_item" });
+  expect(refused).toEqual({ error: "unknown_media_item" });
 });
 
-async function patchListItem(request: APIRequestContext, id: number, data: object) {
-  const response = await request.patch(`/api/list-items/${id}`, { data });
-  expect(response.status(), await response.text()).toBe(200);
-  return (await response.json()).listItem;
+async function backlogTitles(api: ApiClient) {
+  return titlesOf((await theBacklog(api)).items);
 }
 
-async function backlogTitles(request: APIRequestContext) {
-  return titlesOf((await theBacklog(request)).items);
-}
+test("the User reorders the Backlog by hand", async ({ loggedInApi }) => {
+  await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
+  await plan(loggedInApi, { mediaItemId: (await aliens(loggedInApi)).id });
+  const third = await plan(loggedInApi, { mediaItemId: (await amelie(loggedInApi)).id });
 
-test("the User reorders the Backlog by hand", async ({ request }) => {
-  await logInNewUser(request);
-  await plan(request, { mediaItemId: (await alien(request)).id });
-  await plan(request, { mediaItemId: (await aliens(request)).id });
-  const third = await plan(request, { mediaItemId: (await amelie(request)).id });
+  const moved = await expectBody(
+    loggedInApi.listItems.updateListItem(third.id, { position: 0 }),
+    200,
+    ListItemResponse,
+  );
 
-  const moved = await patchListItem(request, third.id, { position: 0 });
-
-  expect(moved).toEqual({ ...third, position: 0 });
-  expect(await backlogTitles(request)).toEqual(["Amélie", "Alien", "Aliens"]);
-  await patchListItem(request, third.id, { position: 1 });
-  expect(await backlogTitles(request)).toEqual(["Alien", "Amélie", "Aliens"]);
+  expect(moved.listItem).toEqual({ ...third, position: 0 });
+  expect(await backlogTitles(loggedInApi)).toEqual(["Amélie", "Alien", "Aliens"]);
+  await expectBody(loggedInApi.listItems.updateListItem(third.id, { position: 1 }));
+  expect(await backlogTitles(loggedInApi)).toEqual(["Alien", "Amélie", "Aliens"]);
   // Past the end is last.
-  expect((await patchListItem(request, third.id, { position: 99 })).position).toBe(2);
-  expect(await backlogTitles(request)).toEqual(["Alien", "Aliens", "Amélie"]);
+  const last = await expectBody(loggedInApi.listItems.updateListItem(third.id, { position: 99 }));
+  expect(last.listItem.position).toBe(2);
+  expect(await backlogTitles(loggedInApi)).toEqual(["Alien", "Aliens", "Amélie"]);
 });
 
-test("the User adds a Note to a Backlog item, changes it and clears it", async ({ request }) => {
-  await logInNewUser(request);
-  const planned = await plan(request, { mediaItemId: (await alien(request)).id });
+test("the User adds a Note to a Backlog item, changes it and clears it", async ({
+  loggedInApi,
+}) => {
+  const planned = await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
 
-  const noted = await patchListItem(request, planned.id, { note: "  Olena's favourite.  " });
+  const noted = await expectBody(
+    loggedInApi.listItems.updateListItem(planned.id, { note: "  Olena's favourite.  " }),
+  );
 
-  expect(noted).toEqual({ ...planned, note: "Olena's favourite." });
-  expect((await theBacklog(request)).items).toEqual([noted]);
+  expect(noted.listItem).toEqual({ ...planned, note: "Olena's favourite." });
+  expect((await theBacklog(loggedInApi)).items).toEqual([noted.listItem]);
   // An empty Note is none, and moving an item keeps its Note.
-  expect(await patchListItem(request, planned.id, { position: 0 })).toEqual(noted);
-  expect((await patchListItem(request, planned.id, { note: "  " })).note).toBeNull();
-  await patchListItem(request, planned.id, { note: "Again." });
-  expect((await patchListItem(request, planned.id, { note: null })).note).toBeNull();
-  const tooLong = await request.patch(`/api/list-items/${planned.id}`, {
-    data: { note: "x".repeat(1001) },
-  });
-  expect(tooLong.status()).toBe(400);
-  expect(await tooLong.json()).toEqual({ error: "invalid_request" });
+  const moved = await expectBody(loggedInApi.listItems.updateListItem(planned.id, { position: 0 }));
+  expect(moved).toEqual(noted);
+  const blank = await expectBody(loggedInApi.listItems.updateListItem(planned.id, { note: "  " }));
+  expect(blank.listItem.note).toBeNull();
+  await expectBody(loggedInApi.listItems.updateListItem(planned.id, { note: "Again." }));
+  const cleared = await expectBody(
+    loggedInApi.listItems.updateListItem(planned.id, { note: null }),
+  );
+  expect(cleared.listItem.note).toBeNull();
+  const tooLong = await expectBody(
+    loggedInApi.listItems.updateListItem(planned.id, { note: "x".repeat(1001) }),
+    400,
+  );
+  expect(tooLong).toEqual({ error: "invalid_request" });
 });
 
-async function logFilm(request: APIRequestContext, mediaItemId: number) {
-  const response = await request.post("/api/log-entries", { data: { mediaItemId, rating: 4 } });
-  expect(response.status(), await response.text()).toBe(201);
-  return response.json();
+async function logFilm(api: ApiClient, mediaItemId: number) {
+  return expectBody(api.log.createLogEntry({ mediaItemId, rating: 4 }), 201);
 }
 
 test("logging a film takes it off the Backlog, and planning it back where it was undoes that", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  await plan(request, { mediaItemId: (await alien(request)).id });
-  const planned = await plan(request, { mediaItemId: (await aliens(request)).id });
-  const noted = await patchListItem(request, planned.id, { note: "Olena's favourite." });
-  await plan(request, { mediaItemId: (await amelie(request)).id });
+  await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
+  const noted = await plan(loggedInApi, {
+    mediaItemId: (await aliens(loggedInApi)).id,
+    note: "Olena's favourite.",
+  });
+  await plan(loggedInApi, { mediaItemId: (await amelie(loggedInApi)).id });
 
-  const logged = await logFilm(request, noted.mediaItem.id);
+  const logged = await logFilm(loggedInApi, noted.mediaItem.id);
 
   expect(logged.removedFromBacklog).toEqual({ position: 1, note: "Olena's favourite." });
-  expect(await backlogTitles(request)).toEqual(["Alien", "Amélie"]);
-  const undone = await plan(request, {
+  expect(await backlogTitles(loggedInApi)).toEqual(["Alien", "Amélie"]);
+  const undone = await plan(loggedInApi, {
     mediaItemId: noted.mediaItem.id,
     ...logged.removedFromBacklog,
   });
   expect(undone).toEqual({ ...noted, id: expect.any(Number) });
-  expect(await backlogTitles(request)).toEqual(["Alien", "Aliens", "Amélie"]);
+  expect(await backlogTitles(loggedInApi)).toEqual(["Alien", "Aliens", "Amélie"]);
 });
 
-test("logging a film that isn't in the Backlog takes nothing off it", async ({ request }) => {
-  await logInNewUser(request);
-  const planned = await plan(request, { mediaItemId: (await alien(request)).id });
+test("logging a film that isn't in the Backlog takes nothing off it", async ({ loggedInApi }) => {
+  const planned = await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
 
-  const logged = await logFilm(request, (await aliens(request)).id);
+  const logged = await logFilm(loggedInApi, (await aliens(loggedInApi)).id);
 
   expect(logged.removedFromBacklog).toBeNull();
-  expect((await theBacklog(request)).items).toEqual([planned]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([planned]);
 });
 
-test("a film already experienced can be planned again, and keeps its Log", async ({ request }) => {
-  await logInNewUser(request);
-  const mediaItem = await alien(request);
-  const { logEntry } = await logFilm(request, mediaItem.id);
+test("a film already experienced can be planned again, and keeps its Log", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await alien(loggedInApi);
+  const { logEntry } = await logFilm(loggedInApi, mediaItem.id);
 
-  const planned = await plan(request, { mediaItemId: mediaItem.id });
+  const planned = await plan(loggedInApi, { mediaItemId: mediaItem.id });
 
-  expect((await theBacklog(request)).items).toEqual([planned]);
-  expect((await (await request.get("/api/log-entries")).json()).logEntries).toEqual([logEntry]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([planned]);
+  expect(await theLog(loggedInApi)).toEqual([logEntry]);
 });
 
-test("deleting a Log Entry leaves the Backlog untouched", async ({ request }) => {
-  await logInNewUser(request);
+test("deleting a Log Entry leaves the Backlog untouched", async ({ loggedInApi }) => {
   // Logging takes Alien off the Backlog; deleting the entry doesn't bring it back.
-  const alienItem = await alien(request);
-  await plan(request, { mediaItemId: alienItem.id });
-  const alienEntry = (await logFilm(request, alienItem.id)).logEntry;
+  const alienItem = await alien(loggedInApi);
+  await plan(loggedInApi, { mediaItemId: alienItem.id });
+  const alienEntry = (await logFilm(loggedInApi, alienItem.id)).logEntry;
   // Aliens was planned again after logging; deleting the entry doesn't take it off.
-  const aliensItem = await aliens(request);
-  const aliensEntry = (await logFilm(request, aliensItem.id)).logEntry;
-  const replanned = await plan(request, { mediaItemId: aliensItem.id });
+  const aliensItem = await aliens(loggedInApi);
+  const aliensEntry = (await logFilm(loggedInApi, aliensItem.id)).logEntry;
+  const replanned = await plan(loggedInApi, { mediaItemId: aliensItem.id });
 
   for (const { id } of [alienEntry, aliensEntry]) {
-    expect((await request.delete(`/api/log-entries/${id}`)).status()).toBe(204);
+    expect((await loggedInApi.log.deleteLogEntry(id)).status()).toBe(204);
   }
 
-  expect((await theBacklog(request)).items).toEqual([replanned]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([replanned]);
 });
 
 test("the User removes a film from the Backlog, and the rest keep their order", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const first = await plan(request, { mediaItemId: (await alien(request)).id });
-  const second = await plan(request, { mediaItemId: (await aliens(request)).id });
-  const third = await plan(request, { mediaItemId: (await amelie(request)).id });
+  const first = await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
+  const second = await plan(loggedInApi, { mediaItemId: (await aliens(loggedInApi)).id });
+  const third = await plan(loggedInApi, { mediaItemId: (await amelie(loggedInApi)).id });
 
-  const response = await request.delete(`/api/list-items/${second.id}`);
+  const response = await loggedInApi.listItems.deleteListItem(second.id);
 
   expect(response.status()).toBe(204);
-  expect((await theBacklog(request)).items).toEqual([first, { ...third, position: 1 }]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([first, { ...third, position: 1 }]);
   // Moving still counts places among the items left.
-  expect((await patchListItem(request, third.id, { position: 0 })).position).toBe(0);
-  expect(await backlogTitles(request)).toEqual(["Amélie", "Alien"]);
+  const moved = await expectBody(loggedInApi.listItems.updateListItem(third.id, { position: 0 }));
+  expect(moved.listItem.position).toBe(0);
+  expect(await backlogTitles(loggedInApi)).toEqual(["Amélie", "Alien"]);
 });
 
 test("another User's Backlog item, or one already removed, can be neither edited nor removed", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUserClient,
 }) => {
-  await logInNewUser(request);
-  const mediaItemId = (await alien(request)).id;
-  const mine = await plan(request, { mediaItemId });
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  const theirs = await plan(other, { mediaItemId });
-  expect((await request.delete(`/api/list-items/${mine.id}`)).status()).toBe(204);
+  const mediaItemId = (await alien(loggedInApi)).id;
+  const mine = await plan(loggedInApi, { mediaItemId });
+  const theirs = await plan(otherUserClient, { mediaItemId });
+  expect((await loggedInApi.listItems.deleteListItem(mine.id)).status()).toBe(204);
 
   for (const id of [theirs.id, mine.id, 2_000_000_000]) {
-    const edited = await request.patch(`/api/list-items/${id}`, { data: { note: "Mine now." } });
-    expect(edited.status(), `editing ${id}`).toBe(404);
-    expect(await edited.json()).toEqual({ error: "unknown_list_item" });
-    const removed = await request.delete(`/api/list-items/${id}`);
-    expect(removed.status(), `removing ${id}`).toBe(404);
-    expect(await removed.json()).toEqual({ error: "unknown_list_item" });
+    const edited = loggedInApi.listItems.updateListItem(id, { note: "Mine now." });
+    expect(await expectBody(edited, 404)).toEqual({ error: "unknown_list_item" });
+    const removed = loggedInApi.listItems.deleteListItem(id);
+    expect(await expectBody(removed, 404)).toEqual({ error: "unknown_list_item" });
   }
-  expect((await theBacklog(other)).items).toEqual([theirs]);
-  expect((await theBacklog(request)).items).toEqual([]);
-  await other.dispose();
+  expect((await theBacklog(otherUserClient)).items).toEqual([theirs]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([]);
 });
 
 test("the User takes a film off the Backlog by its Media Item, and the rest keep their order", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const first = await plan(request, { mediaItemId: (await alien(request)).id });
-  const second = await plan(request, { mediaItemId: (await aliens(request)).id });
-  const third = await plan(request, { mediaItemId: (await amelie(request)).id });
+  const first = await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
+  const second = await plan(loggedInApi, { mediaItemId: (await aliens(loggedInApi)).id });
+  const third = await plan(loggedInApi, { mediaItemId: (await amelie(loggedInApi)).id });
 
-  const response = await request.delete(`/api/backlog/items/${second.mediaItem.id}`);
+  const response = await loggedInApi.backlog.deleteBacklogItem(second.mediaItem.id);
 
   expect(response.status()).toBe(204);
-  expect((await theBacklog(request)).items).toEqual([first, { ...third, position: 1 }]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([first, { ...third, position: 1 }]);
 });
 
-test("taking a film off keeps it on the User's Lists and in their Log", async ({ request }) => {
-  await logInNewUser(request);
-  const mediaItem = await alien(request);
-  const { logEntry } = await logFilm(request, mediaItem.id);
-  await plan(request, { mediaItemId: mediaItem.id });
-  const list = await (
-    await request.post("/api/lists", { data: { name: "Horror", mediaType: "film" } })
-  ).json();
-  const added = await request.post(`/api/lists/${list.list.id}/items`, {
-    data: { mediaItemId: mediaItem.id },
-  });
-  expect(added.status(), await added.text()).toBe(201);
+test("taking a film off keeps it on the User's Lists and in their Log", async ({ loggedInApi }) => {
+  const mediaItem = await alien(loggedInApi);
+  const { logEntry } = await logFilm(loggedInApi, mediaItem.id);
+  await plan(loggedInApi, { mediaItemId: mediaItem.id });
+  const { list } = await expectBody(
+    loggedInApi.lists.createList({ name: "Horror", mediaType: "film" }),
+    201,
+  );
+  await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId: mediaItem.id }), 201);
 
-  const response = await request.delete(`/api/backlog/items/${mediaItem.id}`);
+  const response = await loggedInApi.backlog.deleteBacklogItem(mediaItem.id);
 
   expect(response.status()).toBe(204);
-  expect((await theBacklog(request)).items).toEqual([]);
-  const kept = await (await request.get(`/api/lists/${list.list.id}`)).json();
+  expect((await theBacklog(loggedInApi)).items).toEqual([]);
+  const kept = await expectBody(loggedInApi.lists.getList(list.id));
   expect(titlesOf(kept.list.items)).toEqual(["Alien"]);
-  expect((await (await request.get("/api/log-entries")).json()).logEntries).toEqual([logEntry]);
+  expect(await theLog(loggedInApi)).toEqual([logEntry]);
 });
 
-test("taking off a film that isn't on the Backlog is a 404", async ({ request }) => {
-  await logInNewUser(request);
-  const planned = await plan(request, { mediaItemId: (await alien(request)).id });
-  const neverPlanned = await aliens(request);
-  expect((await request.delete(`/api/backlog/items/${planned.mediaItem.id}`)).status()).toBe(204);
+test("taking off a film that isn't on the Backlog is a 404", async ({ loggedInApi }) => {
+  const planned = await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
+  const neverPlanned = await aliens(loggedInApi);
+  expect((await loggedInApi.backlog.deleteBacklogItem(planned.mediaItem.id)).status()).toBe(204);
 
   for (const id of [planned.mediaItem.id, neverPlanned.id, 2_000_000_000]) {
-    const response = await request.delete(`/api/backlog/items/${id}`);
-    expect(response.status(), `taking off ${id}`).toBe(404);
-    expect(await response.json()).toEqual({ error: "unknown_list_item" });
+    const response = loggedInApi.backlog.deleteBacklogItem(id);
+    expect(await expectBody(response, 404)).toEqual({ error: "unknown_list_item" });
   }
 });
 
-test("taking off a Media Item id that isn't a positive integer is a 400", async ({ request }) => {
-  await logInNewUser(request);
+test("taking off a Media Item id that isn't a positive integer is a 400", async ({
+  loggedInApi,
+}) => {
+  const refused = await expectBody(loggedInApi.backlog.deleteBacklogItem("nope" as never), 400);
 
-  const response = await request.delete("/api/backlog/items/nope");
-
-  expect(response.status()).toBe(400);
-  expect(await response.json()).toEqual({ error: "invalid_request" });
+  expect(refused).toEqual({ error: "invalid_request" });
 });
 
-test("taking a film off never touches another User's Backlog", async ({ request, playwright }) => {
-  await logInNewUser(request);
-  const mediaItemId = (await alien(request)).id;
-  await plan(request, { mediaItemId });
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  const theirs = await plan(other, { mediaItemId });
+test("taking a film off never touches another User's Backlog", async ({
+  loggedInApi,
+  otherUserClient,
+}) => {
+  const mediaItemId = (await alien(loggedInApi)).id;
+  await plan(loggedInApi, { mediaItemId });
+  const theirs = await plan(otherUserClient, { mediaItemId });
 
-  expect((await request.delete(`/api/backlog/items/${mediaItemId}`)).status()).toBe(204);
+  expect((await loggedInApi.backlog.deleteBacklogItem(mediaItemId)).status()).toBe(204);
   // Now only the other User has it, and that doesn't count as this User's.
-  expect((await request.delete(`/api/backlog/items/${mediaItemId}`)).status()).toBe(404);
+  expect((await loggedInApi.backlog.deleteBacklogItem(mediaItemId)).status()).toBe(404);
 
-  expect((await theBacklog(other)).items).toEqual([theirs]);
-  expect((await theBacklog(request)).items).toEqual([]);
-  await other.dispose();
+  expect((await theBacklog(otherUserClient)).items).toEqual([theirs]);
+  expect((await theBacklog(loggedInApi)).items).toEqual([]);
 });
 
-test("at 1,000 films the Backlog is full, until the User removes one", async ({ request }) => {
-  const user = await logInNewUser(request);
-  await fillBacklog(request, user, 999);
-  const thousandth = await plan(request, { mediaItemId: (await alien(request)).id });
-  const aliensItem = await aliens(request);
+test("at 1,000 films the Backlog is full, until the User removes one", async ({
+  api,
+  loggedInUser,
+}) => {
+  expect((await api.testHooks.fillBacklog(loggedInUser.username, 999)).status()).toBe(204);
+  const thousandth = await plan(api, { mediaItemId: (await alien(api)).id });
+  const aliensItem = await aliens(api);
 
-  const full = await request.post("/api/backlog/items", { data: { mediaItemId: aliensItem.id } });
+  const full = await expectBody(api.backlog.addBacklogItem({ mediaItemId: aliensItem.id }), 409);
 
-  expect(full.status()).toBe(409);
-  expect(await full.json()).toEqual({ error: "backlog_full" });
+  expect(full).toEqual({ error: "backlog_full" });
   expect(thousandth.position).toBe(999);
   // A film already there is still there.
-  const again = await request.post("/api/backlog/items", {
-    data: { mediaItemId: thousandth.mediaItem.id },
-  });
-  expect(again.status()).toBe(200);
-  expect((await request.delete(`/api/list-items/${thousandth.id}`)).status()).toBe(204);
-  expect((await plan(request, { mediaItemId: aliensItem.id })).position).toBe(999);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId: thousandth.mediaItem.id }));
+  expect((await api.listItems.deleteListItem(thousandth.id)).status()).toBe(204);
+  expect((await plan(api, { mediaItemId: aliensItem.id })).position).toBe(999);
 });
 
 test("search marks the results already in the User's own Backlog", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUserClient,
 }) => {
-  await logInNewUser(request);
-  expect((await searchResult(request, "alien", "348")).inBacklog).toBe(false);
+  expect((await searchResult(loggedInApi, "alien", "348")).inBacklog).toBe(false);
 
-  const planned = await plan(request, { mediaItemId: (await alien(request)).id });
+  const planned = await plan(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id });
 
-  expect((await searchResult(request, "alien", "348")).inBacklog).toBe(true);
-  expect((await searchResult(request, "чужий", "348")).inBacklog).toBe(true);
-  expect((await searchResult(request, "aliens", "679")).inBacklog).toBe(false);
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  expect((await searchResult(other, "alien", "348")).inBacklog).toBe(false);
-  await other.dispose();
-  await request.delete(`/api/list-items/${planned.id}`);
-  expect((await searchResult(request, "alien", "348")).inBacklog).toBe(false);
+  expect((await searchResult(loggedInApi, "alien", "348")).inBacklog).toBe(true);
+  expect((await searchResult(loggedInApi, "чужий", "348")).inBacklog).toBe(true);
+  expect((await searchResult(loggedInApi, "aliens", "679")).inBacklog).toBe(false);
+  expect((await searchResult(otherUserClient, "alien", "348")).inBacklog).toBe(false);
+  await loggedInApi.listItems.deleteListItem(planned.id);
+  expect((await searchResult(loggedInApi, "alien", "348")).inBacklog).toBe(false);
 });
 
-test("without a session, the Backlog and its items are a 401", async ({ request }) => {
-  expect((await request.get("/api/backlog", { params: { mediaType: "film" } })).status()).toBe(401);
-  expect((await request.post("/api/backlog/items", { data: {} })).status()).toBe(401);
-  expect((await request.delete("/api/backlog/items/1")).status()).toBe(401);
-  expect((await request.patch("/api/list-items/1", { data: {} })).status()).toBe(401);
-  expect((await request.delete("/api/list-items/1")).status()).toBe(401);
+test("without a session, the Backlog and its items are a 401", async ({ api }) => {
+  expect((await api.backlog.getBacklog({ mediaType: "film" })).status()).toBe(401);
+  expect((await api.backlog.addBacklogItem({} as never)).status()).toBe(401);
+  expect((await api.backlog.deleteBacklogItem(1)).status()).toBe(401);
+  expect((await api.listItems.updateListItem(1, {})).status()).toBe(401);
+  expect((await api.listItems.deleteListItem(1)).status()).toBe(401);
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.
 test("the Backlog loads in the same number of queries for 1 film as for 1,000", async ({
-  request,
-  playwright,
+  api,
+  createApiClient,
 }) => {
-  const queriesForBacklogOf = async (api: APIRequestContext, films: number) => {
-    await fillBacklog(api, await logInNewUser(api), films);
-    const response = await api.get("/api/backlog", { params: { mediaType: "film" } });
+  const queriesForBacklogOf = async (client: ApiClient, films: number) => {
+    const user = await createUser();
+    await expectBody(client.auth.login(user));
+    expect((await client.testHooks.fillBacklog(user.username, films)).status()).toBe(204);
+    const response = await client.backlog.getBacklog({ mediaType: "film" });
     expect(await response.json()).toMatchObject({ backlog: { items: { length: films } } });
     return response.headers()["x-d1-query-count"];
   };
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
 
-  const one = await queriesForBacklogOf(request, 1);
-  const thousand = await queriesForBacklogOf(other, 1000);
-  await other.dispose();
+  const one = await queriesForBacklogOf(api, 1);
+  const thousand = await queriesForBacklogOf(await createApiClient(), 1000);
 
   expect(one).toMatch(/^\d+$/);
   expect(thousand).toBe(one);

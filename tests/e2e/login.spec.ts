@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { logOut } from "../support/navigation";
-import { createUser } from "../support/users";
+import { createUser } from "../support/scenarios/users";
 
 test("a logged-out visitor is sent to the login page", async ({ page }) => {
   await page.goto("/");

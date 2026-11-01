@@ -1,4 +1,5 @@
 import { type APIRequestContext, expect } from "@playwright/test";
+import { TestHooksController } from "../api/controllers/TestHooksController";
 import type { TestUser } from "./users";
 
 // Plans `count` placeholder films for the User through the test-hook route, which exists only
@@ -9,6 +10,6 @@ export async function fillBacklog(
   user: TestUser,
   count: number,
 ): Promise<void> {
-  const response = await api.post(`/api/test/users/${user.username}/backlog`, { data: { count } });
+  const response = await new TestHooksController(api).fillBacklog(user.username, count);
   expect(response.status(), await response.text()).toBe(204);
 }

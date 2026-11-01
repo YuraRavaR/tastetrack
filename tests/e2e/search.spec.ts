@@ -1,8 +1,9 @@
 import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
-import { alien, aliens, amelie, newFilm, searchResultRow } from "../support/films";
-import { createList } from "../support/lists";
-import { callsRealTmdb } from "../support/tmdb";
-import { logInNewUser } from "../support/users";
+import { alien, aliens, amelie, newFilm } from "../support/scenarios/films";
+import { createList } from "../support/scenarios/lists";
+import { callsRealTmdb } from "../support/scenarios/tmdb";
+import { logInNewUser } from "../support/scenarios/users";
+import { searchResultRow } from "../support/ui/search-results";
 
 // Locally the Worker searches a TMDB fake; on staging, the real TMDB. Both know these films.
 

@@ -77,7 +77,7 @@ The `local` env searches a TMDB fake with fixed data (`src/worker/catalog/tmdb-f
 - the `X-Test-Now` request header, an ISO time the Worker treats as now, so tests can step past session expiry;
 - the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `DELETE /api/test/users/:username`, which removes one until Users can remove their own accounts, `POST /api/test/users/:username/backlog` and `POST /api/test/lists/:listId/items`, which fill a User's Backlog or a List with placeholder films so tests reach the 1,000-item limit, read-outs of what the API never reports, such as a User's password iterations and who invited them, `DELETE /api/test/tmdb-cache/film/:id`, which takes one film out of the TMDB cache so tests can load a page on a cold cache, and the TMDB fake.
 
-Test seed Users therefore exist only in local and staging. The factories in `tests/support/users.ts` give each Playwright worker one seed User, which issues an Invite Code for every other test User; those register through the public API like real ones, each with a unique Username, so tests share no mutable fixtures.
+Test seed Users therefore exist only in local and staging. The factories in `tests/support/scenarios/users.ts` give each Playwright worker one seed User, which issues an Invite Code for every other test User; those register through the public API like real ones, each with a unique Username, so tests share no mutable fixtures.
 
 The top level of `wrangler.jsonc` is production and leaves it unset, so a deploy without `--env` never ships test hooks. Only the `local` and `staging` envs turn it on, and `pnpm dev` runs `--env local`. Override it locally in a git-ignored `.dev.vars` (see `.dev.vars.example`).
 

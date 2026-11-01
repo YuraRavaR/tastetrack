@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { searchResultRow } from "../support/films";
-import { logInNewUser } from "../support/users";
+import { logInNewUser } from "../support/scenarios/users";
+import { searchResultRow } from "../support/ui/search-results";
 
 // A film neither the TMDB fake nor the real TMDB knows, so only the User's own copy is found.
 const wedding = "Весілля Олени та Тараса";

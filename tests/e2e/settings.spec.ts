@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { chooseFromAccountMenu } from "../support/navigation";
-import { logInNewUser } from "../support/users";
+import { logInNewUser } from "../support/scenarios/users";
 
 test("a User sets their Display Name and changes their password in Settings", async ({ page }) => {
   const user = await logInNewUser(page.request);

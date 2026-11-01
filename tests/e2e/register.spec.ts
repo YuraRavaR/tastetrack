@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { chooseFromAccountMenu, logOut } from "../support/navigation";
-import { createUser, uniqueUsername } from "../support/users";
+import { createUser, uniqueUsername } from "../support/scenarios/users";
 
 test("a User generates an Invite Code and a friend registers with it", { tag: "@smoke" }, async ({
   page,

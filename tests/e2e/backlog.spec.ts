@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
-import { fillBacklog } from "../support/backlog";
-import { searchResultRow } from "../support/films";
-import { logInNewUser } from "../support/users";
+import { fillBacklog } from "../support/scenarios/backlog";
+import { logInNewUser } from "../support/scenarios/users";
+import { searchResultRow } from "../support/ui/search-results";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
 // TMDB matches whole words, so Aliens is searched for as "aliens": "alien" doesn't find it there.

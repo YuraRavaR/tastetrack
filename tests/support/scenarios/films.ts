@@ -1,14 +1,21 @@
-import { type APIRequestContext, expect, type Page } from "@playwright/test";
+import { type APIRequestContext, expect } from "@playwright/test";
+import { ApiClient } from "../api/ApiClient";
+import { CatalogController } from "../api/controllers/CatalogController";
+import { expectBody } from "../api/responses";
 
 // Locally the Worker calls a TMDB fake with fixed data; on staging, the real TMDB. So tests use
 // only well-known films, and check only what both answer alike.
 
-export async function searchResult(request: APIRequestContext, query: string, id: string) {
-  const response = await request.get("/api/catalog/search", {
-    params: { mediaType: "film", query },
-  });
-  expect(response.status()).toBe(200);
-  const { results } = await response.json();
+// Specs on controllers pass their ApiClient; the rest, and end-to-end tests, a request context.
+type CatalogClient = ApiClient | APIRequestContext;
+
+function catalogOf(client: CatalogClient) {
+  return client instanceof ApiClient ? client.catalog : new CatalogController(client);
+}
+
+export async function searchResult(client: CatalogClient, query: string, id: string) {
+  const search = catalogOf(client).searchCatalog({ mediaType: "film", query });
+  const { results } = await expectBody(search);
   const result = results.find((r: { externalReference: { id: string } }) => {
     return r.externalReference.id === id;
   });
@@ -16,26 +23,17 @@ export async function searchResult(request: APIRequestContext, query: string, id
   return result;
 }
 
-// A search result on the page, by its label. `searchResult` is the same result from the API.
-export function searchResultRow(page: Page, label: string) {
-  return page
-    .getByRole("list", { name: "Search results" })
-    .getByRole("listitem")
-    .filter({ has: page.getByText(label, { exact: true }) });
-}
-
 // A film's Media Item, as adding it from search makes or finds it.
-export async function film(request: APIRequestContext, query: string, id: string) {
-  const response = await request.post("/api/catalog/items", {
-    data: await searchResult(request, query, id),
-  });
+export async function film(client: CatalogClient, query: string, id: string) {
+  const result = await searchResult(client, query, id);
+  const response = await catalogOf(client).addCatalogItem(result);
   expect([200, 201]).toContain(response.status());
   return (await response.json()).mediaItem;
 }
 
-export const alien = (request: APIRequestContext) => film(request, "alien", "348");
-export const aliens = (request: APIRequestContext) => film(request, "aliens", "679");
-export const amelie = (request: APIRequestContext) => film(request, "amelie", "194");
+export const alien = (client: CatalogClient) => film(client, "alien", "348");
+export const aliens = (client: CatalogClient) => film(client, "aliens", "679");
+export const amelie = (client: CatalogClient) => film(client, "amelie", "194");
 
 // A query the TMDB fake answers with one film no one has added yet, whatever earlier test runs left
 // in local D1, and that film's label. Only the fake knows it, so skip the test on real TMDB.
@@ -48,8 +46,8 @@ export function newFilm() {
 // one file alone, which run one after another, so no other test meets it on a cold cache: Shadows
 // by the API tests and The Matrix by the end-to-end one.
 export const shadowsId = "26782";
-export const shadows = (request: APIRequestContext) => {
-  return film(request, "shadows of forgotten", shadowsId);
+export const shadows = (client: CatalogClient) => {
+  return film(client, "shadows of forgotten", shadowsId);
 };
 export const matrixId = "603";
 export const matrix = (request: APIRequestContext) => film(request, "the matrix", matrixId);

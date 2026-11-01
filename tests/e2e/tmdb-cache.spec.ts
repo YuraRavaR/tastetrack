@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { matrix, matrixId } from "../support/films";
-import { fillList } from "../support/lists";
-import { evict } from "../support/tmdb";
-import { logInNewUser } from "../support/users";
+import { matrix, matrixId } from "../support/scenarios/films";
+import { fillList } from "../support/scenarios/lists";
+import { evict } from "../support/scenarios/tmdb";
+import { logInNewUser } from "../support/scenarios/users";
 
 test("a List shows films missing from the cache as placeholders, then fills them in", async ({
   page,

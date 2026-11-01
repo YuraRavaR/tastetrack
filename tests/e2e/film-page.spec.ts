@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
-import { alien, aliens, film, newFilm } from "../support/films";
-import { callsRealTmdb } from "../support/tmdb";
-import { logInNewUser } from "../support/users";
+import { alien, aliens, film, newFilm } from "../support/scenarios/films";
+import { callsRealTmdb } from "../support/scenarios/tmdb";
+import { logInNewUser } from "../support/scenarios/users";
 
 // Leaves every TMDB image loading for good, so the tests see the page before any image arrives
 // and depend on neither TMDB nor the network.

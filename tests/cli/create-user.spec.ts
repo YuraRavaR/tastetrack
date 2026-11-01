@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { runOperator } from "../support/operator";
-import { uniqueUsername } from "../support/users";
+import { uniqueUsername } from "../support/scenarios/users";
 
 // The Operator CLI against the local D1 that the `local` Worker serves.
 

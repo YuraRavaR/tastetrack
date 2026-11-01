@@ -1,119 +1,91 @@
-import { type APIRequestContext, expect, request as requests, test } from "@playwright/test";
-import { alien, amelie } from "../support/films";
-import { createUser, logInNewUser, type TestUser, uniqueUsername } from "../support/users";
+import { expectBody } from "../support/api/responses";
+import { expect, test } from "../support/fixtures";
+import { alien, amelie } from "../support/scenarios/films";
+import { uniqueUsername } from "../support/scenarios/users";
 
-async function deleteUser(request: APIRequestContext, password: string) {
-  return request.delete("/api/me", { data: { password } });
-}
+test("deleting the account needs a session", async ({ api }) => {
+  const deleted = await api.me.deleteAccount({ password: "correct horse battery" });
 
-// A request context of its own, as another device or someone else; dispose of it when done.
-function newDevice() {
-  return requests.newContext({ baseURL: test.info().project.use.baseURL });
-}
-
-// The login's status code: 200 when the User could log in.
-async function logInStatus(api: APIRequestContext, user: TestUser) {
-  return (await api.post("/api/auth/login", { data: user })).status();
-}
-
-async function created<T>(response: Promise<{ status(): number; json(): Promise<T> }>) {
-  const done = await response;
-  expect(done.status()).toBe(201);
-  return done.json();
-}
-
-// Which of these records the database still holds, each kind in id order, through a test hook:
-// the API shows a User's records only to them.
-async function storedRecords(request: APIRequestContext, ids: Record<string, number[]>) {
-  const response = await request.post("/api/test/records", { data: ids });
-  expect(response.status()).toBe(200);
-  return response.json();
-}
-
-test("deleting the account needs a session", async () => {
-  const anonymous = await newDevice();
-
-  expect((await deleteUser(anonymous, "correct horse battery")).status()).toBe(401);
-  await anonymous.dispose();
+  expect(deleted.status()).toBe(401);
 });
 
-test("a wrong password deletes nothing", async ({ request }) => {
-  const user = await logInNewUser(request);
+test("a wrong password deletes nothing", async ({ api, createApiClient, loggedInUser }) => {
+  const refused = await expectBody(api.me.deleteAccount({ password: "not the password" }), 403);
 
-  const response = await deleteUser(request, "not the password");
-
-  expect(response.status()).toBe(403);
-  expect(await response.json()).toEqual({ error: "wrong_password" });
-  expect((await request.get("/api/auth/me")).status()).toBe(200);
-  const device = await newDevice();
-  expect(await logInStatus(device, user)).toBe(200);
-  await device.dispose();
+  expect(refused).toEqual({ error: "wrong_password" });
+  expect((await api.auth.getCurrentUser()).status()).toBe(200);
+  const device = await createApiClient();
+  expect((await device.auth.login(loggedInUser)).status()).toBe(200);
 });
 
-test("deleting the account needs the password in the body", async ({ request }) => {
-  await logInNewUser(request);
-
+test("deleting the account needs the password in the body", async ({ loggedInApi }) => {
   for (const data of [{}, { password: "" }]) {
-    const response = await request.delete("/api/me", { data });
+    const response = await loggedInApi.me.deleteAccount(data as never);
     expect(response.status(), JSON.stringify(data)).toBe(400);
   }
-  expect((await request.get("/api/auth/me")).status()).toBe(200);
+  expect((await loggedInApi.auth.getCurrentUser()).status()).toBe(200);
 });
 
 test("deleting the account removes everything the User owns, and ends their sessions", async ({
-  request,
+  api,
+  createApiClient,
+  loggedInUser,
 }) => {
-  const user = await logInNewUser(request);
-  const film = await alien(request);
-  const { logEntry } = await created(
-    request.post("/api/log-entries", { data: { mediaItemId: film.id, rating: 4 } }),
+  const film = await alien(api);
+  const { logEntry } = await expectBody(
+    api.log.createLogEntry({ mediaItemId: film.id, rating: 4 }),
+    201,
   );
-  const { mediaItem: manual } = await created(
-    request.post("/api/catalog/manual-items", { data: { mediaType: "film", title: "Home video" } }),
+  const { mediaItem: manual } = await expectBody(
+    api.catalog.addManualMediaItem({ mediaType: "film", title: "Home video" }),
+    201,
   );
-  const { listItem: planned } = await created(
-    request.post("/api/backlog/items", { data: { mediaItemId: manual.id } }),
+  const { listItem: planned } = await expectBody(
+    api.backlog.addBacklogItem({ mediaItemId: manual.id }),
+    201,
   );
-  const { backlog } = await (await request.get("/api/backlog?mediaType=film")).json();
-  const { list } = await created(
-    request.post("/api/lists", { data: { name: "Horror nights", mediaType: "film" } }),
+  const { backlog } = await expectBody(api.backlog.getBacklog({ mediaType: "film" }));
+  const { list } = await expectBody(
+    api.lists.createList({ name: "Horror nights", mediaType: "film" }),
+    201,
   );
-  const { listItem } = await created(
-    request.post(`/api/lists/${list.id}/items`, { data: { mediaItemId: film.id } }),
+  const { listItem } = await expectBody(
+    api.lists.addListItem(list.id, { mediaItemId: film.id }),
+    201,
   );
-  const { shareLink } = await created(request.post(`/api/lists/${list.id}/share-link`));
-  expect((await request.get(`/api/shared-lists/${shareLink.token}`)).status()).toBe(200);
-  const { inviteCode } = await created(request.post("/api/invite-codes"));
+  const { shareLink } = await expectBody(api.lists.createShareLink(list.id), 201);
+  expect((await api.sharedLists.getSharedList(shareLink.token)).status()).toBe(200);
+  const { inviteCode } = await expectBody(api.inviteCodes.issueInviteCode(), 201);
   const records = {
     logEntries: [logEntry.id],
     lists: [backlog.id, list.id],
     listItems: [planned.id, listItem.id],
     mediaItems: [film.id, manual.id].sort((a, b) => a - b),
   };
-  expect(await storedRecords(request, records)).toEqual(records);
-  const phone = await newDevice();
-  expect(await logInStatus(phone, user)).toBe(200);
+  expect(await expectBody(api.testHooks.getStoredRecords(records))).toEqual(records);
+  const phone = await createApiClient();
+  expect((await phone.auth.login(loggedInUser)).status()).toBe(200);
 
-  const response = await deleteUser(request, user.password);
+  const deleted = await api.me.deleteAccount({ password: loggedInUser.password });
 
-  expect(response.status()).toBe(204);
-  expect(response.headers()["set-cookie"]).toMatch(/session=;.*Max-Age=0/);
-  expect((await request.get("/api/auth/me")).status()).toBe(401);
-  expect((await phone.get("/api/auth/me")).status()).toBe(401);
-  await phone.dispose();
+  expect(deleted.status()).toBe(204);
+  expect(deleted.headers()["set-cookie"]).toMatch(/session=;.*Max-Age=0/);
+  expect((await api.auth.getCurrentUser()).status()).toBe(401);
+  expect((await phone.auth.getCurrentUser()).status()).toBe(401);
 
-  const anyone = await newDevice();
-  expect(await logInStatus(anyone, user)).toBe(401);
-  expect((await anyone.get(`/api/shared-lists/${shareLink.token}`)).status()).toBe(404);
-  expect((await anyone.get(`/s/${shareLink.token}`)).status()).toBe(404);
-  const registration = await anyone.post("/api/auth/register", {
-    data: { inviteCode: inviteCode.code, username: uniqueUsername(), password: user.password },
+  const anyone = await createApiClient();
+  expect((await anyone.auth.login(loggedInUser)).status()).toBe(401);
+  expect((await anyone.sharedLists.getSharedList(shareLink.token)).status()).toBe(404);
+  expect((await anyone.sharedLists.getSharedListPage(shareLink.token)).status()).toBe(404);
+  const registration = await anyone.auth.register({
+    inviteCode: inviteCode.code,
+    username: uniqueUsername(),
+    password: loggedInUser.password,
   });
   expect(await registration.json()).toEqual({ error: "invite_code_unknown" });
-  await anyone.dispose();
 
   // The catalog film stays: it has no owner.
-  expect(await storedRecords(request, records)).toEqual({
+  expect(await expectBody(api.testHooks.getStoredRecords(records))).toEqual({
     logEntries: [],
     lists: [],
     listItems: [],
@@ -122,53 +94,56 @@ test("deleting the account removes everything the User owns, and ends their sess
 });
 
 test("people the User invited keep their accounts, and their inviter is cleared", async ({
-  request,
+  api,
+  createApiClient,
+  loggedInUser,
 }) => {
-  const inviter = await logInNewUser(request);
-  const { inviteCode } = await created(request.post("/api/invite-codes"));
-  const invitee = await newDevice();
+  const { inviteCode } = await expectBody(api.inviteCodes.issueInviteCode(), 201);
+  const invitee = await createApiClient();
   const registration = { username: uniqueUsername(), password: "a long enough password" };
-  await created(
-    invitee.post("/api/auth/register", { data: { ...registration, inviteCode: inviteCode.code } }),
-  );
+  await expectBody(invitee.auth.register({ ...registration, inviteCode: inviteCode.code }), 201);
   const invited = await amelie(invitee);
-  await created(invitee.post("/api/log-entries", { data: { mediaItemId: invited.id, rating: 5 } }));
+  await expectBody(invitee.log.createLogEntry({ mediaItemId: invited.id, rating: 5 }), 201);
 
-  expect((await deleteUser(request, inviter.password)).status()).toBe(204);
+  const deleted = await api.me.deleteAccount({ password: loggedInUser.password });
 
-  const invitedBy = await request.get(`/api/test/users/${registration.username}/invited-by`);
-  expect(await invitedBy.json()).toEqual({ invitedBy: null });
-  expect(await (await invitee.get("/api/auth/me")).json()).toEqual({
+  expect(deleted.status()).toBe(204);
+  const invitedBy = api.testHooks.getInvitedBy(registration.username);
+  expect(await expectBody(invitedBy)).toEqual({ invitedBy: null });
+  expect(await expectBody(invitee.auth.getCurrentUser())).toEqual({
     user: { username: registration.username, displayName: registration.username },
   });
-  const { logEntries } = await (await invitee.get("/api/log-entries")).json();
+  const { logEntries } = await expectBody(invitee.log.getLogEntries());
   expect(logEntries.map((entry: { mediaItem: { id: number } }) => entry.mediaItem.id)).toEqual([
     invited.id,
   ]);
-  await invitee.dispose();
 });
 
-test("other Users' records of the same catalog film stay", async ({ request }) => {
-  const leaving = await logInNewUser(request);
-  const film = await alien(request);
-  await created(request.post("/api/log-entries", { data: { mediaItemId: film.id, rating: 2 } }));
-  const staying = await newDevice();
-  await logInStatus(staying, await createUser());
-  const { logEntry } = await created(
-    staying.post("/api/log-entries", {
-      data: { mediaItemId: (await alien(staying)).id, rating: 5 },
+test("other Users' records of the same catalog film stay", async ({
+  api,
+  loggedInUser,
+  otherUserClient,
+}) => {
+  const film = await alien(api);
+  await expectBody(api.log.createLogEntry({ mediaItemId: film.id, rating: 2 }), 201);
+  const { logEntry } = await expectBody(
+    otherUserClient.log.createLogEntry({
+      mediaItemId: (await alien(otherUserClient)).id,
+      rating: 5,
     }),
+    201,
   );
-  const { listItem } = await created(
-    staying.post("/api/backlog/items", { data: { mediaItemId: film.id } }),
+  const { listItem } = await expectBody(
+    otherUserClient.backlog.addBacklogItem({ mediaItemId: film.id }),
+    201,
   );
 
-  expect((await deleteUser(request, leaving.password)).status()).toBe(204);
+  const deleted = await api.me.deleteAccount({ password: loggedInUser.password });
 
-  const { logEntries } = await (await staying.get("/api/log-entries")).json();
+  expect(deleted.status()).toBe(204);
+  const { logEntries } = await expectBody(otherUserClient.log.getLogEntries());
   expect(logEntries).toEqual([logEntry]);
   expect(logEntry.mediaItem.id).toBe(film.id);
-  const { backlog } = await (await staying.get("/api/backlog?mediaType=film")).json();
+  const { backlog } = await expectBody(otherUserClient.backlog.getBacklog({ mediaType: "film" }));
   expect(backlog.items).toEqual([listItem]);
-  await staying.dispose();
 });

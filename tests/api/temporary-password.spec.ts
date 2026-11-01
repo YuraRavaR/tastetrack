@@ -1,40 +1,39 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
-import { createUser, resetPassword, type TestUser } from "../support/users";
+import { UserResponse } from "@shared/api";
+import { expectBody } from "../support/api/responses";
+import { test as base, expect } from "../support/fixtures";
+import type { TestUser } from "../support/scenarios/users";
 
 const passwordChangeRequired = { error: "password_change_required" };
 
-// Resets a fresh User's password and logs them in on `api` with the temporary one.
-async function logInWithTemporaryPassword(
-  api: APIRequestContext,
-): Promise<TestUser & { temporaryPassword: string }> {
-  const user = await createUser();
-  const temporaryPassword = await resetPassword(api, user.username);
-  const login = await api.post("/api/auth/login", {
-    data: { username: user.username, password: temporaryPassword },
-  });
-  expect(login.status()).toBe(200);
-  expect(await login.json()).toEqual({
-    user: { username: user.username, displayName: user.username },
-    passwordChangeRequired: true,
-  });
-  return { ...user, temporaryPassword };
-}
+// A fresh User whose password was reset, logged in on `api` with the Temporary Password.
+const test = base.extend<{ userWithTemporaryPassword: TestUser & { temporaryPassword: string } }>({
+  userWithTemporaryPassword: async ({ api, registeredUser }, use) => {
+    const { username } = registeredUser;
+    const { temporaryPassword } = await expectBody(api.testHooks.resetPassword(username));
+    const login = await expectBody(api.auth.login({ username, password: temporaryPassword }));
+    expect(login).toEqual({
+      user: { username, displayName: username },
+      passwordChangeRequired: true,
+    });
+    await use({ ...registeredUser, temporaryPassword });
+  },
+});
 
 test("a session from a Temporary Password is refused everything but setting a new one", async ({
-  request,
+  api,
+  userWithTemporaryPassword,
 }) => {
-  const user = await logInWithTemporaryPassword(request);
-
   const refused = [
-    await request.get("/api/auth/me"),
-    await request.get("/api/log-entries"),
-    await request.get("/api/backlog?mediaType=film"),
-    await request.get("/api/lists"),
-    await request.get("/api/invite-codes"),
-    await request.get("/api/catalog/search?mediaType=film&query=alien"),
-    await request.put("/api/me/display-name", { data: { displayName: "Olena" } }),
-    await request.post("/api/me/password", {
-      data: { currentPassword: user.temporaryPassword, newPassword: "a brand new passphrase" },
+    await api.auth.getCurrentUser(),
+    await api.log.getLogEntries(),
+    await api.backlog.getBacklog({ mediaType: "film" }),
+    await api.lists.getLists(),
+    await api.inviteCodes.listActiveInviteCodes(),
+    await api.catalog.searchCatalog({ mediaType: "film", query: "alien" }),
+    await api.me.updateDisplayName({ displayName: "Olena" }),
+    await api.me.changePassword({
+      currentPassword: userWithTemporaryPassword.temporaryPassword,
+      newPassword: "a brand new passphrase",
     }),
   ];
 
@@ -44,98 +43,95 @@ test("a session from a Temporary Password is refused everything but setting a ne
   }
 });
 
-async function setNewPassword(request: APIRequestContext, newPassword: string) {
-  return request.post("/api/me/new-password", { data: { newPassword } });
-}
-
 test("setting a new password lifts the restriction, and the User uses the app as normal", async ({
-  request,
-  playwright,
-  baseURL,
+  api,
+  createApiClient,
+  userWithTemporaryPassword,
 }) => {
-  const user = await logInWithTemporaryPassword(request);
+  const { username, temporaryPassword } = userWithTemporaryPassword;
 
-  const response = await setNewPassword(request, "my very own passphrase");
+  const updated = await expectBody(
+    api.me.setNewPassword({ newPassword: "my very own passphrase" }),
+    200,
+    UserResponse,
+  );
 
-  expect(response.status()).toBe(200);
-  const expected = { user: { username: user.username, displayName: user.username } };
-  expect(await response.json()).toEqual(expected);
-  expect(await (await request.get("/api/auth/me")).json()).toEqual(expected);
-  expect((await request.get("/api/lists")).status()).toBe(200);
-  const device = await playwright.request.newContext({ baseURL });
-  const withTemporary = await device.post("/api/auth/login", {
-    data: { username: user.username, password: user.temporaryPassword },
-  });
+  const expected = { user: { username, displayName: username } };
+  expect(updated).toEqual(expected);
+  expect(await expectBody(api.auth.getCurrentUser())).toEqual(expected);
+  expect((await api.lists.getLists()).status()).toBe(200);
+  const device = await createApiClient();
+  const withTemporary = await device.auth.login({ username, password: temporaryPassword });
   expect(withTemporary.status()).toBe(401);
-  const withNew = await device.post("/api/auth/login", {
-    data: { username: user.username, password: "my very own passphrase" },
-  });
-  expect(withNew.status()).toBe(200);
-  expect((await withNew.json()).passwordChangeRequired).toBe(false);
-  await device.dispose();
+  const withNew = await expectBody(
+    device.auth.login({ username, password: "my very own passphrase" }),
+  );
+  expect(withNew.passwordChangeRequired).toBe(false);
 });
 
-test("the new password follows the rules and can't be the temporary one", async ({ request }) => {
-  const user = await logInWithTemporaryPassword(request);
-
+test("the new password follows the rules and can't be the temporary one", async ({
+  api,
+  userWithTemporaryPassword,
+}) => {
   for (const newPassword of ["x".repeat(9), "x".repeat(129)]) {
-    const response = await setNewPassword(request, newPassword);
+    const response = await api.me.setNewPassword({ newPassword });
     expect(response.status(), newPassword).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });
   }
-  const reused = await setNewPassword(request, user.temporaryPassword);
-  expect(reused.status()).toBe(400);
-  expect(await reused.json()).toEqual({ error: "temporary_password_reused" });
+  const reused = await expectBody(
+    api.me.setNewPassword({ newPassword: userWithTemporaryPassword.temporaryPassword }),
+    400,
+  );
+  expect(reused).toEqual({ error: "temporary_password_reused" });
 
-  expect(await (await request.get("/api/auth/me")).json()).toEqual(passwordChangeRequired);
-  expect((await setNewPassword(request, "x".repeat(10))).status()).toBe(200);
+  expect(await expectBody(api.auth.getCurrentUser(), 403)).toEqual(passwordChangeRequired);
+  expect((await api.me.setNewPassword({ newPassword: "x".repeat(10) })).status()).toBe(200);
 });
 
 test("setting the new password ends the User's other sessions, and this one stays", async ({
-  request,
-  playwright,
-  baseURL,
+  api,
+  createApiClient,
+  userWithTemporaryPassword,
 }) => {
-  const user = await logInWithTemporaryPassword(request);
-  const other = await playwright.request.newContext({ baseURL });
-  await other.post("/api/auth/login", {
-    data: { username: user.username, password: user.temporaryPassword },
-  });
+  const { username, temporaryPassword } = userWithTemporaryPassword;
+  const other = await createApiClient();
+  await expectBody(other.auth.login({ username, password: temporaryPassword }));
 
-  expect((await setNewPassword(request, "my very own passphrase")).status()).toBe(200);
+  await expectBody(api.me.setNewPassword({ newPassword: "my very own passphrase" }));
 
-  expect((await request.get("/api/auth/me")).status()).toBe(200);
-  expect((await other.get("/api/auth/me")).status()).toBe(401);
-  expect((await setNewPassword(other, "another passphrase")).status()).toBe(401);
-  await other.dispose();
+  expect((await api.auth.getCurrentUser()).status()).toBe(200);
+  expect((await other.auth.getCurrentUser()).status()).toBe(401);
+  expect((await other.me.setNewPassword({ newPassword: "another passphrase" })).status()).toBe(401);
 });
 
-test("a User without a Temporary Password can't set one this way", async ({ request }) => {
-  const user = await createUser();
-  await request.post("/api/auth/login", { data: user });
+test("a User without a Temporary Password can't set one this way", async ({
+  api,
+  loggedInUser,
+}) => {
+  const refused = await expectBody(
+    api.me.setNewPassword({ newPassword: "a brand new passphrase" }),
+    409,
+  );
 
-  const response = await setNewPassword(request, "a brand new passphrase");
-
-  expect(response.status()).toBe(409);
-  expect(await response.json()).toEqual({ error: "password_change_not_required" });
-  await request.post("/api/auth/logout");
-  expect((await request.post("/api/auth/login", { data: user })).status()).toBe(200);
+  expect(refused).toEqual({ error: "password_change_not_required" });
+  await api.auth.logout();
+  expect((await api.auth.login(loggedInUser)).status()).toBe(200);
 });
 
-test("setting a new password needs a session", async ({ playwright, baseURL }) => {
-  const anonymous = await playwright.request.newContext({ baseURL });
+test("setting a new password needs a session", async ({ api }) => {
+  const refused = await expectBody(
+    api.me.setNewPassword({ newPassword: "a brand new passphrase" }),
+    401,
+  );
 
-  const response = await setNewPassword(anonymous, "a brand new passphrase");
-
-  expect(response.status()).toBe(401);
-  expect(await response.json()).toEqual({ error: "unauthenticated" });
-  await anonymous.dispose();
+  expect(refused).toEqual({ error: "unauthenticated" });
 });
 
-test("a session from a Temporary Password can still log out", async ({ request }) => {
-  await logInWithTemporaryPassword(request);
+test("a session from a Temporary Password can still log out", async ({
+  api,
+  userWithTemporaryPassword: _userWithTemporaryPassword,
+}) => {
+  expect((await api.auth.logout()).status()).toBe(204);
 
-  expect((await request.post("/api/auth/logout")).status()).toBe(204);
-
-  expect(await (await request.get("/api/auth/me")).json()).toEqual({ error: "unauthenticated" });
+  expect(await expectBody(api.auth.getCurrentUser(), 401)).toEqual({ error: "unauthenticated" });
 });

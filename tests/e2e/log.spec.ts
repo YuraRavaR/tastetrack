@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, type Locator, type Page, test } from "@playwright/test";
-import { logInNewUser } from "../support/users";
+import { logInNewUser } from "../support/scenarios/users";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien.
 

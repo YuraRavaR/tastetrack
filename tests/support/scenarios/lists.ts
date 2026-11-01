@@ -1,13 +1,15 @@
 import { type APIRequestContext, expect } from "@playwright/test";
+import { ListsController } from "../api/controllers/ListsController";
+import { TestHooksController } from "../api/controllers/TestHooksController";
+import { expectBody } from "../api/responses";
 
 // Makes a List: its summary, as the Worker answers.
 export async function createList(
   api: APIRequestContext,
   data: { name: string; description?: string },
 ) {
-  const response = await api.post("/api/lists", { data: { mediaType: "film", ...data } });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).list;
+  const created = new ListsController(api).createList({ mediaType: "film", ...data });
+  return (await expectBody(created, 201)).list;
 }
 
 // Adds `count` placeholder films to one of the logged-in User's Lists through the test-hook
@@ -19,6 +21,6 @@ export async function fillList(
   listId: number,
   count: number,
 ): Promise<void> {
-  const response = await api.post(`/api/test/lists/${listId}/items`, { data: { count } });
+  const response = await new TestHooksController(api).fillList(listId, count);
   expect(response.status(), await response.text()).toBe(204);
 }
