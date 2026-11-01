@@ -1,8 +1,7 @@
-import { endpoints } from "../support/api/endpoints";
 import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { expect, test } from "../support/fixtures";
-import { createSeedUser, uniqueUsername } from "../support/users";
+import { uniqueUsername } from "../support/users";
 
 function sessionCookieOf(setCookie: string | undefined): string {
   const match = setCookie?.match(/(?:^|\n)session=([^;]+)/);
@@ -101,15 +100,16 @@ test("logging out ends only that session", async ({ api, loggedInUser, createApi
   expect((await otherDevice.auth.getCurrentUser()).status()).toBe(200);
 });
 
-test("a login re-hashes a password hash below the iteration target", async ({ api, request }) => {
-  const user = await createSeedUser(request, { passwordIterations: 1000 });
-  const iterations = endpoints.testHooks.passwordIterations(user.username);
-  expect(await expectBody(request.get(iterations))).toEqual({ iterations: 1000 });
+test("a login re-hashes a password hash below the iteration target", async ({ api }) => {
+  const user = { username: uniqueUsername(), password: "correct horse battery" };
+  await expectBody(api.testHooks.createSeedUser({ ...user, passwordIterations: 1000 }), 201);
+  const iterations = () => expectBody(api.testHooks.getPasswordIterations(user.username));
+  expect(await iterations()).toEqual({ iterations: 1000 });
 
   const login = await api.auth.login(user);
 
   expect(login.status()).toBe(200);
-  expect(await expectBody(request.get(iterations))).toEqual({ iterations: 20_000 });
+  expect(await iterations()).toEqual({ iterations: 20_000 });
   // The new hash still checks the same password.
   await api.auth.logout();
   expect((await api.auth.login(user)).status()).toBe(200);

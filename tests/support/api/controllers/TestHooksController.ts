@@ -3,6 +3,18 @@ import { BaseController, type RequestOptions } from "./BaseController";
 
 // Routes that exist only where test hooks are on (local and staging).
 export class TestHooksController extends BaseController {
+  // A User who needs no Invite Code. `passwordIterations` makes a hash below the current target.
+  createSeedUser(
+    seedUser: { username: string; password: string; passwordIterations?: number },
+    options?: RequestOptions,
+  ) {
+    return this.requestContext.post(endpoints.testHooks.users, { ...options, data: seedUser });
+  }
+
+  getPasswordIterations(username: string, options?: RequestOptions) {
+    return this.requestContext.get(endpoints.testHooks.passwordIterations(username), options);
+  }
+
   // Resets the User's password as the Operator does. Every session of theirs ends.
   resetPassword(username: string, options?: RequestOptions) {
     return this.requestContext.post(endpoints.testHooks.passwordReset(username), options);

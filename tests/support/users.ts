@@ -22,16 +22,9 @@ export function uniqueUsername(): string {
 
 // Creates a User without an Invite Code through the test-hook route, which exists only where test
 // hooks are on (local and staging), so such seed Users never exist in production.
-// `passwordIterations` makes a hash below the current target.
-export async function createSeedUser(
-  api: APIRequestContext,
-  options: { username?: string; passwordIterations?: number } = {},
-): Promise<TestUser> {
-  const user = { username: options.username ?? uniqueUsername(), password };
-  const response = await api.post("/api/test/users", {
-    data: { ...user, passwordIterations: options.passwordIterations },
-  });
-  expect(response.status()).toBe(201);
+async function createSeedUser(api: APIRequestContext): Promise<TestUser> {
+  const user = { username: `seed_${randomTail()}`, password };
+  await expectBody(new TestHooksController(api).createSeedUser(user), 201);
   return user;
 }
 
@@ -43,7 +36,7 @@ const seeds = new Map<string, Promise<TestUser>>();
 function seedFor(api: APIRequestContext, baseURL: string): Promise<TestUser> {
   let seed = seeds.get(baseURL);
   if (!seed) {
-    seed = createSeedUser(api, { username: `seed_${randomTail()}` });
+    seed = createSeedUser(api);
     seeds.set(baseURL, seed);
   }
   return seed;

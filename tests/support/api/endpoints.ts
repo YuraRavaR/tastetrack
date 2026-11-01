@@ -45,6 +45,7 @@ export const endpoints = {
   },
   // Exists only where test hooks are on (local and staging).
   testHooks: {
+    users: "/api/test/users",
     backlog: (username: string) => `/api/test/users/${username}/backlog`,
     listItems: (listId: number) => `/api/test/lists/${listId}/items`,
     manualItems: (username: string) => `/api/test/users/${username}/manual-items`,
