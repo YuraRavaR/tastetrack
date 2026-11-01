@@ -14,6 +14,8 @@ export const endpoints = {
     search: "/api/catalog/search",
     items: "/api/catalog/items",
     manualItems: "/api/catalog/manual-items",
+    manualItemById: (mediaItemId: number) => `/api/catalog/manual-items/${mediaItemId}`,
+    mediaItemHistory: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/history`,
     mediaItemLists: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/lists`,
   },
   inviteCodes: "/api/invite-codes",
@@ -25,6 +27,7 @@ export const endpoints = {
     byId: (listId: number) => `/api/lists/${listId}`,
     items: (listId: number) => `/api/lists/${listId}/items`,
     shareLink: (listId: number) => `/api/lists/${listId}/share-link`,
+    regenerateShareLink: (listId: number) => `/api/lists/${listId}/share-link/regenerate`,
   },
   logEntries: {
     collection: "/api/log-entries",
@@ -44,6 +47,7 @@ export const endpoints = {
   testHooks: {
     backlog: (username: string) => `/api/test/users/${username}/backlog`,
     listItems: (listId: number) => `/api/test/lists/${listId}/items`,
+    manualItems: (username: string) => `/api/test/users/${username}/manual-items`,
     records: "/api/test/records",
     tmdbCacheFilm: (tmdbId: string) => `/api/test/tmdb-cache/film/${tmdbId}`,
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,

@@ -30,4 +30,12 @@ export class ListsController extends BaseController {
   createShareLink(listId: number, options?: RequestOptions) {
     return this.requestContext.post(endpoints.lists.shareLink(listId), options);
   }
+
+  regenerateShareLink(listId: number, options?: RequestOptions) {
+    return this.requestContext.post(endpoints.lists.regenerateShareLink(listId), options);
+  }
+
+  revokeShareLink(listId: number, options?: RequestOptions) {
+    return this.requestContext.delete(endpoints.lists.shareLink(listId), options);
+  }
 }

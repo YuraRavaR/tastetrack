@@ -1,36 +1,33 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
+import type { ManualMediaItemEditRequest, NewManualMediaItemRequest } from "@shared/api";
+import type { ApiClient } from "../support/api/ApiClient";
+import type { RequestOptions } from "../support/api/controllers/BaseController";
+import { expectBody } from "../support/api/responses";
 import { at } from "../support/clock";
 import { alien } from "../support/films";
-import { fillManualMediaItems } from "../support/manual-media-items";
-import { logInNewUser } from "../support/users";
+import { expect, test } from "../support/fixtures";
+import { createUser } from "../support/users";
 
-// Makes a Manual Media Item: the Media Item, as the Worker answers.
-async function createManual(request: APIRequestContext, data: object) {
-  const response = await request.post("/api/catalog/manual-items", {
-    data: { mediaType: "film", ...data },
-  });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).mediaItem;
+// Makes a film Manual Media Item: the Media Item, as the Worker answers.
+async function createManual(api: ApiClient, data: Omit<NewManualMediaItemRequest, "mediaType">) {
+  const created = api.catalog.addManualMediaItem({ mediaType: "film", ...data });
+  return (await expectBody(created, 201)).mediaItem;
 }
 
 test("a User adds a film by hand, with its Original Title, year, runtime and genres", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-
-  const response = await request.post("/api/catalog/manual-items", {
-    data: {
+  const { mediaItem } = await expectBody(
+    loggedInApi.catalog.addManualMediaItem({
       mediaType: "film",
       title: "  Тіні забутих предків ",
       originalTitle: " Shadows of Forgotten Ancestors ",
       year: 1965,
       runtime: 97,
       genres: ["Drama", "Romance"],
-    },
-  });
+    }),
+    201,
+  );
 
-  expect(response.status()).toBe(201);
-  const { mediaItem } = await response.json();
   expect(mediaItem).toEqual({
     id: expect.any(Number),
     mediaType: "film",
@@ -46,14 +43,14 @@ test("a User adds a film by hand, with its Original Title, year, runtime and gen
       genres: ["Drama", "Romance"],
     },
   });
-  const history = await (await request.get(`/api/catalog/items/${mediaItem.id}/history`)).json();
+  const history = await expectBody(loggedInApi.catalog.getMediaItemHistory(mediaItem.id));
   expect(history.mediaItem).toEqual(mediaItem);
 });
 
-test("only a title is needed, and the Original Title is then the title", async ({ request }) => {
-  await logInNewUser(request);
-
-  const mediaItem = await createManual(request, { title: "Home movie", originalTitle: "  " });
+test("only a title is needed, and the Original Title is then the title", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await createManual(loggedInApi, { title: "Home movie", originalTitle: "  " });
 
   expect(mediaItem.metadata).toEqual({
     title: "Home movie",
@@ -68,9 +65,8 @@ test("only a title is needed, and the Original Title is then the title", async (
 });
 
 test("implausible values are refused: a title of 1–200 characters, a year from 1888 to five years on, a runtime of 1–1000 minutes, TMDB's genres once each", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
   // The latest year is five years on, in UTC: 2030.
   const clock = at("2025-12-31T23:30:00Z");
 
@@ -88,10 +84,10 @@ test("implausible values are refused: a title of 1–200 characters, a year from
     { title: "Film", genres: ["Cooking"] },
     { title: "Film", mediaType: "book" },
   ]) {
-    const response = await request.post("/api/catalog/manual-items", {
-      data: { mediaType: "film", ...data },
-      ...clock,
-    });
+    const response = await loggedInApi.catalog.addManualMediaItem(
+      { mediaType: "film", ...data } as never,
+      clock,
+    );
     expect(response.status(), JSON.stringify(data)).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });
   }
@@ -101,150 +97,144 @@ test("implausible values are refused: a title of 1–200 characters, a year from
     { title: "Roundhay Garden Scene", year: 1888, runtime: 1 },
     { title: "Announced", year: 2030, runtime: 1000 },
   ]) {
-    const response = await request.post("/api/catalog/manual-items", {
-      data: { mediaType: "film", ...data },
-      ...clock,
-    });
+    const response = await loggedInApi.catalog.addManualMediaItem(
+      { mediaType: "film", ...data },
+      clock,
+    );
     expect(response.status(), JSON.stringify(data)).toBe(201);
   }
 });
 
 test("the same title and year as another of the User's is refused as a possible duplicate, unless allowed", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const first = await createManual(request, { title: "Тіні забутих предків", year: 1965 });
-  const post = (data: object) =>
-    request.post("/api/catalog/manual-items", { data: { mediaType: "film", ...data } });
+  const first = await createManual(loggedInApi, { title: "Тіні забутих предків", year: 1965 });
+  const post = (data: Omit<NewManualMediaItemRequest, "mediaType">) => {
+    return loggedInApi.catalog.addManualMediaItem({ mediaType: "film", ...data });
+  };
 
-  const again = await post({ title: " ТІНІ ЗАБУТИХ ПРЕДКІВ ", year: 1965 });
+  const again = await expectBody(post({ title: " ТІНІ ЗАБУТИХ ПРЕДКІВ ", year: 1965 }), 409);
 
-  expect(again.status()).toBe(409);
-  expect(await again.json()).toEqual({ error: "possible_duplicate" });
-  const allowed = await post({ title: "Тіні забутих предків", year: 1965, allowDuplicate: true });
-  expect(allowed.status()).toBe(201);
-  expect((await allowed.json()).mediaItem.id).not.toBe(first.id);
+  expect(again).toEqual({ error: "possible_duplicate" });
+  const allowed = await expectBody(
+    post({ title: "Тіні забутих предків", year: 1965, allowDuplicate: true }),
+    201,
+  );
+  expect(allowed.mediaItem.id).not.toBe(first.id);
   // Another year, or none, is another film.
   expect((await post({ title: "Тіні забутих предків", year: 2025 })).status()).toBe(201);
   expect((await post({ title: "Тіні забутих предків" })).status()).toBe(201);
   expect((await post({ title: "Тіні забутих предків" })).status()).toBe(409);
   // Another User's films don't count.
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  expect((await createManual(other, { title: "Тіні забутих предків", year: 1965 })).id).toEqual(
+  expect((await createManual(otherUser, { title: "Тіні забутих предків", year: 1965 })).id).toEqual(
     expect.any(Number),
   );
-  await other.dispose();
 });
 
-test("at 1,000 Manual Media Items the User can add no more", async ({ request }) => {
-  const user = await logInNewUser(request);
-  await fillManualMediaItems(request, user, 999);
-  const thousandth = await createManual(request, { title: "The thousandth" });
+test("at 1,000 Manual Media Items the User can add no more", async ({ api, loggedInUser }) => {
+  const filled = await api.testHooks.fillManualMediaItems(loggedInUser.username, 999);
+  expect(filled.status()).toBe(204);
+  const thousandth = await createManual(api, { title: "The thousandth" });
 
-  const response = await request.post("/api/catalog/manual-items", {
-    data: { mediaType: "film", title: "One too many" },
-  });
+  const refused = await expectBody(
+    api.catalog.addManualMediaItem({ mediaType: "film", title: "One too many" }),
+    409,
+  );
 
-  expect(response.status()).toBe(409);
-  expect(await response.json()).toEqual({ error: "too_many_manual_media_items" });
+  expect(refused).toEqual({ error: "too_many_manual_media_items" });
   // At the limit, a duplicate is refused for the limit.
-  const again = await request.post("/api/catalog/manual-items", {
-    data: { mediaType: "film", title: "The thousandth", allowDuplicate: true },
+  const again = await api.catalog.addManualMediaItem({
+    mediaType: "film",
+    title: "The thousandth",
+    allowDuplicate: true,
   });
   expect(await again.json()).toEqual({ error: "too_many_manual_media_items" });
   // Deleting one makes room.
-  expect((await request.delete(`/api/catalog/manual-items/${thousandth.id}`)).status()).toBe(204);
-  expect((await createManual(request, { title: "One too many" })).id).toEqual(expect.any(Number));
+  expect((await api.catalog.deleteManualMediaItem(thousandth.id)).status()).toBe(204);
+  expect((await createManual(api, { title: "One too many" })).id).toEqual(expect.any(Number));
 });
 
 test("a Manual Media Item is logged, planned and added to Lists like any film", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const mediaItem = await createManual(request, { title: "Home movie", year: 2019 });
-  const list = await request.post("/api/lists", { data: { name: "Family", mediaType: "film" } });
-  const listId = (await list.json()).list.id;
+  const mediaItem = await createManual(loggedInApi, { title: "Home movie", year: 2019 });
+  const { list } = await expectBody(
+    loggedInApi.lists.createList({ name: "Family", mediaType: "film" }),
+    201,
+  );
 
-  const planned = await request.post("/api/backlog/items", {
-    data: { mediaItemId: mediaItem.id },
-  });
-  const added = await request.post(`/api/lists/${listId}/items`, {
-    data: { mediaItemId: mediaItem.id },
-  });
-  const logged = await request.post("/api/log-entries", {
-    data: { mediaItemId: mediaItem.id, rating: 4.5 },
-  });
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: mediaItem.id }), 201);
+  const added = await expectBody(
+    loggedInApi.lists.addListItem(list.id, { mediaItemId: mediaItem.id }),
+    201,
+  );
+  const logged = await expectBody(
+    loggedInApi.log.createLogEntry({ mediaItemId: mediaItem.id, rating: 4.5 }),
+    201,
+  );
 
-  expect(planned.status()).toBe(201);
-  expect(added.status()).toBe(201);
-  expect((await added.json()).listItem.mediaItem).toEqual(mediaItem);
-  expect(logged.status()).toBe(201);
-  expect(await logged.json()).toMatchObject({
+  expect(added.listItem.mediaItem).toEqual(mediaItem);
+  expect(logged).toMatchObject({
     logEntry: { mediaItem, rating: 4.5 },
     removedFromBacklog: { position: 0, note: null },
   });
-  const log = await (await request.get("/api/log-entries")).json();
-  expect(log.logEntries.map((entry: { mediaItem: object }) => entry.mediaItem)).toEqual([
-    mediaItem,
-  ]);
-  const history = await (await request.get(`/api/catalog/items/${mediaItem.id}/history`)).json();
+  const { logEntries } = await expectBody(loggedInApi.log.getLogEntries());
+  expect(logEntries.map((entry: { mediaItem: object }) => entry.mediaItem)).toEqual([mediaItem]);
+  const history = await expectBody(loggedInApi.catalog.getMediaItemHistory(mediaItem.id));
   expect(history).toMatchObject({ mediaItem, currentRating: 4.5 });
-  const theList = await (await request.get(`/api/lists/${listId}`)).json();
+  const theList = await expectBody(loggedInApi.lists.getList(list.id));
   expect(theList.list.items).toEqual([expect.objectContaining({ mediaItem })]);
 });
 
 test("another User's Manual Media Item is unknown: no Item History, and it can't be logged, planned or listed", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const list = await request.post("/api/lists", { data: { name: "Mine", mediaType: "film" } });
-  const listId = (await list.json()).list.id;
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  const theirs = await createManual(other, { title: "Their home movie" });
-  const data = { mediaItemId: theirs.id, rating: 3 };
+  const { list } = await expectBody(
+    loggedInApi.lists.createList({ name: "Mine", mediaType: "film" }),
+    201,
+  );
+  const theirs = await createManual(otherUser, { title: "Their home movie" });
+  const mediaItemId = theirs.id;
 
-  const history = await request.get(`/api/catalog/items/${theirs.id}/history`);
-  expect(history.status()).toBe(404);
-  expect(await history.json()).toEqual({ error: "unknown_media_item" });
+  const history = await expectBody(loggedInApi.catalog.getMediaItemHistory(mediaItemId), 404);
+  expect(history).toEqual({ error: "unknown_media_item" });
   for (const response of [
-    await request.post("/api/log-entries", { data }),
-    await request.post("/api/backlog/items", { data: { mediaItemId: theirs.id } }),
-    await request.post(`/api/lists/${listId}/items`, { data: { mediaItemId: theirs.id } }),
+    await loggedInApi.log.createLogEntry({ mediaItemId, rating: 3 }),
+    await loggedInApi.backlog.addBacklogItem({ mediaItemId }),
+    await loggedInApi.lists.addListItem(list.id, { mediaItemId }),
   ]) {
     expect(response.status(), response.url()).toBe(400);
     expect(await response.json()).toEqual({ error: "unknown_media_item" });
   }
-  expect((await (await request.get("/api/log-entries")).json()).logEntries).toEqual([]);
-  const { backlog } = await (await request.get("/api/backlog?mediaType=film")).json();
+  expect((await expectBody(loggedInApi.log.getLogEntries())).logEntries).toEqual([]);
+  const { backlog } = await expectBody(loggedInApi.backlog.getBacklog({ mediaType: "film" }));
   expect(backlog.items).toEqual([]);
   // Its owner still sees it.
-  const own = await other.get(`/api/catalog/items/${theirs.id}/history`);
-  expect((await own.json()).mediaItem).toEqual(theirs);
-  await other.dispose();
+  const own = await expectBody(otherUser.catalog.getMediaItemHistory(mediaItemId));
+  expect(own.mediaItem).toEqual(theirs);
 });
 
 test("the User edits a Manual Media Item, by the same rules, and their Log shows the change", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const mediaItem = await createManual(request, {
+  const mediaItem = await createManual(loggedInApi, {
     title: "Tini zabutykh predkiv",
     originalTitle: "Shadows",
     year: 1964,
     runtime: 90,
     genres: ["Drama"],
   });
-  await request.post("/api/log-entries", { data: { mediaItemId: mediaItem.id, rating: 5 } });
-  const patch = (data: object, options?: object) =>
-    request.patch(`/api/catalog/manual-items/${mediaItem.id}`, { data, ...options });
+  await expectBody(loggedInApi.log.createLogEntry({ mediaItemId: mediaItem.id, rating: 5 }), 201);
+  const patch = (changes: ManualMediaItemEditRequest, options?: RequestOptions) => {
+    return loggedInApi.catalog.updateManualMediaItem(mediaItem.id, changes, options);
+  };
 
-  const edited = await patch({ title: " Тіні забутих предків ", year: 1965, genres: [] });
+  const edited = await expectBody(
+    patch({ title: " Тіні забутих предків ", year: 1965, genres: [] }),
+  );
 
-  expect(edited.status()).toBe(200);
   const expected = {
     ...mediaItem,
     metadata: {
@@ -254,12 +244,12 @@ test("the User edits a Manual Media Item, by the same rules, and their Log shows
       genres: [],
     },
   };
-  expect((await edited.json()).mediaItem).toEqual(expected);
-  const log = await (await request.get("/api/log-entries")).json();
-  expect(log.logEntries[0].mediaItem).toEqual(expected);
+  expect(edited.mediaItem).toEqual(expected);
+  const { logEntries } = await expectBody(loggedInApi.log.getLogEntries());
+  expect(logEntries[0].mediaItem).toEqual(expected);
   // A null clears a field, and an empty Original Title counts as none.
-  const cleared = await patch({ originalTitle: "", year: null, runtime: null });
-  expect((await cleared.json()).mediaItem.metadata).toMatchObject({
+  const cleared = await expectBody(patch({ originalTitle: "", year: null, runtime: null }));
+  expect(cleared.mediaItem.metadata).toMatchObject({
     originalTitle: "Тіні забутих предків",
     year: null,
     runtime: null,
@@ -273,126 +263,104 @@ test("the User edits a Manual Media Item, by the same rules, and their Log shows
     { genres: ["Cooking"] },
     { mediaType: "film" },
   ]) {
-    const refused = await patch(data, at("2025-12-31T23:30:00Z"));
+    const refused = await patch(data as never, at("2025-12-31T23:30:00Z"));
     expect(refused.status(), JSON.stringify(data)).toBe(400);
     expect(await refused.json()).toEqual({ error: "invalid_request" });
   }
 });
 
 test("only the owner's Manual Media Items can be edited: another User's, or a catalog-backed one, is unknown", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const catalogBacked = await alien(request);
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  const theirs = await createManual(other, { title: "Their home movie" });
+  const catalogBacked = await alien(loggedInApi);
+  const theirs = await createManual(otherUser, { title: "Their home movie" });
 
   for (const id of [theirs.id, catalogBacked.id, 2_000_000_000]) {
-    const response = await request.patch(`/api/catalog/manual-items/${id}`, {
-      data: { title: "Mine now" },
-    });
+    const response = await loggedInApi.catalog.updateManualMediaItem(id, { title: "Mine now" });
     expect(response.status(), String(id)).toBe(404);
     expect(await response.json()).toEqual({ error: "unknown_media_item" });
   }
-  const own = await other.get(`/api/catalog/items/${theirs.id}/history`);
-  expect((await own.json()).mediaItem).toEqual(theirs);
-  await other.dispose();
+  const own = await expectBody(otherUser.catalog.getMediaItemHistory(theirs.id));
+  expect(own.mediaItem).toEqual(theirs);
 });
 
 test("deleting a Manual Media Item says first how many Log Entries and List Items go with it", async ({
-  request,
+  loggedInApi,
 }) => {
-  await logInNewUser(request);
-  const mediaItem = await createManual(request, { title: "Home movie" });
-  const kept = await alien(request);
-  const list = await request.post("/api/lists", { data: { name: "Family", mediaType: "film" } });
-  const listId = (await list.json()).list.id;
+  const mediaItem = await createManual(loggedInApi, { title: "Home movie" });
+  const kept = await alien(loggedInApi);
+  const { list } = await expectBody(
+    loggedInApi.lists.createList({ name: "Family", mediaType: "film" }),
+    201,
+  );
   for (const mediaItemId of [mediaItem.id, kept.id]) {
-    await request.post("/api/log-entries", { data: { mediaItemId, rating: 4 } });
-    await request.post("/api/log-entries", { data: { mediaItemId, rating: 3 } });
-    await request.post(`/api/lists/${listId}/items`, { data: { mediaItemId } });
+    await expectBody(loggedInApi.log.createLogEntry({ mediaItemId, rating: 4 }), 201);
+    await expectBody(loggedInApi.log.createLogEntry({ mediaItemId, rating: 3 }), 201);
+    await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId }), 201);
   }
-  await request.post("/api/backlog/items", { data: { mediaItemId: mediaItem.id } });
-  const url = `/api/catalog/manual-items/${mediaItem.id}`;
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: mediaItem.id }), 201);
 
-  const before = await request.get(url);
+  const before = await expectBody(loggedInApi.catalog.getManualMediaItem(mediaItem.id));
 
-  expect(before.status()).toBe(200);
-  expect(await before.json()).toEqual({ mediaItem, usage: { logEntries: 2, listItems: 2 } });
-  expect((await request.delete(url)).status()).toBe(204);
+  expect(before).toEqual({ mediaItem, usage: { logEntries: 2, listItems: 2 } });
+  expect((await loggedInApi.catalog.deleteManualMediaItem(mediaItem.id)).status()).toBe(204);
   for (const gone of [
-    await request.get(url),
-    await request.get(`/api/catalog/items/${mediaItem.id}/history`),
-    await request.delete(url),
+    await loggedInApi.catalog.getManualMediaItem(mediaItem.id),
+    await loggedInApi.catalog.getMediaItemHistory(mediaItem.id),
+    await loggedInApi.catalog.deleteManualMediaItem(mediaItem.id),
   ]) {
     expect(gone.status(), gone.url()).toBe(404);
     expect(await gone.json()).toEqual({ error: "unknown_media_item" });
   }
-  const log = await (await request.get("/api/log-entries")).json();
-  expect(log.logEntries.map((entry: { mediaItem: object }) => entry.mediaItem)).toEqual([
-    kept,
-    kept,
-  ]);
-  const theList = await (await request.get(`/api/lists/${listId}`)).json();
+  const { logEntries } = await expectBody(loggedInApi.log.getLogEntries());
+  expect(logEntries.map((entry: { mediaItem: object }) => entry.mediaItem)).toEqual([kept, kept]);
+  const theList = await expectBody(loggedInApi.lists.getList(list.id));
   expect(theList.list.items).toEqual([expect.objectContaining({ mediaItem: kept, position: 0 })]);
-  const { backlog } = await (await request.get("/api/backlog?mediaType=film")).json();
+  const { backlog } = await expectBody(loggedInApi.backlog.getBacklog({ mediaType: "film" }));
   expect(backlog.items).toEqual([]);
 });
 
 test("another User's Manual Media Item, or a catalog-backed one, can be neither read nor deleted", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const catalogBacked = await alien(request);
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  const theirs = await createManual(other, { title: "Their home movie" });
+  const catalogBacked = await alien(loggedInApi);
+  const theirs = await createManual(otherUser, { title: "Their home movie" });
 
   for (const id of [theirs.id, catalogBacked.id]) {
     for (const response of [
-      await request.get(`/api/catalog/manual-items/${id}`),
-      await request.delete(`/api/catalog/manual-items/${id}`),
+      await loggedInApi.catalog.getManualMediaItem(id),
+      await loggedInApi.catalog.deleteManualMediaItem(id),
     ]) {
       expect(response.status(), `${response.url()}`).toBe(404);
       expect(await response.json()).toEqual({ error: "unknown_media_item" });
     }
   }
-  const own = await other.get(`/api/catalog/manual-items/${theirs.id}`);
-  expect((await own.json()).mediaItem).toEqual(theirs);
-  await other.dispose();
+  const own = await expectBody(otherUser.catalog.getManualMediaItem(theirs.id));
+  expect(own.mediaItem).toEqual(theirs);
 });
 
-async function search(request: APIRequestContext, query: string) {
-  const response = await request.get("/api/catalog/search", {
-    params: { mediaType: "film", query },
-  });
-  expect(response.status()).toBe(200);
-  return response.json();
+async function search(api: ApiClient, query: string) {
+  return expectBody(api.catalog.searchCatalog({ mediaType: "film", query }));
 }
 
 test("search lists the User's own matching Manual Media Items first, by either title, in any case, marked if logged or planned", async ({
-  request,
-  playwright,
+  loggedInApi,
+  otherUser,
 }) => {
-  await logInNewUser(request);
-  const homeVideo = await createManual(request, {
+  const homeVideo = await createManual(loggedInApi, {
     title: "Чужий: домашнє відео",
     originalTitle: "Alien home video",
   });
-  const sequel = await createManual(request, { title: "Чужий 2", year: 2020 });
-  await createManual(request, { title: "Something else" });
-  await request.post("/api/log-entries", { data: { mediaItemId: sequel.id, rating: 2 } });
-  await request.post("/api/backlog/items", { data: { mediaItemId: homeVideo.id } });
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
-  await logInNewUser(other);
-  await createManual(other, { title: "Чужий у них" });
-  await other.dispose();
+  const sequel = await createManual(loggedInApi, { title: "Чужий 2", year: 2020 });
+  await createManual(loggedInApi, { title: "Something else" });
+  await expectBody(loggedInApi.log.createLogEntry({ mediaItemId: sequel.id, rating: 2 }), 201);
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: homeVideo.id }), 201);
+  await createManual(otherUser, { title: "Чужий у них" });
 
-  const byTitle = await search(request, "ЧУЖИЙ");
-  const byOriginalTitle = await search(request, "home VIDEO");
+  const byTitle = await search(loggedInApi, "ЧУЖИЙ");
+  const byOriginalTitle = await search(loggedInApi, "home VIDEO");
 
   expect(byTitle.manualResults).toMatchObject([
     { mediaItem: sequel, inLog: true, inBacklog: false },
@@ -402,17 +370,17 @@ test("search lists the User's own matching Manual Media Items first, by either t
   expect(byOriginalTitle.manualResults).toMatchObject([
     { mediaItem: homeVideo, inLog: false, inBacklog: true },
   ]);
-  expect((await search(request, "alien")).results).toContainEqual(
+  expect((await search(loggedInApi, "alien")).results).toContainEqual(
     expect.objectContaining({ title: "Alien" }),
   );
 });
 
-test("without a session, Manual Media Items are a 401", async ({ request }) => {
+test("without a session, Manual Media Items are a 401", async ({ api }) => {
   for (const response of [
-    await request.post("/api/catalog/manual-items", { data: {} }),
-    await request.get("/api/catalog/manual-items/1"),
-    await request.patch("/api/catalog/manual-items/1", { data: {} }),
-    await request.delete("/api/catalog/manual-items/1"),
+    await api.catalog.addManualMediaItem({} as never),
+    await api.catalog.getManualMediaItem(1),
+    await api.catalog.updateManualMediaItem(1, {}),
+    await api.catalog.deleteManualMediaItem(1),
   ]) {
     expect(response.status(), response.url()).toBe(401);
   }
@@ -420,24 +388,25 @@ test("without a session, Manual Media Items are a 401", async ({ request }) => {
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.
 test("search takes the same number of queries for 1 matching Manual Media Item as for 25, and lists 20", async ({
-  request,
-  playwright,
+  api,
+  createApiClient,
 }) => {
-  const queriesFor = async (api: APIRequestContext, count: number) => {
-    const user = await logInNewUser(api);
-    await fillManualMediaItems(api, user, count);
-    const response = await api.get("/api/catalog/search", {
-      params: { mediaType: "film", query: "placeholder" },
+  const queriesFor = async (client: ApiClient, count: number) => {
+    const user = await createUser();
+    await expectBody(client.auth.login(user));
+    const filled = await client.testHooks.fillManualMediaItems(user.username, count);
+    expect(filled.status()).toBe(204);
+    const response = await client.catalog.searchCatalog({
+      mediaType: "film",
+      query: "placeholder",
     });
     const { manualResults } = await response.json();
     expect(manualResults).toHaveLength(Math.min(count, 20));
     return response.headers()["x-d1-query-count"];
   };
-  const other = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
 
-  const one = await queriesFor(request, 1);
-  const many = await queriesFor(other, 25);
-  await other.dispose();
+  const one = await queriesFor(api, 1);
+  const many = await queriesFor(await createApiClient(), 25);
 
   expect(one).toMatch(/^\d+$/);
   expect(many).toBe(one);

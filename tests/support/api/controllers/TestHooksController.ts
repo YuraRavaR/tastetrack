@@ -30,6 +30,13 @@ export class TestHooksController extends BaseController {
     });
   }
 
+  fillManualMediaItems(username: string, count: number, options?: RequestOptions) {
+    return this.requestContext.post(endpoints.testHooks.manualItems(username), {
+      ...options,
+      data: { count },
+    });
+  }
+
   fillList(listId: number, count: number, options?: RequestOptions) {
     return this.requestContext.post(endpoints.testHooks.listItems(listId), {
       ...options,

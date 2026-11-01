@@ -1,6 +1,7 @@
 import type {
   AddCatalogItemRequest,
   CatalogSearchQuery,
+  ManualMediaItemEditRequest,
   NewManualMediaItemRequest,
 } from "@shared/api";
 import type { z } from "zod";
@@ -26,6 +27,29 @@ export class CatalogController extends BaseController {
       ...options,
       data: manualMediaItem,
     });
+  }
+
+  getManualMediaItem(mediaItemId: number, options?: RequestOptions) {
+    return this.requestContext.get(endpoints.catalog.manualItemById(mediaItemId), options);
+  }
+
+  updateManualMediaItem(
+    mediaItemId: number,
+    changes: ManualMediaItemEditRequest,
+    options?: RequestOptions,
+  ) {
+    return this.requestContext.patch(endpoints.catalog.manualItemById(mediaItemId), {
+      ...options,
+      data: changes,
+    });
+  }
+
+  deleteManualMediaItem(mediaItemId: number, options?: RequestOptions) {
+    return this.requestContext.delete(endpoints.catalog.manualItemById(mediaItemId), options);
+  }
+
+  getMediaItemHistory(mediaItemId: number, options?: RequestOptions) {
+    return this.requestContext.get(endpoints.catalog.mediaItemHistory(mediaItemId), options);
   }
 
   getMediaItemLists(mediaItemId: number, options?: RequestOptions) {
