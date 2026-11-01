@@ -1,3 +1,4 @@
+import { UserResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { test as base, expect } from "../support/fixtures";
 import type { TestUser } from "../support/scenarios/users";
@@ -51,6 +52,8 @@ test("setting a new password lifts the restriction, and the User uses the app as
 
   const updated = await expectBody(
     api.me.setNewPassword({ newPassword: "my very own passphrase" }),
+    200,
+    UserResponse,
   );
 
   const expected = { user: { username, displayName: username } };

@@ -1,3 +1,4 @@
+import { UserResponse } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import type { RequestOptions } from "../support/api/controllers/BaseController";
 import { expectBody } from "../support/api/responses";
@@ -30,7 +31,7 @@ test("an invitee registers with an Invite Code, is logged in, and the code becom
 }) => {
   const registration = newInvitee(await issueCode(issuer));
 
-  const registered = await expectBody(invitee.auth.register(registration), 201);
+  const registered = await expectBody(invitee.auth.register(registration), 201, UserResponse);
 
   expect(registered).toEqual({
     user: { username: registration.username, displayName: registration.username },

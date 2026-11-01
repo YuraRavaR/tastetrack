@@ -1,3 +1,4 @@
+import { CatalogSearchResponse, MediaItemResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
 import { alien, amelie, newFilm, searchResult } from "../support/scenarios/films";
@@ -11,6 +12,8 @@ test("an English query finds the film with its title, Original Title, year and p
 }) => {
   const { results } = await expectBody(
     loggedInApi.catalog.searchCatalog({ mediaType: "film", query: "alien" }),
+    200,
+    CatalogSearchResponse,
   );
 
   expect(results).toContainEqual(
@@ -82,15 +85,15 @@ test("a result shows the User's own Lists holding the film, oldest first, and no
 
 test("another User's Log Entries and Lists never show on a result", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const { id: mediaItemId } = await alien(loggedInApi);
-  await expectBody(otherUser.log.createLogEntry({ mediaItemId, rating: 1 }), 201);
+  await expectBody(otherUserClient.log.createLogEntry({ mediaItemId, rating: 1 }), 201);
   const { list } = await expectBody(
-    otherUser.lists.createList({ name: "Theirs", mediaType: "film" }),
+    otherUserClient.lists.createList({ name: "Theirs", mediaType: "film" }),
     201,
   );
-  await expectBody(otherUser.lists.addListItem(list.id, { mediaItemId }), 201);
+  await expectBody(otherUserClient.lists.addListItem(list.id, { mediaItemId }), 201);
 
   expect(await searchResult(loggedInApi, "alien", "348")).toMatchObject({
     inLog: false,
@@ -146,7 +149,11 @@ test("a result names its Media Item once the film is in the catalog; until then 
     lists: [],
   });
 
-  const { mediaItem } = await expectBody(loggedInApi.catalog.addCatalogItem(before), 201);
+  const { mediaItem } = await expectBody(
+    loggedInApi.catalog.addCatalogItem(before),
+    201,
+    MediaItemResponse,
+  );
 
   expect((await searchResult(loggedInApi, query, id)).mediaItemId).toBe(mediaItem.id);
 });

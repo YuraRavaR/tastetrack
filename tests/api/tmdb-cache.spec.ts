@@ -1,3 +1,4 @@
+import { MediaItemsResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
 import { shadows, shadowsId } from "../support/scenarios/films";
@@ -70,7 +71,11 @@ test("a page fills at most 10 missing films; the client loads the rest by id", a
   const page = await expectBody(loggedInApi.lists.getList(list.id));
   expect(titles(page.list.items).at(-1)).toBeNull();
 
-  const { mediaItems } = await expectBody(loggedInApi.catalog.getMediaItems(String(mediaItemId)));
+  const { mediaItems } = await expectBody(
+    loggedInApi.catalog.getMediaItems(String(mediaItemId)),
+    200,
+    MediaItemsResponse,
+  );
   expect(titles(mediaItems.map((mediaItem: Item["mediaItem"]) => ({ mediaItem })))).toEqual([
     "Shadows of Forgotten Ancestors",
   ]);

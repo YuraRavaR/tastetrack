@@ -1,4 +1,4 @@
-import { InviteCodeResponse } from "@shared/api";
+import { InviteCodeResponse, InviteCodesResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { expect, test } from "../support/fixtures";
@@ -16,7 +16,8 @@ test("a User generates an Invite Code valid for 7 days and sees it as active", a
 
   expect(inviteCode.code).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/);
   expect(inviteCode.expiresAt).toBe(new Date(now + 7 * day).toISOString());
-  expect(await expectBody(loggedInApi.inviteCodes.listActiveInviteCodes(at(now)))).toEqual({
+  const active = loggedInApi.inviteCodes.listActiveInviteCodes(at(now));
+  expect(await expectBody(active, 200, InviteCodesResponse)).toEqual({
     inviteCodes: [inviteCode],
   });
 });

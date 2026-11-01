@@ -1,4 +1,12 @@
-import type { ListEditRequest, NewListItemRequest } from "@shared/api";
+import {
+  type ListEditRequest,
+  ListItemResponse,
+  ListResponse,
+  ListSummaryResponse,
+  ListsResponse,
+  MediaItemListsResponse,
+  type NewListItemRequest,
+} from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
@@ -32,6 +40,7 @@ test("a User creates a film List with a name and a description, private and empt
       mediaType: "film",
     }),
     201,
+    ListSummaryResponse,
   );
 
   expect(list).toEqual({
@@ -42,7 +51,8 @@ test("a User creates a film List with a name and a description, private and empt
     visibility: "private",
     itemCount: 0,
   });
-  expect(await theList(loggedInApi, list.id)).toEqual({
+  const created = await expectBody(loggedInApi.lists.getList(list.id), 200, ListResponse);
+  expect(created.list).toEqual({
     id: list.id,
     name: "Horror nights",
     description: "For October.",
@@ -51,7 +61,8 @@ test("a User creates a film List with a name and a description, private and empt
     shareLink: null,
     items: [],
   });
-  expect(await theLists(loggedInApi)).toEqual([list]);
+  const { lists } = await expectBody(loggedInApi.lists.getLists(), 200, ListsResponse);
+  expect(lists).toEqual([list]);
 });
 
 test("the description is optional, and an empty one is none", async ({ loggedInApi }) => {
@@ -64,7 +75,7 @@ test("the description is optional, and an empty one is none", async ({ loggedInA
 
 test("a User's List names are unique regardless of case, but not across Users", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const horror = await createList(loggedInApi, { name: "Жахи" });
 
@@ -75,7 +86,7 @@ test("a User's List names are unique regardless of case, but not across Users", 
   }
 
   expect(await theLists(loggedInApi)).toEqual([horror]);
-  expect((await createList(otherUser, { name: "Жахи" })).name).toBe("Жахи");
+  expect((await createList(otherUserClient, { name: "Жахи" })).name).toBe("Жахи");
 });
 
 test('reserved names such as "Watchlist" are refused', async ({ loggedInApi }) => {
@@ -131,9 +142,11 @@ test("films join a List at the end, and the User reorders and notes them", async
   loggedInApi,
 }) => {
   const list = await createList(loggedInApi, { name: "Space" });
-  const first = await addToList(loggedInApi, list.id, {
-    mediaItemId: (await alien(loggedInApi)).id,
-  });
+  const { listItem: first } = await expectBody(
+    loggedInApi.lists.addListItem(list.id, { mediaItemId: (await alien(loggedInApi)).id }),
+    201,
+    ListItemResponse,
+  );
   const second = await addToList(loggedInApi, list.id, {
     mediaItemId: (await aliens(loggedInApi)).id,
     note: "  The sequel. ",
@@ -253,7 +266,7 @@ test("a List loads in the same number of queries for 1 film as for 1,000", async
 
 test("the Lists page loads in the same number of queries for 1 List as for 100", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const queriesForListsOf = async (api: ApiClient, count: number) => {
     const lists = await Promise.all(
@@ -268,7 +281,7 @@ test("the Lists page loads in the same number of queries for 1 List as for 100",
   };
 
   const one = await queriesForListsOf(loggedInApi, 1);
-  const hundred = await queriesForListsOf(otherUser, 100);
+  const hundred = await queriesForListsOf(otherUserClient, 100);
 
   expect(one).toMatch(/^\d+$/);
   expect(hundred).toBe(one);
@@ -287,7 +300,12 @@ test("a film's Lists say which hold it, where, and with what Note", async ({ log
   await addToList(loggedInApi, horror.id, { mediaItemId: (await aliens(loggedInApi)).id });
   const held = await addToList(loggedInApi, horror.id, { mediaItemId, note: "Olena's favourite." });
 
-  expect(await listsOf(loggedInApi, mediaItemId)).toEqual([
+  const { lists } = await expectBody(
+    loggedInApi.catalog.getMediaItemLists(mediaItemId),
+    200,
+    MediaItemListsResponse,
+  );
+  expect(lists).toEqual([
     { ...space, listItem: null },
     {
       ...horror,
@@ -300,11 +318,13 @@ test("a film's Lists say which hold it, where, and with what Note", async ({ log
 
 test("a film's Lists leave out the Backlog and other Users' Lists", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const mediaItemId = (await alien(loggedInApi)).id;
   await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId }), 201);
-  await addToList(otherUser, (await createList(otherUser, { name: "Theirs" })).id, { mediaItemId });
+  await addToList(otherUserClient, (await createList(otherUserClient, { name: "Theirs" })).id, {
+    mediaItemId,
+  });
 
   expect(await listsOf(loggedInApi, mediaItemId)).toEqual([]);
 });
@@ -317,7 +337,7 @@ test("the Lists of an unknown Media Item are a 404", async ({ loggedInApi }) => 
 
 test("a film's Lists load in the same number of queries for 1 List as for 100", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const queriesForListsOf = async (api: ApiClient, count: number) => {
     const mediaItemId = (await alien(api)).id;
@@ -333,7 +353,7 @@ test("a film's Lists load in the same number of queries for 1 List as for 100", 
   };
 
   const one = await queriesForListsOf(loggedInApi, 1);
-  const hundred = await queriesForListsOf(otherUser, 100);
+  const hundred = await queriesForListsOf(otherUserClient, 100);
 
   expect(one).toMatch(/^\d+$/);
   expect(hundred).toBe(one);
@@ -386,7 +406,7 @@ test("the User renames a List and changes its description, within the same name 
   await createList(loggedInApi, { name: "Horror" });
   const patch = (changes: ListEditRequest) => loggedInApi.lists.updateList(list.id, changes);
 
-  const renamed = await expectBody(patch({ name: " Space horror " }));
+  const renamed = await expectBody(patch({ name: " Space horror " }), 200, ListSummaryResponse);
 
   expect(renamed.list).toEqual({ ...list, name: "Space horror" });
   // Only the case changes: it is still its own name.
@@ -412,13 +432,13 @@ test("the User renames a List and changes its description, within the same name 
 
 test("another User's List, the Backlog, or a deleted List can't be read, changed or added to", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const mediaItemId = (await alien(loggedInApi)).id;
   const { backlog } = await expectBody(loggedInApi.backlog.getBacklog({ mediaType: "film" }));
   const deleted = await createList(loggedInApi, { name: "Gone" });
   expect((await loggedInApi.lists.deleteList(deleted.id)).status()).toBe(204);
-  const theirs = await createList(otherUser, { name: "Theirs" });
+  const theirs = await createList(otherUserClient, { name: "Theirs" });
 
   for (const id of [theirs.id, backlog.id, deleted.id, 2_000_000_000]) {
     for (const response of [
@@ -431,7 +451,7 @@ test("another User's List, the Backlog, or a deleted List can't be read, changed
       expect(await response.json()).toEqual({ error: "unknown_list" });
     }
   }
-  expect(await theList(otherUser, theirs.id)).toMatchObject({ name: "Theirs", items: [] });
+  expect(await theList(otherUserClient, theirs.id)).toMatchObject({ name: "Theirs", items: [] });
 });
 
 test("without a session, Lists are a 401", async ({ api }) => {

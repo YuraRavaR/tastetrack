@@ -1,3 +1,4 @@
+import { SharedListResponse, ShareLinkResponse } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { test as base, expect } from "../support/fixtures";
@@ -30,7 +31,11 @@ test("sharing a List makes its Visibility link, under a URL with a random token"
 }) => {
   const list = await createList(loggedInApi, { name: "Horror nights" });
 
-  const { shareLink } = await expectBody(loggedInApi.lists.createShareLink(list.id), 201);
+  const { shareLink } = await expectBody(
+    loggedInApi.lists.createShareLink(list.id),
+    201,
+    ShareLinkResponse,
+  );
 
   expect(shareLink).toEqual({ token: expect.any(String), url: expect.any(String) });
   expect(shareLink.token).toMatch(/^[A-Za-z0-9_-]{22,}$/);
@@ -151,7 +156,11 @@ test("regenerating a Share Link replaces it: the old link stops working, the new
   const list = await createList(loggedInApi, { name: "Horror nights" });
   const old = await share(loggedInApi, list.id);
 
-  const { shareLink } = await expectBody(loggedInApi.lists.regenerateShareLink(list.id));
+  const { shareLink } = await expectBody(
+    loggedInApi.lists.regenerateShareLink(list.id),
+    200,
+    ShareLinkResponse,
+  );
 
   expect(shareLink.token).not.toBe(old.token);
   expect(shareLink.url).toMatch(new RegExp(`/s/${shareLink.token}$`));
@@ -226,10 +235,14 @@ test("Manual Media Items in a shared List show their title and year", async ({
   await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId: mediaItem.id }), 201);
   const { token } = await share(loggedInApi, list.id);
 
-  const { sharedList } = await expectBody(visitor.sharedLists.getSharedList(token));
+  const { sharedList } = await expectBody(
+    visitor.sharedLists.getSharedList(token),
+    200,
+    SharedListResponse,
+  );
 
   expect(sharedList.items).toHaveLength(1);
-  expect(sharedList.items[0].mediaItem.metadata).toMatchObject({
+  expect(sharedList.items[0]?.mediaItem.metadata).toMatchObject({
     title: "Тіні забутих предків",
     year: 1965,
   });
@@ -237,7 +250,7 @@ test("Manual Media Items in a shared List show their title and year", async ({
 
 test("only the List's owner can share it, regenerate or revoke its link", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
   visitor,
 }) => {
   const list = await createList(loggedInApi, { name: "Horror nights" });
@@ -245,11 +258,11 @@ test("only the List's owner can share it, regenerate or revoke its link", async 
   const backlog = await theBacklog(loggedInApi);
 
   for (const listId of [list.id, backlog.id]) {
-    const shared = await expectBody(otherUser.lists.createShareLink(listId), 404);
+    const shared = await expectBody(otherUserClient.lists.createShareLink(listId), 404);
     expect(shared).toEqual({ error: "unknown_list" });
     for (const response of [
-      await otherUser.lists.regenerateShareLink(listId),
-      await otherUser.lists.revokeShareLink(listId),
+      await otherUserClient.lists.regenerateShareLink(listId),
+      await otherUserClient.lists.revokeShareLink(listId),
     ]) {
       expect(response.status()).toBe(404);
       expect(await response.json()).toEqual({ error: "unknown_share_link" });

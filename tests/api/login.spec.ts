@@ -1,3 +1,4 @@
+import { LoginResponse, UserResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { at, day } from "../support/clock";
 import { expect, test } from "../support/fixtures";
@@ -10,13 +11,13 @@ function sessionCookieOf(setCookie: string | undefined): string {
 }
 
 test("a User logs in with their Username and password", async ({ api, registeredUser }) => {
-  const login = await expectBody(api.auth.login(registeredUser));
+  const login = await expectBody(api.auth.login(registeredUser), 200, LoginResponse);
 
   expect(login).toEqual({
     user: { username: registeredUser.username, displayName: registeredUser.username },
     passwordChangeRequired: false,
   });
-  expect(await expectBody(api.auth.getCurrentUser())).toEqual({
+  expect(await expectBody(api.auth.getCurrentUser(), 200, UserResponse)).toEqual({
     user: { username: registeredUser.username, displayName: registeredUser.username },
   });
 });

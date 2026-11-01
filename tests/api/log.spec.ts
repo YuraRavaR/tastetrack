@@ -1,4 +1,11 @@
-import type { LogEntryEditRequest, NewLogEntryRequest } from "@shared/api";
+import {
+  ItemHistoryResponse,
+  type LogEntryEditRequest,
+  LogEntryResponse,
+  LogResponse,
+  type NewLogEntryRequest,
+  NewLogEntryResponse,
+} from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import type { RequestOptions } from "../support/api/controllers/BaseController";
 import { expectBody } from "../support/api/responses";
@@ -52,11 +59,11 @@ test("a film TMDB has no backdrop for has none, whatever its poster", async ({ l
 
 test("adding the same film again, from any search and by any User, reuses its Media Item", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const first = await film(loggedInApi, "alien", "348");
   const fromUkrainian = await film(loggedInApi, "чужий", "348");
-  const byOtherUser = await film(otherUser, "alien", "348");
+  const byOtherUser = await film(otherUserClient, "alien", "348");
 
   expect(fromUkrainian.id).toBe(first.id);
   expect(byOtherUser.id).toBe(first.id);
@@ -124,6 +131,7 @@ test("a User logs a film with a Rating and sees it in their Log", async ({ logge
   const { logEntry } = await expectBody(
     loggedInApi.log.createLogEntry({ mediaItemId: mediaItem.id, rating: 4.5 }),
     201,
+    NewLogEntryResponse,
   );
 
   expect(logEntry).toEqual({
@@ -135,7 +143,8 @@ test("a User logs a film with a Rating and sees it in their Log", async ({ logge
     revisit: false,
     createdAt: expect.any(String),
   });
-  expect(await theLog(loggedInApi)).toEqual([logEntry]);
+  const { logEntries } = await expectBody(loggedInApi.log.getLogEntries(), 200, LogResponse);
+  expect(logEntries).toEqual([logEntry]);
 });
 
 test("a Log Entry keeps its date, Review and Revisit flag, even as the first entry", async ({
@@ -265,10 +274,10 @@ test("a new Log Entry's answer gives the film's Current Rating and number of Log
   });
 });
 
-test("a Log is the User's own", async ({ loggedInApi, otherUser }) => {
+test("a Log is the User's own", async ({ loggedInApi, otherUserClient }) => {
   await postLogEntry(loggedInApi, { mediaItemId: (await alien(loggedInApi)).id, rating: 4 });
 
-  expect(await theLog(otherUser)).toEqual([]);
+  expect(await theLog(otherUserClient)).toEqual([]);
 });
 
 test("logging an unknown Media Item is a 400", async ({ loggedInApi }) => {
@@ -292,7 +301,7 @@ test("without a session, adding, the Log and Item History are a 401", async ({ a
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds.
 test("the Log loads in the same number of queries for 1 entry as for 20", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const queriesForLogOf = async (api: ApiClient, entries: number) => {
     const { id } = await alien(api);
@@ -303,7 +312,7 @@ test("the Log loads in the same number of queries for 1 entry as for 20", async 
   };
 
   const one = await queriesForLogOf(loggedInApi, 1);
-  const twenty = await queriesForLogOf(otherUser, 20);
+  const twenty = await queriesForLogOf(otherUserClient, 20);
 
   expect(one).toMatch(/^\d+$/);
   expect(twenty).toBe(one);
@@ -331,7 +340,8 @@ test("a film's Item History has its Log Entries in Log Order, and the last one's
   );
   await postLogEntry(loggedInApi, { mediaItemId: aliensItem.id, rating: 5 });
 
-  expect(await itemHistory(loggedInApi, alienItem.id)).toEqual({
+  const history = loggedInApi.catalog.getMediaItemHistory(alienItem.id);
+  expect(await expectBody(history, 200, ItemHistoryResponse)).toEqual({
     mediaItem: alienItem,
     logEntries: [backdated, latest],
     currentRating: 4,
@@ -341,10 +351,10 @@ test("a film's Item History has its Log Entries in Log Order, and the last one's
 
 test("the Item History of a film the User hasn't logged is empty, with no Current Rating", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const mediaItem = await alien(loggedInApi);
-  await postLogEntry(otherUser, { mediaItemId: mediaItem.id, rating: 5 });
+  await postLogEntry(otherUserClient, { mediaItemId: mediaItem.id, rating: 5 });
 
   expect(await itemHistory(loggedInApi, mediaItem.id)).toEqual({
     mediaItem,
@@ -356,11 +366,11 @@ test("the Item History of a film the User hasn't logged is empty, with no Curren
 
 test("the Item History says whether the film is on the User's own Backlog", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const { id } = await alien(loggedInApi);
-  await expectBody(otherUser.backlog.addBacklogItem({ mediaItemId: id }), 201);
-  expect((await itemHistory(otherUser, id)).inBacklog).toBe(true);
+  await expectBody(otherUserClient.backlog.addBacklogItem({ mediaItemId: id }), 201);
+  expect((await itemHistory(otherUserClient, id)).inBacklog).toBe(true);
   expect((await itemHistory(loggedInApi, id)).inBacklog).toBe(false);
 
   await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: id }), 201);
@@ -392,6 +402,8 @@ test("every field of a Log Entry can be edited, and its creation time stays", as
       { rating: 4.5, date: "1999-03-31", review: "  Still terrifying.  ", revisit: true },
       at(minutesAgo(10)),
     ),
+    200,
+    LogEntryResponse,
   );
 
   expect(edited).toEqual({
@@ -508,11 +520,11 @@ test("deleting a film's only Log Entry makes it not experienced, with no Current
 
 test("another User's Log Entry, or one already deleted, can be neither edited nor deleted", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const { id: mediaItemId } = await alien(loggedInApi);
   const mine = await postLogEntry(loggedInApi, { mediaItemId, rating: 4 });
-  const theirs = await postLogEntry(otherUser, { mediaItemId, rating: 1 });
+  const theirs = await postLogEntry(otherUserClient, { mediaItemId, rating: 1 });
   expect((await loggedInApi.log.deleteLogEntry(mine.id)).status()).toBe(204);
 
   for (const id of [theirs.id, mine.id, 2_000_000_000]) {
@@ -523,12 +535,12 @@ test("another User's Log Entry, or one already deleted, can be neither edited no
     expect(deleted.status(), `deleting ${id}`).toBe(404);
     expect(await deleted.json()).toEqual({ error: "unknown_log_entry" });
   }
-  expect(await theLog(otherUser)).toEqual([theirs]);
+  expect(await theLog(otherUserClient)).toEqual([theirs]);
 });
 
 test("an Item History loads in the same number of queries for 1 entry as for 20", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const queriesForHistoryOf = async (api: ApiClient, entries: number) => {
     const { id } = await alien(api);
@@ -539,7 +551,7 @@ test("an Item History loads in the same number of queries for 1 entry as for 20"
   };
 
   const one = await queriesForHistoryOf(loggedInApi, 1);
-  const twenty = await queriesForHistoryOf(otherUser, 20);
+  const twenty = await queriesForHistoryOf(otherUserClient, 20);
 
   expect(one).toMatch(/^\d+$/);
   expect(twenty).toBe(one);

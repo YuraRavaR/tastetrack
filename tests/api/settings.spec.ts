@@ -1,3 +1,4 @@
+import { UserResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
 
@@ -9,7 +10,11 @@ test("a User edits their Display Name, and their Share Links show it", async ({
   const { backlog } = await expectBody(api.backlog.getBacklog({ mediaType: "film" }));
   const { shareLink } = await expectBody(api.lists.createShareLink(backlog.id), 201);
 
-  const updated = await expectBody(api.me.updateDisplayName({ displayName: "Олена К." }));
+  const updated = await expectBody(
+    api.me.updateDisplayName({ displayName: "Олена К." }),
+    200,
+    UserResponse,
+  );
 
   const expected = { username: loggedInUser.username, displayName: "Олена К." };
   expect(updated).toEqual({ user: expected });
@@ -112,7 +117,7 @@ test("changing the password ends the User's other sessions, and the current one 
   api,
   createApiClient,
   loggedInUser,
-  otherUser,
+  otherUserClient,
 }) => {
   const [phone, laptop] = [await createApiClient(), await createApiClient()];
   await expectBody(phone.auth.login(loggedInUser));
@@ -128,5 +133,5 @@ test("changing the password ends the User's other sessions, and the current one 
   for (const device of [phone, laptop]) {
     expect((await device.auth.getCurrentUser()).status()).toBe(401);
   }
-  expect((await otherUser.auth.getCurrentUser()).status()).toBe(200);
+  expect((await otherUserClient.auth.getCurrentUser()).status()).toBe(200);
 });

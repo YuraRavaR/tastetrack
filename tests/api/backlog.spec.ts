@@ -1,4 +1,4 @@
-import type { PlanRequest } from "@shared/api";
+import { BacklogResponse, ListItemResponse, type PlanRequest } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
@@ -14,7 +14,8 @@ async function theLog(api: ApiClient) {
 }
 
 test("a new User has an empty, private film Backlog from registration", async ({ loggedInApi }) => {
-  expect(await theBacklog(loggedInApi)).toEqual({
+  const backlog = loggedInApi.backlog.getBacklog({ mediaType: "film" });
+  expect((await expectBody(backlog, 200, BacklogResponse)).backlog).toEqual({
     id: expect.any(Number),
     mediaType: "film",
     visibility: "private",
@@ -36,6 +37,7 @@ test("marking a film Planned adds it to the Backlog, without a Log Entry", async
   const { listItem } = await expectBody(
     loggedInApi.backlog.addBacklogItem({ mediaItemId: mediaItem.id }),
     201,
+    ListItemResponse,
   );
 
   expect(listItem).toEqual({ id: expect.any(Number), mediaItem, position: 0, note: null });
@@ -76,7 +78,11 @@ test("the User reorders the Backlog by hand", async ({ loggedInApi }) => {
   await plan(loggedInApi, { mediaItemId: (await aliens(loggedInApi)).id });
   const third = await plan(loggedInApi, { mediaItemId: (await amelie(loggedInApi)).id });
 
-  const moved = await expectBody(loggedInApi.listItems.updateListItem(third.id, { position: 0 }));
+  const moved = await expectBody(
+    loggedInApi.listItems.updateListItem(third.id, { position: 0 }),
+    200,
+    ListItemResponse,
+  );
 
   expect(moved.listItem).toEqual({ ...third, position: 0 });
   expect(await backlogTitles(loggedInApi)).toEqual(["Amélie", "Alien", "Aliens"]);
@@ -199,11 +205,11 @@ test("the User removes a film from the Backlog, and the rest keep their order", 
 
 test("another User's Backlog item, or one already removed, can be neither edited nor removed", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const mediaItemId = (await alien(loggedInApi)).id;
   const mine = await plan(loggedInApi, { mediaItemId });
-  const theirs = await plan(otherUser, { mediaItemId });
+  const theirs = await plan(otherUserClient, { mediaItemId });
   expect((await loggedInApi.listItems.deleteListItem(mine.id)).status()).toBe(204);
 
   for (const id of [theirs.id, mine.id, 2_000_000_000]) {
@@ -212,7 +218,7 @@ test("another User's Backlog item, or one already removed, can be neither edited
     const removed = loggedInApi.listItems.deleteListItem(id);
     expect(await expectBody(removed, 404)).toEqual({ error: "unknown_list_item" });
   }
-  expect((await theBacklog(otherUser)).items).toEqual([theirs]);
+  expect((await theBacklog(otherUserClient)).items).toEqual([theirs]);
   expect((await theBacklog(loggedInApi)).items).toEqual([]);
 });
 
@@ -269,17 +275,17 @@ test("taking off a Media Item id that isn't a positive integer is a 400", async 
 
 test("taking a film off never touches another User's Backlog", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   const mediaItemId = (await alien(loggedInApi)).id;
   await plan(loggedInApi, { mediaItemId });
-  const theirs = await plan(otherUser, { mediaItemId });
+  const theirs = await plan(otherUserClient, { mediaItemId });
 
   expect((await loggedInApi.backlog.deleteBacklogItem(mediaItemId)).status()).toBe(204);
   // Now only the other User has it, and that doesn't count as this User's.
   expect((await loggedInApi.backlog.deleteBacklogItem(mediaItemId)).status()).toBe(404);
 
-  expect((await theBacklog(otherUser)).items).toEqual([theirs]);
+  expect((await theBacklog(otherUserClient)).items).toEqual([theirs]);
   expect((await theBacklog(loggedInApi)).items).toEqual([]);
 });
 
@@ -303,7 +309,7 @@ test("at 1,000 films the Backlog is full, until the User removes one", async ({
 
 test("search marks the results already in the User's own Backlog", async ({
   loggedInApi,
-  otherUser,
+  otherUserClient,
 }) => {
   expect((await searchResult(loggedInApi, "alien", "348")).inBacklog).toBe(false);
 
@@ -312,7 +318,7 @@ test("search marks the results already in the User's own Backlog", async ({
   expect((await searchResult(loggedInApi, "alien", "348")).inBacklog).toBe(true);
   expect((await searchResult(loggedInApi, "чужий", "348")).inBacklog).toBe(true);
   expect((await searchResult(loggedInApi, "aliens", "679")).inBacklog).toBe(false);
-  expect((await searchResult(otherUser, "alien", "348")).inBacklog).toBe(false);
+  expect((await searchResult(otherUserClient, "alien", "348")).inBacklog).toBe(false);
   await loggedInApi.listItems.deleteListItem(planned.id);
   expect((await searchResult(loggedInApi, "alien", "348")).inBacklog).toBe(false);
 });

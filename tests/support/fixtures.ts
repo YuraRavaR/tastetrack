@@ -6,13 +6,13 @@ interface Fixtures {
   api: ApiClient;
   loggedInApi: ApiClient;
   createApiClient: (options?: { baseURL?: string }) => Promise<ApiClient>;
-  otherUser: ApiClient;
+  otherUserClient: ApiClient;
   registeredUser: TestUser;
   loggedInUser: TestUser;
 }
 
 // `api` shares the session of the test's `request`. `createApiClient` makes a client with its own
-// session, such as a second device, and closes it when the test ends. `otherUser` is such a
+// session, such as a second device, and closes it when the test ends. `otherUserClient` is such a
 // client, logged in as a second User.
 // `registeredUser` has no session anywhere; `loggedInUser` is that User, logged in on `api`.
 // `loggedInApi` is that same `api`, for a test that needs the session but not the User.
@@ -32,10 +32,10 @@ export const test = base.extend<Fixtures>({
     });
     await Promise.all(requestContexts.map((requestContext) => requestContext.dispose()));
   },
-  otherUser: async ({ createApiClient }, use) => {
-    const otherUser = await createApiClient();
-    expect((await otherUser.auth.login(await createUser())).status()).toBe(200);
-    await use(otherUser);
+  otherUserClient: async ({ createApiClient }, use) => {
+    const otherUserClient = await createApiClient();
+    expect((await otherUserClient.auth.login(await createUser())).status()).toBe(200);
+    await use(otherUserClient);
   },
   // biome-ignore lint/correctness/noEmptyPattern: Playwright requires a destructured first argument.
   registeredUser: async ({}, use) => {

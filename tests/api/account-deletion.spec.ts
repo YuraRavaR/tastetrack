@@ -122,25 +122,28 @@ test("people the User invited keep their accounts, and their inviter is cleared"
 test("other Users' records of the same catalog film stay", async ({
   api,
   loggedInUser,
-  otherUser,
+  otherUserClient,
 }) => {
   const film = await alien(api);
   await expectBody(api.log.createLogEntry({ mediaItemId: film.id, rating: 2 }), 201);
   const { logEntry } = await expectBody(
-    otherUser.log.createLogEntry({ mediaItemId: (await alien(otherUser)).id, rating: 5 }),
+    otherUserClient.log.createLogEntry({
+      mediaItemId: (await alien(otherUserClient)).id,
+      rating: 5,
+    }),
     201,
   );
   const { listItem } = await expectBody(
-    otherUser.backlog.addBacklogItem({ mediaItemId: film.id }),
+    otherUserClient.backlog.addBacklogItem({ mediaItemId: film.id }),
     201,
   );
 
   const deleted = await api.me.deleteAccount({ password: loggedInUser.password });
 
   expect(deleted.status()).toBe(204);
-  const { logEntries } = await expectBody(otherUser.log.getLogEntries());
+  const { logEntries } = await expectBody(otherUserClient.log.getLogEntries());
   expect(logEntries).toEqual([logEntry]);
   expect(logEntry.mediaItem.id).toBe(film.id);
-  const { backlog } = await expectBody(otherUser.backlog.getBacklog({ mediaType: "film" }));
+  const { backlog } = await expectBody(otherUserClient.backlog.getBacklog({ mediaType: "film" }));
   expect(backlog.items).toEqual([listItem]);
 });
