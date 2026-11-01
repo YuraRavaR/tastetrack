@@ -1,7 +1,8 @@
 // The top level is production: `wrangler deploy` without `--env` ships it, so
 // TEST_HOOKS is absent here. Test hooks are switched on only in the `local` and
-// `staging` envs below. Envs don't inherit `vars` or bindings, so each env
-// repeats the bindings it needs. TMDB_BASE_URL is real TMDB everywhere except `local`, which
+// `staging` envs below, and answer only requests with TEST_HOOKS_SECRET (ADR-0010): a placeholder
+// in `local`, a `wrangler secret put` secret on staging. Envs don't inherit `vars` or bindings, so
+// each env repeats the bindings it needs. TMDB_BASE_URL is real TMDB everywhere except `local`, which
 // searches the TMDB fake among its own test hooks with a placeholder token. TMDB_ACCESS_TOKEN is
 // a secret on staging and production, set with `wrangler secret put` (see README). The Worker
 // runs first for the API and for Share Link pages (/s/*), whose <head> it fills in on the app's
@@ -49,6 +50,7 @@
       ],
       "vars": {
         "TEST_HOOKS": "1",
+        "TEST_HOOKS_SECRET": "local-test-hooks-secret",
         "TMDB_BASE_URL": "http://localhost:8787/api/test/tmdb/3",
         "TMDB_ACCESS_TOKEN": "fake-tmdb-token"
       }
