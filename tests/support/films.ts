@@ -54,8 +54,8 @@ export function newFilm() {
 // one file alone, which run one after another, so no other test meets it on a cold cache: Shadows
 // by the API tests and The Matrix by the end-to-end one.
 export const shadowsId = "26782";
-export const shadows = (request: APIRequestContext) => {
-  return film(request, "shadows of forgotten", shadowsId);
+export const shadows = (client: CatalogClient) => {
+  return film(client, "shadows of forgotten", shadowsId);
 };
 export const matrixId = "603";
 export const matrix = (request: APIRequestContext) => film(request, "the matrix", matrixId);

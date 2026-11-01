@@ -45,6 +45,7 @@ export const endpoints = {
     backlog: (username: string) => `/api/test/users/${username}/backlog`,
     listItems: (listId: number) => `/api/test/lists/${listId}/items`,
     records: "/api/test/records",
+    tmdbCacheFilm: (tmdbId: string) => `/api/test/tmdb-cache/film/${tmdbId}`,
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,
     invitedBy: (username: string) => `/api/test/users/${username}/invited-by`,

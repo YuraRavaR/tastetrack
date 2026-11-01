@@ -18,6 +18,11 @@ export class TestHooksController extends BaseController {
     return this.requestContext.post(endpoints.testHooks.records, { ...options, data: recordIds });
   }
 
+  // Takes a film out of the TMDB cache, as the cron does once an entry expires.
+  evictFromTmdbCache(tmdbId: string, options?: RequestOptions) {
+    return this.requestContext.delete(endpoints.testHooks.tmdbCacheFilm(tmdbId), options);
+  }
+
   fillBacklog(username: string, count: number, options?: RequestOptions) {
     return this.requestContext.post(endpoints.testHooks.backlog(username), {
       ...options,
