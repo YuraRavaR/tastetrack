@@ -1,5 +1,5 @@
 // Test-only routes, mounted under /api/test. They stay out of the OpenAPI spec, and with test
-// hooks off the whole prefix falls through to the JSON 404.
+// hooks off or without their secret the whole prefix falls through to the JSON 404.
 import { z } from "@hono/zod-openapi";
 import { and, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
@@ -10,7 +10,7 @@ import { maxListItems } from "../shared/lists";
 import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { tmdbFake } from "./catalog/tmdb-fake";
-import { type AppEnv, testHooksOn } from "./env";
+import { type AppEnv, requestHasTestHooksAccess, testHooksOn } from "./env";
 import { fillBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
 
@@ -18,6 +18,20 @@ export const testHooks = new Hono<AppEnv>();
 
 testHooks.use(async (c, next) => {
   if (!testHooksOn(c.env)) return c.notFound();
+  await next();
+});
+
+// The TMDB fake that the `local` Worker searches (wrangler.jsonc). It comes before the secret
+// check because the Worker's own calls to it don't carry the secret, so it exists only for the
+// Worker that searches it: staging, which searches real TMDB, has no fake.
+testHooks.use("/tmdb/*", async (c, next) => {
+  if (!c.env.TMDB_BASE_URL.includes("/api/test/tmdb/")) return c.notFound();
+  await next();
+});
+testHooks.route("/tmdb", tmdbFake);
+
+testHooks.use(async (c, next) => {
+  if (!requestHasTestHooksAccess(c)) return c.notFound();
   await next();
 });
 
@@ -138,6 +152,3 @@ testHooks.delete("/tmdb-cache/:mediaType/:externalId", async (c) => {
     .where(and(eq(tmdbCache.mediaType, mediaType), eq(tmdbCache.externalId, externalId)));
   return c.body(null, 204);
 });
-
-// The TMDB fake that the `local` Worker searches (wrangler.jsonc).
-testHooks.route("/tmdb", tmdbFake);

@@ -22,6 +22,7 @@
     "test:e2e": "playwright test --project=e2e",
     "test:smoke": "playwright test --project=smoke",
     "test:deployed": "playwright test --project=api --project=e2e",
+    "test:report": "scripts/staging-report.sh open",
     "test": "pnpm test:unit && playwright test"
   },
   "dependencies": {

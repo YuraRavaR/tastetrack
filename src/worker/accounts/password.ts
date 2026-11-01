@@ -42,7 +42,7 @@ async function derive(
 }
 
 // Compares every byte whatever the first difference, so timing doesn't reveal how much matched.
-function equalInConstantTime(a: Uint8Array, b: Uint8Array): boolean {
+export function equalInConstantTime(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;
   let difference = 0;
   for (let i = 0; i < a.length; i += 1) difference |= (a[i] ?? 0) ^ (b[i] ?? 0);

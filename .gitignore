@@ -6,3 +6,4 @@ dist/
 !.dev.vars.example
 test-results/
 playwright-report/
+playwright-staging.enc

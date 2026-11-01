@@ -51,6 +51,7 @@ export const endpoints = {
     manualItems: (username: string) => `/api/test/users/${username}/manual-items`,
     records: "/api/test/records",
     tmdbCacheFilm: (tmdbId: string) => `/api/test/tmdb-cache/film/${tmdbId}`,
+    tmdbFakeSearch: "/api/test/tmdb/3/search/movie?query=alien",
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,
     invitedBy: (username: string) => `/api/test/users/${username}/invited-by`,
