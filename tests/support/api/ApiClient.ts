@@ -6,6 +6,7 @@ import { InviteCodesController } from "./controllers/InviteCodesController";
 import { ListItemsController } from "./controllers/ListItemsController";
 import { ListsController } from "./controllers/ListsController";
 import { LogController } from "./controllers/LogController";
+import { MeController } from "./controllers/MeController";
 import { TestHooksController } from "./controllers/TestHooksController";
 
 // One client of the API, such as a device or a visitor. Every controller shares `requestContext`,
@@ -18,6 +19,7 @@ export class ApiClient {
   readonly listItems: ListItemsController;
   readonly lists: ListsController;
   readonly log: LogController;
+  readonly me: MeController;
   readonly testHooks: TestHooksController;
 
   constructor(requestContext: APIRequestContext) {
@@ -28,6 +30,7 @@ export class ApiClient {
     this.listItems = new ListItemsController(requestContext);
     this.lists = new ListsController(requestContext);
     this.log = new LogController(requestContext);
+    this.me = new MeController(requestContext);
     this.testHooks = new TestHooksController(requestContext);
   }
 }

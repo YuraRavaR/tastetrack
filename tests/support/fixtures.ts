@@ -5,7 +5,7 @@ import { createUser, type TestUser } from "./users";
 interface Fixtures {
   api: ApiClient;
   loggedInApi: ApiClient;
-  createApiClient: () => Promise<ApiClient>;
+  createApiClient: (options?: { baseURL?: string }) => Promise<ApiClient>;
   otherUser: ApiClient;
   registeredUser: TestUser;
   loggedInUser: TestUser;
@@ -25,8 +25,8 @@ export const test = base.extend<Fixtures>({
   },
   createApiClient: async ({ playwright, baseURL }, use) => {
     const requestContexts: APIRequestContext[] = [];
-    await use(async () => {
-      const requestContext = await playwright.request.newContext({ baseURL });
+    await use(async (options) => {
+      const requestContext = await playwright.request.newContext({ baseURL, ...options });
       requestContexts.push(requestContext);
       return new ApiClient(requestContext);
     });

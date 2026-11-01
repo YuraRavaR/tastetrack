@@ -28,10 +28,16 @@ export const endpoints = {
     collection: "/api/log-entries",
     byId: (logEntryId: number) => `/api/log-entries/${logEntryId}`,
   },
+  me: {
+    displayName: "/api/me/display-name",
+    password: "/api/me/password",
+    newPassword: "/api/me/new-password",
+  },
   // Exists only where test hooks are on (local and staging).
   testHooks: {
     backlog: (username: string) => `/api/test/users/${username}/backlog`,
     listItems: (listId: number) => `/api/test/lists/${listId}/items`,
+    passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,
     invitedBy: (username: string) => `/api/test/users/${username}/invited-by`,
   },

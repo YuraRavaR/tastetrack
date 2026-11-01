@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { type APIRequestContext, expect, request, test } from "@playwright/test";
 import { ApiClient } from "./api/ApiClient";
+import { TestHooksController } from "./api/controllers/TestHooksController";
 import { expectBody } from "./api/responses";
 
 export interface TestUser {
@@ -77,7 +78,6 @@ export async function createUser(): Promise<TestUser> {
 // Resets the User's password as the Operator does, through the test-hook route, and returns the
 // Temporary Password. Every session of theirs ends.
 export async function resetPassword(api: APIRequestContext, username: string): Promise<string> {
-  const response = await api.post(`/api/test/users/${username}/password-reset`);
-  expect(response.status()).toBe(200);
-  return (await response.json()).temporaryPassword;
+  const reset = new TestHooksController(api).resetPassword(username);
+  return (await expectBody(reset)).temporaryPassword;
 }
