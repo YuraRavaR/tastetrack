@@ -9,6 +9,9 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     return `/items/${mediaItemId}`;
   }
 
+  // Any film's address, for a test that doesn't know which film it opened.
+  readonly anyPath = /\/items\/\d+$/;
+
   readonly heading = this.main.getByRole("heading", { level: 1 });
   readonly backdrop = this.main.locator("picture");
   readonly backdropImage = this.backdrop.locator("img");

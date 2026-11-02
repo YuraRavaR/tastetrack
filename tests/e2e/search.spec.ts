@@ -1,347 +1,349 @@
-import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
+import type { ApiClient } from "../support/api/ApiClient";
+import { expectBody } from "../support/api/responses";
 import { alien, aliens, amelie, newFilm } from "../support/scenarios/films";
-import { createList } from "../support/scenarios/lists";
 import { callsRealTmdb } from "../support/scenarios/tmdb";
-import { logInNewUser } from "../support/scenarios/users";
-import { searchResultRow } from "../support/ui/search-results";
+import { expect, test } from "../support/ui/fixtures";
 
 // Locally the Worker searches a TMDB fake; on staging, the real TMDB. Both know these films.
 
-function alienResult(page: Page) {
-  return searchResultRow(page, "Alien (1979)");
-}
-
-async function createListHolding(api: APIRequestContext, name: string, mediaItemId: number) {
-  const list = await createList(api, { name });
-  const added = await api.post(`/api/lists/${list.id}/items`, { data: { mediaItemId } });
+async function createListHolding(api: ApiClient, name: string, mediaItemId: number) {
+  const { list } = await expectBody(api.lists.createList({ name, mediaType: "film" }), 201);
+  const added = await api.lists.addListItem(list.id, { mediaItemId });
   expect(added.status(), await added.text()).toBe(201);
   return list;
 }
 
 test("a User searches films as they type, in English or Ukrainian", { tag: "@smoke" }, async ({
-  page,
+  loggedInUi: ui,
 }) => {
-  await logInNewUser(page.request);
-  await page.goto("/");
-  const search = page.getByRole("searchbox", { name: "Search films" });
-  const results = page.getByRole("list", { name: "Search results" });
+  const { homePage } = ui;
+  const { searchResults } = homePage;
+  await homePage.goto();
 
-  await search.fill("alien");
+  await homePage.search("alien");
 
-  await expect(results.getByText("Alien (1979)", { exact: true })).toBeVisible();
-  await search.fill("чужий");
-  await expect(results.getByText("Чужий (Alien, 1979)", { exact: true })).toBeVisible();
-  await expect(results.getByText("Alien (1979)", { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /^search/i })).toHaveCount(0);
+  await expect(searchResults.title("Alien (1979)")).toBeVisible();
+  await homePage.search("чужий");
+  await expect(searchResults.title("Чужий (Alien, 1979)")).toBeVisible();
+  await expect(searchResults.title("Alien (1979)")).toHaveCount(0);
+  await expect(homePage.searchButton).toHaveCount(0);
 });
 
 test("a result without a poster is named No poster, and one with a poster isn't", async ({
-  page,
+  loggedInUi: ui,
 }) => {
-  await logInNewUser(page.request);
-  await page.goto("/");
-  const search = page.getByRole("searchbox", { name: "Search films" });
-  const results = page.getByRole("list", { name: "Search results" });
+  const { homePage } = ui;
+  const { searchResults } = homePage;
+  await homePage.goto();
 
-  await search.fill("matrix");
-  const placeholder = results
-    .getByRole("listitem")
-    .filter({ hasText: "The Matrix" })
-    .getByRole("img", { name: "No poster" });
-  await expect(placeholder).toBeVisible();
+  await homePage.search("matrix");
+  await expect(searchResults.resultWithText("The Matrix").noPosterPlaceholder).toBeVisible();
 
-  await search.fill("alien");
-  await expect(results.getByText("Alien (1979)", { exact: true })).toBeVisible();
-  await expect(results.getByRole("img", { name: "No poster" })).toHaveCount(0);
+  await homePage.search("alien");
+  await expect(searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(searchResults.noPosterPlaceholders).toHaveCount(0);
 });
 
-test("a User clears the search with one click and can type again", async ({ page }) => {
-  await logInNewUser(page.request);
-  await page.goto("/");
-  const search = page.getByRole("searchbox", { name: "Search films" });
-  const results = page.getByRole("list", { name: "Search results" });
-  const clear = page.getByRole("button", { name: "Clear search" });
+test("a User clears the search with one click and can type again", async ({ loggedInUi: ui }) => {
+  const { homePage } = ui;
+  const { searchBox, searchResults, clearSearchButton } = homePage;
+  await homePage.goto();
 
-  await expect(clear).toHaveCount(0);
-  await search.fill("alien");
-  await expect(results.getByText("Alien (1979)", { exact: true })).toBeVisible();
-  await clear.click();
+  await expect(clearSearchButton).toHaveCount(0);
+  await homePage.search("alien");
+  await expect(searchResults.title("Alien (1979)")).toBeVisible();
+  await clearSearchButton.click();
 
-  await expect(search).toHaveValue("");
-  await expect(search).toBeFocused();
-  await expect(results).toHaveCount(0);
-  await expect(clear).toHaveCount(0);
+  await expect(searchBox).toHaveValue("");
+  await expect(searchBox).toBeFocused();
+  await expect(searchResults.root).toHaveCount(0);
+  await expect(clearSearchButton).toHaveCount(0);
 });
 
-test("typing a title makes one search once the User pauses", async ({ page }) => {
-  await logInNewUser(page.request);
-  await page.goto("/");
+test("typing a title makes one search once the User pauses", async ({ page, loggedInUi: ui }) => {
+  const { homePage } = ui;
+  await homePage.goto();
   const searched: string[] = [];
   page.on("request", (request) => {
     const url = new URL(request.url());
     if (url.pathname === "/api/catalog/search") searched.push(url.searchParams.get("query") ?? "");
   });
 
-  await page.getByRole("searchbox", { name: "Search films" }).pressSequentially("alien", {
-    delay: 100,
-  });
+  await homePage.searchBox.pressSequentially("alien", { delay: 100 });
 
-  await expect(
-    page.getByRole("list", { name: "Search results" }).getByText("Alien (1979)", { exact: true }),
-  ).toBeVisible();
+  await expect(homePage.searchResults.title("Alien (1979)")).toBeVisible();
   expect(searched).toEqual(["alien"]);
 });
 
-test("a User opens a result's film page and goes Back to the same results", async ({ page }) => {
-  await logInNewUser(page.request);
-  const film = await alien(page.request);
-  await page.goto("/");
-  await page.getByRole("searchbox", { name: "Search films" }).fill("alien");
+test("a User opens a result's film page and goes Back to the same results", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const film = await alien(api);
+  const { homePage, filmPage } = ui;
+  await homePage.goto();
+  await homePage.search("alien");
 
-  await page.getByRole("link", { name: "Alien (1979)", exact: true }).click();
+  await homePage.searchResults.link("Alien (1979)").click();
 
-  await expect(page).toHaveURL(`/items/${film.id}`);
-  await expect(page.getByRole("heading", { level: 1, name: "Alien" })).toBeVisible();
+  await expect(page).toHaveURL(filmPage.path(film.id));
+  await expect(filmPage.heading).toContainText("Alien");
 
   await page.goBack();
 
-  await expect(page).toHaveURL("/?q=alien");
-  await expect(page.getByRole("searchbox", { name: "Search films" })).toHaveValue("alien");
-  await expect(
-    page
-      .getByRole("list", { name: "Search results" })
-      .getByRole("link", { name: "Alien (1979)", exact: true }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(homePage.path("alien"));
+  await expect(homePage.searchBox).toHaveValue("alien");
+  await expect(homePage.searchResults.link("Alien (1979)")).toBeVisible();
 });
 
 test("going Back from a film's page returns to where the User was in the results", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  await Promise.all([alien(page.request), aliens(page.request), amelie(page.request)]);
+  await Promise.all([alien(api), aliens(api), amelie(api)]);
+  const { homePage, filmPage } = ui;
   await page.setViewportSize({ width: 390, height: 420 });
-  await page.goto("/?q=a");
-  const film = page.getByRole("link", { name: /^Amélie/ });
+  await homePage.goto("a");
+  const film = homePage.searchResults.link(/^Amélie/);
   // In the middle of the screen, clear of the tab bar, so clicking it doesn't scroll the page.
   await film.evaluate((link) => link.scrollIntoView({ block: "center" }));
   const scrolled = await page.evaluate(() => window.scrollY);
   expect(scrolled).toBeGreaterThan(0);
 
   await film.click();
-  await expect(page).toHaveURL(/\/items\/\d+$/);
+  await expect(page).toHaveURL(filmPage.anyPath);
   await page.goBack();
 
   await expect(film).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrolled);
 });
 
-test("a film not in the catalog has a plain title, until the User adds it", async ({ page }) => {
+test("a film not in the catalog has a plain title, until the User adds it", async ({
+  loggedInUi: ui,
+}) => {
   test.skip(callsRealTmdb(), "Only the TMDB fake has a film no one has added");
-  await logInNewUser(page.request);
   const film = newFilm();
-  await page.goto("/");
-  const results = page.getByRole("list", { name: "Search results" });
+  const { homePage } = ui;
+  const { searchResults } = homePage;
+  await homePage.goto();
 
-  await page.getByRole("searchbox", { name: "Search films" }).fill(film.query);
+  await homePage.search(film.query);
 
-  await expect(results.getByText(film.label, { exact: true })).toBeVisible();
-  await expect(results.getByRole("link", { name: film.label, exact: true })).toHaveCount(0);
+  await expect(searchResults.title(film.label)).toBeVisible();
+  await expect(searchResults.link(film.label)).toHaveCount(0);
 
-  await results.getByRole("button", { name: "Want to watch" }).click();
+  await searchResults.result(film.label).wantToWatchButton.click();
 
-  await expect(results.getByRole("link", { name: film.label, exact: true })).toBeVisible();
+  await expect(searchResults.link(film.label)).toBeVisible();
 });
 
 test("typing keeps the query in the URL as one history entry, and clearing removes it", async ({
   page,
+  loggedInUi: ui,
 }) => {
-  await logInNewUser(page.request);
-  await page.goto("/log");
-  await page.getByRole("link", { name: "Home", exact: true }).first().click();
-  const search = page.getByRole("searchbox", { name: "Search films" });
+  const { homePage, logPage } = ui;
+  await logPage.goto();
+  await logPage.mainNav.link("Home").click();
+  const { searchBox } = homePage;
 
-  await search.pressSequentially("alien");
-  await expect(page).toHaveURL("/?q=alien");
+  await searchBox.pressSequentially("alien");
+  await expect(page).toHaveURL(homePage.path("alien"));
 
-  await page.getByRole("button", { name: "Clear search" }).click();
-  await expect(page).toHaveURL("/");
+  await homePage.clearSearchButton.click();
+  await expect(page).toHaveURL(homePage.path());
   await page.reload();
-  await expect(search).toHaveValue("");
-  await expect(page.getByRole("heading", { name: "Latest in your Log" })).toBeVisible();
+  await expect(searchBox).toHaveValue("");
+  await expect(homePage.logHeading).toBeVisible();
 
-  await search.fill("alien");
-  await expect(page).toHaveURL("/?q=alien");
+  await homePage.search("alien");
+  await expect(page).toHaveURL(homePage.path("alien"));
   await page.goBack();
-  await expect(page).toHaveURL("/log");
+  await expect(page).toHaveURL(logPage.path());
 });
 
-test("a URL with a query runs that search, and Home leaves it", async ({ page }) => {
-  await logInNewUser(page.request);
+test("a URL with a query runs that search, and Home leaves it", async ({
+  page,
+  loggedInUi: ui,
+}) => {
+  const { homePage } = ui;
 
-  await page.goto("/?q=alien");
+  await homePage.goto("alien");
 
-  await expect(page.getByRole("searchbox", { name: "Search films" })).toHaveValue("alien");
-  await expect(
-    page.getByRole("list", { name: "Search results" }).getByText("Alien (1979)", { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Latest in your Log" })).toHaveCount(0);
+  await expect(homePage.searchBox).toHaveValue("alien");
+  await expect(homePage.searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(homePage.logHeading).toHaveCount(0);
 
-  await page.getByRole("link", { name: "Home", exact: true }).first().click();
+  await homePage.mainNav.link("Home").click();
 
-  await expect(page).toHaveURL("/");
-  await expect(page.getByRole("searchbox", { name: "Search films" })).toHaveValue("");
-  await expect(page.getByRole("heading", { name: "Latest in your Log" })).toBeVisible();
+  await expect(page).toHaveURL(homePage.path());
+  await expect(homePage.searchBox).toHaveValue("");
+  await expect(homePage.logHeading).toBeVisible();
 });
 
-test("a User marks a film watched, then logs a rewatch with a new Rating", async ({ page }) => {
-  await logInNewUser(page.request);
-  await page.goto("/?q=alien");
-  const result = alienResult(page);
-  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
-  const again = result.getByRole("button", { name: "Watched again" });
-  await expect(result.getByRole("button", { name: "Mark watched" })).toBeVisible();
+test("a User marks a film watched, then logs a rewatch with a new Rating", async ({
+  page,
+  loggedInUi: ui,
+}) => {
+  const { homePage, filmPage } = ui;
+  await homePage.goto("alien");
+  const result = homePage.searchResults.result("Alien (1979)");
+  const dialog = homePage.logEntryDialog("Alien");
+  await expect(result.markWatchedButton).toBeVisible();
   let searches = 0;
   page.on("request", (request) => {
     if (new URL(request.url()).pathname === "/api/catalog/search") searches += 1;
   });
 
-  await result.getByRole("button", { name: "Mark watched" }).click();
-  await expect(dialog.getByText("Watched", { exact: true })).toBeVisible();
-  await expect(dialog.getByRole("switch", { name: "Rewatch" })).not.toBeChecked();
-  await expect(dialog.getByText("Last time")).toHaveCount(0);
-  await dialog.getByRole("radio", { name: "4 stars" }).check();
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toBeHidden();
+  await result.markWatchedButton.click();
+  await expect(dialog.kindLabel("Watched")).toBeVisible();
+  await expect(dialog.rewatchSwitch).not.toBeChecked();
+  await expect(dialog.lastTime).toHaveCount(0);
+  await dialog.rate("4 stars");
+  await dialog.save();
+  await expect(dialog.root).toBeHidden();
 
-  await expect(result.getByRole("button", { name: "Mark watched" })).toHaveCount(0);
-  await expect(result.getByRole("link", { name: "4 · 1 viewing" })).toBeVisible();
+  await expect(result.markWatchedButton).toHaveCount(0);
+  await expect(result.itemHistoryLink("4 · 1 viewing")).toBeVisible();
 
-  await again.click();
-  await expect(dialog.getByText("Watched again", { exact: true })).toBeVisible();
-  await expect(dialog.getByRole("switch", { name: "Rewatch" })).toBeChecked();
-  await expect(dialog.getByText("Last time")).toContainText("Last time 4 ·");
-  await expect(dialog.getByRole("radio", { checked: true })).toHaveCount(0);
-  await dialog.getByRole("radio", { name: "2.5 stars" }).check();
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toBeHidden();
+  await result.watchedAgainButton.click();
+  await expect(dialog.kindLabel("Watched again")).toBeVisible();
+  await expect(dialog.rewatchSwitch).toBeChecked();
+  await expect(dialog.lastTime).toContainText("Last time 4 ·");
+  await expect(dialog.checkedRatingRadios).toHaveCount(0);
+  await dialog.rate("2.5 stars");
+  await dialog.save();
+  await expect(dialog.root).toBeHidden();
 
-  await expect(result.getByRole("link", { name: "2.5 · 2 viewings" })).toBeVisible();
+  await expect(result.itemHistoryLink("2.5 · 2 viewings")).toBeVisible();
   expect(searches).toBe(0);
-  await result.getByRole("link", { name: "2.5 · 2 viewings" }).click();
-  await expect(page).toHaveURL(/\/items\/\d+$/);
+  await result.itemHistoryLink("2.5 · 2 viewings").click();
+  await expect(page).toHaveURL(filmPage.anyPath);
 });
 
-test("a backdated rewatch leaves the row's Current Rating as it was", async ({ page }) => {
-  await logInNewUser(page.request);
-  const { id: mediaItemId } = await alien(page.request);
-  await page.request.post("/api/log-entries", {
-    data: { mediaItemId, rating: 4, date: "2024-03-12" },
-  });
-  await page.goto("/?q=alien");
-  const result = alienResult(page);
-  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
+test("a backdated rewatch leaves the row's Current Rating as it was", async ({
+  ui,
+  loggedInApi: api,
+}) => {
+  const { id: mediaItemId } = await alien(api);
+  const logged = await api.log.createLogEntry({ mediaItemId, rating: 4, date: "2024-03-12" });
+  expect(logged.status()).toBe(201);
+  const { homePage } = ui;
+  await homePage.goto("alien");
+  const result = homePage.searchResults.result("Alien (1979)");
+  const dialog = homePage.logEntryDialog("Alien");
 
-  await result.getByRole("button", { name: "Watched again" }).click();
-  await expect(dialog.getByText("Last time")).toHaveText("Last time 4 · Mar 12, 2024");
-  await dialog.getByRole("radio", { name: "1 star", exact: true }).check();
-  await dialog.getByRole("button", { name: "Other date" }).click();
-  await dialog.getByLabel("Date watched").fill("2020-01-01");
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toBeHidden();
+  await result.watchedAgainButton.click();
+  await expect(dialog.lastTime).toHaveText("Last time 4 · Mar 12, 2024");
+  await dialog.rate("1 star");
+  await dialog.dateChip("Other date").click();
+  await dialog.dateInput.fill("2020-01-01");
+  await dialog.save();
+  await expect(dialog.root).toBeHidden();
 
-  await expect(result.getByRole("link", { name: "4 · 2 viewings" })).toBeVisible();
+  await expect(result.itemHistoryLink("4 · 2 viewings")).toBeVisible();
 });
 
-test("the hint leaves out the date of a Log Entry with none", async ({ page }) => {
-  await logInNewUser(page.request);
-  const { id: mediaItemId } = await alien(page.request);
-  await page.request.post("/api/log-entries", { data: { mediaItemId, rating: 3.5 } });
-  await page.goto("/?q=alien");
+test("the hint leaves out the date of a Log Entry with none", async ({ ui, loggedInApi: api }) => {
+  const { id: mediaItemId } = await alien(api);
+  expect((await api.log.createLogEntry({ mediaItemId, rating: 3.5 })).status()).toBe(201);
+  const { homePage } = ui;
+  await homePage.goto("alien");
 
-  await alienResult(page).getByRole("button", { name: "Watched again" }).click();
+  await homePage.searchResults.result("Alien (1979)").watchedAgainButton.click();
 
-  await expect(page.getByRole("dialog").getByText("Last time")).toHaveText("Last time 3.5");
+  await expect(homePage.logEntryDialog("Alien").lastTime).toHaveText("Last time 3.5");
 });
 
 test("a result shows two of its Lists, then how many more, each linking to its List", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  const { id: mediaItemId } = await alien(page.request);
-  const first = await createListHolding(page.request, "First", mediaItemId);
-  await createListHolding(page.request, "Second", mediaItemId);
-  await createListHolding(page.request, "Third", mediaItemId);
-  await page.goto("/?q=alien");
-  const result = alienResult(page);
+  const { id: mediaItemId } = await alien(api);
+  const first = await createListHolding(api, "First", mediaItemId);
+  await createListHolding(api, "Second", mediaItemId);
+  await createListHolding(api, "Third", mediaItemId);
+  const { homePage, listPage } = ui;
+  await homePage.goto("alien");
+  const result = homePage.searchResults.result("Alien (1979)");
 
-  await expect(result.getByRole("img", { name: "Lists" })).toBeVisible();
-  await expect(result.getByRole("link", { name: "First", exact: true })).toBeVisible();
-  await expect(result.getByRole("link", { name: "Second", exact: true })).toBeVisible();
-  await expect(result.getByRole("link", { name: "Third", exact: true })).toHaveCount(0);
-  await expect(result.getByText("+1", { exact: true })).toBeVisible();
+  await expect(result.listsIcon).toBeVisible();
+  await expect(result.listChip("First")).toBeVisible();
+  await expect(result.listChip("Second")).toBeVisible();
+  await expect(result.listChip("Third")).toHaveCount(0);
+  await expect(result.moreLists(1)).toBeVisible();
 
-  await result.getByRole("link", { name: "First", exact: true }).click();
-  await expect(page).toHaveURL(`/lists/${first.id}`);
+  await result.listChip("First").click();
+  await expect(page).toHaveURL(listPage.path(first.id));
 });
 
-test("a result's List chips follow Add to list, without a new search", async ({ page }) => {
-  await logInNewUser(page.request);
-  await createList(page.request, { name: "Horror" });
-  await page.goto("/?q=alien");
-  const result = alienResult(page);
-  const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
-  const horror = dialog.getByRole("checkbox", { name: "Horror" });
-  const chip = result.getByRole("link", { name: "Horror", exact: true });
-  await expect(result.getByRole("img", { name: "Lists" })).toHaveCount(0);
+test("a result's List chips follow Add to list, without a new search", async ({
+  ui,
+  loggedInApi: api,
+}) => {
+  await expectBody(api.lists.createList({ name: "Horror", mediaType: "film" }), 201);
+  const { homePage } = ui;
+  await homePage.goto("alien");
+  const result = homePage.searchResults.result("Alien (1979)");
+  const dialog = homePage.filmListsDialog("Alien (1979)");
+  const horror = dialog.checkbox("Horror");
+  const chip = result.listChip("Horror");
+  await expect(result.listsIcon).toHaveCount(0);
 
-  await result.getByRole("button", { name: "Add to list" }).click();
+  await result.addToListButton.click();
   await horror.click();
   await expect(horror).toBeChecked();
-  await dialog.getByRole("button", { name: "Done" }).click();
+  await dialog.done();
   await expect(chip).toBeVisible();
 
-  await result.getByRole("button", { name: "Add to list" }).click();
+  await result.addToListButton.click();
   await horror.click();
   await expect(horror).not.toBeChecked();
-  await dialog.getByRole("button", { name: "Done" }).click();
+  await dialog.done();
   await expect(chip).toHaveCount(0);
-  await expect(result.getByRole("img", { name: "Lists" })).toHaveCount(0);
+  await expect(result.listsIcon).toHaveCount(0);
 });
 
 test("a result's List chips follow a change still saving when the dialog closes", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  await createList(page.request, { name: "Horror" });
-  await page.goto("/?q=alien");
-  const result = alienResult(page);
+  await expectBody(api.lists.createList({ name: "Horror", mediaType: "film" }), 201);
+  const { homePage } = ui;
+  await homePage.goto("alien");
+  const result = homePage.searchResults.result("Alien (1979)");
   await page.route("**/api/lists/*/items", async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     await route.continue();
   });
 
-  await result.getByRole("button", { name: "Add to list" }).click();
-  const dialog = page.getByRole("dialog", { name: "Lists for Alien (1979)" });
-  await dialog.getByRole("checkbox", { name: "Horror" }).click();
-  await dialog.getByRole("button", { name: "Done" }).click();
+  await result.addToListButton.click();
+  const dialog = homePage.filmListsDialog("Alien (1979)");
+  await dialog.checkbox("Horror").click();
+  await dialog.done();
 
-  await expect(result.getByRole("link", { name: "Horror", exact: true })).toBeVisible();
+  await expect(result.listChip("Horror")).toBeVisible();
 });
 
-test("a result's actions keep one order, and fit a 360px phone", async ({ page }) => {
-  await logInNewUser(page.request);
-  const { id: mediaItemId } = await alien(page.request);
-  await page.request.post("/api/log-entries", { data: { mediaItemId, rating: 4 } });
-  await page.goto("/?q=alien");
-  const result = alienResult(page);
-  const poster = result.locator("img");
-  const again = result.getByRole("button", { name: "Watched again" });
-  const bookmark = result.getByRole("button", { name: "Want to watch" });
-  const addToList = result.getByRole("button", { name: "Add to list" });
+test("a result's actions keep one order, and fit a 360px phone", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const { id: mediaItemId } = await alien(api);
+  expect((await api.log.createLogEntry({ mediaItemId, rating: 4 })).status()).toBe(201);
+  const { homePage } = ui;
+  await homePage.goto("alien");
+  const result = homePage.searchResults.result("Alien (1979)");
+  const { poster, watchedAgainButton: again, wantToWatchButton: bookmark } = result;
+  const { addToListButton: addToList, watchedAgainIcon } = result;
 
   await page.setViewportSize({ width: 360, height: 740 });
   await expect(again).toBeVisible();
-  await expect(again.locator("svg")).toBeHidden();
+  await expect(watchedAgainIcon).toBeHidden();
   await expect(poster).toHaveCSS("width", "72px");
   await expect(poster).toHaveCSS("height", "108px");
   await expect(again).toHaveCSS("height", "44px");
@@ -358,7 +360,7 @@ test("a result's actions keep one order, and fit a 360px phone", async ({ page }
   expect(middle).toBeLessThan(right ?? 0);
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(again.locator("svg")).toBeVisible();
+  await expect(watchedAgainIcon).toBeVisible();
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(again).toHaveCSS("width", "150px");
@@ -371,13 +373,12 @@ test("a result's actions keep one order, and fit a 360px phone", async ({ page }
   expect(wideLeft).toBeLessThan(wideRight ?? 0);
 });
 
-test("TMDB is credited with its logo and notice", { tag: "@smoke" }, async ({ page }) => {
-  await page.goto("/login");
+test("TMDB is credited with its logo and notice", { tag: "@smoke" }, async ({ ui }) => {
+  const { loginPage } = ui;
+  await loginPage.goto();
 
-  await expect(page.getByRole("img", { name: "TMDB" })).toBeVisible();
-  await expect(
-    page.getByText(
-      "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
-    ),
-  ).toBeVisible();
+  await expect(loginPage.footer.tmdbLogo).toBeVisible();
+  await expect(loginPage.footer.root).toContainText(
+    "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
+  );
 });
