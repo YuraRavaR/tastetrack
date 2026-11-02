@@ -8,4 +8,5 @@ export class WatchlistPage extends BasePage {
   }
 
   readonly shareLinkPanel = new ShareLinkPanel(this.page);
+  readonly emptyMessage = this.page.getByText("Your Watchlist is empty.");
 }
