@@ -238,8 +238,8 @@ test.describe("from md", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await homePage.goto();
 
-    const log = homePage.logRegion;
-    const watchlist = homePage.watchlistRegion;
+    const log = homePage.logSection.root;
+    const watchlist = homePage.watchlistSection.root;
     await expect(log).toBeVisible();
     await expect(watchlist).toBeVisible();
     expect((await homePage.main.boundingBox())?.width).toBe(1152);

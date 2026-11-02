@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Page, Response } from "@playwright/test";
 import { step } from "../step";
 import { FilmPage } from "./pages/FilmPage";
 import { HomePage } from "./pages/HomePage";
@@ -46,7 +46,7 @@ export class Ui {
 
   // Opens an address no page object covers, such as one the app doesn't know.
   @step
-  async goto(path: string): Promise<void> {
-    await this.page.goto(path);
+  async goto(path: string): Promise<Response | null> {
+    return this.page.goto(path);
   }
 }
