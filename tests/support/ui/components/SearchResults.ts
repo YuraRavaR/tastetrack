@@ -8,6 +8,11 @@ export class SearchResultRow extends ScopedComponent {
   readonly watchedAgainButton = this.root.getByRole("button", { name: "Watched again" });
   readonly watchedAgainIcon = this.watchedAgainButton.locator("svg");
   readonly wantToWatchButton = this.root.getByRole("button", { name: "Want to watch" });
+  // The same bookmark, pressed: the film is on the Watchlist.
+  readonly onWatchlistButton = this.root.getByRole("button", {
+    name: "Want to watch",
+    pressed: true,
+  });
   readonly addToListButton = this.root.getByRole("button", { name: "Add to list" });
   // On a List's page: adds the film to that List, which then says so.
   readonly addButton = this.root.getByRole("button", { name: "Add", exact: true });

@@ -63,6 +63,11 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     this.page.getByRole("alertdialog", { name: "Delete this entry?" }),
   );
 
+  // Any text on the page, such as the film's runtime and genres.
+  text(content: string) {
+    return this.main.getByText(content);
+  }
+
   posterImage(url: string) {
     return this.main.locator(`img[src="${url}"]`);
   }

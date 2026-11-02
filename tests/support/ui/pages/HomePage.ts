@@ -2,6 +2,7 @@ import { step } from "../../step";
 import { FilmListsDialog } from "../components/FilmListsDialog";
 import { LogEntryDialog } from "../components/LogEntryDialog";
 import { SearchResults } from "../components/SearchResults";
+import { Toast } from "../components/Toast";
 import { BasePage } from "./BasePage";
 
 export class HomePage extends BasePage<[query?: string]> {
@@ -17,6 +18,8 @@ export class HomePage extends BasePage<[query?: string]> {
   readonly searchResults = new SearchResults(
     this.page.getByRole("list", { name: "Search results" }),
   );
+  readonly toast = new Toast(this.page.getByRole("status"));
+  readonly errorMessage = this.page.getByRole("alert");
 
   readonly logRegion = this.page.getByRole("region", { name: "Latest in your Log" });
   readonly logHeading = this.page.getByRole("heading", { name: "Latest in your Log" });
