@@ -232,7 +232,7 @@ test("a Log that fails to load says so under its heading, and the Watchlist and 
   await expect(log.errorMessage).toHaveText("Couldn't load your Log. Please try again.");
   await expect(homePage.watchlistSection.items).toContainText("Alien (1979)");
   await homePage.search("alien");
-  await expect(homePage.searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(homePage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
 });
 
 test("a deep link loads the app, not a 404", async ({ ui }) => {

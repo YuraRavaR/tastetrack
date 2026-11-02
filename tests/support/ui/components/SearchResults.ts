@@ -47,7 +47,7 @@ export class SearchResults extends ScopedComponent {
   readonly noPosterPlaceholders = this.root.getByRole("img", { name: "No poster" });
 
   // A film by its label, such as "Alien (1979)".
-  title(label: string) {
+  filmLabel(label: string) {
     return this.root.getByText(label, { exact: true });
   }
 

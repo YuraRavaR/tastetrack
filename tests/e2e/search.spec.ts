@@ -22,10 +22,10 @@ test("a User searches films as they type, in English or Ukrainian", { tag: "@smo
 
   await homePage.search("alien");
 
-  await expect(searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(searchResults.filmLabel("Alien (1979)")).toBeVisible();
   await homePage.search("чужий");
-  await expect(searchResults.title("Чужий (Alien, 1979)")).toBeVisible();
-  await expect(searchResults.title("Alien (1979)")).toHaveCount(0);
+  await expect(searchResults.filmLabel("Чужий (Alien, 1979)")).toBeVisible();
+  await expect(searchResults.filmLabel("Alien (1979)")).toHaveCount(0);
   await expect(homePage.searchButton).toHaveCount(0);
 });
 
@@ -40,7 +40,7 @@ test("a result without a poster is named No poster, and one with a poster isn't"
   await expect(searchResults.resultWithText("The Matrix").noPosterPlaceholder).toBeVisible();
 
   await homePage.search("alien");
-  await expect(searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(searchResults.filmLabel("Alien (1979)")).toBeVisible();
   await expect(searchResults.noPosterPlaceholders).toHaveCount(0);
 });
 
@@ -51,7 +51,7 @@ test("a User clears the search with one click and can type again", async ({ logg
 
   await expect(clearSearchButton).toHaveCount(0);
   await homePage.search("alien");
-  await expect(searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(searchResults.filmLabel("Alien (1979)")).toBeVisible();
   await clearSearchButton.click();
 
   await expect(searchBox).toHaveValue("");
@@ -71,7 +71,7 @@ test("typing a title makes one search once the User pauses", async ({ page, logg
 
   await homePage.searchBox.pressSequentially("alien", { delay: 100 });
 
-  await expect(homePage.searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(homePage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
   expect(searched).toEqual(["alien"]);
 });
 
@@ -131,7 +131,7 @@ test("a film not in the catalog has a plain title, until the User adds it", asyn
 
   await homePage.search(film.query);
 
-  await expect(searchResults.title(film.label)).toBeVisible();
+  await expect(searchResults.filmLabel(film.label)).toBeVisible();
   await expect(searchResults.link(film.label)).toHaveCount(0);
 
   await searchResults.result(film.label).wantToWatchButton.click();
@@ -172,7 +172,7 @@ test("a URL with a query runs that search, and Home leaves it", async ({
   await homePage.goto("alien");
 
   await expect(homePage.searchBox).toHaveValue("alien");
-  await expect(homePage.searchResults.title("Alien (1979)")).toBeVisible();
+  await expect(homePage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
   await expect(homePage.logHeading).toHaveCount(0);
 
   await homePage.mainNav.link("Home").click();

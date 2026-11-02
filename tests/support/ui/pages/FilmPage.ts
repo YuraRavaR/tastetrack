@@ -8,12 +8,14 @@ import { ScopedComponent } from "../components/ScopedComponent";
 import { Toast } from "../components/Toast";
 import { BasePage } from "./BasePage";
 
+type EntryAction = "Edit" | "Delete";
+
 // The menu a Viewing's "⋯" button opens: Edit and Delete.
 class EntryActionsMenu extends ScopedComponent {
   readonly items = this.root.getByRole("menuitem");
   readonly separator = this.root.getByRole("separator");
 
-  item(name: string) {
+  item(name: EntryAction) {
     return this.root.getByRole("menuitem", { name });
   }
 }
@@ -95,9 +97,9 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     return this.main.getByRole("button", { name: `Actions for ${date}` });
   }
 
-  // Opens the "⋯" menu of the Viewing with this date and picks Edit or Delete.
+  // Opens the "⋯" menu of the Viewing with this date and picks an action.
   @step
-  async chooseEntryAction(date: string, action: string): Promise<void> {
+  async chooseEntryAction(date: string, action: EntryAction): Promise<void> {
     await this.entryActionsButton(date).click();
     await this.entryActionsMenu.item(action).click();
   }
