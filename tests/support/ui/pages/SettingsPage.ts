@@ -1,3 +1,4 @@
+import { step } from "../../step";
 import { ScopedComponent } from "../components/ScopedComponent";
 import { BasePage } from "./BasePage";
 
@@ -7,6 +8,7 @@ class DisplayNameSection extends ScopedComponent {
   readonly status = this.root.getByRole("status");
 
   // An empty Display Name makes it the Username again.
+  @step
   async save(displayName: string): Promise<void> {
     await this.input.fill(displayName);
     await this.saveButton.click();
@@ -20,6 +22,7 @@ class PasswordSection extends ScopedComponent {
   readonly status = this.root.getByRole("status");
   readonly errorMessage = this.root.getByRole("alert");
 
+  @step
   async change(currentPassword: string, newPassword: string): Promise<void> {
     await this.currentPasswordInput.fill(currentPassword);
     await this.newPasswordInput.fill(newPassword);
@@ -32,6 +35,7 @@ class DeleteAccountSection extends ScopedComponent {
   readonly deleteButton = this.root.getByRole("button", { name: "Delete account" });
   readonly errorMessage = this.root.getByRole("alert");
 
+  @step
   async deleteAccount(password: string): Promise<void> {
     await this.passwordInput.fill(password);
     await this.deleteButton.click();

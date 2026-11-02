@@ -1,3 +1,4 @@
+import { step } from "../../step";
 import { BasePage } from "./BasePage";
 
 // The User's Invite Codes.
@@ -12,6 +13,7 @@ export class InvitesPage extends BasePage {
     .getByRole("listitem");
 
   // The code of the one active Invite Code.
+  @step
   async readActiveInviteCode(): Promise<string> {
     return (await this.activeInviteCodes.getByRole("code").textContent()) ?? "";
   }

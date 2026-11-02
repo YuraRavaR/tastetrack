@@ -1,4 +1,5 @@
 import type { RegisterRequest } from "@shared/api";
+import { step } from "../../step";
 import { BasePage } from "./BasePage";
 
 export class RegisterPage extends BasePage<[inviteCode?: string]> {
@@ -16,6 +17,7 @@ export class RegisterPage extends BasePage<[inviteCode?: string]> {
   readonly errorMessage = this.page.getByRole("alert");
 
   // Registers with the Invite Code already in its field.
+  @step
   async register(account: Pick<RegisterRequest, "username" | "password">): Promise<void> {
     await this.usernameInput.fill(account.username);
     await this.passwordInput.fill(account.password);

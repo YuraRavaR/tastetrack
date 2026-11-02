@@ -1,3 +1,4 @@
+import { step } from "../../step";
 import { BasePage } from "./BasePage";
 
 // Where a User who logged in with a Temporary Password sets their own. Every other page sends them
@@ -14,6 +15,7 @@ export class NewPasswordPage extends BasePage {
   readonly setPasswordButton = this.page.getByRole("button", { name: "Set password" });
   readonly errorMessage = this.page.getByRole("alert");
 
+  @step
   async setPassword(newPassword: string): Promise<void> {
     await this.newPasswordInput.fill(newPassword);
     await this.setPasswordButton.click();

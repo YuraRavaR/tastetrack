@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import { step } from "../../step";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { MainNav } from "../components/MainNav";
@@ -20,6 +21,7 @@ export abstract class BasePage<Params extends unknown[] = []> {
 
   abstract path(...params: Params): string;
 
+  @step
   async goto(...params: Params): Promise<void> {
     await this.page.goto(this.path(...params));
   }

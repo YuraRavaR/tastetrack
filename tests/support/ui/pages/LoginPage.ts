@@ -1,4 +1,5 @@
 import type { LoginRequest } from "@shared/api";
+import { step } from "../../step";
 import { BasePage } from "./BasePage";
 
 export class LoginPage extends BasePage {
@@ -14,6 +15,7 @@ export class LoginPage extends BasePage {
   readonly statusMessage = this.page.getByRole("status");
   readonly registerLink = this.page.getByRole("link", { name: "Register" });
 
+  @step
   async logIn(credentials: LoginRequest): Promise<void> {
     await this.usernameInput.fill(credentials.username);
     await this.passwordInput.fill(credentials.password);
