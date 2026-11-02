@@ -1,9 +1,16 @@
 import { step } from "../../step";
 import { ScopedComponent } from "./ScopedComponent";
 
-// The dialog that logs a film as watched, named after the film.
+// The dialog that logs a film as watched, named after the film, or edits one of its Log Entries.
 export class LogEntryDialog extends ScopedComponent {
+  readonly closeButton = this.root.getByRole("button", { name: "Close" });
+  readonly cancelButton = this.root.getByRole("button", { name: "Cancel" });
+  readonly deleteButton = this.root.getByRole("button", { name: "Delete" });
   readonly rewatchSwitch = this.root.getByRole("switch", { name: "Rewatch" });
+  readonly reviewInput = this.root.getByLabel("Review");
+  readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
+  readonly dateError = this.root.getByText("That isn't a valid date.");
+  readonly errorMessage = this.root.getByRole("alert");
   // The hint with the film's Current Rating and date, once it is in the Log.
   readonly lastTime = this.root.getByText("Last time");
   readonly watchlistNote = this.root.getByText("Saving takes it off your Watchlist");
@@ -14,6 +21,11 @@ export class LogEntryDialog extends ScopedComponent {
   // "Watched" above the title, or "Watched again" for a film already in the Log.
   kindLabel(label: string) {
     return this.root.getByText(label, { exact: true });
+  }
+
+  // The chosen Rating as a number, "4.5", or "–" before one is chosen.
+  shownRating(value: string) {
+    return this.root.getByText(value, { exact: true });
   }
 
   // A Rating by its stars, such as "3 stars" or "1 star".
