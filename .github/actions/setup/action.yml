@@ -5,6 +5,9 @@ inputs:
   playwright:
     description: Also install Chromium for the Playwright tests.
     default: "false"
+  webkit:
+    description: Also install WebKit, for the mobile Playwright project.
+    default: "false"
 
 runs:
   using: composite
@@ -27,3 +30,9 @@ runs:
       if: inputs.playwright == 'true'
       shell: bash
       run: pnpm exec playwright install chromium
+
+    # WebKit needs libraries the runner image lacks, so this one takes --with-deps.
+    - name: Install WebKit
+      if: inputs.webkit == 'true'
+      shell: bash
+      run: pnpm exec playwright install --with-deps webkit
