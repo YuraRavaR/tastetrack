@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/YuraRavaR/tastetrack/compare/v0.6.0...v0.6.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **deps:** bump the production-dependencies group across 1 directory with 3 updates ([#106](https://github.com/YuraRavaR/tastetrack/issues/106)) ([78a2852](https://github.com/YuraRavaR/tastetrack/commit/78a2852733d33bf838a162836a9044ebc24a5e53))
+* require a secret for test hooks on staging ([#104](https://github.com/YuraRavaR/tastetrack/issues/104)) ([6d7d6bb](https://github.com/YuraRavaR/tastetrack/commit/6d7d6bb6979d4edec99387c171c8795c7cc6f12d)), closes [#102](https://github.com/YuraRavaR/tastetrack/issues/102)
+
 ## [0.6.0](https://github.com/YuraRavaR/tastetrack/compare/v0.5.0...v0.6.0) (2026-10-31)
 
 
