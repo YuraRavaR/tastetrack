@@ -3,6 +3,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { FilmListsDialog } from "../components/FilmListsDialog";
 import { ItemHistoryRow } from "../components/ItemHistoryRow";
 import { LogEntryDialog } from "../components/LogEntryDialog";
+import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
 import { ScopedComponent } from "../components/ScopedComponent";
 import { Toast } from "../components/Toast";
 import { BasePage } from "./BasePage";
@@ -44,6 +45,9 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   });
   readonly addToListButton = this.main.getByRole("button", { name: "Add to list" });
   readonly toast = new Toast(this.page.getByRole("status"));
+  // Only for a film the User added themselves.
+  readonly editFilmButton = this.main.getByRole("button", { name: "Edit film" });
+  readonly deleteFilmButton = this.main.getByRole("button", { name: "Delete film" });
 
   // The tiles: how often it was watched, its Current Rating, when first watched.
   readonly stats = this.main.getByRole("definition");
@@ -101,6 +105,14 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   // Named after the film, or "Edit your entry for Alien" when it edits a Log Entry.
   logEntryDialog(name: string) {
     return new LogEntryDialog(this.page.getByRole("dialog", { name, exact: true }));
+  }
+
+  editFilmDialog(filmLabel: string) {
+    return new ManualMediaItemDialog(this.page.getByRole("dialog", { name: `Edit ${filmLabel}` }));
+  }
+
+  deleteFilmDialog(filmLabel: string) {
+    return new ConfirmDialog(this.page.getByRole("alertdialog", { name: `Delete ${filmLabel}?` }));
   }
 
   filmListsDialog(filmLabel: string) {

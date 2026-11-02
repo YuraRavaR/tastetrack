@@ -1,6 +1,7 @@
 import { step } from "../../step";
 import { FilmListsDialog } from "../components/FilmListsDialog";
 import { LogEntryDialog } from "../components/LogEntryDialog";
+import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
 import { SearchResults } from "../components/SearchResults";
 import { Toast } from "../components/Toast";
 import { BasePage } from "./BasePage";
@@ -17,6 +18,11 @@ export class HomePage extends BasePage<[query?: string]> {
   readonly searchButton = this.page.getByRole("button", { name: /^search/i });
   readonly searchResults = new SearchResults(
     this.page.getByRole("list", { name: "Search results" }),
+  );
+  readonly noResultsMessage = this.page.getByText("No films found.");
+  readonly addManuallyButton = this.page.getByRole("button", { name: "Add manually" });
+  readonly addManuallyDialog = new ManualMediaItemDialog(
+    this.page.getByRole("dialog", { name: "Add a film manually" }),
   );
   readonly toast = new Toast(this.page.getByRole("status"));
   readonly errorMessage = this.page.getByRole("alert");

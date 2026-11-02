@@ -18,6 +18,12 @@ export class SearchResultRow extends ScopedComponent {
   readonly addButton = this.root.getByRole("button", { name: "Add", exact: true });
   readonly inThisListLabel = this.root.getByText("In this List");
   readonly listsIcon = this.root.getByRole("img", { name: "Lists" });
+  readonly addedByYouLabel = this.root.getByText("Added by you");
+
+  // The link to the film's page, by its label.
+  filmLink(label: string) {
+    return this.root.getByRole("link", { name: label });
+  }
 
   // The link to the film's Viewings, named by its Current Rating and count: "4 · 1 viewing".
   itemHistoryLink(label: string) {

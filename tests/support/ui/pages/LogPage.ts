@@ -19,6 +19,7 @@ export class LogPage extends BasePage {
   }
 
   readonly heading = this.page.getByRole("heading", { name: "Your Log", exact: true });
+  readonly emptyMessage = this.page.getByText("Your Log is empty.");
   readonly entries = this.page.getByRole("list", { name: "Log Entries" }).getByRole("listitem");
   readonly rewatchBadges = this.entries.getByText("Rewatch", { exact: true });
 
