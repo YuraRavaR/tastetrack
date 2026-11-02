@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { LogPage } from "./pages/LogPage";
 import { NewPasswordPage } from "./pages/NewPasswordPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 // The app as one browser tab shows it: one field per page. The frame every page shares, such as
 // the header, is reached through the page the test is on: ui.listsPage.header.
@@ -17,6 +18,7 @@ export class Ui {
   readonly logPage: LogPage;
   readonly newPasswordPage: NewPasswordPage;
   readonly registerPage: RegisterPage;
+  readonly settingsPage: SettingsPage;
 
   constructor(private readonly page: Page) {
     this.homePage = new HomePage(page);
@@ -26,6 +28,7 @@ export class Ui {
     this.logPage = new LogPage(page);
     this.newPasswordPage = new NewPasswordPage(page);
     this.registerPage = new RegisterPage(page);
+    this.settingsPage = new SettingsPage(page);
   }
 
   // Opens an address no page object covers, such as one the app doesn't know.
