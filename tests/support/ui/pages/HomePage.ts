@@ -9,7 +9,7 @@ import { BasePage } from "./BasePage";
 
 // One film in a home section: its date, Rating, facts or Note.
 class HomeSectionItem extends ScopedComponent {
-  readonly rewatchBadge = this.root.getByText("Rewatch", { exact: true });
+  readonly revisitBadge = this.root.getByText("Rewatch", { exact: true });
 
   ratingStars(label: string) {
     return this.root.getByRole("img", { name: label });
@@ -75,6 +75,11 @@ export class HomePage extends BasePage<[query?: string]> {
   readonly watchlistSection = new HomeSection(
     this.page.getByRole("region", { name: "Next on your Watchlist" }),
   );
+
+  // Any text on the page, such as a message that must be gone.
+  text(content: string) {
+    return this.page.getByText(content);
+  }
 
   @step
   async search(query: string): Promise<void> {

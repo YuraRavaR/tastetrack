@@ -137,7 +137,7 @@ test("logging a Revisit from a film's page updates its tiles and Viewings at onc
 
   await filmPage.watchedAgainButton.click();
   const dialog = filmPage.logEntryDialog("Alien");
-  await expect(dialog.rewatchSwitch).toBeChecked();
+  await expect(dialog.revisitSwitch).toBeChecked();
   await expect(dialog.kindLabel("Watched again")).toBeVisible();
   await expect(dialog.lastTime).toHaveText("Last time 5 · Mar 1, 2026");
   await dialog.rate("3 stars");
@@ -147,7 +147,7 @@ test("logging a Revisit from a film's page updates its tiles and Viewings at onc
   await expect(filmPage.watchedStat).toHaveText("2 times");
   await expect(filmPage.ratingStars("3 stars")).toBeVisible();
   await expect(filmPage.viewings).toHaveCount(2);
-  await expect(filmPage.viewing(0).rewatchBadge).toBeVisible();
+  await expect(filmPage.viewing(0).revisitBadge).toBeVisible();
   await expect(filmPage.toast.root).toContainText("Added Alien (1979) to your Log.");
 });
 
@@ -166,7 +166,7 @@ test("a first viewing from a film's page takes it off the Watchlist, with an und
 
   await filmPage.watchedButton.click();
   const dialog = filmPage.logEntryDialog("Alien");
-  await expect(dialog.rewatchSwitch).not.toBeChecked();
+  await expect(dialog.revisitSwitch).not.toBeChecked();
   await expect(dialog.watchlistNote).toBeVisible();
   await dialog.rate("3 stars");
   await dialog.save();

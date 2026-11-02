@@ -44,16 +44,16 @@ test("a User deletes their account in Settings with their password", async ({
   loggedInUser,
 }) => {
   const { loginPage, settingsPage } = ui;
-  const { deleteAccountSection } = settingsPage;
+  const { deleteUserSection } = settingsPage;
   await settingsPage.goto();
 
-  await expect(deleteAccountSection.root).toContainText("This can't be undone.");
-  await deleteAccountSection.deleteAccount("not the password");
-  await expect(deleteAccountSection.errorMessage).toHaveText(
+  await expect(deleteUserSection.root).toContainText("This can't be undone.");
+  await deleteUserSection.deleteUser("not the password");
+  await expect(deleteUserSection.errorMessage).toHaveText(
     "That isn't your password. Nothing was deleted.",
   );
 
-  await deleteAccountSection.deleteAccount(loggedInUser.password);
+  await deleteUserSection.deleteUser(loggedInUser.password);
 
   await expect(page).toHaveURL(loginPage.path());
   await expect(loginPage.statusMessage).toHaveText(

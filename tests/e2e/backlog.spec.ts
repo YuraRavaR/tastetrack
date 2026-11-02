@@ -70,7 +70,7 @@ test("the bookmark in search puts a film on the Watchlist and takes it off again
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
   await expect(alien.onWatchlistButton).toHaveCount(0);
   await toast.dismiss();
-  await expect(toast.message("Took Alien (1979) off your Watchlist.")).toHaveCount(0);
+  await expect(homePage.text("Took Alien (1979) off your Watchlist.")).toHaveCount(0);
 
   // It is off for good, not only on this screen.
   await page.reload();
@@ -127,9 +127,7 @@ test("removing a film from the Watchlist can be undone", async ({ loggedInUi: ui
   await watchlistPage.firstItem().removeButton.click();
 
   await expect(items).toHaveCount(0);
-  await expect(watchlistPage.statusMessage).toContainText(
-    "Removed Alien (1979) from your Watchlist.",
-  );
+  await expect(watchlistPage.text("Removed Alien (1979) from your Watchlist.")).toBeVisible();
   await watchlistPage.undoButton.click();
   await expect(items).toHaveCount(1);
   await expect(items).toContainText("Alien (1979)");

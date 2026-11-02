@@ -57,10 +57,10 @@ async function expectAccountMenuPages(page: Page, ui: Ui) {
 
 // Logged out, the frame is the app name alone, on a Share Link as on login and register.
 async function expectPlainFrame({ loginPage, registerPage, sharedPage }: Ui) {
-  async function expectPlainFrameOn(frame: Pick<BasePage, "header" | "mainNav">) {
+  async function expectPlainFrameOn(frame: Pick<BasePage, "header" | "navigations">) {
     await expect(frame.header.links).toHaveText(["TasteTrack"]);
     await expect(frame.header.buttons).toHaveCount(0);
-    await expect(frame.mainNav.root).toHaveCount(0);
+    await expect(frame.navigations).toHaveCount(0);
   }
 
   await loginPage.goto();
@@ -76,7 +76,7 @@ async function expectPasswordChangeFrame(page: Page, ui: Ui, api: ApiClient, use
   await logInWithTemporaryPassword(page, ui, api, user);
   const { newPasswordPage } = ui;
 
-  await expect(newPasswordPage.mainNav.root).toHaveCount(0);
+  await expect(newPasswordPage.navigations).toHaveCount(0);
   const { accountMenu } = newPasswordPage.header;
   await accountMenu.open();
   await expect(accountMenu.items).toHaveText(["Log out"]);
@@ -104,7 +104,7 @@ test.describe("on a phone", () => {
   }) => {
     await ui.homePage.goto();
 
-    await expect(ui.homePage.header.mainNav.root).toHaveCount(0);
+    await expect(ui.homePage.header.navigations).toHaveCount(0);
     await expectSectionsIn(ui.homePage.mainNav, page, ui);
   });
 

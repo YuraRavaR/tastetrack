@@ -198,7 +198,7 @@ test("a User marks a film watched, then logs a rewatch with a new Rating", async
 
   await result.markWatchedButton.click();
   await expect(dialog.kindLabel("Watched")).toBeVisible();
-  await expect(dialog.rewatchSwitch).not.toBeChecked();
+  await expect(dialog.revisitSwitch).not.toBeChecked();
   await expect(dialog.lastTime).toHaveCount(0);
   await dialog.rate("4 stars");
   await dialog.save();
@@ -209,7 +209,7 @@ test("a User marks a film watched, then logs a rewatch with a new Rating", async
 
   await result.watchedAgainButton.click();
   await expect(dialog.kindLabel("Watched again")).toBeVisible();
-  await expect(dialog.rewatchSwitch).toBeChecked();
+  await expect(dialog.revisitSwitch).toBeChecked();
   await expect(dialog.lastTime).toContainText("Last time 4 ·");
   await expect(dialog.checkedRatingRadios).toHaveCount(0);
   await dialog.rate("2.5 stars");
@@ -378,7 +378,9 @@ test("TMDB is credited with its logo and notice", { tag: "@smoke" }, async ({ ui
   await loginPage.goto();
 
   await expect(loginPage.footer.tmdbLogo).toBeVisible();
-  await expect(loginPage.footer.root).toContainText(
-    "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
-  );
+  await expect(
+    loginPage.footer.text(
+      "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
+    ),
+  ).toBeVisible();
 });

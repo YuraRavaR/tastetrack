@@ -11,6 +11,7 @@ export class Header extends BaseComponent {
   readonly appNameLink = this.banner.getByRole("link", { name: "TasteTrack" });
   // The sections, when they sit in the header: from md.
   readonly mainNav = new MainNav(this.banner.getByRole("navigation", { name: "Main" }));
+  readonly navigations = this.banner.getByRole("navigation");
   readonly accountMenu = new AccountMenu(this.page);
 
   // The User's Display Name beside the avatar, shown from md.

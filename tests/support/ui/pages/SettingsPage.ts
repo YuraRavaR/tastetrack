@@ -30,13 +30,13 @@ class PasswordSection extends ScopedComponent {
   }
 }
 
-class DeleteAccountSection extends ScopedComponent {
+class DeleteUserSection extends ScopedComponent {
   readonly passwordInput = this.root.getByLabel("Your password");
   readonly deleteButton = this.root.getByRole("button", { name: "Delete account" });
   readonly errorMessage = this.root.getByRole("alert");
 
   @step
-  async deleteAccount(password: string): Promise<void> {
+  async deleteUser(password: string): Promise<void> {
     await this.passwordInput.fill(password);
     await this.deleteButton.click();
   }
@@ -54,7 +54,7 @@ export class SettingsPage extends BasePage {
   readonly passwordSection = new PasswordSection(
     this.page.getByRole("region", { name: "Password" }),
   );
-  readonly deleteAccountSection = new DeleteAccountSection(
+  readonly deleteUserSection = new DeleteUserSection(
     this.page.getByRole("region", { name: "Delete account" }),
   );
 }

@@ -6,7 +6,7 @@ export class LogEntryDialog extends ScopedComponent {
   readonly closeButton = this.root.getByRole("button", { name: "Close" });
   readonly cancelButton = this.root.getByRole("button", { name: "Cancel" });
   readonly deleteButton = this.root.getByRole("button", { name: "Delete" });
-  readonly rewatchSwitch = this.root.getByRole("switch", { name: "Rewatch" });
+  readonly revisitSwitch = this.root.getByRole("switch", { name: "Rewatch" });
   readonly reviewInput = this.root.getByLabel("Review");
   readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
   readonly dateError = this.root.getByText("That isn't a valid date.");

@@ -2,7 +2,7 @@ import { ScopedComponent } from "./ScopedComponent";
 
 // One Log Entry among a film's Viewings.
 export class ItemHistoryRow extends ScopedComponent {
-  readonly rewatchBadge = this.root.getByText("Rewatch", { exact: true });
+  readonly revisitBadge = this.root.getByText("Rewatch", { exact: true });
 
   // The "⋯" button, named after the entry's date: "Actions for Sep 15, 2001".
   actionsButton(date: string) {

@@ -9,12 +9,15 @@ export abstract class BasePage<Params extends unknown[] = []> {
   readonly header: Header;
   // Wherever the sections are: the tab bar on a phone, the header from md.
   readonly mainNav: MainNav;
+  // Every navigation on the page, named or not, for a page that must have none.
+  readonly navigations: Locator;
   readonly main: Locator;
   readonly footer: Footer;
 
   constructor(protected readonly page: Page) {
     this.header = new Header(page);
     this.mainNav = new MainNav(page.getByRole("navigation", { name: "Main" }));
+    this.navigations = page.getByRole("navigation");
     this.main = page.getByRole("main");
     this.footer = new Footer(page.getByRole("contentinfo"));
   }

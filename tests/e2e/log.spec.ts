@@ -111,7 +111,7 @@ test("No date saves an undated Log Entry", async ({ page, loggedInUi: ui }) => {
 test("a Rating is required, and Rewatch is kept", async ({ page, loggedInUi: ui }) => {
   const dialog = await openWatchedDialog(page, ui);
 
-  await dialog.rewatchSwitch.check();
+  await dialog.revisitSwitch.check();
   await dialog.save();
   await expect(dialog.errorMessage).toHaveText("Choose a Rating.");
 
@@ -243,7 +243,7 @@ test("Viewings lists the newest first, with undated entries at the bottom", asyn
   await expect(filmPage.viewingsHeading).toBeVisible();
   await expect(viewings).toHaveCount(3);
   await expect(viewings.nth(0)).toContainText("Oct 11, 2026");
-  await expect(filmPage.viewing(0).rewatchBadge).toBeVisible();
+  await expect(filmPage.viewing(0).revisitBadge).toBeVisible();
   await expect(viewings.nth(1)).toContainText("Mar 2, 2019");
   await expect(filmPage.viewing(1).ratingStars("2 stars")).toBeVisible();
   await expect(filmPage.viewing(1).text("Too slow for me.")).toBeVisible();
@@ -284,24 +284,24 @@ test("Rewatch is on when the film is already in the Log, and can be turned off",
   await homePage.search("alien");
   const alien = homePage.searchResults.result("Alien (1979)");
   const dialog = homePage.logEntryDialog("Alien");
-  const rewatch = dialog.rewatchSwitch;
+  const revisit = dialog.revisitSwitch;
 
   await alien.markWatchedButton.click();
-  await expect(rewatch).not.toBeChecked();
+  await expect(revisit).not.toBeChecked();
   await dialog.rate("4 stars");
   await dialog.save();
   await expect(dialog.root).toBeHidden();
 
   await alien.watchedAgainButton.click();
-  await expect(rewatch).toBeChecked();
-  await rewatch.uncheck();
+  await expect(revisit).toBeChecked();
+  await revisit.uncheck();
   await dialog.rate("5 stars");
   await dialog.save();
   await expect(dialog.root).toBeHidden();
 
   await homePage.mainNav.link("Log").click();
   await expect(logPage.entries).toHaveCount(2);
-  await expect(logPage.rewatchBadges).toHaveCount(0);
+  await expect(logPage.revisitBadges).toHaveCount(0);
 });
 
 test("editing opens on the chip that matches the entry's date", async ({

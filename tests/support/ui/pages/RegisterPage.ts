@@ -18,9 +18,9 @@ export class RegisterPage extends BasePage<[inviteCode?: string]> {
 
   // Registers with the Invite Code already in its field.
   @step
-  async register(account: Pick<RegisterRequest, "username" | "password">): Promise<void> {
-    await this.usernameInput.fill(account.username);
-    await this.passwordInput.fill(account.password);
+  async register(credentials: Pick<RegisterRequest, "username" | "password">): Promise<void> {
+    await this.usernameInput.fill(credentials.username);
+    await this.passwordInput.fill(credentials.password);
     await this.registerButton.click();
   }
 }

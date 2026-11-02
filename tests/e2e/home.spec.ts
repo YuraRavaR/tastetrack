@@ -61,14 +61,14 @@ test("home shows the latest five Log Entries, latest first, and links to the who
   await expect(entries.nth(0)).toContainText("Amélie");
   await expect(entries.nth(0)).toContainText("Jun 7, 2025");
   await expect(log.item(0).ratingStars("2.5 stars")).toBeVisible();
-  await expect(log.item(0).rewatchBadge).toBeVisible();
+  await expect(log.item(0).revisitBadge).toBeVisible();
   await expect(entries.nth(1)).toContainText("Aliens (1986)");
   await expect(entries.nth(1)).toContainText("May 6, 2024");
   await expect(entries.nth(1)).not.toContainText("Better than I remembered.");
   await expect(entries.nth(2)).toContainText("Alien (1979)");
   await expect(entries.nth(2)).toContainText("Apr 5, 2023");
   await expect(entries.nth(3)).toContainText("Mar 4, 2022");
-  await expect(log.item(3).rewatchBadge).toHaveCount(0);
+  await expect(log.item(3).revisitBadge).toHaveCount(0);
   await expect(entries.nth(4)).toContainText("Feb 3, 2021");
   await expect(log.root).not.toContainText("Jan 1, 2020");
   await expect(log.buttons).toHaveCount(0);
@@ -206,6 +206,7 @@ test("a Watchlist that fails to load says so under its heading, and the Log stil
   await homePage.goto();
 
   const watchlist = homePage.watchlistSection;
+  await expect(watchlist.heading).toBeVisible();
   await expect(watchlist.heading).toHaveText("Next on your Watchlist");
   await expect(watchlist.errorMessage).toHaveText(
     "Couldn't load your Watchlist. Please try again.",
@@ -226,6 +227,7 @@ test("a Log that fails to load says so under its heading, and the Watchlist and 
   await homePage.goto();
 
   const log = homePage.logSection;
+  await expect(log.heading).toBeVisible();
   await expect(log.heading).toHaveText("Latest in your Log");
   await expect(log.errorMessage).toHaveText("Couldn't load your Log. Please try again.");
   await expect(homePage.watchlistSection.items).toContainText("Alien (1979)");
