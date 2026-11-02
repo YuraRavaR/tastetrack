@@ -78,6 +78,14 @@ export default defineConfig({
       grep: deployedGrep,
       use: { ...devices["Desktop Chrome"], baseURL: hooksOnURL },
     },
+    // The @smoke journeys on a phone in WebKit, the engine of every iOS browser. Local only: on
+    // a deployed environment it would double the smoke tests' writes (ADR-0006).
+    {
+      name: "mobile",
+      testDir: "tests/e2e",
+      grep: /@smoke/,
+      use: { ...devices["iPhone 15"], baseURL: localHooksOnURL },
+    },
   ],
   webServer: deployedURL ? undefined : localWebServers,
 });

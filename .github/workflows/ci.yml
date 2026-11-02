@@ -41,6 +41,7 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           playwright: "true"
+          webkit: "true"
 
       - name: Lint
         run: pnpm exec biome ci .

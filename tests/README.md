@@ -30,6 +30,8 @@ tests/
 
 Specs import `test` and `expect` from `support/ui/fixtures`. There `api` shares the page's session, so `loggedInUser` logs the browser in too, and setup goes through `api` rather than through the UI.
 
+The `@smoke` tests also run in the `mobile` project, on an iPhone in WebKit, so what they use works in the phone layout too, where the main nav sits at the bottom.
+
 ### Pages
 
 - `ui` has one field per page, named for the page: `ui.loginPage`, `ui.filmPage`.

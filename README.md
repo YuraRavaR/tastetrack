@@ -22,7 +22,7 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | `pnpm typecheck` | Type-check the Worker, the client, the tests and `scripts/` |
 | `pnpm test:unit` | Vitest: the domain core and the message catalogue |
 | `pnpm test:api` | Playwright API tests against local Wrangler, with test hooks on and off, and the Operator CLI tests |
-| `pnpm test:e2e` | Playwright browser tests against local Wrangler |
+| `pnpm test:e2e` | Playwright browser tests against local Wrangler, and the `@smoke` ones on an iPhone in WebKit |
 | `pnpm test:smoke` | The production smoke test: against local Wrangler with hooks off, or `BASE_URL` |
 | `pnpm test:deployed` | The `@smoke` API and E2E tests against `BASE_URL`, e.g. staging, with `TEST_HOOKS_SECRET` |
 | `pnpm test:report <run-id>` | Download a staging run's encrypted Playwright report, decrypt it and open it |
@@ -101,7 +101,7 @@ security add-generic-password -U -a "$USER" -s tastetrack-test-hooks-secret -w "
 
 Traces from such a run hold the secret, so don't share `test-results/` or `playwright-report/`.
 
-The `cli` Playwright project runs the Operator CLI against local D1 only, so `pnpm test:deployed` leaves it out. The `smoke` Playwright project runs against the top-level config locally, and against production after every deploy, to prove the hooks stay off there.
+The `cli` Playwright project runs the Operator CLI against local D1 only, so `pnpm test:deployed` leaves it out, and so does the `mobile` project, which runs the `@smoke` E2E tests on an iPhone in WebKit. The `smoke` Playwright project runs against the top-level config locally, and against production after every deploy, to prove the hooks stay off there.
 
 ## CI, staging and production
 
