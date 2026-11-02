@@ -1,34 +1,36 @@
-import { expect, test } from "@playwright/test";
-import { createUser, resetPassword } from "../support/scenarios/users";
+import { expectBody } from "../support/api/responses";
+import { expect, test } from "../support/ui/fixtures";
 
-test("a User who logs in with a Temporary Password must set their own first", async ({ page }) => {
-  const user = await createUser();
-  const temporaryPassword = await resetPassword(page.request, user.username);
-  await page.goto("/lists");
+test("a User who logs in with a Temporary Password must set their own first", async ({
+  page,
+  ui,
+  api,
+  registeredUser,
+}) => {
+  const { username } = registeredUser;
+  const { temporaryPassword } = await expectBody(api.testHooks.resetPassword(username));
+  const { listsPage, loginPage, logPage, newPasswordPage } = ui;
+  await listsPage.goto();
 
-  await page.getByLabel("Username").fill(user.username);
-  await page.getByLabel("Password").fill(temporaryPassword);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await loginPage.logIn({ username, password: temporaryPassword });
 
-  await expect(page).toHaveURL("/new-password");
-  await expect(page.getByRole("heading", { name: "Set a new password" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Lists" })).toHaveCount(0);
+  await expect(page).toHaveURL(newPasswordPage.path);
+  await expect(newPasswordPage.heading).toBeVisible();
+  await expect(newPasswordPage.listsLink).toHaveCount(0);
 
   // Every other page, even after a reload, sends the User back here.
-  await page.goto("/log");
-  await expect(page).toHaveURL("/new-password");
+  await logPage.goto();
+  await expect(page).toHaveURL(newPasswordPage.path);
 
-  await page.getByLabel("New password").fill(temporaryPassword);
-  await page.getByRole("button", { name: "Set password" }).click();
-  await expect(page.getByRole("alert")).toHaveText(
+  await newPasswordPage.setPassword(temporaryPassword);
+  await expect(newPasswordPage.errorMessage).toHaveText(
     "That's the Temporary Password. Choose one of your own.",
   );
 
-  await page.getByLabel("New password").fill("my very own passphrase");
-  await page.getByRole("button", { name: "Set password" }).click();
+  await newPasswordPage.setPassword("my very own passphrase");
 
-  await expect(page).toHaveURL("/log");
-  await expect(page.getByRole("banner")).toContainText(user.username);
+  await expect(page).toHaveURL(logPage.path);
+  await expect(logPage.header.banner).toContainText(username);
   await page.reload();
-  await expect(page).toHaveURL("/log");
+  await expect(page).toHaveURL(logPage.path);
 });

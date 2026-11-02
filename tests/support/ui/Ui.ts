@@ -3,6 +3,8 @@ import { HomePage } from "./pages/HomePage";
 import { InvitesPage } from "./pages/InvitesPage";
 import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
+import { LogPage } from "./pages/LogPage";
+import { NewPasswordPage } from "./pages/NewPasswordPage";
 import { RegisterPage } from "./pages/RegisterPage";
 
 // The app as one browser tab shows it: one field per page. The frame every page shares, such as
@@ -12,6 +14,8 @@ export class Ui {
   readonly invitesPage: InvitesPage;
   readonly listsPage: ListsPage;
   readonly loginPage: LoginPage;
+  readonly logPage: LogPage;
+  readonly newPasswordPage: NewPasswordPage;
   readonly registerPage: RegisterPage;
 
   constructor(private readonly page: Page) {
@@ -19,6 +23,8 @@ export class Ui {
     this.invitesPage = new InvitesPage(page);
     this.listsPage = new ListsPage(page);
     this.loginPage = new LoginPage(page);
+    this.logPage = new LogPage(page);
+    this.newPasswordPage = new NewPasswordPage(page);
     this.registerPage = new RegisterPage(page);
   }
 
