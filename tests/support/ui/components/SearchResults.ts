@@ -9,6 +9,9 @@ export class SearchResultRow extends ScopedComponent {
   readonly watchedAgainIcon = this.watchedAgainButton.locator("svg");
   readonly wantToWatchButton = this.root.getByRole("button", { name: "Want to watch" });
   readonly addToListButton = this.root.getByRole("button", { name: "Add to list" });
+  // On a List's page: adds the film to that List, which then says so.
+  readonly addButton = this.root.getByRole("button", { name: "Add", exact: true });
+  readonly inThisListLabel = this.root.getByText("In this List");
   readonly listsIcon = this.root.getByRole("img", { name: "Lists" });
 
   // The link to the film's Viewings, named by its Current Rating and count: "4 · 1 viewing".
