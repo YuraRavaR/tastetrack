@@ -1,19 +1,18 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { AccountMenu } from "./ui/components/AccountMenu";
 
 // Opens the account menu in the header and returns it.
 export async function openAccountMenu(page: Page): Promise<Locator> {
-  await page.getByRole("button", { name: "Account menu" }).click();
-  const menu = page.getByRole("menu");
-  await expect(menu).toBeVisible();
-  return menu;
+  const accountMenu = new AccountMenu(page);
+  await accountMenu.open();
+  return accountMenu.menu;
 }
 
 // Picks an item of the account menu: Invites, Settings or Log out.
 export async function chooseFromAccountMenu(page: Page, name: string): Promise<void> {
-  const menu = await openAccountMenu(page);
-  await menu.getByRole("menuitem", { name }).click();
+  await new AccountMenu(page).choose(name);
 }
 
 export async function logOut(page: Page): Promise<void> {
-  await chooseFromAccountMenu(page, "Log out");
+  await new AccountMenu(page).logOut();
 }
