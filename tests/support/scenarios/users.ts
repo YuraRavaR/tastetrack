@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { type APIRequestContext, expect, request, test } from "@playwright/test";
+import { type APIRequestContext, request, test } from "@playwright/test";
 import { ApiClient } from "../api/ApiClient";
 import { TestHooksController } from "../api/controllers/TestHooksController";
 import { expectBody } from "../api/responses";
@@ -42,13 +42,6 @@ function seedFor(api: APIRequestContext, baseURL: string): Promise<TestUser> {
   return seed;
 }
 
-// Creates a fresh User and logs them in on `api`, a request context or a page's `request`.
-export async function logInNewUser(api: APIRequestContext): Promise<TestUser> {
-  const user = await createUser();
-  expect((await api.post("/api/auth/login", { data: user })).status()).toBe(200);
-  return user;
-}
-
 // Creates a fresh User the way a real one arrives: a seed User issues an Invite Code and the new
 // User registers with it through the public API. It runs in its own API context, so neither
 // session ends up in the calling test's browser or request context; log in to use the User.
@@ -66,11 +59,4 @@ export async function createUser(): Promise<TestUser> {
   } finally {
     await api.dispose();
   }
-}
-
-// Resets the User's password as the Operator does, through the test-hook route, and returns the
-// Temporary Password. Every session of theirs ends.
-export async function resetPassword(api: APIRequestContext, username: string): Promise<string> {
-  const reset = new TestHooksController(api).resetPassword(username);
-  return (await expectBody(reset)).temporaryPassword;
 }
