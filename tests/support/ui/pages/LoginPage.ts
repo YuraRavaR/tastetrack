@@ -2,7 +2,10 @@ import type { LoginRequest } from "@shared/api";
 import { BasePage } from "./BasePage";
 
 export class LoginPage extends BasePage {
-  readonly path = "/login";
+  path() {
+    return "/login";
+  }
+
   readonly heading = this.page.getByRole("heading", { name: "Log in" });
   readonly usernameInput = this.page.getByLabel("Username");
   readonly passwordInput = this.page.getByLabel("Password");

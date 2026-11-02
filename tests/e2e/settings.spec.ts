@@ -55,7 +55,7 @@ test("a User deletes their account in Settings with their password", async ({
 
   await deleteAccountSection.deleteAccount(loggedInUser.password);
 
-  await expect(page).toHaveURL(loginPage.path);
+  await expect(page).toHaveURL(loginPage.path());
   await expect(loginPage.statusMessage).toHaveText(
     "Your account and everything in it have been deleted.",
   );

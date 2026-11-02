@@ -39,7 +39,10 @@ class DeleteAccountSection extends ScopedComponent {
 }
 
 export class SettingsPage extends BasePage {
-  readonly path = "/settings";
+  path() {
+    return "/settings";
+  }
+
   readonly heading = this.page.getByRole("heading", { name: "Settings" });
   readonly displayNameSection = new DisplayNameSection(
     this.page.getByRole("region", { name: "Display Name" }),

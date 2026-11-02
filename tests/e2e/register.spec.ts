@@ -28,7 +28,7 @@ test("a User generates an Invite Code and a friend registers with it", { tag: "@
   await registerPage.passwordInput.fill("a long enough password");
   await registerPage.registerButton.click();
 
-  await expect(page).toHaveURL(homePage.path);
+  await expect(page).toHaveURL(homePage.path());
   await expect(homePage.header.banner).toContainText(friend);
 });
 
@@ -55,5 +55,5 @@ test("a used Invite Code shows why registration failed", async ({ page, ui, logg
   await expect(ui.registerPage.errorMessage).toHaveText(
     "That Invite Code has already been used. Ask for a new one.",
   );
-  await expect(page).toHaveURL(ui.registerPage.pathWithInviteCode(code));
+  await expect(page).toHaveURL(ui.registerPage.path(code));
 });

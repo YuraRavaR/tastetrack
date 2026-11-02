@@ -1,8 +1,12 @@
 import type { RegisterRequest } from "@shared/api";
 import { BasePage } from "./BasePage";
 
-export class RegisterPage extends BasePage {
-  readonly path = "/register";
+export class RegisterPage extends BasePage<[inviteCode?: string]> {
+  // With an Invite Code, the page opens with it filled in.
+  path(inviteCode?: string) {
+    return inviteCode ? `/register?code=${inviteCode}` : "/register";
+  }
+
   readonly heading = this.page.getByRole("heading", { name: "Register" });
   readonly inviteCodeInput = this.page.getByLabel("Invite Code");
   readonly usernameInput = this.page.getByLabel("Username");
@@ -10,15 +14,6 @@ export class RegisterPage extends BasePage {
   readonly passwordInput = this.page.getByLabel("Password");
   readonly registerButton = this.page.getByRole("button", { name: "Register" });
   readonly errorMessage = this.page.getByRole("alert");
-
-  // The page with this Invite Code filled in.
-  pathWithInviteCode(inviteCode: string): string {
-    return `${this.path}?code=${inviteCode}`;
-  }
-
-  async goto(inviteCode?: string): Promise<void> {
-    await this.page.goto(inviteCode ? this.pathWithInviteCode(inviteCode) : this.path);
-  }
 
   // Registers with the Invite Code already in its field.
   async register(account: Pick<RegisterRequest, "username" | "password">): Promise<void> {

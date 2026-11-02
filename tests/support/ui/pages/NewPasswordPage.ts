@@ -3,7 +3,10 @@ import { BasePage } from "./BasePage";
 // Where a User who logged in with a Temporary Password sets their own. Every other page sends them
 // here until they do.
 export class NewPasswordPage extends BasePage {
-  readonly path = "/new-password";
+  path() {
+    return "/new-password";
+  }
+
   readonly heading = this.page.getByRole("heading", { name: "Set a new password" });
   // A way to the Lists, which this page must not offer.
   readonly listsLink = this.page.getByRole("link", { name: "Lists" });

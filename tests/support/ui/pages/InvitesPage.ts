@@ -2,7 +2,10 @@ import { BasePage } from "./BasePage";
 
 // The User's Invite Codes.
 export class InvitesPage extends BasePage {
-  readonly path = "/invites";
+  path() {
+    return "/invites";
+  }
+
   readonly generateButton = this.page.getByRole("button", { name: "Generate an Invite Code" });
   readonly activeInviteCodes = this.page
     .getByRole("list", { name: "Active Invite Codes" })
