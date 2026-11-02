@@ -5,7 +5,7 @@ export abstract class BasePage {
   abstract readonly path: string;
   readonly header: Header;
 
-  constructor(readonly page: Page) {
+  constructor(protected readonly page: Page) {
     this.header = new Header(page);
   }
 

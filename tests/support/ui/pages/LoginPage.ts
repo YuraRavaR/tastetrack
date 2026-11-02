@@ -8,6 +8,7 @@ export class LoginPage extends BasePage {
   readonly passwordInput = this.page.getByLabel("Password");
   readonly logInButton = this.page.getByRole("button", { name: "Log in" });
   readonly errorMessage = this.page.getByRole("alert");
+  readonly registerLink = this.page.getByRole("link", { name: "Register" });
 
   async logIn(credentials: LoginRequest): Promise<void> {
     await this.usernameInput.fill(credentials.username);

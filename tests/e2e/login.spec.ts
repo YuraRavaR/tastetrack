@@ -1,9 +1,9 @@
 import { expect, test } from "../support/ui/fixtures";
 
-test("a logged-out visitor is sent to the login page", async ({ ui }) => {
+test("a logged-out visitor is sent to the login page", async ({ page, ui }) => {
   await ui.homePage.goto();
 
-  await expect(ui.loginPage).toBeOpen();
+  await expect(page).toHaveURL(ui.loginPage.path);
   await expect(ui.loginPage.heading).toBeVisible();
 });
 
@@ -13,35 +13,37 @@ test("a User logs in, lands where they were going, and logs out", { tag: "@smoke
   registeredUser,
 }) => {
   await ui.listsPage.goto();
-  await expect(ui.loginPage).toBeOpen();
+  await expect(page).toHaveURL(ui.loginPage.path);
 
   await ui.loginPage.logIn(registeredUser);
 
-  await expect(ui.listsPage).toBeOpen();
+  await expect(page).toHaveURL(ui.listsPage.path);
   await expect(ui.listsPage.heading).toBeVisible();
   await expect(ui.listsPage.header.banner).toContainText(registeredUser.username);
 
   await ui.listsPage.header.accountMenu.logOut();
 
-  await expect(ui.loginPage).toBeOpen();
+  await expect(page).toHaveURL(ui.loginPage.path);
   await page.reload();
-  await expect(ui.loginPage).toBeOpen();
+  await expect(page).toHaveURL(ui.loginPage.path);
 });
 
 test("a User going to an unknown page lands on home after logging in", async ({
+  page,
   ui,
   registeredUser,
 }) => {
   await ui.goto("/some/page");
-  await expect(ui.loginPage).toBeOpen();
+  await expect(page).toHaveURL(ui.loginPage.path);
 
   await ui.loginPage.logIn(registeredUser);
 
-  await expect(ui.homePage).toBeOpen();
+  await expect(page).toHaveURL(ui.homePage.path);
   await expect(ui.homePage.header.banner).toContainText(registeredUser.username);
 });
 
 test("a wrong password shows an error and stays on the login page", async ({
+  page,
   ui,
   registeredUser,
 }) => {
@@ -50,7 +52,7 @@ test("a wrong password shows an error and stays on the login page", async ({
   await ui.loginPage.logIn({ username: registeredUser.username, password: "not the password" });
 
   await expect(ui.loginPage.errorMessage).toHaveText("Wrong Username or password");
-  await expect(ui.loginPage).toBeOpen();
+  await expect(page).toHaveURL(ui.loginPage.path);
 });
 
 test("after 5 wrong passwords the login page says how long to wait", async ({
@@ -74,5 +76,5 @@ test("after 5 wrong passwords the login page says how long to wait", async ({
   await expect(loginPage.errorMessage).toHaveText(
     "Too many failed attempts. Try again in 15 minutes.",
   );
-  await expect(loginPage).toBeOpen();
+  await expect(page).toHaveURL(loginPage.path);
 });

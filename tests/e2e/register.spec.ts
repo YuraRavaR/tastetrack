@@ -1,57 +1,59 @@
-import { expect, test } from "@playwright/test";
-import { chooseFromAccountMenu, logOut } from "../support/navigation";
-import { createUser, uniqueUsername } from "../support/scenarios/users";
+import { expectBody } from "../support/api/responses";
+import { uniqueUsername } from "../support/scenarios/users";
+import { expect, test } from "../support/ui/fixtures";
 
 test("a User generates an Invite Code and a friend registers with it", { tag: "@smoke" }, async ({
   page,
+  ui,
+  loggedInUser: _inviter,
 }) => {
-  const inviter = await createUser();
-  await page.request.post("/api/auth/login", { data: inviter });
+  const { homePage, invitesPage, loginPage, registerPage } = ui;
+  await homePage.goto();
+  await homePage.header.accountMenu.choose("Invites");
+  await invitesPage.generateButton.click();
+  await expect(invitesPage.activeInviteCodes).toHaveCount(1);
+  await expect(invitesPage.activeInviteCodes).toContainText(/Expires [A-Z][a-z]{2} \d{1,2}, \d{4}/);
+  const code = await invitesPage.readActiveInviteCode();
+  await invitesPage.header.accountMenu.logOut();
 
-  await page.goto("/");
-  await chooseFromAccountMenu(page, "Invites");
-  await page.getByRole("button", { name: "Generate an Invite Code" }).click();
-  const active = page.getByRole("list", { name: "Active Invite Codes" }).getByRole("listitem");
-  await expect(active).toHaveCount(1);
-  await expect(active).toContainText(/Expires [A-Z][a-z]{2} \d{1,2}, \d{4}/);
-  const code = await active.getByRole("code").textContent();
-  await logOut(page);
-
-  await page.getByRole("link", { name: "Register" }).click();
-  await expect(page.getByRole("heading", { name: "Register" })).toBeVisible();
-  await page.getByLabel("Invite Code").fill(code ?? "");
-  const username = page.getByLabel("Username");
-  await username.fill("no");
-  await expect(username).toHaveAttribute("aria-invalid", "true");
-  await expect(page.getByText("3–30 characters: letters, digits and underscores")).toBeVisible();
+  await loginPage.registerLink.click();
+  await expect(registerPage.heading).toBeVisible();
+  await registerPage.inviteCodeInput.fill(code);
+  await registerPage.usernameInput.fill("no");
+  await expect(registerPage.usernameInput).toHaveAttribute("aria-invalid", "true");
+  await expect(registerPage.usernameHint).toBeVisible();
   const friend = uniqueUsername();
-  await username.fill(friend);
-  await expect(username).toHaveAttribute("aria-invalid", "false");
-  await page.getByLabel("Password").fill("a long enough password");
-  await page.getByRole("button", { name: "Register" }).click();
+  await registerPage.usernameInput.fill(friend);
+  await expect(registerPage.usernameInput).toHaveAttribute("aria-invalid", "false");
+  await registerPage.passwordInput.fill("a long enough password");
+  await registerPage.registerButton.click();
 
-  await expect(page).toHaveURL("/");
-  await expect(page.getByRole("banner")).toContainText(friend);
+  await expect(page).toHaveURL(homePage.path);
+  await expect(homePage.header.banner).toContainText(friend);
 });
 
-test("a used Invite Code shows why registration failed", async ({ page }) => {
-  const inviter = await createUser();
-  const api = page.request;
-  await api.post("/api/auth/login", { data: inviter });
-  const code = (await (await api.post("/api/invite-codes")).json()).inviteCode.code;
-  await api.post("/api/auth/register", {
-    data: { inviteCode: code, username: uniqueUsername(), password: "a long enough password" },
+test("a used Invite Code shows why registration failed", async ({ page, ui, loggedInApi: api }) => {
+  const { inviteCode } = await expectBody(api.inviteCodes.issueInviteCode(), 201);
+  const code = inviteCode.code;
+  await expectBody(
+    api.auth.register({
+      inviteCode: code,
+      username: uniqueUsername(),
+      password: "a long enough password",
+    }),
+    201,
+  );
+  await api.auth.logout();
+
+  await ui.registerPage.goto(code);
+  await expect(ui.registerPage.inviteCodeInput).toHaveValue(code);
+  await ui.registerPage.register({
+    username: uniqueUsername(),
+    password: "a long enough password",
   });
-  await api.post("/api/auth/logout");
 
-  await page.goto(`/register?code=${code}`);
-  await expect(page.getByLabel("Invite Code")).toHaveValue(code);
-  await page.getByLabel("Username").fill(uniqueUsername());
-  await page.getByLabel("Password").fill("a long enough password");
-  await page.getByRole("button", { name: "Register" }).click();
-
-  await expect(page.getByRole("alert")).toHaveText(
+  await expect(ui.registerPage.errorMessage).toHaveText(
     "That Invite Code has already been used. Ask for a new one.",
   );
-  await expect(page).toHaveURL(/\/register/);
+  await expect(page).toHaveURL(ui.registerPage.pathWithInviteCode(code));
 });
