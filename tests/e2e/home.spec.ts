@@ -1,39 +1,37 @@
-import { expect, test } from "@playwright/test";
-import { fillBacklog } from "../support/scenarios/backlog";
 import { alien, aliens, amelie } from "../support/scenarios/films";
-import { logInNewUser } from "../support/scenarios/users";
-import { searchResultRow } from "../support/ui/search-results";
+import { expect, test } from "../support/ui/fixtures";
 
 test("a new User's home leads with the search, an empty Log and an empty Watchlist", async ({
   page,
+  loggedInUi: ui,
 }) => {
-  await logInNewUser(page.request);
+  const { homePage } = ui;
+  const { logSection, watchlistSection } = homePage;
 
-  await page.goto("/");
+  await homePage.goto();
 
   await expect(page).toHaveTitle("TasteTrack");
-  await expect(page.getByRole("heading", { level: 1, name: "Search films" })).toBeVisible();
-  await expect(page.getByRole("searchbox", { name: "Search films" })).toBeVisible();
-  const log = page.getByRole("region", { name: "Latest in your Log" });
+  await expect(homePage.searchHeading).toBeVisible();
+  await expect(homePage.searchBox).toBeVisible();
   await expect(
-    log.getByText("Your Log is empty. Search for a film you've watched and mark it Watched."),
+    logSection.text("Your Log is empty. Search for a film you've watched and mark it Watched."),
   ).toBeVisible();
-  await expect(log.getByRole("link")).toHaveCount(0);
-  const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
+  await expect(logSection.links).toHaveCount(0);
   await expect(
-    watchlist.getByText("Your Watchlist is empty. Search for a film and mark it Want to watch."),
+    watchlistSection.text("Your Watchlist is empty. Search for a film and mark it Want to watch."),
   ).toBeVisible();
-  await expect(watchlist.getByRole("link")).toHaveCount(0);
+  await expect(watchlistSection.links).toHaveCount(0);
 });
 
 test("home shows the latest five Log Entries, latest first, and links to the whole Log", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
   const films = {
-    alien: await alien(page.request),
-    aliens: await aliens(page.request),
-    amelie: await amelie(page.request),
+    alien: await alien(api),
+    aliens: await aliens(api),
+    amelie: await amelie(api),
   };
   // Created out of date order: the Log's order is by date.
   for (const [film, date, rating, revisit, review] of [
@@ -44,111 +42,115 @@ test("home shows the latest five Log Entries, latest first, and links to the who
     ["alien", "2023-04-05", 4.5, true, undefined],
     ["amelie", "2022-03-04", 4, false, undefined],
   ] as const) {
-    const response = await page.request.post("/api/log-entries", {
-      data: { mediaItemId: films[film].id, date, rating, revisit, review },
+    const response = await api.log.createLogEntry({
+      mediaItemId: films[film].id,
+      date,
+      rating,
+      revisit,
+      review,
     });
     expect(response.status()).toBe(201);
   }
+  const { homePage, filmPage } = ui;
 
-  await page.goto("/");
+  await homePage.goto();
 
-  const log = page.getByRole("region", { name: "Latest in your Log" });
-  const entries = log.getByRole("listitem");
+  const log = homePage.logSection;
+  const entries = log.items;
   await expect(entries).toHaveCount(5);
   await expect(entries.nth(0)).toContainText("Amélie");
   await expect(entries.nth(0)).toContainText("Jun 7, 2025");
-  await expect(entries.nth(0).getByRole("img", { name: "2.5 stars" })).toBeVisible();
-  await expect(entries.nth(0).getByText("Rewatch", { exact: true })).toBeVisible();
+  await expect(log.item(0).ratingStars("2.5 stars")).toBeVisible();
+  await expect(log.item(0).revisitBadge).toBeVisible();
   await expect(entries.nth(1)).toContainText("Aliens (1986)");
   await expect(entries.nth(1)).toContainText("May 6, 2024");
   await expect(entries.nth(1)).not.toContainText("Better than I remembered.");
   await expect(entries.nth(2)).toContainText("Alien (1979)");
   await expect(entries.nth(2)).toContainText("Apr 5, 2023");
   await expect(entries.nth(3)).toContainText("Mar 4, 2022");
-  await expect(entries.nth(3).getByText("Rewatch", { exact: true })).toHaveCount(0);
+  await expect(log.item(3).revisitBadge).toHaveCount(0);
   await expect(entries.nth(4)).toContainText("Feb 3, 2021");
-  await expect(log).not.toContainText("Jan 1, 2020");
-  await expect(log.getByRole("button")).toHaveCount(0);
+  await expect(log.root).not.toContainText("Jan 1, 2020");
+  await expect(log.buttons).toHaveCount(0);
 
-  await expect(log.getByRole("link", { name: "All 6 in your Log" })).toHaveAttribute(
-    "href",
-    "/log",
-  );
-  await entries.nth(1).getByRole("link", { name: "Aliens (1986)" }).click();
-  await expect(page).toHaveURL(`/items/${films.aliens.id}`);
+  await expect(log.link("All 6 in your Log")).toHaveAttribute("href", "/log");
+  await log.item(1).filmLink("Aliens (1986)").click();
+  await expect(page).toHaveURL(filmPage.path(films.aliens.id));
 });
 
 test("home shows the Watchlist in its saved order with each film's facts and Note", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
   const films = {
-    alien: await alien(page.request),
-    aliens: await aliens(page.request),
-    amelie: await amelie(page.request),
+    alien: await alien(api),
+    aliens: await aliens(api),
+    amelie: await amelie(api),
   };
   // Planned out of the order they end up in: the Watchlist's order is the User's.
-  for (const data of [
+  for (const planned of [
     { mediaItemId: films.alien.id, note: "Watch with Olena." },
     { mediaItemId: films.amelie.id },
     { mediaItemId: films.aliens.id, position: 0 },
   ]) {
-    const response = await page.request.post("/api/backlog/items", { data });
+    const response = await api.backlog.addBacklogItem(planned);
     expect(response.status()).toBe(201);
   }
+  const { homePage, filmPage } = ui;
 
-  await page.goto("/");
+  await homePage.goto();
 
-  const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
-  const items = watchlist.getByRole("listitem");
+  const watchlist = homePage.watchlistSection;
+  const { items } = watchlist;
   await expect(items).toHaveCount(3);
   await expect(items.nth(0)).toContainText("Aliens (1986)");
   await expect(items.nth(1)).toContainText("Alien (1979)");
   await expect(items.nth(1)).toContainText("117 min · Horror, Science Fiction");
-  await expect(items.nth(1).getByText("Watch with Olena.")).toBeVisible();
+  await expect(watchlist.item(1).text("Watch with Olena.")).toBeVisible();
   await expect(items.nth(2)).toContainText("Amélie");
-  await expect(watchlist.getByRole("button")).toHaveCount(0);
+  await expect(watchlist.buttons).toHaveCount(0);
 
-  await expect(watchlist.getByRole("link", { name: "All 3 on your Watchlist" })).toHaveAttribute(
-    "href",
-    "/watchlist",
-  );
-  await items.nth(1).getByRole("link", { name: "Alien (1979)" }).click();
-  await expect(page).toHaveURL(`/items/${films.alien.id}`);
+  await expect(watchlist.link("All 3 on your Watchlist")).toHaveAttribute("href", "/watchlist");
+  await watchlist.item(1).filmLink("Alien (1979)").click();
+  await expect(page).toHaveURL(filmPage.path(films.alien.id));
 });
 
 test("home shows the first five films of a longer Watchlist and counts them all", async ({
-  page,
+  ui,
+  api,
+  loggedInUser,
 }) => {
-  await fillBacklog(page.request, await logInNewUser(page.request), 5);
-  const sixth = await page.request.post("/api/backlog/items", {
-    data: { mediaItemId: (await alien(page.request)).id },
-  });
+  const filled = await api.testHooks.fillBacklog(loggedInUser.username, 5);
+  expect(filled.status(), await filled.text()).toBe(204);
+  const sixth = await api.backlog.addBacklogItem({ mediaItemId: (await alien(api)).id });
   expect(sixth.status()).toBe(201);
+  const { homePage } = ui;
 
-  await page.goto("/");
+  await homePage.goto();
 
-  const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
-  await expect(watchlist.getByRole("listitem")).toHaveCount(5);
-  await expect(watchlist).not.toContainText("Alien (1979)");
-  await expect(watchlist.getByRole("link", { name: "All 6 on your Watchlist" })).toBeVisible();
+  const watchlist = homePage.watchlistSection;
+  await expect(watchlist.items).toHaveCount(5);
+  await expect(watchlist.root).not.toContainText("Alien (1979)");
+  await expect(watchlist.link("All 6 on your Watchlist")).toBeVisible();
 });
 
 test("a long Note on home stays on one line, without scrolling a phone sideways", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  const planned = await page.request.post("/api/backlog/items", {
-    data: { mediaItemId: (await alien(page.request)).id, note: "Watch with Olena. ".repeat(10) },
+  const planned = await api.backlog.addBacklogItem({
+    mediaItemId: (await alien(api)).id,
+    note: "Watch with Olena. ".repeat(10),
   });
   expect(planned.status()).toBe(201);
   await page.setViewportSize({ width: 390, height: 844 });
+  const { homePage } = ui;
 
-  await page.goto("/");
+  await homePage.goto();
 
-  const note = page
-    .getByRole("region", { name: "Next on your Watchlist" })
-    .getByText("Watch with Olena.");
+  const note = homePage.watchlistSection.text("Watch with Olena.");
   await expect(note).toBeVisible();
   expect((await note.boundingBox())?.height).toBeLessThan(30);
   const scrollsSideways = await page.evaluate(() => {
@@ -159,89 +161,83 @@ test("a long Note on home stays on one line, without scrolling a phone sideways"
 });
 
 test("searching hides the Log and the Watchlist, and a film marked Watched from search moves between them once the search is cleared", async ({
-  page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  const film = await alien(page.request);
-  const planned = await page.request.post("/api/backlog/items", {
-    data: { mediaItemId: film.id },
-  });
+  const film = await alien(api);
+  const planned = await api.backlog.addBacklogItem({ mediaItemId: film.id });
   expect(planned.status()).toBe(201);
-  await page.goto("/");
-  const log = page.getByRole("region", { name: "Latest in your Log" });
-  const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
-  await expect(log.getByText(/Your Log is empty/)).toBeVisible();
-  await expect(watchlist.getByRole("listitem")).toContainText("Alien (1979)");
-  await expect(watchlist.getByRole("link", { name: "See your Watchlist" })).toBeVisible();
-  const search = page.getByRole("searchbox", { name: "Search films" });
+  const { homePage } = ui;
+  await homePage.goto();
+  const log = homePage.logSection;
+  const watchlist = homePage.watchlistSection;
+  await expect(log.text(/Your Log is empty/)).toBeVisible();
+  await expect(watchlist.items).toContainText("Alien (1979)");
+  await expect(watchlist.link("See your Watchlist")).toBeVisible();
 
-  await search.fill("alien");
-  await expect(log).toBeHidden();
-  await expect(watchlist).toBeHidden();
-  await searchResultRow(page, "Alien (1979)").getByRole("button", { name: "Mark watched" }).click();
-  const dialog = page.getByRole("dialog", { name: "Alien", exact: true });
-  await dialog.getByRole("radio", { name: "4 stars" }).check();
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toBeHidden();
-  await expect(log).toBeHidden();
-  await search.fill("");
+  await homePage.search("alien");
+  await expect(log.root).toBeHidden();
+  await expect(watchlist.root).toBeHidden();
+  await homePage.searchResults.result("Alien (1979)").markWatchedButton.click();
+  const dialog = homePage.logEntryDialog("Alien");
+  await dialog.rate("4 stars");
+  await dialog.save();
+  await expect(dialog.root).toBeHidden();
+  await expect(log.root).toBeHidden();
+  await homePage.search("");
 
-  await expect(log.getByRole("listitem")).toHaveCount(1);
-  await expect(log.getByRole("listitem")).toContainText("Alien (1979)");
-  await expect(log.getByRole("link", { name: "See your Log" })).toBeVisible();
-  await expect(watchlist.getByText(/Your Watchlist is empty/)).toBeVisible();
-  await expect(watchlist.getByRole("listitem")).toHaveCount(0);
+  await expect(log.items).toHaveCount(1);
+  await expect(log.items).toContainText("Alien (1979)");
+  await expect(log.link("See your Log")).toBeVisible();
+  await expect(watchlist.text(/Your Watchlist is empty/)).toBeVisible();
+  await expect(watchlist.items).toHaveCount(0);
 });
 
 test("a Watchlist that fails to load says so under its heading, and the Log still shows", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  const logged = await page.request.post("/api/log-entries", {
-    data: { mediaItemId: (await alien(page.request)).id, rating: 4 },
-  });
+  const logged = await api.log.createLogEntry({ mediaItemId: (await alien(api)).id, rating: 4 });
   expect(logged.status()).toBe(201);
   await page.route("**/api/backlog?*", (route) => route.fulfill({ status: 500 }));
+  const { homePage } = ui;
 
-  await page.goto("/");
+  await homePage.goto();
 
-  const watchlist = page.getByRole("region", { name: "Next on your Watchlist" });
-  await expect(watchlist.getByRole("heading", { name: "Next on your Watchlist" })).toBeVisible();
-  await expect(watchlist.getByRole("alert")).toHaveText(
+  const watchlist = homePage.watchlistSection;
+  await expect(watchlist.heading).toBeVisible();
+  await expect(watchlist.heading).toHaveText("Next on your Watchlist");
+  await expect(watchlist.errorMessage).toHaveText(
     "Couldn't load your Watchlist. Please try again.",
   );
-  await expect(
-    page.getByRole("region", { name: "Latest in your Log" }).getByRole("listitem"),
-  ).toContainText("Alien (1979)");
+  await expect(homePage.logSection.items).toContainText("Alien (1979)");
 });
 
 test("a Log that fails to load says so under its heading, and the Watchlist and the search still work", async ({
   page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  const planned = await page.request.post("/api/backlog/items", {
-    data: { mediaItemId: (await alien(page.request)).id },
-  });
+  const planned = await api.backlog.addBacklogItem({ mediaItemId: (await alien(api)).id });
   expect(planned.status()).toBe(201);
   await page.route("**/api/log-entries", (route) => route.fulfill({ status: 500 }));
+  const { homePage } = ui;
 
-  await page.goto("/");
+  await homePage.goto();
 
-  const log = page.getByRole("region", { name: "Latest in your Log" });
-  await expect(log.getByRole("heading", { name: "Latest in your Log" })).toBeVisible();
-  await expect(log.getByRole("alert")).toHaveText("Couldn't load your Log. Please try again.");
-  await expect(
-    page.getByRole("region", { name: "Next on your Watchlist" }).getByRole("listitem"),
-  ).toContainText("Alien (1979)");
-  await page.getByRole("searchbox", { name: "Search films" }).fill("alien");
-  await expect(
-    page.getByRole("list", { name: "Search results" }).getByText("Alien (1979)", { exact: true }),
-  ).toBeVisible();
+  const log = homePage.logSection;
+  await expect(log.heading).toBeVisible();
+  await expect(log.heading).toHaveText("Latest in your Log");
+  await expect(log.errorMessage).toHaveText("Couldn't load your Log. Please try again.");
+  await expect(homePage.watchlistSection.items).toContainText("Alien (1979)");
+  await homePage.search("alien");
+  await expect(homePage.searchResults.title("Alien (1979)")).toBeVisible();
 });
 
-test("a deep link loads the app, not a 404", async ({ page }) => {
-  const response = await page.goto("/some/client/route");
+test("a deep link loads the app, not a 404", async ({ ui }) => {
+  const response = await ui.goto("/some/client/route");
 
   expect(response?.status()).toBe(200);
-  await expect(page.getByRole("link", { name: "TasteTrack" })).toBeVisible();
+  await expect(ui.loginPage.header.appNameLink).toBeVisible();
 });

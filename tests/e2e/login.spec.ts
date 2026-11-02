@@ -1,78 +1,80 @@
-import { expect, test } from "@playwright/test";
-import { logOut } from "../support/navigation";
-import { createUser } from "../support/scenarios/users";
+import { expect, test } from "../support/ui/fixtures";
 
-test("a logged-out visitor is sent to the login page", async ({ page }) => {
-  await page.goto("/");
+test("a logged-out visitor is sent to the login page", async ({ page, ui }) => {
+  await ui.homePage.goto();
 
-  await expect(page).toHaveURL("/login");
-  await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
+  await expect(page).toHaveURL(ui.loginPage.path());
+  await expect(ui.loginPage.heading).toBeVisible();
 });
 
 test("a User logs in, lands where they were going, and logs out", { tag: "@smoke" }, async ({
   page,
+  ui,
+  registeredUser,
 }) => {
-  const user = await createUser();
-  await page.goto("/lists");
-  await expect(page).toHaveURL("/login");
+  await ui.listsPage.goto();
+  await expect(page).toHaveURL(ui.loginPage.path());
 
-  await page.getByLabel("Username").fill(user.username);
-  await page.getByLabel("Password").fill(user.password);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await ui.loginPage.logIn(registeredUser);
 
-  await expect(page).toHaveURL("/lists");
-  await expect(page.getByRole("heading", { name: "Your Lists" })).toBeVisible();
-  await expect(page.getByRole("banner")).toContainText(user.username);
+  await expect(page).toHaveURL(ui.listsPage.path());
+  await expect(ui.listsPage.heading).toBeVisible();
+  await expect(ui.listsPage.header.banner).toContainText(registeredUser.username);
 
-  await logOut(page);
+  await ui.listsPage.header.accountMenu.logOut();
 
-  await expect(page).toHaveURL("/login");
+  await expect(page).toHaveURL(ui.loginPage.path());
   await page.reload();
-  await expect(page).toHaveURL("/login");
+  await expect(page).toHaveURL(ui.loginPage.path());
 });
 
-test("a User going to an unknown page lands on home after logging in", async ({ page }) => {
-  const user = await createUser();
-  await page.goto("/some/page");
-  await expect(page).toHaveURL("/login");
+test("a User going to an unknown page lands on home after logging in", async ({
+  page,
+  ui,
+  registeredUser,
+}) => {
+  await ui.goto("/some/page");
+  await expect(page).toHaveURL(ui.loginPage.path());
 
-  await page.getByLabel("Username").fill(user.username);
-  await page.getByLabel("Password").fill(user.password);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await ui.loginPage.logIn(registeredUser);
 
-  await expect(page).toHaveURL("/");
-  await expect(page.getByRole("banner")).toContainText(user.username);
+  await expect(page).toHaveURL(ui.homePage.path());
+  await expect(ui.homePage.header.banner).toContainText(registeredUser.username);
 });
 
-test("a wrong password shows an error and stays on the login page", async ({ page }) => {
-  const user = await createUser();
-  await page.goto("/login");
+test("a wrong password shows an error and stays on the login page", async ({
+  page,
+  ui,
+  registeredUser,
+}) => {
+  await ui.loginPage.goto();
 
-  await page.getByLabel("Username").fill(user.username);
-  await page.getByLabel("Password").fill("not the password");
-  await page.getByRole("button", { name: "Log in" }).click();
+  await ui.loginPage.logIn({ username: registeredUser.username, password: "not the password" });
 
-  await expect(page.getByRole("alert")).toHaveText("Wrong Username or password");
-  await expect(page).toHaveURL("/login");
+  await expect(ui.loginPage.errorMessage).toHaveText("Wrong Username or password");
+  await expect(page).toHaveURL(ui.loginPage.path());
 });
 
-test("after 5 wrong passwords the login page says how long to wait", async ({ page }) => {
-  const user = await createUser();
-  await page.goto("/login");
-  await page.getByLabel("Username").fill(user.username);
-  const password = page.getByLabel("Password");
+test("after 5 wrong passwords the login page says how long to wait", async ({
+  page,
+  ui,
+  registeredUser,
+}) => {
+  const { loginPage } = ui;
+  await loginPage.goto();
+  await loginPage.usernameInput.fill(registeredUser.username);
   for (let i = 0; i < 5; i++) {
-    await password.fill("not the password");
+    await loginPage.passwordInput.fill("not the password");
     const failed = page.waitForResponse("/api/auth/login");
-    await page.getByRole("button", { name: "Log in" }).click();
+    await loginPage.logInButton.click();
     expect((await failed).status()).toBe(401);
   }
 
-  await password.fill(user.password);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await loginPage.passwordInput.fill(registeredUser.password);
+  await loginPage.logInButton.click();
 
-  await expect(page.getByRole("alert")).toHaveText(
+  await expect(loginPage.errorMessage).toHaveText(
     "Too many failed attempts. Try again in 15 minutes.",
   );
-  await expect(page).toHaveURL("/login");
+  await expect(page).toHaveURL(loginPage.path());
 });

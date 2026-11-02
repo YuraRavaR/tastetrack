@@ -37,6 +37,7 @@ const localWebServers: PlaywrightTestConfig["webServer"] = [
 ];
 
 export default defineConfig({
+  timeout: deployedURL ? 60_000 : 30_000,
   forbidOnly: !!process.env.CI,
   // At most one retry. A test that passes only on retry is reported as flaky.
   retries: 1,
@@ -47,6 +48,9 @@ export default defineConfig({
   ],
   use: {
     trace: "retain-on-failure",
+    actionTimeout: 10_000,
+    navigationTimeout: 15_000,
+    locale: "en-US",
   },
   projects: [
     {
