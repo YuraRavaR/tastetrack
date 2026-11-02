@@ -1,29 +1,23 @@
-import { expect, test } from "@playwright/test";
+import { expectBody } from "../support/api/responses";
 import { matrix, matrixId } from "../support/scenarios/films";
-import { fillList } from "../support/scenarios/lists";
-import { evict } from "../support/scenarios/tmdb";
-import { logInNewUser } from "../support/scenarios/users";
+import { expect, test } from "../support/ui/fixtures";
 
 test("a List shows films missing from the cache as placeholders, then fills them in", async ({
-  page,
+  ui,
+  loggedInApi: api,
 }) => {
-  await logInNewUser(page.request);
-  const created = await page.request.post("/api/lists", {
-    data: { mediaType: "film", name: "Late nineties" },
-  });
-  const listId = (await created.json()).list.id;
+  const created = api.lists.createList({ mediaType: "film", name: "Late nineties" });
+  const { list } = await expectBody(created, 201);
   // Placeholders TMDB has never heard of come first, so the page fills them, or tries to, and
   // leaves the film to the client.
-  await fillList(page.request, listId, 10);
-  const added = await page.request.post(`/api/lists/${listId}/items`, {
-    data: { mediaItemId: (await matrix(page.request)).id },
-  });
+  expect((await api.testHooks.fillList(list.id, 10)).status()).toBe(204);
+  const added = await api.lists.addListItem(list.id, { mediaItemId: (await matrix(api)).id });
   expect(added.status()).toBe(201);
-  await evict(page.request, matrixId);
+  expect((await api.testHooks.evictFromTmdbCache(matrixId)).status()).toBe(204);
 
-  await page.goto(`/lists/${listId}`);
+  await ui.listPage.goto(list.id);
 
-  const items = page.getByRole("list", { name: "Late nineties" }).getByRole("listitem");
+  const items = ui.listPage.items("Late nineties");
   await expect(items).toHaveCount(11);
   await expect(items.last()).toContainText("The Matrix (1999)");
   await expect(items.first()).toContainText("Film details unavailable");

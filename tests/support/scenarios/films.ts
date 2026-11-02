@@ -50,7 +50,7 @@ export const shadows = (client: CatalogClient) => {
   return film(client, "shadows of forgotten", shadowsId);
 };
 export const matrixId = "603";
-export const matrix = (request: APIRequestContext) => film(request, "the matrix", matrixId);
+export const matrix = (client: CatalogClient) => film(client, "the matrix", matrixId);
 
 // The film titles of List Items, by the TMDB ids of the films above.
 export function titlesOf(items: { mediaItem: { externalReference: { id: string } } }[]) {
