@@ -1,5 +1,5 @@
-import { Bookmark, List, ListPlus, RotateCw, Star } from "lucide-react";
-import { useId, useState } from "react";
+import { Bookmark, List, ListPlus, RotateCw, SearchX, Star } from "lucide-react";
+import { type ReactNode, useId, useState } from "react";
 import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,15 +17,20 @@ import {
   foundMediaType,
   mediaItemOf,
 } from "../catalog/found";
+import { matchSaved, type SavedFilm, savedStatus, withoutSaved } from "../catalog/saved-search";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
+import { useSavedFilms } from "../catalog/use-saved-films";
 import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { listPath } from "../navigation/paths";
+import { EmptyState } from "./EmptyState";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
+import { MediaTypeChips } from "./MediaTypeChips";
 import { Poster } from "./Poster";
+import { PosterGridItem } from "./PosterGridItem";
 import { SearchField } from "./SearchField";
 import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
@@ -45,21 +50,25 @@ type RowLog = { currentRating: number | null; logEntryCount: number };
 // How many of a result's Lists its row names, before saying how many more hold it.
 const maxListChips = 2;
 
-// Search as you type, with no button: results follow a short pause in typing, the User's own
-// Manual Media Items first, and the query lives in the URL. A result with a Media Item links to its
+// Search as you type, with no button, under category chips, with the query in the URL. The User's
+// own saved films that match come first, "In your Saved": a strip of covers matched against their
+// titles on every keystroke, each with one status line and linking to its film's page. TMDB's
+// results follow, "From TMDB", after a short pause in typing, without the User's saved films,
+// the User's own Manual Media Items first. A TMDB result with a Media Item links to its
 // film's page, and shows the User's Current Rating, how many viewings they have and the Lists that
 // hold it. Any result can be marked Watched, which records a Log Entry for it, as a Revisit by
 // default if it is in the Log, and takes it off the Watchlist with an undo. Want to watch is a
 // toggle, which puts a result on the Watchlist or takes it off again, and any result can be added
 // to or taken off the User's Lists. Below the results, a film search doesn't find can be added by
-// hand, and then shows first. With `labelAsHeading` the field's label is the page's heading.
-export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolean }) {
-  const searchLabel = mediaWord(pageMediaType, "search");
+// hand, and then shows first.
+export function FilmSearch() {
   const backlogName = mediaWord(pageMediaType, "backlog");
   const inputId = useId();
   const [query, setQuery] = useSearchQuery();
   const search = useCatalogSearch(query);
-  const rememberScroll = useResultsScroll(search.status === "done");
+  const saved = useSavedFilms(pageMediaType, query);
+  // Both blocks are in place once the saved films have loaded, or failed to, and TMDB answered.
+  const rememberScroll = useResultsScroll(search.status === "done" && saved.status !== "loading");
   const [logging, setLogging] = useState<Found | null>(null);
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const [addingManually, setAddingManually] = useState(false);
@@ -86,12 +95,24 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
 
   const trimmed = query.trim();
   const searched = new Set(search.results.map(foundKey));
-  const results = [
-    ...(added.query === trimmed
-      ? added.found.filter((found) => !searched.has(foundKey(found)))
-      : []),
-    ...search.results,
-  ];
+  const shown = matchSaved(saved.films, trimmed);
+  const results = withoutSaved(
+    [
+      ...(added.query === trimmed
+        ? added.found.filter((found) => !searched.has(foundKey(found)))
+        : []),
+      ...search.results,
+    ],
+    saved.films,
+  );
+  // TMDB's results wait for the saved films, so a film never shows there before it moves up.
+  const showResults = saved.status !== "loading" && results.length > 0;
+  const noMatch =
+    trimmed !== "" &&
+    search.status === "done" &&
+    saved.status !== "loading" &&
+    shown.length === 0 &&
+    results.length === 0;
 
   function markCataloged(found: Found, mediaItemId: number) {
     setCatalogedNow((current) => new Map(current).set(foundKey(found), mediaItemId));
@@ -133,24 +154,26 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
       return;
     }
     markPlanned(found, adding);
+    saved.changed();
     setLastAction({ kind: adding ? "planned" : "unplanned", found });
   }
 
-  function logged(found: Found, saved: api.SavedLogEntry) {
+  function logged(found: Found, entry: api.SavedLogEntry) {
     setLogging(null);
     setPlanError(null);
     setLastAction({
       kind: "logged",
       found,
-      mediaItemId: saved.logEntry.mediaItem.id,
-      removedFromBacklog: saved.removedFromBacklog,
+      mediaItemId: entry.logEntry.mediaItem.id,
+      removedFromBacklog: entry.removedFromBacklog,
     });
-    const { currentRating, logEntryCount } = saved;
+    const { currentRating, logEntryCount } = entry;
     setLoggedNow((current) => {
       return new Map(current).set(foundKey(found), { currentRating, logEntryCount });
     });
-    markCataloged(found, saved.logEntry.mediaItem.id);
-    if (saved.removedFromBacklog) markPlanned(found, false);
+    markCataloged(found, entry.logEntry.mediaItem.id);
+    if (entry.removedFromBacklog) markPlanned(found, false);
+    saved.changed();
   }
 
   // Puts a logged film back on the Watchlist where it was, with its Note.
@@ -162,11 +185,13 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
       return;
     }
     markPlanned(found, true);
+    saved.changed();
     setLastAction({ kind: "putBack", found });
   }
 
   function markListed(found: Found, lists: HoldingList[]) {
     setListedNow((current) => new Map(current).set(foundKey(found), lists));
+    saved.changed();
   }
 
   function addedManually(found: Found) {
@@ -180,22 +205,21 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        {labelAsHeading ? (
-          <h1 className="font-semibold text-2xl tracking-tight">
-            <Label htmlFor={inputId} className="font-semibold text-2xl leading-8">
-              {searchLabel}
-            </Label>
-          </h1>
-        ) : (
-          <Label htmlFor={inputId}>{searchLabel}</Label>
-        )}
-        <SearchField id={inputId} value={query} onChange={setQuery} />
+        <h1 className="font-bold text-3xl tracking-tight">
+          <Label htmlFor={inputId} className="font-bold text-3xl leading-9">
+            {t("search.title")}
+          </Label>
+        </h1>
+        <SearchField id={inputId} value={query} onChange={setQuery} prominent />
+        <MediaTypeChips current={pageMediaType} />
       </div>
+      {trimmed === "" && (
+        <p className="text-[0.9375rem] text-muted-foreground">{t("search.hint")}</p>
+      )}
       <p aria-live="polite" className="text-muted-foreground text-sm empty:hidden">
         {search.status === "searching" && t("search.searching")}
-        {search.status === "done" && search.results.length === 0 && t("search.none")}
       </p>
       <Toast onDismiss={() => setLastAction(null)}>
         {lastAction && (
@@ -213,46 +237,65 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
             : t("backlog.updateFailed", { backlogName })}
         </p>
       )}
+      {trimmed !== "" && saved.status === "failed" && (
+        <p role="alert" className="text-destructive text-sm">
+          {t("search.savedUnavailable")}
+        </p>
+      )}
       {search.status === "failed" && (
         <p role="alert" className="text-destructive text-sm">
           {t("search.unavailable")}
         </p>
       )}
-      {results.length > 0 && (
-        <ul
-          aria-label={t("search.resultsLabel")}
-          className="flex flex-col divide-y rounded-lg border bg-card"
-        >
-          {results.map((found) => (
-            <SearchResult
-              key={foundKey(found)}
-              found={found}
-              mediaItemId={mediaItemIdOf(found)}
-              onOpened={rememberScroll}
-              log={logOf(found)}
-              lists={listedNow.get(foundKey(found)) ?? found.lists}
-              inBacklog={inBacklog(found)}
-              planning={planning.has(foundKey(found))}
-              onExperienced={() => setLogging(found)}
-              onTogglePlanned={() => togglePlanned(found)}
-              onListed={() =>
-                setListing({
-                  label: foundLabel(found),
-                  mediaItem: () => addToCatalog(found),
-                  onHeld: (lists) => markListed(found, lists),
-                })
-              }
-            />
-          ))}
-        </ul>
+      {shown.length > 0 && <SavedMatches films={shown} />}
+      {showResults && (
+        <ResultsBlock heading={t("search.tmdb")} count={results.length}>
+          {(headingId) => (
+            <ul
+              aria-labelledby={headingId}
+              className="flex flex-col divide-y rounded-lg border bg-card"
+            >
+              {results.map((found) => (
+                <SearchResult
+                  key={foundKey(found)}
+                  found={found}
+                  mediaItemId={mediaItemIdOf(found)}
+                  onOpened={rememberScroll}
+                  log={logOf(found)}
+                  lists={listedNow.get(foundKey(found)) ?? found.lists}
+                  inBacklog={inBacklog(found)}
+                  planning={planning.has(foundKey(found))}
+                  onExperienced={() => setLogging(found)}
+                  onTogglePlanned={() => togglePlanned(found)}
+                  onListed={() =>
+                    setListing({
+                      label: foundLabel(found),
+                      mediaItem: () => addToCatalog(found),
+                      onHeld: (lists) => markListed(found, lists),
+                    })
+                  }
+                />
+              ))}
+            </ul>
+          )}
+        </ResultsBlock>
       )}
-      {search.status === "done" && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-          <span className="text-muted-foreground">{t("search.notFound")}</span>
-          <Button variant="outline" size="sm" onClick={() => setAddingManually(true)}>
-            {t("search.addManually")}
-          </Button>
-        </div>
+      {noMatch ? (
+        <EmptyState
+          icon={SearchX}
+          message={t("search.noMatch", { query: trimmed })}
+          action={{ label: t("search.addManually"), onClick: () => setAddingManually(true) }}
+        />
+      ) : (
+        trimmed !== "" &&
+        search.status === "done" && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            <span className="text-muted-foreground">{t("search.notFound")}</span>
+            <Button variant="outline" size="sm" onClick={() => setAddingManually(true)}>
+              {t("search.addManually")}
+            </Button>
+          </div>
+        )
       )}
       <LogEntryDialog
         found={logging}
@@ -270,6 +313,88 @@ export function FilmSearch({ labelAsHeading = false }: { labelAsHeading?: boolea
         onSaved={(mediaItem) => addedManually(foundManual(mediaItem))}
       />
     </section>
+  );
+}
+
+// One block of results: a heading with how many it holds, then its list, which the heading names.
+function ResultsBlock({
+  heading,
+  count,
+  children,
+}: {
+  heading: string;
+  count: number;
+  children: (headingId: string) => ReactNode;
+}) {
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId} className="flex flex-col gap-2.5">
+      <h2 className="flex items-baseline gap-1.5 font-bold text-base">
+        <span id={headingId}>{heading}</span>
+        <span className="font-medium text-muted-foreground text-sm">{count}</span>
+      </h2>
+      {children(headingId)}
+    </section>
+  );
+}
+
+// "In your Saved": the User's own films that match, as covers in a sideways strip on a phone,
+// bleeding to the screen's edges, and in a grid from md. Each cover opens its film's page, where
+// the User acts on it.
+function SavedMatches({ films }: { films: readonly SavedFilm[] }) {
+  return (
+    <ResultsBlock heading={t("search.saved")} count={films.length}>
+      {(headingId) => (
+        <ul
+          aria-labelledby={headingId}
+          className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-[repeat(auto-fill,minmax(120px,1fr))] md:gap-x-4 md:gap-y-4.5 md:overflow-visible md:px-0 md:pb-0"
+        >
+          {films.map((film) => (
+            <PosterGridItem
+              key={film.mediaItem.id}
+              mediaItem={film.mediaItem}
+              meta={<SavedStatusLine film={film} />}
+              className="w-26 shrink-0 md:w-auto"
+            />
+          ))}
+        </ul>
+      )}
+    </ResultsBlock>
+  );
+}
+
+// A saved film's one status line, cut with an ellipsis: "★ 5 · Watchlist", "★ 4.5 · Watched",
+// "Watchlist" with a bookmark, or the oldest of its Lists.
+function SavedStatusLine({ film }: { film: SavedFilm }) {
+  const status = savedStatus(film);
+  if (!status) return null;
+  const mediaType = film.mediaItem.mediaType;
+  if (status.kind === "rated") {
+    return (
+      <span className="flex min-w-0 items-center gap-1 font-semibold text-primary-strong">
+        <Star role="img" aria-label={t("rating.label")} className="size-3 shrink-0 fill-current" />
+        <span className="truncate">
+          {t("search.savedRating", {
+            rating: status.rating,
+            status: mediaWord(mediaType, status.inBacklog ? "backlog" : "experienced"),
+          })}
+        </span>
+      </span>
+    );
+  }
+  if (status.kind === "backlog") {
+    return (
+      <span className="flex min-w-0 items-center gap-1 font-medium">
+        <Bookmark aria-hidden className="size-3 shrink-0 fill-current" />
+        <span className="truncate">{mediaWord(mediaType, "backlog")}</span>
+      </span>
+    );
+  }
+  return (
+    <span className="flex min-w-0 items-center gap-1 font-medium">
+      <List role="img" aria-label={t("search.savedList")} className="size-3.5 shrink-0" />
+      <span className="truncate">{status.name}</span>
+    </span>
   );
 }
 

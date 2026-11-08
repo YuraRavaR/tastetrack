@@ -757,6 +757,29 @@ export const MediaItemListsResponse = z
 
 export type MediaItemListsResponse = z.infer<typeof MediaItemListsResponse>;
 
+export const ListedMediaItemsQuery = z.object({
+  mediaType: MediaType,
+});
+
+// A Media Item on at least one of the User's own Lists, and those Lists, oldest first.
+export const ListedMediaItem = z
+  .object({
+    mediaItem: MediaItem,
+    lists: z.array(HoldingList).min(1),
+  })
+  .openapi("ListedMediaItem");
+
+export type ListedMediaItem = z.infer<typeof ListedMediaItem>;
+
+// Every Media Item of one Media Type on the User's own Lists, each once, in no particular order.
+export const ListedMediaItemsResponse = z
+  .object({
+    items: z.array(ListedMediaItem),
+  })
+  .openapi("ListedMediaItemsResponse");
+
+export type ListedMediaItemsResponse = z.infer<typeof ListedMediaItemsResponse>;
+
 // One of the User's own Lists with its Share Link while it has one, and its List Items in order.
 export const List = ListSummary.omit({ itemCount: true })
   .extend({ shareLink: ShareLink.nullable(), items: z.array(ListItem) })

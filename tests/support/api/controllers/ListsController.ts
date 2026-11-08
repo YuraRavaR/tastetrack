@@ -1,10 +1,20 @@
-import type { ListEditRequest, NewListItemRequest, NewListRequest } from "@shared/api";
+import type {
+  ListEditRequest,
+  ListedMediaItemsQuery,
+  NewListItemRequest,
+  NewListRequest,
+} from "@shared/api";
+import type { z } from "zod";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
 
 export class ListsController extends BaseController {
   getLists(options?: RequestOptions) {
     return this.requestContext.get(endpoints.lists.collection, options);
+  }
+
+  getListedMediaItems(query: z.infer<typeof ListedMediaItemsQuery>, options?: RequestOptions) {
+    return this.requestContext.get(endpoints.lists.mediaItems, { ...options, params: query });
   }
 
   createList(list: NewListRequest, options?: RequestOptions) {

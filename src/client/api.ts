@@ -11,6 +11,8 @@ import type {
   LibraryResponse,
   List,
   ListEditRequest,
+  ListedMediaItem,
+  ListedMediaItemsResponse,
   ListItem,
   ListItemEditRequest,
   ListItemResponse,
@@ -425,6 +427,13 @@ export async function fetchLibrary(mediaType: MediaType): Promise<LibraryItem[]>
   const response = await fetch(`/api/library?mediaType=${mediaType}`);
   if (!response.ok) throw new Error(`Loading the Library failed: ${response.status}`);
   return ((await response.json()) as LibraryResponse).items;
+}
+
+// Every Media Item of the Media Type on the User's own Lists, each once with the Lists holding it.
+export async function fetchListedMediaItems(mediaType: MediaType): Promise<ListedMediaItem[]> {
+  const response = await fetch(`/api/lists/media-items?mediaType=${mediaType}`);
+  if (!response.ok) throw new Error(`Loading the films on Lists failed: ${response.status}`);
+  return ((await response.json()) as ListedMediaItemsResponse).items;
 }
 
 export type PlanResult =

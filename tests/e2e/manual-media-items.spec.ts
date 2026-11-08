@@ -49,12 +49,13 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   await logging.save();
   await expect(film.itemHistoryLink("5 · 1 viewing")).toBeVisible();
 
-  // A later search lists it first.
+  // A later search finds it in Saved, and only there.
   await page.reload();
   await searchPage.search("олени");
-  const first = searchPage.searchResults.rows.first();
-  await expect(first).toContainText(`${wedding} (2019)`);
-  await expect(first).toContainText("5 · 1 viewing");
+  await expect(searchPage.savedMatches.film(wedding).root).toContainText("5 · Watched");
+  // "Can't find it?" shows once the search is done.
+  await expect(searchPage.addManuallyButton).toBeVisible();
+  await expect(searchPage.searchResults.resultWithText(wedding).root).toHaveCount(0);
 
   // Its page, reached from Watched, edits it.
   await searchPage.mainNav.link("Saved").click();

@@ -308,11 +308,11 @@ test.describe("from md", () => {
     await expectFooter(ui.loginPage.footer);
   });
 
-  test("the header and footer stop at 72rem, as Saved does, and other pages keep a narrower column", async ({
+  test("the header and footer stop at 72rem, as Saved does, Search keeps 52rem and other pages a narrower column", async ({
     page,
     loggedInUi: ui,
   }) => {
-    const { libraryPage, searchPage } = ui;
+    const { libraryPage, searchPage, listsPage } = ui;
     await page.setViewportSize({ width: 1440, height: 900 });
     await libraryPage.goto();
 
@@ -325,7 +325,11 @@ test.describe("from md", () => {
 
     await libraryPage.mainNav.link("Search").click();
     await expect(searchPage.searchHeading).toBeVisible();
-    expect((await searchPage.main.boundingBox())?.width).toBe(768);
+    expect((await searchPage.main.boundingBox())?.width).toBe(832);
+
+    await searchPage.mainNav.link("Collections").click();
+    await expect(listsPage.heading).toBeVisible();
+    expect((await listsPage.main.boundingBox())?.width).toBe(768);
   });
 });
 
