@@ -110,6 +110,15 @@ test("a new Share Link replaces the old one", async ({ ui, loggedInApi: api, vis
   await expect(sharedPage.notSharedHeading).toBeVisible();
 });
 
+test("an unknown Share Link says the Collection isn't shared any more", async ({ visitorUi }) => {
+  const { sharedPage } = visitorUi;
+  await sharedPage.goto("no-such-link");
+
+  await expect(sharedPage.notSharedHeading).toBeVisible();
+  await expect(sharedPage.inviteLine).toBeVisible();
+  await expect(sharedPage.main.getByRole("link")).toHaveCount(0);
+});
+
 test("someone logs in from a Share Link and comes back to it, in the app's frame", async ({
   page,
   ui,

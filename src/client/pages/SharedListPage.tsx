@@ -68,15 +68,19 @@ export function SharedListPage() {
   return (
     <div className="flex flex-col gap-5.5 md:gap-9 md:pt-4">
       <div className="flex flex-col gap-2 md:max-w-160 md:gap-2.5">
-        <p className="flex items-center gap-1.5 font-semibold text-muted-foreground text-sm">
+        <p className="flex items-center gap-1.5 font-semibold text-[13px] text-muted-foreground md:text-sm">
           <LayoutGrid aria-hidden className="size-4" />
           {mediaWord(list.mediaType, "collection")}
         </p>
-        <h1 className="break-words font-bold text-3xl tracking-tight md:text-4xl">{list.title}</h1>
+        <h1 className="break-words font-bold text-3xl leading-tight tracking-tight md:text-[2.5rem]">
+          {list.title}
+        </h1>
         {list.description && (
-          <p className="whitespace-pre-line break-words md:text-lg">{list.description}</p>
+          <p className="whitespace-pre-line break-words text-[15px] md:text-[17px]">
+            {list.description}
+          </p>
         )}
-        <p className="flex items-center gap-2 text-muted-foreground text-sm md:text-base">
+        <p className="flex items-center gap-2 text-muted-foreground text-sm md:text-[15px]">
           <span
             aria-hidden
             className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-soft font-bold text-primary-strong text-xs md:size-6.5"
@@ -136,10 +140,12 @@ function NotShared({ invite }: { invite: ReactNode }) {
           <Link2Off className="size-6" />
         </span>
       </span>
-      <h1 className="font-bold text-2xl leading-tight tracking-tight md:text-3xl">
+      <h1 className="font-bold text-2xl leading-tight tracking-tight md:text-[2rem]">
         {t("shared.notShared")}
       </h1>
-      <p className="max-w-120 text-muted-foreground md:text-lg">{t("shared.notSharedHint")}</p>
+      <p className="max-w-120 text-[15px] text-muted-foreground md:text-[17px]">
+        {t("shared.notSharedHint")}
+      </p>
       {invite}
     </div>
   );
