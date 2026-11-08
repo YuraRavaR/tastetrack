@@ -26,12 +26,13 @@ async function loadSharedList(token: string): Promise<SharedListState> {
 }
 
 // The List behind a Share Link, for anyone holding it, logged in or not: its title, description,
-// owner and films in order with their Notes, as a grid of posters that lead nowhere, and nothing
-// more. A link that doesn't work says so the same way whether it was revoked, replaced or never
+// owner and films in order with their Notes, as a grid of posters, and nothing more. A poster
+// opens its film's page only for a logged-in viewer, the one who can see that page. A link that doesn't work says so the same way whether it was revoked, replaced or never
 // existed. A visitor without a session is told how to get an account.
 export function SharedListPage() {
   const token = useParams().token ?? "";
-  const anonymous = useAuth().state.status === "anonymous";
+  const authStatus = useAuth().state.status;
+  const anonymous = authStatus === "anonymous";
   const [state, setState] = useState<SharedListState>({ status: "loading" });
   const fill = useMetadataFill(
     state.status === "loaded" ? state.list.items.map((item) => item.mediaItem) : [],
@@ -110,7 +111,7 @@ export function SharedListPage() {
                 loading={fill.loading(item.mediaItem)}
                 meta={year != null ? String(year) : undefined}
                 place={index + 1}
-                unlinked
+                unlinked={authStatus !== "authenticated"}
               >
                 {item.note && <NoteBubble note={item.note} ownerName={ownerName} />}
               </PosterGridItem>

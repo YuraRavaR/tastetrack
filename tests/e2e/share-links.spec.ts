@@ -119,7 +119,7 @@ test("an unknown Share Link says the Collection isn't shared any more", async ({
   await expect(sharedPage.main.getByRole("link")).toHaveCount(0);
 });
 
-test("someone logs in from a Share Link and comes back to it, in the app's frame", async ({
+test("someone logs in from a Share Link and comes back to it, where posters open their films", async ({
   page,
   ui,
   registeredUser,
@@ -129,11 +129,12 @@ test("someone logs in from a Share Link and comes back to it, in the app's frame
     owner.lists.createList({ name: "Space horror", mediaType: "film" }),
     201,
   );
-  const added = await owner.lists.addListItem(list.id, { mediaItemId: (await alien(owner)).id });
+  const alienItem = await alien(owner);
+  const added = await owner.lists.addListItem(list.id, { mediaItemId: alienItem.id });
   expect(added.status()).toBe(201);
   const { shareLink } = await expectBody(owner.lists.createShareLink(list.id), 201);
 
-  const { sharedPage, loginPage } = ui;
+  const { sharedPage, loginPage, filmPage } = ui;
   await sharedPage.goto(shareLink.token);
   await sharedPage.header.logInLink.click();
   await expect(page).toHaveURL(loginPage.path());
@@ -145,6 +146,10 @@ test("someone logs in from a Share Link and comes back to it, in the app's frame
   await expect(sharedPage.header.accountMenu.button).toBeVisible();
   await expect(sharedPage.header.logInLink).toHaveCount(0);
   await expect(sharedPage.inviteLine).toHaveCount(0);
+
+  // Logged in, a poster opens its film's page.
+  await sharedPage.film("Space horror", "Alien").links.click();
+  await expect(page).toHaveURL(filmPage.path(alienItem.id));
 });
 
 // A long Note, past three lines on a phone.
