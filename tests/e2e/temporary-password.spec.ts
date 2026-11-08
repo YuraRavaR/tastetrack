@@ -27,7 +27,8 @@ test("a User who logs in with a Temporary Password must set their own first", as
     "That's the Temporary Password. Choose one of your own.",
   );
   await expect(newPasswordPage.newPasswordInput).toHaveAttribute("aria-invalid", "true");
-  await newPasswordPage.newPasswordInput.fill("m");
+  // Typing in the field at fault clears the error.
+  await newPasswordPage.newPasswordInput.fill("my own");
   await expect(newPasswordPage.errorMessage).toHaveCount(0);
   await expect(newPasswordPage.newPasswordInput).toHaveAttribute("aria-invalid", "false");
 

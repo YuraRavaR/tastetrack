@@ -1,10 +1,10 @@
 import { type FormEvent, useState } from "react";
-import { Link, Navigate, useSearchParams } from "react-router";
+import { Navigate, useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import { passwordLength, usernamePattern } from "../../shared/accounts";
 import type { RegisterError } from "../api";
 import { useAuth } from "../auth";
-import { AuthCard, AuthField, AuthSwitch } from "../components/AuthCard";
+import { AuthCard, AuthField, SwitchFormLink } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
 import { type MessageId, t } from "../i18n/t";
 
@@ -16,8 +16,10 @@ const errorMessages: Record<RegisterError, MessageId> = {
   unavailable: "register.unavailable",
 };
 
+type RegisterField = "inviteCode" | "username";
+
 // The field each error is about, which it marks until the User types there again.
-const errorFields: Record<RegisterError, "inviteCode" | "username" | null> = {
+const errorFields: Record<RegisterError, RegisterField | null> = {
   invite_code_unknown: "inviteCode",
   invite_code_used: "inviteCode",
   invite_code_expired: "inviteCode",
@@ -54,7 +56,7 @@ export function RegisterPage() {
   const errorField = error ? errorFields[error] : null;
 
   // Typing in the field an error is about clears that error.
-  function clearErrorAbout(field: "inviteCode" | "username") {
+  function clearErrorAbout(field: RegisterField) {
     if (errorField === field) setError(null);
   }
 
@@ -67,7 +69,7 @@ export function RegisterPage() {
           defaultValue={searchParams.get("code") ?? ""}
           onChange={() => clearErrorAbout("inviteCode")}
           invalid={errorField === "inviteCode"}
-          className="tracking-widest"
+          className="tracking-wider"
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
@@ -104,12 +106,11 @@ export function RegisterPage() {
           {t(submitting ? "register.submitting" : "register.submit")}
         </Button>
       </form>
-      <AuthSwitch>
-        {t("register.loginPrompt")}{" "}
-        <Link to="/login" className="font-semibold text-primary-strong underline-offset-4 hover:underline">
-          {t("register.loginLink")}
-        </Link>
-      </AuthSwitch>
+      <SwitchFormLink
+        prompt={t("register.loginPrompt")}
+        to="/login"
+        link={t("register.loginLink")}
+      />
     </AuthCard>
   );
 }

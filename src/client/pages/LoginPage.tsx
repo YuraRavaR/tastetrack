@@ -1,9 +1,9 @@
 import { type FormEvent, useState } from "react";
-import { Link, Navigate, useLocation } from "react-router";
+import { Navigate, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { LoginResult } from "../api";
 import { type LoginLocationState, useAuth } from "../auth";
-import { AuthCard, AuthField, AuthSwitch } from "../components/AuthCard";
+import { AuthCard, AuthField, SwitchFormLink } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
 import { t } from "../i18n/t";
 
@@ -59,12 +59,11 @@ export function LoginPage() {
           {t(submitting ? "login.submitting" : "login.submit")}
         </Button>
       </form>
-      <AuthSwitch>
-        {t("login.registerPrompt")}{" "}
-        <Link to="/register" className="font-semibold text-primary-strong underline-offset-4 hover:underline">
-          {t("login.registerLink")}
-        </Link>
-      </AuthSwitch>
+      <SwitchFormLink
+        prompt={t("login.registerPrompt")}
+        to="/register"
+        link={t("login.registerLink")}
+      />
     </AuthCard>
   );
 }

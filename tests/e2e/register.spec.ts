@@ -45,14 +45,14 @@ test("a used Invite Code shows why registration failed", async ({ page, ui, logg
   );
   await api.auth.logout();
 
-  await ui.registerPage.goto(code);
-  await expect(ui.registerPage.inviteCodeInput).toHaveValue(code);
-  await ui.registerPage.register({
+  const { registerPage } = ui;
+  await registerPage.goto(code);
+  await expect(registerPage.inviteCodeInput).toHaveValue(code);
+  await registerPage.register({
     username: uniqueUsername(),
     password: "a long enough password",
   });
 
-  const { registerPage } = ui;
   await expect(registerPage.errorMessage).toHaveText(
     "That Invite Code has already been used. Ask for a new one.",
   );
