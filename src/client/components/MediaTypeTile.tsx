@@ -3,6 +3,7 @@ import { type ReactNode, useId } from "react";
 import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { MediaItem, MediaType } from "../../shared/api";
 import { mediaTypeIcon } from "../catalog/media-types";
@@ -25,16 +26,13 @@ export type TileState =
 // find something instead; the tile still opens the empty tabs.
 export function MediaTypeTile({ mediaType, state }: { mediaType: MediaType; state: TileState }) {
   const countsId = useId();
-  const empty =
-    state.status === "loaded" &&
-    state.tile.counts.backlog === 0 &&
-    state.tile.counts.experienced === 0;
+  const empty = state.status === "loaded" && state.tile.empty;
   const covers = state.status === "loaded" ? state.tile.covers : [];
 
   return (
-    <div
+    <Card
       className={cn(
-        "relative grid grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_1fr_auto] gap-x-3 overflow-hidden rounded-xl border bg-card p-4.5 [grid-template-areas:'icon_fan'_'words_fan'_'action_action'] has-[a:focus-visible]:ring-[3px] has-[a:focus-visible]:ring-ring/50 has-[a:hover]:border-muted-foreground md:min-h-55 md:gap-x-4 md:p-6",
+        "relative grid grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_1fr_auto] gap-x-3 gap-y-0 overflow-hidden rounded-xl p-4.5 shadow-none [grid-template-areas:'icon_fan'_'words_fan'_'action_action'] has-[a:focus-visible]:ring-[3px] has-[a:focus-visible]:ring-ring/50 has-[a:hover]:border-muted-foreground md:min-h-55 md:gap-x-4 md:p-6",
         empty ? "md:[grid-template-areas:'icon_fan'_'words_fan'_'action_fan']" : "h-43 md:h-55",
       )}
     >
@@ -64,7 +62,7 @@ export function MediaTypeTile({ mediaType, state }: { mediaType: MediaType; stat
           </Link>
         </Button>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -80,11 +78,9 @@ function TileCounts({
   let text: ReactNode = null;
   if (state.status === "failed") text = t("saved.unavailable");
   if (state.status === "loaded") {
-    const { backlog, experienced } = state.tile.counts;
-    text =
-      backlog === 0 && experienced === 0
-        ? t("saved.nothingYet")
-        : mediaWord(mediaType, "tileCounts", { backlog, experienced });
+    text = state.tile.empty
+      ? t("saved.nothingYet")
+      : mediaWord(mediaType, "tileCounts", state.tile.counts);
   }
   // A line's height even while loading, so the tile doesn't shift when the counts arrive.
   return (

@@ -34,10 +34,11 @@ export function libraryTabItems(items: readonly LibraryItem[]): Record<LibraryTa
   return { backlog: backlogItems(items), experienced: experiencedItems(items) };
 }
 
-// What a Media Type's tile in Saved shows: how many Media Items each tab holds, and the covers of
-// the three added to the Backlog last, the latest first.
+// What a Media Type's tile in Saved shows: how many Media Items each tab holds, whether both are
+// empty, and the covers of the three added to the Backlog last, the latest first.
 export interface LibraryTile {
   counts: Record<LibraryTab, number>;
+  empty: boolean;
   covers: MediaItem[];
 }
 
@@ -47,6 +48,7 @@ export function libraryTile(items: readonly LibraryItem[]): LibraryTile {
   const { backlog, experienced } = libraryTabItems(items);
   return {
     counts: { backlog: backlog.length, experienced: experienced.length },
+    empty: backlog.length === 0 && experienced.length === 0,
     covers: backlog.slice(0, tileCoverCount).map(({ mediaItem }) => mediaItem),
   };
 }

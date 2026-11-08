@@ -94,6 +94,15 @@ describe("a Media Type's tile in Saved", () => {
     expect(covers([first])).toEqual(ids([first]));
   });
 
+  it("is empty only while both tabs are", () => {
+    const planned = item({ addedAt: "2026-10-01T10:00:00.000Z" });
+    const watched = item({ last: { date: "2026-09-01", createdAt: "2026-09-01T10:00:00.000Z" } });
+
+    expect(libraryTile([]).empty).toBe(true);
+    expect(libraryTile([planned]).empty).toBe(false);
+    expect(libraryTile([watched]).empty).toBe(false);
+  });
+
   it("fans out no logged film, so a Library with nothing planned has no covers", () => {
     const watched = item({ last: { date: "2026-09-01", createdAt: "2026-09-01T10:00:00.000Z" } });
 

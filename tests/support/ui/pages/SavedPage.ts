@@ -26,7 +26,7 @@ export class SavedPage extends BasePage {
   }
 
   readonly heading = this.main.getByRole("heading", { level: 1 });
-  readonly tiles = this.main.getByRole("list", { name: "Media Types" }).getByRole("listitem");
+  readonly tiles = this.main.getByRole("list", { name: "Saved" }).getByRole("listitem");
 
   // A built Media Type's tile, by the name on it.
   tile(name: MediaTypeName) {

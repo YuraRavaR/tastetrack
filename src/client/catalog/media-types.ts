@@ -2,9 +2,9 @@ import { BookOpen, Clapperboard, type LucideIcon } from "lucide-react";
 import type { MediaType } from "../../shared/api";
 import type { MessageId } from "../i18n/t";
 
-// A Media Type as a section's category picker shows it: one the app has built, or one still to
-// come, shown disabled and labelled "Coming soon". One still to come isn't a MediaType yet, so it
-// carries its own name and icon.
+// A Media Type as a section offers it: one the app has built, or one still to come, shown disabled
+// and labelled "Coming soon". One still to come isn't a MediaType yet, so it carries its own name
+// and icon.
 export type MediaTypeChoice =
   | { status: "built"; mediaType: MediaType }
   | { status: "comingSoon"; name: MessageId; icon: LucideIcon };
@@ -13,7 +13,7 @@ export type MediaTypeChoice =
 // choosing its External Source.
 export const mediaTypeChoices: readonly MediaTypeChoice[] = [
   { status: "built", mediaType: "film" },
-  { status: "comingSoon", name: "mediaType.book.soon", icon: BookOpen },
+  { status: "comingSoon", name: "mediaType.book.tab", icon: BookOpen },
 ];
 
 // A new Media Type doesn't compile until it has an icon.
