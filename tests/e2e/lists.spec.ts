@@ -136,13 +136,16 @@ test("a Collection is a grid of posters, each with its Note, which the User writ
   await listPage.noteDialog("Alien (1979)").saveNote("Watch it first.");
   await expect(alienPoster.noteButton).toHaveText("Watch it first.");
 
-  // Tapping the Note opens it; emptied, it's gone.
+  // Tapping the Note opens it to edit; emptied from the menu, it's gone.
   await alienPoster.noteButton.click();
   const noteDialog = listPage.noteDialog("Alien (1979)");
   await expect(noteDialog.noteInput).toHaveValue("Watch it first.");
+  await noteDialog.saveNote("Watch it first, alone.");
+  await expect(alienPoster.noteButton).toHaveText("Watch it first, alone.");
+  await listPage.choose("Space horror", "Alien", "Edit Note");
   await noteDialog.saveNote("");
   await expect(alienPoster.noteButton).toHaveCount(0);
-  await expect(listPage.text("Watch it first.")).toHaveCount(0);
+  await expect(listPage.text("Watch it first, alone.")).toHaveCount(0);
 
   // The poster opens the film's page.
   await alienPoster.link.click();
@@ -171,7 +174,7 @@ test("a film removed from a Collection comes back where it was, with its Note, o
 
   await listPage.undoButton.click();
   await expect(items).toHaveCount(2);
-  await expect(items.first()).toContainText("Alien");
+  await expect(items.first().getByText("Alien", { exact: true })).toBeVisible();
   await expect(listPage.poster("Space horror", "Alien").noteButton).toHaveText("Watch it first.");
   await expect(listPage.undoButton).toHaveCount(0);
 });

@@ -26,19 +26,7 @@ export function listItemLabel(item: ListItem): string {
   return metadata ? filmLabel(metadata) : t("film.unknown");
 }
 
-// One film in a List's grid of posters (`docs/mockups/collections/`): its place, poster, title and
-// year, which open the film's page; a ⋯ menu over the poster's corner to note, move or remove it;
-// and its Note under it, cut at three lines, which opens the Note too.
-export function ListPoster({
-  item,
-  loading,
-  place,
-  listName,
-  last,
-  onMove,
-  onNote,
-  onRemove,
-}: {
+type ListPosterProps = {
   item: ListItem;
   // True while the page loads the film's metadata.
   loading: boolean;
@@ -49,8 +37,13 @@ export function ListPoster({
   onMove: (position: number) => void;
   onNote: () => void;
   onRemove: () => void;
-}) {
-  const film = listItemLabel(item);
+};
+
+// One film in a List's grid of posters (`docs/mockups/collections/`): its place, poster, title and
+// year, which open the film's page; a ⋯ menu over the poster's corner to note, move or remove it;
+// and its Note under it, cut at three lines, which opens the Note too.
+export function ListPoster(props: ListPosterProps) {
+  const { item, loading, place, onNote } = props;
   const year = item.mediaItem.metadata?.year ?? null;
   return (
     <PosterGridItem
@@ -58,23 +51,12 @@ export function ListPoster({
       loading={loading}
       meta={year !== null ? String(year) : undefined}
       place={place}
-      corner={
-        <PosterMenu
-          item={item}
-          film={film}
-          place={place}
-          listName={listName}
-          last={last}
-          onMove={onMove}
-          onNote={onNote}
-          onRemove={onRemove}
-        />
-      }
+      corner={<PosterMenu {...props} />}
     >
       {item.note && (
         <Button
           variant="ghost"
-          aria-label={t("listItem.noteButton", { film, note: item.note })}
+          aria-label={t("listItem.noteButton", { film: listItemLabel(item), note: item.note })}
           onClick={onNote}
           className="-mx-1 h-auto min-h-11 items-start justify-start gap-1.25 whitespace-normal rounded-t-none border-t px-1 py-1.5 text-left font-normal text-muted-foreground md:-mx-1.5 md:min-h-0 md:gap-1.5 md:px-1.5 md:py-2"
         >
@@ -90,25 +72,8 @@ export function ListPoster({
 
 // The ⋯ over a poster's corner and its menu: a bottom sheet on a phone, headed by the film and its
 // place, and a dropdown from `md`.
-function PosterMenu({
-  item,
-  film,
-  place,
-  listName,
-  last,
-  onMove,
-  onNote,
-  onRemove,
-}: {
-  item: ListItem;
-  film: string;
-  place: number;
-  listName: string;
-  last: boolean;
-  onMove: (position: number) => void;
-  onNote: () => void;
-  onRemove: () => void;
-}) {
+function PosterMenu({ item, place, listName, last, onMove, onNote, onRemove }: ListPosterProps) {
+  const film = listItemLabel(item);
   const [open, setOpen] = useState(false);
   const first = place === 1;
   const metadata = item.mediaItem.metadata;
