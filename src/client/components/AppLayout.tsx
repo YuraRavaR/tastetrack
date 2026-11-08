@@ -4,14 +4,14 @@ import { version } from "../../../package.json";
 import tmdbLogo from "../assets/tmdb-logo.svg";
 import { type LoginLocationState, useAuth } from "../auth";
 import { t } from "../i18n/t";
-import { listsPath, savedPath, searchPath } from "../navigation/paths";
+import { listPath, listsPath, savedPath, searchPath } from "../navigation/paths";
 import { AccountMenu } from "./AccountMenu";
 import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 
 // The frame of every page: a header above a content column, and a footer with the app version and
 // the credit TMDB's terms require (ADR-0004). Header and footer stop at `max-w-6xl`, which Saved
-// uses for its tiles and grids of posters, Collections for its cards, and a Share Link's page for
-// its grid; every other page keeps the narrower column, Search one a little wider for its grid of
+// uses for its tiles and grids of posters, Collections for its cards, one Collection and a Share
+// Link's page for their grids; every other page keeps the narrower column, Search one a little wider for its grid of
 // covers. Logged out, the header holds only the app name, and on a Share Link's page a "Log in"
 // link that comes back to it. A logged-in User gets the sections, in a bottom tab bar on a phone
 // and in the header from `md`, and the account menu. A User who must set a new password gets
@@ -23,7 +23,8 @@ export function AppLayout() {
   const savedTiles = useMatch(savedPath) !== null;
   const savedTabs = useMatch("/saved/*") !== null;
   const collectionsPage = useMatch(listsPath) !== null;
-  const wide = savedTiles || savedTabs || collectionsPage || sharePage;
+  const collectionPage = useMatch(listPath(":listId")) !== null;
+  const wide = savedTiles || savedTabs || collectionsPage || collectionPage || sharePage;
   const searchPage = useMatch(searchPath) !== null;
   const location = useLocation();
 

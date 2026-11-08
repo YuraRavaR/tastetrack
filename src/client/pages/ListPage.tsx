@@ -1,18 +1,19 @@
 import { ArrowLeft } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { List, ListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
+import { mediaTypeIcon } from "../catalog/media-types";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { AddToListSearch } from "../components/AddToListSearch";
 import { DeleteListDialog } from "../components/DeleteListDialog";
+import { EmptyState } from "../components/EmptyState";
 import { ListFormDialog } from "../components/ListFormDialog";
-import { ListItemRow, listItemLabel } from "../components/ListItemRow";
+import { ListPoster, listItemLabel } from "../components/ListPoster";
 import { NoteDialog } from "../components/NoteDialog";
 import { ShareLinkPanel } from "../components/ShareLinkPanel";
-import { UndoLine } from "../components/UndoLine";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
 import { listsPath } from "../navigation/paths";
@@ -32,15 +33,18 @@ async function loadList(listId: number): Promise<ListState> {
   }
 }
 
-// One of the User's Lists in their own order, with a search to add films to it. Each film can be
-// moved, noted or removed, and a removal undone; the List itself can be renamed or deleted. After
-// each change the page reloads, so the order is always the Worker's.
+// One of the User's Lists in their own order, as a grid of posters with their Notes
+// (`docs/mockups/collections/`), and a search to add films to it. Each poster's ⋯ menu notes,
+// moves or removes its film, and a removal can be undone; the List itself can be renamed or
+// deleted. After each change the page reloads, so the order is always the Worker's.
 export function ListPage() {
   const listId = Number(useParams().listId);
   const navigate = useNavigate();
   const [state, setState] = useState<ListState>({ status: "loading" });
   const [editingList, setEditingList] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // Holds the search to add films, which the empty List's button takes the User to.
+  const addFilms = useRef<HTMLDivElement>(null);
   const reload = useCallback(async () => setState(await loadList(listId)), [listId]);
 
   // Puts a removed film back where it was, with its Note.
@@ -116,13 +120,21 @@ export function ListPage() {
               onChanged={reload}
             />
           </div>
-          <AddToListSearch list={state.list} onAdded={reload} />
-          <div role="status" className="text-sm empty:hidden">
+          <div ref={addFilms}>
+            <AddToListSearch list={state.list} onAdded={reload} />
+          </div>
+          <div role="status" className="empty:hidden md:self-start">
             {removed && (
-              <UndoLine
-                message={t("list.removed", { film: listItemLabel(removed) })}
-                onUndo={() => editing.undo(removed)}
-              />
+              <p className="flex items-center justify-between gap-2.5 rounded-xl bg-muted py-1 pr-1 pl-3.5 text-sm">
+                {t("list.removed", { film: listItemLabel(removed) })}
+                <Button
+                  variant="ghost"
+                  className="h-10 shrink-0 rounded-full px-3.5 font-bold text-primary-strong hover:bg-transparent hover:text-primary-strong hover:underline dark:hover:bg-transparent"
+                  onClick={() => editing.undo(removed)}
+                >
+                  {t("listItem.undo")}
+                </Button>
+              </p>
             )}
           </div>
           {error && (
@@ -131,22 +143,33 @@ export function ListPage() {
             </p>
           )}
           {state.list.items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("list.empty")}</p>
+            <EmptyState
+              icon={mediaTypeIcon(state.list.mediaType)}
+              message={t("list.empty")}
+              action={{
+                label: t("list.addLabel"),
+                onClick: () => addFilms.current?.querySelector("input")?.focus(),
+              }}
+            />
           ) : (
-            <ul aria-label={state.list.name} className="flex flex-col divide-y rounded-lg border">
+            <ol
+              aria-label={state.list.name}
+              className="grid grid-cols-3 items-start gap-x-3 gap-y-5 md:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:gap-x-5 md:gap-y-7"
+            >
               {state.list.items.map((item, index, items) => (
-                <ListItemRow
+                <ListPoster
                   key={item.id}
                   item={{ ...item, mediaItem: fill.filled(item.mediaItem) }}
                   loading={fill.loading(item.mediaItem)}
-                  first={index === 0}
+                  place={index + 1}
+                  listName={state.list.name}
                   last={index === items.length - 1}
                   onMove={(position) => editing.move(item, position)}
                   onNote={() => editing.setNoting(item)}
                   onRemove={() => editing.remove(item)}
                 />
               ))}
-            </ul>
+            </ol>
           )}
           <NoteDialog
             item={editing.noting}

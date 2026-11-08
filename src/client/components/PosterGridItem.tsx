@@ -8,8 +8,9 @@ import { Poster } from "./Poster";
 
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title
 // in two lines at most, and a meta line, such as the year or the Current Rating. All of it opens
-// the Media Item's page, unless it is `unlinked`, as on a Share Link's page. `children`, such as
-// a Note, go under it, outside the link.
+// the Media Item's page, unless it is `unlinked`, as on a Share Link's page. `corner`, such as a
+// ⋯ menu, sits over the poster's top right corner, and `children`, such as a Note, go under it,
+// both outside the link.
 export function PosterGridItem({
   mediaItem,
   loading = false,
@@ -17,6 +18,7 @@ export function PosterGridItem({
   mark,
   place,
   unlinked = false,
+  corner,
   className,
   onOpened,
   children,
@@ -32,6 +34,9 @@ export function PosterGridItem({
   place?: number;
   // True where the Media Item's page isn't for the viewer, as for a visitor to a Share Link.
   unlinked?: boolean;
+  // A control over the poster's top right corner, outside the link, such as a ⋯ menu. Not with
+  // a `mark`, which takes the same corner.
+  corner?: ReactNode;
   // Classes for the item itself, such as a fixed width in a sideways strip.
   className?: string;
   // Called as the link opens the Media Item's page, such as to remember the place in the results.
@@ -72,7 +77,7 @@ export function PosterGridItem({
   );
   const bodyClass = "flex flex-col gap-1.5 rounded-lg";
   return (
-    <li className={cn("flex min-w-0 flex-col gap-2", className)}>
+    <li className={cn("relative flex min-w-0 flex-col gap-2", className)}>
       {unlinked ? (
         <div className={bodyClass}>{body}</div>
       ) : (
@@ -80,6 +85,7 @@ export function PosterGridItem({
           {body}
         </Link>
       )}
+      {corner && <div className="absolute top-0 right-0">{corner}</div>}
       {children}
     </li>
   );

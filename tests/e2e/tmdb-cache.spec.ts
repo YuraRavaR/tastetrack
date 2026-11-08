@@ -19,6 +19,6 @@ test("a List shows films missing from the cache as placeholders, then fills them
 
   const items = ui.listPage.items("Late nineties");
   await expect(items).toHaveCount(11);
-  await expect(items.last()).toContainText("The Matrix (1999)");
+  await expect(items.last()).toContainText("The Matrix");
   await expect(items.first()).toContainText("Film details unavailable");
 });
