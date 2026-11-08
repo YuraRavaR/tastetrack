@@ -21,8 +21,13 @@ export const sheetClasses =
 export const sheetBodyClasses =
   "flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-3.5 pb-5 md:px-6 md:pt-4";
 
-// A sheet's buttons: taller on a phone, for a thumb.
+// A sheet's buttons: taller on a phone, for a thumb. Its main button is bold too.
 export const sheetButtonClasses = "h-12.5 text-base md:h-10 md:text-sm";
+export const sheetMainButtonClasses = cn(sheetButtonClasses, "font-semibold");
+
+// Room under a sheet's last row for the phone's home indicator.
+export const sheetSafeBottomClasses =
+  "pb-[calc(0.75rem+max(1.375rem,env(safe-area-inset-bottom)))]";
 
 // A sheet's title and text, with a Close button beside them at every width.
 export function SheetHeader({ title, description }: { title: ReactNode; description: ReactNode }) {
@@ -56,7 +61,8 @@ export function SheetFooter({ className, ...props }: ComponentProps<typeof Dialo
   return (
     <DialogFooter
       className={cn(
-        "grid grid-cols-2 gap-3 border-t px-5 pt-3 pb-[calc(0.75rem+max(1.375rem,env(safe-area-inset-bottom)))] md:flex md:flex-row md:justify-end md:px-6 md:pt-4 md:pb-5",
+        "grid grid-cols-2 gap-3 border-t px-5 pt-3 md:flex md:flex-row md:justify-end md:px-6 md:pt-4 md:pb-5",
+        sheetSafeBottomClasses,
         className,
       )}
       {...props}

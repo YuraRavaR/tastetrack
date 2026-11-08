@@ -55,7 +55,7 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(items.first()).toContainText("The sequel is the scarier one.");
 
   // Renamed, and the Lists page shows it with its films.
-  // The New collection form, filled in.
+  // Edit opens the New collection form, filled in.
   await listPage.act("Edit collection");
   const editList = listPage.editListDialog;
   await expect(editList.nameInput).toHaveValue("Space horror");
@@ -117,7 +117,7 @@ test("Collections shows each List as a card with its covers, its count and wheth
   await expect(page).toHaveURL(listPage.path(space.id));
 });
 
-test("the ⋯ by a Collection's heading holds its actions, as a sheet on a phone like their dialogs", async ({
+test("the ⋯ by a List's heading holds its actions, as a sheet on a phone like their dialogs", async ({
   page,
   ui,
   loggedInApi: api,
@@ -125,30 +125,30 @@ test("the ⋯ by a Collection's heading holds its actions, as a sheet on a phone
   const list = await createList(api, "Space horror");
   const { listPage } = ui;
   await listPage.goto(list.id);
+  const dialogs = {
+    "Edit collection": listPage.editListDialog.root,
+    Share: listPage.shareLinkDialog("Space horror").root,
+    "Delete collection": listPage.deleteListDialog("Space horror").root,
+  } as const;
 
   await listPage.actionsButton.click();
-  await expect(listPage.actionsMenu.getByRole("menuitem")).toHaveText([
-    "Edit collection",
-    "Share",
-    "Delete collection",
-  ]);
-  // From md a dialog sits 72px from the top.
-  await listPage.actionsMenu.getByRole("menuitem", { name: "Share" }).click();
-  expect((await settledBoxOf(listPage.shareLinkDialog.root)).y).toBe(72);
+  await expect(listPage.actionsMenu.getByRole("menuitem")).toHaveText(Object.keys(dialogs));
   await page.keyboard.press("Escape");
+  // From md each dialog sits 72px from the top.
+  for (const [action, dialog] of Object.entries(dialogs)) {
+    await listPage.act(action as keyof typeof dialogs);
+    expect((await settledBoxOf(dialog)).y).toBe(72);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+  }
 
   // On a phone the menu and each dialog sit on the bottom edge, full width.
   const screen = { width: 402, height: 874 };
   await page.setViewportSize(screen);
-  const dialogs = {
-    "Edit collection": listPage.editListDialog.root,
-    Share: listPage.shareLinkDialog.root,
-    "Delete collection": listPage.deleteListDialog("Space horror").root,
-  } as const;
   for (const [action, dialog] of Object.entries(dialogs)) {
     await listPage.actionsButton.click();
     await expectOnBottomEdge(listPage.actionsMenu, screen);
-    await listPage.actionsMenu.getByRole("menuitem", { name: action }).click();
+    await listPage.actionItem(action as keyof typeof dialogs).click();
     await expectOnBottomEdge(dialog, screen);
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();

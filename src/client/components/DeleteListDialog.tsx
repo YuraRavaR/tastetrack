@@ -6,7 +6,13 @@ import type { List } from "../../shared/api";
 import * as api from "../api";
 import { t } from "../i18n/t";
 import { FormError } from "./FormError";
-import { SheetFooter, SheetHeader, sheetButtonClasses, sheetClasses } from "./sheet";
+import {
+  SheetFooter,
+  SheetHeader,
+  sheetButtonClasses,
+  sheetClasses,
+  sheetMainButtonClasses,
+} from "./sheet";
 
 // Asks before deleting a List, so a stray tap never removes one, and says the Log is safe. The
 // dialog is open while `open` is set, and stays open until the deletion succeeds. A bottom sheet
@@ -67,7 +73,7 @@ export function DeleteListDialog({
             variant="destructive"
             disabled={deleting}
             onClick={confirm}
-            className={cn(sheetButtonClasses, "font-semibold")}
+            className={sheetMainButtonClasses}
           >
             {t(deleting ? "listDelete.deleting" : "listDelete.delete")}
           </Button>

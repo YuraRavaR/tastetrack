@@ -34,6 +34,23 @@ async function loadList(listId: number): Promise<ListState> {
   }
 }
 
+// Under a List's heading: how many films it holds, if any, and whether it is shared.
+function ListMeta({ films, shared }: { films: number; shared: boolean }) {
+  if (films === 0 && !shared) return null;
+  return (
+    <p className="flex flex-wrap items-center gap-x-1.5 text-muted-foreground text-sm">
+      {films > 0 && <span>{t("films.count", { count: films })}</span>}
+      {films > 0 && shared && <span aria-hidden>·</span>}
+      {shared && (
+        <span className="flex items-center gap-1">
+          <Link2 aria-hidden className="size-3.5" />
+          {t("lists.shared")}
+        </span>
+      )}
+    </p>
+  );
+}
+
 // One of the User's Lists in their own order, as a grid of posters with their Notes
 // (`docs/mockups/collections/`), and a search to add films to it. Each poster's ⋯ menu notes,
 // moves or removes its film, and a removal can be undone; the ⋯ by the heading edits, shares or
@@ -108,22 +125,7 @@ export function ListPage() {
               {state.list.description && (
                 <p className="whitespace-pre-line break-words">{state.list.description}</p>
               )}
-              {(state.list.items.length > 0 || state.list.shareLink) && (
-                <p className="flex flex-wrap items-center gap-x-1.5 text-muted-foreground text-sm">
-                  {state.list.items.length > 0 && (
-                    <span>{t("films.count", { count: state.list.items.length })}</span>
-                  )}
-                  {state.list.items.length > 0 && state.list.shareLink && (
-                    <span aria-hidden>·</span>
-                  )}
-                  {state.list.shareLink && (
-                    <span className="flex items-center gap-1">
-                      <Link2 aria-hidden className="size-3.5" />
-                      {t("lists.shared")}
-                    </span>
-                  )}
-                </p>
-              )}
+              <ListMeta films={state.list.items.length} shared={state.list.shareLink !== null} />
             </div>
             <ListActionsMenu
               className="[grid-area:more]"

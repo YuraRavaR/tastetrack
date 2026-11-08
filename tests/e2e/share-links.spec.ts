@@ -18,7 +18,7 @@ const test = base.extend<{ visitorPage: Page; visitorUi: Ui }>({
   },
 });
 
-test("a User makes a Collection, adds a film and shares it, and someone logged out opens its Share Link", {
+test("a User makes a List, adds a film and shares it, and someone logged out opens its Share Link", {
   tag: "@smoke",
 }, async ({ page, ui, api, loggedInUser: owner, visitorPage, visitorUi }) => {
   // The owner's Rating, which a shared List never shows.
@@ -41,7 +41,7 @@ test("a User makes a Collection, adds a film and shares it, and someone logged o
   await listPage.searchResults.result("Alien (1979)").addButton.click();
   await expect(listPage.items("Space horror")).toHaveCount(1);
 
-  const { shareLinkDialog } = listPage;
+  const shareLinkDialog = listPage.shareLinkDialog("Space horror");
   await listPage.act("Share");
   await expect(shareLinkDialog.root).toHaveAccessibleName("Share Space horror");
   await shareLinkDialog.share();
@@ -101,7 +101,7 @@ test("a new Share Link replaces the old one, once asked", async ({
   const { shareLink } = await expectBody(api.lists.createShareLink(list.id), 201);
 
   const { listPage } = ui;
-  const { shareLinkDialog } = listPage;
+  const shareLinkDialog = listPage.shareLinkDialog("Space horror");
   await listPage.goto(list.id);
   await listPage.act("Share Link");
   await expect(shareLinkDialog.linkField).toHaveValue(shareLink.url);
@@ -109,9 +109,9 @@ test("a new Share Link replaces the old one, once asked", async ({
   // Cancel keeps the link.
   await shareLinkDialog.newLinkButton.click();
   const question = shareLinkDialog.confirmation("Make a new link?");
-  await expect(question).toContainText("Anyone you sent it to will need the new one.");
+  await expect(question.root).toContainText("Anyone you sent it to will need the new one.");
   await expect(shareLinkDialog.linkField).toBeHidden();
-  await question.getByRole("button", { name: "Cancel" }).click();
+  await question.cancel();
   await expect(shareLinkDialog.linkField).toHaveValue(shareLink.url);
 
   await shareLinkDialog.makeNewLink();
@@ -140,7 +140,7 @@ test("Copy link puts the Share Link on the clipboard", async ({
   const { shareLink } = await expectBody(api.lists.createShareLink(list.id), 201);
 
   const { listPage } = ui;
-  const { shareLinkDialog } = listPage;
+  const shareLinkDialog = listPage.shareLinkDialog("Space horror");
   await listPage.goto(list.id);
   await listPage.act("Share Link");
   await expect(shareLinkDialog.copyButton).toHaveText("Copy link");

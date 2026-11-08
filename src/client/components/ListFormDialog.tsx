@@ -4,7 +4,6 @@ import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import type { ListSummary } from "../../shared/api";
 import { maxListDescriptionLength, maxListNameLength, maxLists } from "../../shared/lists";
 import * as api from "../api";
@@ -16,6 +15,7 @@ import {
   sheetBodyClasses,
   sheetButtonClasses,
   sheetClasses,
+  sheetMainButtonClasses,
 } from "./sheet";
 
 // The fields of a List that the form edits.
@@ -23,7 +23,8 @@ type ListFields = Pick<ListSummary, "id" | "name" | "description">;
 
 // Makes a film List, or renames one and changes its description when `list` is given. The dialog
 // is open while `open` is set, and stays open until the List is saved. A bottom sheet on a phone,
-// a centred dialog from `md`.
+// a centred dialog from `md`. The dialog unmounts its form once closed, so each opening starts
+// afresh.
 export function ListFormDialog({
   open,
   list,
@@ -38,7 +39,7 @@ export function ListFormDialog({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent showCloseButton={false} className={sheetClasses}>
-        {open && <ListForm list={list} onSaved={onSaved} />}
+        <ListForm list={list} onSaved={onSaved} />
       </DialogContent>
     </Dialog>
   );
@@ -129,7 +130,7 @@ function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSu
             {t("listForm.cancel")}
           </Button>
         </DialogClose>
-        <Button type="submit" disabled={saving} className={cn(sheetButtonClasses, "font-semibold")}>
+        <Button type="submit" disabled={saving} className={sheetMainButtonClasses}>
           {list
             ? t(saving ? "listForm.saving" : "listForm.save")
             : t(saving ? "listForm.creating" : "listForm.create")}

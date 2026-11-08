@@ -8,7 +8,13 @@ import type { List } from "../../shared/api";
 import * as api from "../api";
 import { type MessageId, t } from "../i18n/t";
 import { FormError } from "./FormError";
-import { SheetHeader, sheetBodyClasses, sheetButtonClasses, sheetClasses } from "./sheet";
+import {
+  SheetHeader,
+  sheetBodyClasses,
+  sheetClasses,
+  sheetMainButtonClasses,
+  sheetSafeBottomClasses,
+} from "./sheet";
 
 interface ShareLinkAction {
   button: MessageId;
@@ -41,13 +47,19 @@ const actions = {
 
 type Action = keyof typeof actions;
 
+// The row of New link and Stop sharing, and of a question's answers: two halves on a phone, on
+// the right from `md`, with smaller buttons than the sheet's main ones.
+const buttonRowClasses = "grid grid-cols-2 gap-2.5 md:flex md:justify-end";
+const smallButtonClasses = "h-11 md:h-9";
+
 type SharedList = Pick<List, "id" | "name" | "shareLink">;
 
 // Sharing one of the User's Lists (`docs/mockups/collections/`, `#share`): a button that makes a
 // Share Link, and once there is one, the link to copy and buttons to replace it or stop sharing.
 // Each of those asks first, inside the dialog, since anyone holding the old link loses it. After
 // each change `onChanged` reloads the List, so the link shown is always the Worker's, on the app's
-// own origin. A bottom sheet on a phone, a centred dialog from `md`.
+// own origin. A bottom sheet on a phone, a centred dialog from `md`. The dialog unmounts its sheet
+// once closed, so each opening starts afresh.
 export function ShareLinkDialog({
   open,
   list,
@@ -62,7 +74,7 @@ export function ShareLinkDialog({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent showCloseButton={false} className={cn(sheetClasses, "md:max-w-[520px]")}>
-        {open && <ShareLinkSheet list={list} onChanged={onChanged} />}
+        <ShareLinkSheet list={list} onChanged={onChanged} />
       </DialogContent>
     </Dialog>
   );
@@ -79,23 +91,25 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
   const shareButton = useRef<HTMLButtonElement>(null);
   const copyButton = useRef<HTMLButtonElement>(null);
   const actionButtons = useRef<Partial<Record<Action, HTMLButtonElement | null>>>({});
-  // The buttons that had focus go while a question is asked, so where focus goes once it closes.
-  const refocus = useRef<(() => HTMLElement | null | undefined) | null>(null);
+  // A question takes the place of the button that asked it, so once it closes, focus goes to the
+  // button this finds after the next render.
+  const focusAfterQuestion = useRef<(() => HTMLElement | null | undefined) | null>(null);
 
   useEffect(() => {
-    const target = refocus.current?.();
-    refocus.current = null;
+    const target = focusAfterQuestion.current?.();
+    focusAfterQuestion.current = null;
     target?.focus();
   });
 
-  async function change(run: () => Promise<unknown>) {
+  // Makes, replaces or stops the link, then reloads the List.
+  async function changeSharing(request: () => Promise<unknown>) {
     setWorking(true);
     setFailed(false);
-    const done = await run();
-    if (done) await onChanged();
+    const changed = await request();
+    if (changed) await onChanged();
     setWorking(false);
-    if (!done) return setFailed(true);
-    refocus.current = () => copyButton.current ?? shareButton.current;
+    if (!changed) return setFailed(true);
+    focusAfterQuestion.current = () => copyButton.current ?? shareButton.current;
     setConfirming(null);
     setCopied(false);
   }
@@ -106,7 +120,7 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
   }
 
   function cancel(action: Action) {
-    refocus.current = () => actionButtons.current[action];
+    focusAfterQuestion.current = () => actionButtons.current[action];
     setFailed(false);
     setConfirming(null);
   }
@@ -129,20 +143,15 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
         title={shareLink ? t("share.title") : t("share.dialogTitle", { list: list.name })}
         description={t("share.explanation")}
       />
-      <div
-        className={cn(
-          sheetBodyClasses,
-          "pb-[calc(0.75rem+max(1.375rem,env(safe-area-inset-bottom)))] md:pb-6",
-        )}
-      >
+      <div className={cn(sheetBodyClasses, sheetSafeBottomClasses, "md:pb-6")}>
         {!shareLink && (
           <>
             {failure}
             <Button
               ref={shareButton}
-              className={cn(sheetButtonClasses, "font-semibold")}
+              className={sheetMainButtonClasses}
               disabled={working}
-              onClick={() => change(() => api.createShareLink(list.id))}
+              onClick={() => changeSharing(() => api.createShareLink(list.id))}
             >
               <Link2 aria-hidden />
               {t(working ? "share.sharing" : "share.share")}
@@ -156,7 +165,7 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
             working={working}
             failure={failure}
             onCancel={() => cancel(confirming)}
-            onConfirm={() => change(() => actions[confirming].run(list.id))}
+            onConfirm={() => changeSharing(() => actions[confirming].run(list.id))}
           />
         )}
         {shareLink && !confirming && (
@@ -175,7 +184,7 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
               />
               <Button
                 ref={copyButton}
-                className={cn(sheetButtonClasses, "shrink-0 font-semibold")}
+                className={cn(sheetMainButtonClasses, "shrink-0")}
                 onClick={() => copy(shareLink.url)}
               >
                 {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
@@ -183,22 +192,22 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
               </Button>
             </div>
             {failure}
-            <div className="grid grid-cols-2 gap-2.5 md:flex md:justify-end">
-              {(Object.keys(actions) as Action[]).map((each) => (
+            <div className={buttonRowClasses}>
+              {(Object.keys(actions) as Action[]).map((action) => (
                 <Button
-                  key={each}
+                  key={action}
                   ref={(button) => {
-                    actionButtons.current[each] = button;
+                    actionButtons.current[action] = button;
                   }}
                   variant="outline"
                   className={cn(
-                    "h-11 md:h-9",
-                    actions[each].variant === "destructive" &&
+                    smallButtonClasses,
+                    actions[action].variant === "destructive" &&
                       "text-destructive hover:text-destructive",
                   )}
-                  onClick={() => ask(each)}
+                  onClick={() => ask(action)}
                 >
-                  {t(actions[each].button)}
+                  {t(actions[action].button)}
                 </Button>
               ))}
             </div>
@@ -240,14 +249,14 @@ function Confirmation({
         {t(chosen.description)}
       </p>
       {failure}
-      <div className="grid grid-cols-2 gap-2.5 md:flex md:justify-end">
-        <Button variant="outline" autoFocus className="h-11 md:h-9" onClick={onCancel}>
+      <div className={buttonRowClasses}>
+        <Button variant="outline" autoFocus className={smallButtonClasses} onClick={onCancel}>
           {t("share.cancel")}
         </Button>
         <Button
           variant={chosen.variant}
           disabled={working}
-          className="h-11 font-semibold md:h-9"
+          className={cn(smallButtonClasses, "font-semibold")}
           onClick={onConfirm}
         >
           {t(working ? "share.saving" : chosen.confirm)}
