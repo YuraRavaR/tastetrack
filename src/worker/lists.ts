@@ -45,9 +45,9 @@ import {
   deleteList,
   editList,
   listedMediaItems,
+  listPreviews,
   mediaItemLists,
   userList,
-  userLists,
 } from "./lists/user-lists";
 
 const backlogRoute = createRoute({
@@ -192,7 +192,9 @@ const listsRoute = createRoute({
   method: "get",
   path: "/lists",
   summary: "Show the logged-in User's own Lists, oldest first",
-  description: "Each List comes without its items, with how many it holds. The Backlog isn't one.",
+  description:
+    "Each List comes without its items, with how many it holds, its first four Media Items in " +
+    "List order for a collage, and whether it has a Share Link. The Backlog isn't one.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   responses: {
@@ -577,7 +579,7 @@ const listErrorStatus = {
 } as const;
 
 listRoutes.openapi(listsRoute, async (c) => {
-  return c.json({ lists: await userLists(c.var.db, c.var.userId) }, 200);
+  return c.json({ lists: await listPreviews(c.var.db, c.var.userId, c.var.now) }, 200);
 });
 
 listRoutes.openapi(mediaItemListsRoute, async (c) => {

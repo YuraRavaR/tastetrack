@@ -16,6 +16,7 @@ import type {
   ListItem,
   ListItemEditRequest,
   ListItemResponse,
+  ListPreview,
   ListResponse,
   ListSummary,
   ListSummaryResponse,
@@ -499,7 +500,8 @@ export async function removeListItem(listItemId: number): Promise<boolean> {
   }
 }
 
-export async function fetchLists(): Promise<ListSummary[]> {
+// The User's own Lists, oldest first, each with its first covers and whether it is shared.
+export async function fetchLists(): Promise<ListPreview[]> {
   const response = await fetch("/api/lists");
   if (!response.ok) throw new Error(`Loading the Lists failed: ${response.status}`);
   return ((await response.json()) as ListsResponse).lists;

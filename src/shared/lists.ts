@@ -29,6 +29,9 @@ export function moved<T>(items: readonly T[], item: T, index: number): T[] {
   return others.toSpliced(Math.min(index, others.length), 0, item);
 }
 
+// How many of a List's first Media Items the read of the User's Lists carries, for a collage.
+export const listCoverCount = 4;
+
 // A User holds at most this many Lists of their own; the Backlog doesn't count.
 export const maxLists = 100;
 

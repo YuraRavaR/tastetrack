@@ -10,7 +10,13 @@ import {
   maxMetadataFills,
   maxSearchQueryLength,
 } from "./catalog";
-import { maxListDescriptionLength, maxListNameLength, maxNoteLength, visibilities } from "./lists";
+import {
+  listCoverCount,
+  maxListDescriptionLength,
+  maxListNameLength,
+  maxNoteLength,
+  visibilities,
+} from "./lists";
 import { maxReviewLength, ratingStars } from "./log";
 
 export const HealthResponse = z
@@ -723,9 +729,18 @@ export const ListSummaryResponse = z
 
 export type ListSummaryResponse = z.infer<typeof ListSummaryResponse>;
 
+// One of the User's own Lists as the Lists read gives it: its summary, its first Media Items in
+// List order, and whether it has a Share Link.
+export const ListPreview = ListSummary.extend({
+  covers: z.array(MediaItem).max(listCoverCount),
+  shared: z.boolean().openapi({ description: "Whether the List has a Share Link" }),
+}).openapi("ListPreview");
+
+export type ListPreview = z.infer<typeof ListPreview>;
+
 export const ListsResponse = z
   .object({
-    lists: z.array(ListSummary),
+    lists: z.array(ListPreview),
   })
   .openapi("ListsResponse");
 

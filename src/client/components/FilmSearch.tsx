@@ -292,7 +292,11 @@ export function FilmSearch() {
         <EmptyState
           icon={SearchX}
           message={t("search.noMatch", { query: trimmed })}
-          action={{ label: t("search.addManually"), onClick: () => setAddingManually(true) }}
+          action={{
+            label: t("search.addManually"),
+            onClick: () => setAddingManually(true),
+            outline: true,
+          }}
         />
       ) : (
         trimmed !== "" &&

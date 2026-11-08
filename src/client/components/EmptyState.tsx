@@ -1,10 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-// What an empty state's one button does: open a page, or act here, as "Add manually" does, the
-// one outline button among them.
-type EmptyStateAction = { label: string; icon?: LucideIcon } & (
+// What an empty state's one button does: open a page, or act here, as "New collection" does.
+// "Add manually" is the one outline button among them.
+type EmptyStateAction = { label: string; icon?: LucideIcon; outline?: boolean } & (
   | { to: string }
   | { onClick: () => void }
 );
@@ -26,6 +27,13 @@ export function EmptyState({
       {action.label}
     </>
   );
+  const buttonProps = {
+    variant: action.outline ? "outline" : "default",
+    className: cn(
+      "h-12 px-5.5 font-semibold md:h-11 md:px-5",
+      action.outline ? "rounded-full bg-card" : "rounded-xl",
+    ),
+  } as const;
   return (
     <div className="flex flex-col items-center gap-4 px-6 pt-18 pb-10 text-center md:py-24">
       <span className="flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary-strong md:size-16">
@@ -33,15 +41,11 @@ export function EmptyState({
       </span>
       <p className="max-w-75 text-base leading-snug md:max-w-none md:text-lg">{message}</p>
       {"to" in action ? (
-        <Button asChild className="h-12 rounded-xl px-5.5 font-semibold md:h-11 md:px-5">
+        <Button asChild {...buttonProps}>
           <Link to={action.to}>{content}</Link>
         </Button>
       ) : (
-        <Button
-          variant="outline"
-          className="h-12 rounded-full bg-card px-5.5 font-semibold md:h-11 md:px-5"
-          onClick={action.onClick}
-        >
+        <Button {...buttonProps} onClick={action.onClick}>
           {content}
         </Button>
       )}

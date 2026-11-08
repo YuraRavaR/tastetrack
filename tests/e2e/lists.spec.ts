@@ -1,6 +1,6 @@
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { alien, aliens } from "../support/scenarios/films";
+import { alien, aliens, manualFilm } from "../support/scenarios/films";
 import { expect, test } from "../support/ui/fixtures";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
@@ -23,7 +23,7 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(listsPage.emptyMessage).toBeVisible();
 
   // A reserved name is refused, then a free one makes the List.
-  await listsPage.newListButton.click();
+  await listsPage.emptyStateNewListButton.click();
   const newList = listsPage.newListDialog;
   await newList.nameInput.fill("Watchlist");
   await newList.createButton.click();
@@ -74,6 +74,45 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(confirm.root).toContainText("Your Log stays as it is.");
   await confirm.confirm("Delete");
   await expect(listsPage.emptyMessage).toBeVisible();
+});
+
+test("Collections shows each List as a card with its covers, its count and whether it's shared", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const space = await createList(api, "Space");
+  await createList(api, "Comedy");
+  for (const title of ["Home movie", "Another home movie"]) {
+    const mediaItemId = (await manualFilm(api, { title })).id;
+    await expectBody(api.lists.addListItem(space.id, { mediaItemId }), 201);
+  }
+  await expectBody(api.lists.createShareLink(space.id), 201);
+  const { listsPage, listPage } = ui;
+  await listsPage.goto();
+
+  await expect(listsPage.heading).toBeVisible();
+  await expect(listsPage.mediaTypeChips.getByRole("button", { name: "Films" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(listsPage.mediaTypeChips.getByRole("button", { name: "Books" })).toBeDisabled();
+  await expect(listsPage.lists).toHaveCount(2);
+  await expect(listsPage.lists.first()).toContainText("Space");
+  const spaceCard = listsPage.card("Space");
+  await expect(spaceCard.root).toContainText("2 films");
+  await expect(spaceCard.coverPlaceholders).toHaveCount(2);
+  await expect(spaceCard.sharedMark).toHaveText("Shared by link");
+  const comedyCard = listsPage.card("Comedy");
+  await expect(comedyCard.root).toContainText("0 films");
+  await expect(comedyCard.coverPlaceholders).toHaveCount(0);
+  await expect(comedyCard.sharedMark).toHaveCount(0);
+
+  // On a phone the mark is shorter, and the whole card opens the List.
+  await page.setViewportSize({ width: 402, height: 874 });
+  await expect(spaceCard.sharedMark).toHaveText("Shared");
+  await spaceCard.link.click();
+  await expect(page).toHaveURL(listPage.path(space.id));
 });
 
 test("a name the User already has is refused", async ({ ui, loggedInApi: api }) => {
