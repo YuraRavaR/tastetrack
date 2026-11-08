@@ -21,6 +21,7 @@ import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
+import { collectionPath } from "../navigation/paths";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
@@ -31,9 +32,9 @@ import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 // The User's last action on a result, which the toast reports.
 type LastAction = FilmAction & { found: Found };
 
-// What the toast fills in: the film, and the Backlog of its Media Type.
+// What the toast fills in: the film, and its Media Type.
 function actionValues(found: Found) {
-  return { film: foundLabel(found), backlogName: mediaWord(foundMediaType(found), "backlog") };
+  return { film: foundLabel(found), mediaType: foundMediaType(found) };
 }
 
 type PlanError = "backlog_full" | "unavailable";
@@ -386,7 +387,7 @@ function ListChips({ lists, onOpened }: { lists: HoldingList[]; onOpened: () => 
           className="block min-w-0 max-w-1/2 shrink truncate text-muted-foreground"
           asChild
         >
-          <Link to={`/lists/${list.id}`} onClick={onOpened}>
+          <Link to={collectionPath(list.id)} onClick={onOpened}>
             {list.name}
           </Link>
         </Badge>

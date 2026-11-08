@@ -4,12 +4,12 @@ import type { Ui } from "../support/ui/Ui";
 // A film neither the TMDB fake nor the real TMDB knows, so only the User's own copy is found.
 const wedding = "Весілля Олени та Тараса";
 
-// Adds the wedding from home's search with its title alone.
-async function addWeddingByTitle({ homePage }: Ui) {
-  await homePage.goto();
-  await homePage.search("весілля олени");
-  await homePage.addManuallyButton.click();
-  const adding = homePage.addManuallyDialog;
+// Adds the wedding from Search with its title alone.
+async function addWeddingByTitle({ searchPage }: Ui) {
+  await searchPage.goto();
+  await searchPage.search("весілля олени");
+  await searchPage.addManuallyButton.click();
+  const adding = searchPage.addManuallyDialog;
   await adding.titleInput.fill(wedding);
   await adding.addButton.click();
 }
@@ -18,14 +18,14 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   page,
   loggedInUi: ui,
 }) => {
-  const { homePage, logPage, filmPage } = ui;
-  await homePage.goto();
-  await homePage.search("весілля олени");
-  await expect(homePage.noResultsMessage).toBeVisible();
+  const { searchPage, libraryPage, filmPage } = ui;
+  await searchPage.goto();
+  await searchPage.search("весілля олени");
+  await expect(searchPage.noResultsMessage).toBeVisible();
 
   // Adding it manually starts from the query.
-  await homePage.addManuallyButton.click();
-  const adding = homePage.addManuallyDialog;
+  await searchPage.addManuallyButton.click();
+  const adding = searchPage.addManuallyDialog;
   await expect(adding.titleInput).toHaveValue("весілля олени");
   await adding.titleInput.fill(wedding);
   await adding.yearInput.fill("2019");
@@ -35,30 +35,31 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
 
   await expect(adding.root).toBeHidden();
   await expect(
-    homePage.toast.message(`Added ${wedding} (2019). Only you can see it.`),
+    searchPage.toast.message(`Added ${wedding} (2019). Only you can see it.`),
   ).toBeVisible();
-  const film = homePage.searchResults.result(`${wedding} (2019)`);
+  const film = searchPage.searchResults.result(`${wedding} (2019)`);
   await expect(film.addedByYouLabel).toBeVisible();
 
   // It is planned and logged like any film.
   await film.wantToWatchButton.click();
   await expect(film.onWatchlistButton).toBeVisible();
   await film.markWatchedButton.click();
-  const logging = homePage.logEntryDialog(wedding);
+  const logging = searchPage.logEntryDialog(wedding);
   await logging.rate("5 stars");
   await logging.save();
   await expect(film.itemHistoryLink("5 · 1 viewing")).toBeVisible();
 
   // A later search lists it first.
   await page.reload();
-  await homePage.search("олени");
-  const first = homePage.searchResults.rows.first();
+  await searchPage.search("олени");
+  const first = searchPage.searchResults.rows.first();
   await expect(first).toContainText(`${wedding} (2019)`);
   await expect(first).toContainText("5 · 1 viewing");
 
-  // Its page, reached from the Log, edits it.
-  await homePage.mainNav.link("Log").click();
-  await logPage.filmLink(`${wedding} (2019)`).click();
+  // Its page, reached from Watched, edits it.
+  await searchPage.mainNav.link("Saved").click();
+  await libraryPage.tab("Watched").click();
+  await libraryPage.poster("Watched", wedding).link.click();
   await expect(filmPage.text("You added this film manually.")).toBeVisible();
   await expect(filmPage.text("95 min · Documentary")).toBeVisible();
   await filmPage.editFilmButton.click();
@@ -70,7 +71,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   const renamed = `${wedding} (Olena and Taras's wedding, 2019)`;
   await expect(filmPage.heading).toContainText(renamed);
 
-  // Deleting it says what goes with it, then empties the Log.
+  // Deleting it says what goes with it, then leads to Saved, where it is gone.
   await filmPage.deleteFilmButton.click();
   const confirm = filmPage.deleteFilmDialog(renamed);
   await expect(confirm.root).toContainText("Your Log Entry for it will be deleted.");
@@ -78,7 +79,8 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
     "It isn't on your Watchlist or in any of your Collections.",
   );
   await confirm.confirm("Delete");
-  await expect(logPage.emptyMessage).toBeVisible();
+  await expect(page).toHaveURL(libraryPage.path("Watchlist"));
+  await expect(libraryPage.tab("Watched")).toHaveAccessibleName("Watched 0");
 });
 
 test("adding a film with the same title and year again warns first, then adds it anyway", async ({
@@ -91,14 +93,14 @@ test("adding a film with the same title and year again warns first, then adds it
     year: 2019,
   });
   expect(created.status()).toBe(201);
-  const { homePage } = ui;
-  const result = homePage.searchResults.result(`${wedding} (2019)`);
-  await homePage.goto();
-  await homePage.search("весілля олени");
+  const { searchPage } = ui;
+  const result = searchPage.searchResults.result(`${wedding} (2019)`);
+  await searchPage.goto();
+  await searchPage.search("весілля олени");
   await expect(result.root).toHaveCount(1);
 
-  await homePage.addManuallyButton.click();
-  const adding = homePage.addManuallyDialog;
+  await searchPage.addManuallyButton.click();
+  const adding = searchPage.addManuallyDialog;
   await adding.titleInput.fill(wedding);
   await adding.yearInput.fill("2019");
   await adding.addButton.click();
@@ -115,7 +117,7 @@ test("a thumbnail without a poster shows no caption, and the film's banner does"
   loggedInUi: ui,
 }) => {
   await addWeddingByTitle(ui);
-  const result = ui.homePage.searchResults.result(wedding);
+  const result = ui.searchPage.searchResults.result(wedding);
 
   await expect(result.noPosterPlaceholder).toHaveText("");
   await result.filmLink(wedding).click();
@@ -127,16 +129,16 @@ test("a film added manually but never logged or planned is still reached from se
   loggedInUi: ui,
 }) => {
   await addWeddingByTitle(ui);
-  const { homePage, filmPage } = ui;
+  const { searchPage, filmPage } = ui;
 
-  await homePage.searchResults.result(wedding).filmLink(wedding).click();
+  await searchPage.searchResults.result(wedding).filmLink(wedding).click();
 
   await expect(filmPage.noViewingsMessage).toBeVisible();
   await filmPage.deleteFilmButton.click();
   const confirm = filmPage.deleteFilmDialog(wedding);
   await expect(confirm.root).toContainText("You have no Log Entries for it.");
   await confirm.confirm("Delete");
-  await homePage.goto();
-  await homePage.search("весілля олени");
-  await expect(homePage.noResultsMessage).toBeVisible();
+  await searchPage.goto();
+  await searchPage.search("весілля олени");
+  await expect(searchPage.noResultsMessage).toBeVisible();
 });

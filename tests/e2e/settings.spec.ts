@@ -5,11 +5,11 @@ test("a User sets their Display Name and changes their password in Settings", as
   ui,
   loggedInUser,
 }) => {
-  const { homePage, settingsPage } = ui;
+  const { libraryPage, settingsPage } = ui;
   const { displayNameSection, passwordSection } = settingsPage;
-  await homePage.goto();
+  await libraryPage.goto();
 
-  await homePage.header.accountMenu.choose("Settings");
+  await libraryPage.header.accountMenu.choose("Settings");
   await expect(settingsPage.heading).toBeVisible();
 
   await expect(displayNameSection.input).toHaveValue(loggedInUser.username);

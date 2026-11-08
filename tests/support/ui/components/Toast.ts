@@ -5,6 +5,8 @@ import { ScopedComponent } from "./ScopedComponent";
 export class Toast extends ScopedComponent {
   readonly undoButton = this.root.getByRole("button", { name: "Undo" });
   readonly dismissButton = this.root.getByRole("button", { name: "Dismiss" });
+  // After logging a film: its Media Type's Watched tab in Saved.
+  readonly goToWatchedLink = this.root.getByRole("link", { name: "Go to Watched" });
 
   message(text: string) {
     return this.root.getByText(text);

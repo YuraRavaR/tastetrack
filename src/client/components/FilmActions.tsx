@@ -129,12 +129,7 @@ export function FilmActions({
       <FilmListsDialog film={listing} onClose={() => setListing(null)} />
       <Toast onDismiss={() => setLastAction(null)}>
         {lastAction && (
-          <FilmActionMessage
-            action={lastAction}
-            film={film}
-            backlogName={backlogName}
-            onUndo={undo}
-          />
+          <FilmActionMessage action={lastAction} film={film} mediaType={mediaType} onUndo={undo} />
         )}
       </Toast>
     </div>

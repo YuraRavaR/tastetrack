@@ -26,12 +26,7 @@ import {
   libraryTabs,
   mediaTypeOfSlug,
 } from "../library/library-tabs";
-
-// Saved's tiles, where the way back up leads.
-const savedPath = "/";
-
-// The film search, where an empty Backlog tab sends the User.
-const searchPath = "/";
+import { savedPath, searchPath } from "../navigation/paths";
 
 // What differs between the two tabs: the tab's name, its empty state, and what each poster shows
 // besides its title.
@@ -66,7 +61,7 @@ function tabParts(mediaType: MediaType): Record<LibraryTab, TabParts> {
         icon: Eye,
         message: mediaWord(mediaType, "experiencedEmpty"),
         action: {
-          label: t("saved.goTo", { backlogName }),
+          label: t("saved.goTo", { tab: backlogName }),
           to: libraryPath(mediaType, "backlog"),
         },
       },

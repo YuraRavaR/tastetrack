@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import packageJson from "../../package.json" with { type: "json" };
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
+import { alien } from "../support/scenarios/films";
 import type { TestUser } from "../support/scenarios/users";
 import type { Footer } from "../support/ui/components/Footer";
 import type { MainNav } from "../support/ui/components/MainNav";
@@ -9,17 +10,22 @@ import { expect, test } from "../support/ui/fixtures";
 import type { BasePage } from "../support/ui/pages/BasePage";
 import type { Ui } from "../support/ui/Ui";
 
+// Each section and where it leads. Saved leads to "/", which opens the films' Watchlist until
+// Saved has its tiles.
 function sectionsOf(ui: Ui) {
   return [
-    { name: "Home", sectionPage: ui.homePage },
-    { name: "Log", sectionPage: ui.logPage },
-    { name: "Watchlist", sectionPage: ui.watchlistPage },
+    { name: "Saved", sectionPage: ui.libraryPage },
     { name: "Collections", sectionPage: ui.listsPage },
+    { name: "Search", sectionPage: ui.searchPage },
   ];
 }
 
-// Follows each section from `nav`, which marks that one alone as the current page.
+// Follows each section from `nav`, in order, which marks that one alone as the current page. It
+// starts on Settings, outside every section, so the first click leaves the page it is on.
 async function expectSectionsIn(nav: MainNav, page: Page, ui: Ui) {
+  await ui.settingsPage.goto();
+  await expect(nav.links).toHaveText(sectionsOf(ui).map(({ name }) => name));
+  await expect(nav.currentLinks).toHaveCount(0);
   for (const { name, sectionPage } of sectionsOf(ui)) {
     const link = nav.link(name);
     await link.click();
@@ -27,6 +33,25 @@ async function expectSectionsIn(nav: MainNav, page: Page, ui: Ui) {
     await expect(link).toHaveAttribute("aria-current", "page");
     await expect(nav.currentLinks).toHaveCount(1);
   }
+}
+
+// A page inside a section keeps it marked, and a page outside every section marks none.
+async function expectCurrentSectionWithin(nav: MainNav, ui: Ui, api: ApiClient) {
+  const { list } = await expectBody(
+    api.lists.createList({ name: "Space horror", mediaType: "film" }),
+    201,
+  );
+  await ui.listPage.goto(list.id);
+  await expect(nav.link("Collections")).toHaveAttribute("aria-current", "page");
+  await expect(nav.currentLinks).toHaveCount(1);
+
+  await ui.libraryPage.goto("Watched");
+  await expect(nav.link("Saved")).toHaveAttribute("aria-current", "page");
+  await expect(nav.currentLinks).toHaveCount(1);
+
+  await ui.filmPage.goto((await alien(api)).id);
+  await expect(nav.links).toHaveCount(sectionsOf(ui).length);
+  await expect(nav.currentLinks).toHaveCount(0);
 }
 
 async function logInWithTemporaryPassword(page: Page, ui: Ui, api: ApiClient, user: TestUser) {
@@ -38,10 +63,10 @@ async function logInWithTemporaryPassword(page: Page, ui: Ui, api: ApiClient, us
 
 // The account menu holds the same pages at every width.
 async function expectAccountMenuPages(page: Page, ui: Ui) {
-  const { homePage, invitesPage, loginPage, settingsPage } = ui;
-  await homePage.goto();
+  const { libraryPage, invitesPage, loginPage, settingsPage } = ui;
+  await libraryPage.goto();
 
-  const { accountMenu } = homePage.header;
+  const { accountMenu } = libraryPage.header;
   await accountMenu.open();
   await expect(accountMenu.items).toHaveText(["Invites", "Settings", "Log out"]);
   await expect(accountMenu.separator).toHaveCount(1);
@@ -102,10 +127,9 @@ test.describe("on a phone", () => {
     page,
     loggedInUi: ui,
   }) => {
-    await ui.homePage.goto();
+    await expectSectionsIn(ui.libraryPage.mainNav, page, ui);
 
-    await expect(ui.homePage.header.navigations).toHaveCount(0);
-    await expectSectionsIn(ui.homePage.mainNav, page, ui);
+    await expect(ui.libraryPage.header.navigations).toHaveCount(0);
   });
 
   test("the tab bar stays on screen on a page taller than the screen", async ({
@@ -113,21 +137,19 @@ test.describe("on a phone", () => {
     loggedInUi: ui,
   }) => {
     await page.setViewportSize({ width: 402, height: 300 });
-    await ui.homePage.goto();
+    await ui.searchPage.goto();
 
-    const tabs = ui.homePage.mainNav.root;
+    const tabs = ui.searchPage.mainNav.root;
     await expect(tabs).toBeInViewport({ ratio: 1 });
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await expect(tabs).toBeInViewport({ ratio: 1 });
   });
 
-  test("a List's page keeps its section marked", async ({ ui, loggedInApi: api }) => {
-    const created = api.lists.createList({ name: "Space horror", mediaType: "film" });
-    const { list } = await expectBody(created, 201);
-
-    await ui.listPage.goto(list.id);
-
-    await expect(ui.listPage.mainNav.link("Collections")).toHaveAttribute("aria-current", "page");
+  test("a page inside a section keeps it marked, and a film's page marks none", async ({
+    ui,
+    loggedInApi: api,
+  }) => {
+    await expectCurrentSectionWithin(ui.listPage.mainNav, ui, api);
   });
 
   test("the account button is the avatar alone and opens the account menu", async ({
@@ -135,8 +157,8 @@ test.describe("on a phone", () => {
     ui,
     loggedInUser,
   }) => {
-    await ui.homePage.goto();
-    await expect(ui.homePage.header.displayName(loggedInUser.username)).toBeHidden();
+    await ui.libraryPage.goto();
+    await expect(ui.libraryPage.header.displayName(loggedInUser.username)).toBeHidden();
 
     await expectAccountMenuPages(page, ui);
   });
@@ -159,8 +181,8 @@ test.describe("on a phone", () => {
     loggedInUi: ui,
   }) => {
     await page.setViewportSize({ width: 360, height: 740 });
-    await ui.homePage.goto();
-    const { header, mainNav } = ui.homePage;
+    await ui.libraryPage.goto();
+    const { header, mainNav } = ui.libraryPage;
 
     // The app name shows before the session has loaded and the tabs only after. Waiting for the
     // tabs means everything below measures the whole frame.
@@ -183,9 +205,9 @@ test.describe("on a phone", () => {
   });
 
   test("the footer credits TMDB and shows the app version", async ({ loggedInUi: ui }) => {
-    await ui.homePage.goto();
+    await ui.libraryPage.goto();
 
-    await expectFooter(ui.homePage.footer);
+    await expectFooter(ui.libraryPage.footer);
   });
 });
 
@@ -194,10 +216,16 @@ test.describe("from md", () => {
     page,
     loggedInUi: ui,
   }) => {
-    await ui.homePage.goto();
+    await expectSectionsIn(ui.libraryPage.header.mainNav, page, ui);
 
-    await expect(ui.homePage.mainNav.root).toHaveCount(1);
-    await expectSectionsIn(ui.homePage.header.mainNav, page, ui);
+    await expect(ui.libraryPage.mainNav.root).toHaveCount(1);
+  });
+
+  test("a page inside a section keeps it marked, and a film's page marks none", async ({
+    ui,
+    loggedInApi: api,
+  }) => {
+    await expectCurrentSectionWithin(ui.listPage.header.mainNav, ui, api);
   });
 
   test("the account button shows the Display Name and opens the account menu", async ({
@@ -205,8 +233,8 @@ test.describe("from md", () => {
     ui,
     loggedInUser,
   }) => {
-    await ui.homePage.goto();
-    await expect(ui.homePage.header.displayName(loggedInUser.username)).toBeVisible();
+    await ui.libraryPage.goto();
+    await expect(ui.libraryPage.header.displayName(loggedInUser.username)).toBeVisible();
 
     await expectAccountMenuPages(page, ui);
   });
@@ -230,28 +258,78 @@ test.describe("from md", () => {
     await expectFooter(ui.loginPage.footer);
   });
 
-  test("the header and footer stop at 72rem, as home does, and other pages keep a narrower column", async ({
+  test("the header and footer stop at 72rem, as Saved does, and other pages keep a narrower column", async ({
     page,
     loggedInUi: ui,
   }) => {
-    const { homePage, logPage } = ui;
+    const { libraryPage, searchPage } = ui;
     await page.setViewportSize({ width: 1440, height: 900 });
-    await homePage.goto();
+    await libraryPage.goto();
 
-    const log = homePage.logSection.root;
-    const watchlist = homePage.watchlistSection.root;
-    await expect(log).toBeVisible();
-    await expect(watchlist).toBeVisible();
-    expect((await homePage.main.boundingBox())?.width).toBe(1152);
-    const logBox = await log.boundingBox();
-    const watchlistBox = await watchlist.boundingBox();
-    expect(watchlistBox?.y).toBe(logBox?.y);
-    expect(watchlistBox?.x).toBeGreaterThan(logBox?.x ?? Infinity);
-    expect((await homePage.header.appNameLink.boundingBox())?.x).toBe(logBox?.x);
-    expect((await homePage.footer.tmdbLogo.boundingBox())?.x).toBe(logBox?.x);
+    const heading = libraryPage.heading;
+    await expect(heading).toBeVisible();
+    expect((await libraryPage.main.boundingBox())?.width).toBe(1152);
+    const headingX = (await heading.boundingBox())?.x;
+    expect((await libraryPage.header.appNameLink.boundingBox())?.x).toBe(headingX);
+    expect((await libraryPage.footer.tmdbLogo.boundingBox())?.x).toBe(headingX);
 
-    await homePage.mainNav.link("Log").click();
-    await expect(logPage.heading).toBeVisible();
-    expect((await logPage.main.boundingBox())?.width).toBe(768);
+    await libraryPage.mainNav.link("Search").click();
+    await expect(searchPage.searchHeading).toBeVisible();
+    expect((await searchPage.main.boundingBox())?.width).toBe(768);
+  });
+});
+
+test.describe("old addresses", () => {
+  test("/ opens the films' Watchlist, titled TasteTrack", async ({ page, loggedInUi: ui }) => {
+    await ui.goto("/");
+
+    await expect(page).toHaveURL(ui.libraryPage.path("Watchlist"));
+    await expect(page).toHaveTitle("TasteTrack");
+  });
+
+  test("the Watchlist and the Log open Saved's Watchlist and Watched", async ({
+    page,
+    loggedInUi: ui,
+  }) => {
+    await ui.goto("/watchlist");
+    await expect(page).toHaveURL(ui.libraryPage.path("Watchlist"));
+
+    await ui.goto("/log");
+    await expect(page).toHaveURL(ui.libraryPage.path("Watched"));
+  });
+
+  test("the Lists and a List open Collections and that Collection", async ({
+    page,
+    ui,
+    loggedInApi: api,
+  }) => {
+    const { list } = await expectBody(
+      api.lists.createList({ name: "Space horror", mediaType: "film" }),
+      201,
+    );
+
+    await ui.goto("/lists");
+    await expect(page).toHaveURL(ui.listsPage.path());
+
+    await ui.goto(`/lists/${list.id}`);
+    await expect(page).toHaveURL(ui.listPage.path(list.id));
+    await expect(ui.listPage.heading("Space horror")).toBeVisible();
+  });
+
+  test("a search on home opens in Search, with its query", async ({ page, loggedInUi: ui }) => {
+    await ui.goto("/?q=alien");
+
+    await expect(page).toHaveURL(ui.searchPage.path("alien"));
+    await expect(ui.searchPage.searchBox).toHaveValue("alien");
+  });
+
+  test("an address the app doesn't know opens the films' Watchlist", async ({
+    page,
+    loggedInUi: ui,
+  }) => {
+    const response = await ui.goto("/some/client/route");
+
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveURL(ui.libraryPage.path("Watchlist"));
   });
 });

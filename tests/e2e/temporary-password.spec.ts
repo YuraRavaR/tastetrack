@@ -9,7 +9,7 @@ test("a User who logs in with a Temporary Password must set their own first", as
 }) => {
   const { username } = registeredUser;
   const { temporaryPassword } = await expectBody(api.testHooks.resetPassword(username));
-  const { listsPage, loginPage, logPage, newPasswordPage } = ui;
+  const { listsPage, loginPage, libraryPage, newPasswordPage } = ui;
   await listsPage.goto();
 
   await loginPage.logIn({ username, password: temporaryPassword });
@@ -19,7 +19,7 @@ test("a User who logs in with a Temporary Password must set their own first", as
   await expect(newPasswordPage.listsLink).toHaveCount(0);
 
   // Every other page, even after a reload, sends the User back here.
-  await logPage.goto();
+  await libraryPage.goto();
   await expect(page).toHaveURL(newPasswordPage.path());
 
   await newPasswordPage.setPassword(temporaryPassword);
@@ -34,8 +34,8 @@ test("a User who logs in with a Temporary Password must set their own first", as
 
   await newPasswordPage.setPassword("my very own passphrase");
 
-  await expect(page).toHaveURL(logPage.path());
-  await expect(logPage.header.banner).toContainText(username);
+  await expect(page).toHaveURL(libraryPage.path());
+  await expect(libraryPage.header.banner).toContainText(username);
   await page.reload();
-  await expect(page).toHaveURL(logPage.path());
+  await expect(page).toHaveURL(libraryPage.path());
 });

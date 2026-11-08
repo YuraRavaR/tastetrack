@@ -4,7 +4,7 @@ import { BasePage } from "./BasePage";
 // The User's Lists.
 export class ListsPage extends BasePage {
   path() {
-    return "/lists";
+    return "/collections";
   }
 
   readonly heading = this.page.getByRole("heading", { name: "Your Collections" });

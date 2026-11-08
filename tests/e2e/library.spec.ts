@@ -85,7 +85,8 @@ test("a new User's tabs are empty, and each says how to fill it", async ({
   await expect(page).toHaveURL(libraryPage.path("Watchlist"));
   await expect(libraryPage.text("Nothing on your Watchlist yet.")).toBeVisible();
   await libraryPage.findFilmLink.click();
-  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(page).toHaveURL(ui.searchPage.path());
+  await expect(ui.searchPage.searchBox).toBeVisible();
 });
 
 test("on a phone the posters sit 3 a row under a link back to Saved", async ({
@@ -117,5 +118,6 @@ test("on a phone the posters sit 3 a row under a link back to Saved", async ({
   await expect(libraryPage.breadcrumb).toBeVisible();
   await expect(libraryPage.breadcrumb).toHaveText(/Saved\s*Films/);
   await libraryPage.backToSavedLink.click();
-  await expect(page).toHaveURL("/");
+  // "/" is Saved's tiles, and until they ship it opens the Watchlist.
+  await expect(page).toHaveURL(libraryPage.path("Watchlist"));
 });

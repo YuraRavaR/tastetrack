@@ -16,41 +16,41 @@ async function createListHolding(api: ApiClient, name: string, mediaItemId: numb
 test("a User searches films as they type, in English or Ukrainian", { tag: "@smoke" }, async ({
   loggedInUi: ui,
 }) => {
-  const { homePage } = ui;
-  const { searchResults } = homePage;
-  await homePage.goto();
+  const { searchPage } = ui;
+  const { searchResults } = searchPage;
+  await searchPage.goto();
 
-  await homePage.search("alien");
+  await searchPage.search("alien");
 
   await expect(searchResults.filmLabel("Alien (1979)")).toBeVisible();
-  await homePage.search("чужий");
+  await searchPage.search("чужий");
   await expect(searchResults.filmLabel("Чужий (Alien, 1979)")).toBeVisible();
   await expect(searchResults.filmLabel("Alien (1979)")).toHaveCount(0);
-  await expect(homePage.searchButton).toHaveCount(0);
+  await expect(searchPage.searchButton).toHaveCount(0);
 });
 
 test("a result without a poster is named No poster, and one with a poster isn't", async ({
   loggedInUi: ui,
 }) => {
-  const { homePage } = ui;
-  const { searchResults } = homePage;
-  await homePage.goto();
+  const { searchPage } = ui;
+  const { searchResults } = searchPage;
+  await searchPage.goto();
 
-  await homePage.search("matrix");
+  await searchPage.search("matrix");
   await expect(searchResults.resultWithText("The Matrix").noPosterPlaceholder).toBeVisible();
 
-  await homePage.search("alien");
+  await searchPage.search("alien");
   await expect(searchResults.filmLabel("Alien (1979)")).toBeVisible();
   await expect(searchResults.noPosterPlaceholders).toHaveCount(0);
 });
 
 test("a User clears the search with one click and can type again", async ({ loggedInUi: ui }) => {
-  const { homePage } = ui;
-  const { searchBox, searchResults, clearSearchButton } = homePage;
-  await homePage.goto();
+  const { searchPage } = ui;
+  const { searchBox, searchResults, clearSearchButton } = searchPage;
+  await searchPage.goto();
 
   await expect(clearSearchButton).toHaveCount(0);
-  await homePage.search("alien");
+  await searchPage.search("alien");
   await expect(searchResults.filmLabel("Alien (1979)")).toBeVisible();
   await clearSearchButton.click();
 
@@ -61,17 +61,17 @@ test("a User clears the search with one click and can type again", async ({ logg
 });
 
 test("typing a title makes one search once the User pauses", async ({ page, loggedInUi: ui }) => {
-  const { homePage } = ui;
-  await homePage.goto();
+  const { searchPage } = ui;
+  await searchPage.goto();
   const searched: string[] = [];
   page.on("request", (request) => {
     const url = new URL(request.url());
     if (url.pathname === "/api/catalog/search") searched.push(url.searchParams.get("query") ?? "");
   });
 
-  await homePage.searchBox.pressSequentially("alien", { delay: 100 });
+  await searchPage.searchBox.pressSequentially("alien", { delay: 100 });
 
-  await expect(homePage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
+  await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
   expect(searched).toEqual(["alien"]);
 });
 
@@ -81,20 +81,20 @@ test("a User opens a result's film page and goes Back to the same results", asyn
   loggedInApi: api,
 }) => {
   const film = await alien(api);
-  const { homePage, filmPage } = ui;
-  await homePage.goto();
-  await homePage.search("alien");
+  const { searchPage, filmPage } = ui;
+  await searchPage.goto();
+  await searchPage.search("alien");
 
-  await homePage.searchResults.link("Alien (1979)").click();
+  await searchPage.searchResults.link("Alien (1979)").click();
 
   await expect(page).toHaveURL(filmPage.path(film.id));
   await expect(filmPage.heading).toContainText("Alien");
 
   await page.goBack();
 
-  await expect(page).toHaveURL(homePage.path("alien"));
-  await expect(homePage.searchBox).toHaveValue("alien");
-  await expect(homePage.searchResults.link("Alien (1979)")).toBeVisible();
+  await expect(page).toHaveURL(searchPage.path("alien"));
+  await expect(searchPage.searchBox).toHaveValue("alien");
+  await expect(searchPage.searchResults.link("Alien (1979)")).toBeVisible();
 });
 
 test("going Back from a film's page returns to where the User was in the results", async ({
@@ -103,10 +103,10 @@ test("going Back from a film's page returns to where the User was in the results
   loggedInApi: api,
 }) => {
   await Promise.all([alien(api), aliens(api), amelie(api)]);
-  const { homePage, filmPage } = ui;
+  const { searchPage, filmPage } = ui;
   await page.setViewportSize({ width: 390, height: 420 });
-  await homePage.goto("a");
-  const film = homePage.searchResults.link(/^Amélie/);
+  await searchPage.goto("a");
+  const film = searchPage.searchResults.link(/^Amélie/);
   // In the middle of the screen, clear of the tab bar, so clicking it doesn't scroll the page.
   await film.evaluate((link) => link.scrollIntoView({ block: "center" }));
   const scrolled = await page.evaluate(() => window.scrollY);
@@ -125,11 +125,11 @@ test("a film not in the catalog has a plain title, until the User adds it", asyn
 }) => {
   test.skip(callsRealTmdb(), "Only the TMDB fake has a film no one has added");
   const film = newFilm();
-  const { homePage } = ui;
-  const { searchResults } = homePage;
-  await homePage.goto();
+  const { searchPage } = ui;
+  const { searchResults } = searchPage;
+  await searchPage.goto();
 
-  await homePage.search(film.query);
+  await searchPage.search(film.query);
 
   await expect(searchResults.filmLabel(film.label)).toBeVisible();
   await expect(searchResults.link(film.label)).toHaveCount(0);
@@ -143,53 +143,51 @@ test("typing keeps the query in the URL as one history entry, and clearing remov
   page,
   loggedInUi: ui,
 }) => {
-  const { homePage, logPage } = ui;
-  await logPage.goto();
-  await logPage.mainNav.link("Home").click();
-  const { searchBox } = homePage;
+  const { searchPage, listsPage } = ui;
+  await listsPage.goto();
+  await listsPage.mainNav.link("Search").click();
+  const { searchBox } = searchPage;
 
   await searchBox.pressSequentially("alien");
-  await expect(page).toHaveURL(homePage.path("alien"));
+  await expect(page).toHaveURL(searchPage.path("alien"));
 
-  await homePage.clearSearchButton.click();
-  await expect(page).toHaveURL(homePage.path());
+  await searchPage.clearSearchButton.click();
+  await expect(page).toHaveURL(searchPage.path());
   await page.reload();
   await expect(searchBox).toHaveValue("");
-  await expect(homePage.logHeading).toBeVisible();
 
-  await homePage.search("alien");
-  await expect(page).toHaveURL(homePage.path("alien"));
+  await searchPage.search("alien");
+  await expect(page).toHaveURL(searchPage.path("alien"));
   await page.goBack();
-  await expect(page).toHaveURL(logPage.path());
+  await expect(page).toHaveURL(listsPage.path());
 });
 
-test("a URL with a query runs that search, and Home leaves it", async ({
+test("a URL with a query runs that search, and Search in the nav clears it", async ({
   page,
   loggedInUi: ui,
 }) => {
-  const { homePage } = ui;
+  const { searchPage } = ui;
 
-  await homePage.goto("alien");
+  await searchPage.goto("alien");
 
-  await expect(homePage.searchBox).toHaveValue("alien");
-  await expect(homePage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
-  await expect(homePage.logHeading).toHaveCount(0);
+  await expect(searchPage.searchBox).toHaveValue("alien");
+  await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
 
-  await homePage.mainNav.link("Home").click();
+  await searchPage.mainNav.link("Search").click();
 
-  await expect(page).toHaveURL(homePage.path());
-  await expect(homePage.searchBox).toHaveValue("");
-  await expect(homePage.logHeading).toBeVisible();
+  await expect(page).toHaveURL(searchPage.path());
+  await expect(searchPage.searchBox).toHaveValue("");
+  await expect(searchPage.searchResults.root).toHaveCount(0);
 });
 
 test("a User marks a film watched, then logs a rewatch with a new Rating", async ({
   page,
   loggedInUi: ui,
 }) => {
-  const { homePage, filmPage } = ui;
-  await homePage.goto("alien");
-  const result = homePage.searchResults.result("Alien (1979)");
-  const dialog = homePage.logEntryDialog("Alien");
+  const { searchPage, filmPage } = ui;
+  await searchPage.goto("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
+  const dialog = searchPage.logEntryDialog("Alien");
   await expect(result.markWatchedButton).toBeVisible();
   let searches = 0;
   page.on("request", (request) => {
@@ -229,10 +227,10 @@ test("a backdated rewatch leaves the row's Current Rating as it was", async ({
   const { id: mediaItemId } = await alien(api);
   const logged = await api.log.createLogEntry({ mediaItemId, rating: 4, date: "2024-03-12" });
   expect(logged.status()).toBe(201);
-  const { homePage } = ui;
-  await homePage.goto("alien");
-  const result = homePage.searchResults.result("Alien (1979)");
-  const dialog = homePage.logEntryDialog("Alien");
+  const { searchPage } = ui;
+  await searchPage.goto("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
+  const dialog = searchPage.logEntryDialog("Alien");
 
   await result.watchedAgainButton.click();
   await expect(dialog.lastTime).toHaveText("Last time 4 · Mar 12, 2024");
@@ -248,12 +246,12 @@ test("a backdated rewatch leaves the row's Current Rating as it was", async ({
 test("the hint leaves out the date of a Log Entry with none", async ({ ui, loggedInApi: api }) => {
   const { id: mediaItemId } = await alien(api);
   expect((await api.log.createLogEntry({ mediaItemId, rating: 3.5 })).status()).toBe(201);
-  const { homePage } = ui;
-  await homePage.goto("alien");
+  const { searchPage } = ui;
+  await searchPage.goto("alien");
 
-  await homePage.searchResults.result("Alien (1979)").watchedAgainButton.click();
+  await searchPage.searchResults.result("Alien (1979)").watchedAgainButton.click();
 
-  await expect(homePage.logEntryDialog("Alien").lastTime).toHaveText("Last time 3.5");
+  await expect(searchPage.logEntryDialog("Alien").lastTime).toHaveText("Last time 3.5");
 });
 
 test("a result shows two of its Lists, then how many more, each linking to its List", async ({
@@ -265,9 +263,9 @@ test("a result shows two of its Lists, then how many more, each linking to its L
   const first = await createListHolding(api, "First", mediaItemId);
   await createListHolding(api, "Second", mediaItemId);
   await createListHolding(api, "Third", mediaItemId);
-  const { homePage, listPage } = ui;
-  await homePage.goto("alien");
-  const result = homePage.searchResults.result("Alien (1979)");
+  const { searchPage, listPage } = ui;
+  await searchPage.goto("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
 
   await expect(result.listsIcon).toBeVisible();
   await expect(result.listChip("First")).toBeVisible();
@@ -284,10 +282,10 @@ test("a result's List chips follow Add to collection, without a new search", asy
   loggedInApi: api,
 }) => {
   await expectBody(api.lists.createList({ name: "Horror", mediaType: "film" }), 201);
-  const { homePage } = ui;
-  await homePage.goto("alien");
-  const result = homePage.searchResults.result("Alien (1979)");
-  const dialog = homePage.filmListsDialog("Alien (1979)");
+  const { searchPage } = ui;
+  await searchPage.goto("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
+  const dialog = searchPage.filmListsDialog("Alien (1979)");
   const horror = dialog.checkbox("Horror");
   const chip = result.listChip("Horror");
   await expect(result.listsIcon).toHaveCount(0);
@@ -312,16 +310,16 @@ test("a result's List chips follow a change still saving when the dialog closes"
   loggedInApi: api,
 }) => {
   await expectBody(api.lists.createList({ name: "Horror", mediaType: "film" }), 201);
-  const { homePage } = ui;
-  await homePage.goto("alien");
-  const result = homePage.searchResults.result("Alien (1979)");
+  const { searchPage } = ui;
+  await searchPage.goto("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
   await page.route("**/api/lists/*/items", async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     await route.continue();
   });
 
   await result.addToListButton.click();
-  const dialog = homePage.filmListsDialog("Alien (1979)");
+  const dialog = searchPage.filmListsDialog("Alien (1979)");
   await dialog.checkbox("Horror").click();
   await dialog.done();
 
@@ -335,9 +333,9 @@ test("a result's actions keep one order, and fit a 360px phone", async ({
 }) => {
   const { id: mediaItemId } = await alien(api);
   expect((await api.log.createLogEntry({ mediaItemId, rating: 4 })).status()).toBe(201);
-  const { homePage } = ui;
-  await homePage.goto("alien");
-  const result = homePage.searchResults.result("Alien (1979)");
+  const { searchPage } = ui;
+  await searchPage.goto("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
   const { poster, watchedAgainButton: again, wantToWatchButton: bookmark } = result;
   const { addToListButton: addToList, watchedAgainIcon } = result;
 
