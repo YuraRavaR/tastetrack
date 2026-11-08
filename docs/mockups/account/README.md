@@ -55,9 +55,11 @@ The account menu on the avatar is part of the frame from [`saved/`](../saved/). 
 
 **Changes from the canvas, for consistency.** The phone sheet has no grabber and a 28px top radius, like the log-entry dialog ([`log-entry-dialog/`](../log-entry-dialog/)). Its scrim uses `--overlay`. The canvas's `--dest`/`--destfg` are `--destructive`/`--destructive-foreground`. The mockup shows the register URL as `https://tastetrack.example/register`.
 
-## Open questions
+## Settled
 
-1. **Register URL.** The Invites text shows `{registerUrl}`, which today is `window.location.origin` + `/register`. Which real domain should the mockup and screenshots show?
-2. **Current tab.** On Settings and Invites, no bottom tab and no header link is highlighted, as drawn. Keep it that way, or mark one?
-3. **Visibility setting.** Should a Visibility setting (who can see your Collections or Saved) get its own card here later? If so, where in the stack?
-4. **Menu on the page you are on.** The mockup marks the current page in the menu with `bg-muted` at every width. The phone canvas does not. Keep it?
+Settled in a grilling on 2026-11-08. Where the mockup differs, this section wins.
+
+- **Register URL** in the Invites text comes from the app's own origin; `tastetrack.example` is a stand-in.
+- **No tab** and no header link is highlighted on Settings and Invites.
+- **The current page** is marked in the account menu with `bg-muted` at every width.
+- **Visibility** gets a setting here only when Friends ships; nothing is drawn now.

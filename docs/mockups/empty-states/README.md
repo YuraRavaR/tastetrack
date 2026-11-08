@@ -52,10 +52,12 @@ The empty versions of the redesign's screens ([`saved/`](../saved/), [`collectio
 
 **Words** (new strings for `en.ts`): "Nothing saved yet.", "Find a film", "Nothing on your Watchlist yet.", "Films you mark Watched show up here.", "Go to Watchlist", "No collections yet.", "No films found for “{query}”.", "Type a title to search your Saved and TMDB.", "Collect films around a theme, in the order you choose." They replace `backlog.empty`, `log.empty`, `lists.empty`, `filmLists.empty` and `search.none` where those screens change.
 
-## Open questions
+## Settled
 
-1. **A new User's Films tile.** Should it open the Films page with its empty tabs, or stay inert with only "Find a film" as drawn?
-2. **Search with an empty field.** Should it show the hint line "Type a title to search your Saved and TMDB.", or nothing under the chips?
-3. **Creating a Collection from the empty state.** After Create, should the new Collection open, or should the User stay on Collections with one card?
-4. **The dialog's shape.** The canvas drew the sheet with a 22 px top radius and the web dialog 28rem wide and 160 px from the top; the static page follows [`log-entry-dialog/`](../log-entry-dialog/) instead (28 px, 480 px, 72 px). Confirm that the log-entry dialog's shape wins.
-5. **An empty Collection and an empty Share Link page.** Not drawn here; do they take the same pattern (`list.empty`, `shared.empty`)?
+Settled in a grilling on 2026-11-08. Where the mockup differs, this section wins.
+
+- **A new User's Films tile** opens the Films page with its empty tabs, like any tile.
+- **Search with an empty field** shows the hint "Type a title to search your Saved and TMDB."
+- **After Create** the new Collection opens.
+- **Dialogs** take the shape of [`log-entry-dialog/`](../log-entry-dialog/).
+- **An empty Collection and an empty Share Link page** use the same quiet pattern: icon, one line, button.

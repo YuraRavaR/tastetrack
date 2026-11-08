@@ -49,10 +49,12 @@ Variant A keeps today's forms: the fields and copy of `LoginPage`, `RegisterPage
 - New password, with its rule.
 - Error: "That's the Temporary Password. Choose one of your own." Typing clears it.
 
-## Open questions
+## Settled
 
-1. Should Register ask for a Display Name? Today it defaults to the Username and is changed in Settings.
-2. Once Recovery Codes ship, where does a "Forgot password?" entry go: under the Password field, or beside the switch link?
-3. The canvas marked the Username field red on "taken" but not the Invite Code field on its errors. The mockup marks both. Keep that?
-4. The error icon is new; today's app shows the text alone. Add it to every form error, here and in Settings?
-5. The logged-out frame may carry a "Log in" link on the right. It is left out here, since these pages are the log in. Should Register show it anyway?
+Settled in a grilling on 2026-11-08. Where the mockup differs, this section wins.
+
+- **Register** has no Display Name field; it defaults to the Username and changes in Settings.
+- **"Forgot password?"** goes under the Password field once Recovery Codes ship. Not drawn now.
+- **Errors** mark the field they are about, the Invite Code field too.
+- **The error icon** goes on every form error, here and in Settings.
+- **Register's header** has no "Log in" link; the switch link under the form is enough.

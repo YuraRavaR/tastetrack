@@ -57,11 +57,13 @@ This is the Search section of the redesign in [`saved/`](../saved/). It replaces
 | No match | No films found. |
 | Manual | Can't find it? · Add manually |
 
-## Open questions
+## Settled
 
-1. **Collection names.** Does "In your Saved" match only film titles, or Collection names too (typing "road" finds "Road movies")? If Collections match, where do they show?
-2. **Saved films in TMDB.** Drawn: TMDB hides the films already in Saved, so nothing shows twice. Keep that, or show them in both blocks?
-3. **TMDB calls.** Live search on every pause in typing spends TMDB calls (ADR-0004). One option: search Saved live, from D1, and TMDB debounced or from a minimum length.
-4. **Empty field.** Keep the hint line and icon, or leave the space blank?
-5. **Long status lines.** "★ 5 · On Watchlist" is cut to "★ 5 · On Watch…" on a 104px cover on a phone. Shorten it ("★ 5 · Watchlist"), widen the covers, or let it wrap to a second line?
-6. **The query in the URL.** [`search-results/`](../search-results/) settled `?q=` with `replace`. Does the new `/search` route keep that, so Back from a film's page returns to the results?
+Settled in a grilling on 2026-11-08. Where the mockup differs, this section wins.
+
+- **In your Saved** matches film titles only. Collections are found under Collections.
+- **No duplicates.** From TMDB hides films already in Saved.
+- **TMDB calls.** Saved is searched live (our own data); TMDB keeps today's timing, so the redesign adds no TMDB calls (ADR-0004).
+- **Empty field.** The hint "Type a title to search your Saved and TMDB." under the chips.
+- **Status line.** Shortened to "★ 5 · Watchlist" so it fits a 104 px cover.
+- **The query in the URL.** `?q=` with `replace`, as [`search-results/`](../search-results/) settled.
