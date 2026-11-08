@@ -3,6 +3,7 @@ import type { LibraryItem } from "../../shared/api";
 import {
   changeView,
   decadeChoices,
+  filtersOf,
   genreChoices,
   type LibraryView,
   libraryView,
@@ -62,7 +63,7 @@ describe("a tab's view, read from its address", () => {
       decade: null,
       minRating: null,
     });
-    expect(libraryView("experienced", params(), null).sort).toBe("watched");
+    expect(libraryView("experienced", params(), null).sort).toBe("experienced");
   });
 
   it("takes the sort and filters from the address", () => {
@@ -74,6 +75,11 @@ describe("a tab's view, read from its address", () => {
       decade: 1990,
       minRating: 4.5,
     });
+  });
+
+  it("names the sort by the last Log Entry with the UI's word, as the tabs are", () => {
+    expect(libraryView("experienced", params("sort=watched"), "rating").sort).toBe("experienced");
+    expect(changeView(params(), { sort: "experienced" }).toString()).toBe("sort=watched");
   });
 
   it("falls back to the remembered sort when the address has none", () => {
@@ -101,7 +107,7 @@ describe("a tab's films, as its view shows them", () => {
     const films = [film({ title: "Heat" }), film({ title: "Alien" })];
 
     expect(titles(showLibrary(films, view({ sort: "added" })))).toEqual(["Heat", "Alien"]);
-    expect(titles(showLibrary(films, view({ sort: "watched" })))).toEqual(["Heat", "Alien"]);
+    expect(titles(showLibrary(films, view({ sort: "experienced" })))).toEqual(["Heat", "Alien"]);
   });
 
   it("sorts by title from A to Z, whatever the case or accents", () => {
@@ -217,6 +223,14 @@ describe("a change to a view's address", () => {
       "sort=rating&rating=4.5",
     );
     expect(before.toString()).toBe("sort=title&genre=Drama&rating=4");
+  });
+});
+
+describe("the filters that go along to the other tab", () => {
+  it("are the address's filters as they are, without its sort", () => {
+    expect(filtersOf(params("sort=title&genre=Drama&rating=4.5")).toString()).toBe(
+      "genre=Drama&rating=4.5",
+    );
   });
 });
 

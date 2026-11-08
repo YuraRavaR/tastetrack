@@ -32,6 +32,7 @@ import {
 import {
   changeView,
   decadeChoices,
+  filtersOf,
   genreChoices,
   type LibrarySort,
   type LibraryView,
@@ -113,8 +114,9 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
   const changeTo = (change: Partial<LibraryView>) => {
     setParams(changeView(params, change), { replace: true });
   };
-  // The filters both tabs have go along to the other tab; each tab keeps its own sort.
-  const shared = changeView(new URLSearchParams(), { genre: view.genre, decade: view.decade });
+  // The filters go along to the other tab, as the address has them, so a Rating filter the
+  // Watchlist ignores is back on Watched; each tab keeps its own sort.
+  const filters = filtersOf(params).toString();
   const typeName = mediaWord(mediaType, "tab");
   const parts = tabParts(mediaType);
   const open = parts[tab];
@@ -139,7 +141,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
   const fill = useMetadataFill(tabItems.map((item) => item.mediaItem));
   // Sorts and filters read the metadata follow-ups found, too.
   const filled = tabItems.map((item) => ({ ...item, mediaItem: fill.filled(item.mediaItem) }));
-  const shown = showLibrary(filled, view);
+  const visible = showLibrary(filled, view);
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
@@ -171,7 +173,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
         <SegmentedLinks
           label={t("saved.tabs")}
           segments={libraryTabs.map((each) => ({
-            to: `${libraryPath(mediaType, each)}${shared.size > 0 ? `?${shared}` : ""}`,
+            to: `${libraryPath(mediaType, each)}${filters && `?${filters}`}`,
             label: parts[each].name,
             count: state.status === "loaded" ? state.tabs[each].length : undefined,
             current: each === tab,
@@ -201,7 +203,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
         </p>
       )}
       {state.status === "loaded" && tabItems.length === 0 && <EmptyState {...open.empty} />}
-      {tabItems.length > 0 && shown.length === 0 && (
+      {tabItems.length > 0 && visible.length === 0 && (
         <div className="flex flex-col items-center gap-3 px-4 py-10 text-center text-muted-foreground">
           <p>{mediaWord(mediaType, "noMatch")}</p>
           <Button
@@ -213,12 +215,12 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
           </Button>
         </div>
       )}
-      {shown.length > 0 && (
+      {visible.length > 0 && (
         <ul
           aria-label={open.name}
           className="grid grid-cols-3 gap-x-3 gap-y-4.5 md:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:gap-x-5 md:gap-y-6"
         >
-          {shown.map((item) => (
+          {visible.map((item) => (
             <PosterGridItem
               key={item.mediaItem.id}
               mediaItem={item.mediaItem}
@@ -254,7 +256,9 @@ function LibraryChips({
   onFilter(change: Partial<LibraryView>): void;
 }) {
   const sortName = (sort: LibrarySort) => {
-    return sort === "watched" ? mediaWord(mediaType, "lastExperienced") : t(`saved.sort.${sort}`);
+    return sort === "experienced"
+      ? mediaWord(mediaType, "lastExperienced")
+      : t(`saved.sort.${sort}`);
   };
   const decadeName = (decade: number) => t("saved.decade.value", { decade: String(decade) });
   const ratingName = (floor: number) => {
@@ -287,7 +291,7 @@ function LibraryChips({
           ...genreChoices(items, view.genre).map((genre) => ({ value: genre, label: genre })),
         ]}
         chosen={choiceOf(view.genre)}
-        set={view.genre !== null}
+        filtered={view.genre !== null}
         onChoose={(genre) => onFilter({ genre: chosenOf(genre) })}
       />
       <ChoiceChip
@@ -301,7 +305,7 @@ function LibraryChips({
           })),
         ]}
         chosen={choiceOf(view.decade)}
-        set={view.decade !== null}
+        filtered={view.decade !== null}
         onChoose={(decade) => {
           const chosen = chosenOf(decade);
           onFilter({ decade: chosen === null ? null : Number(chosen) });
@@ -316,7 +320,7 @@ function LibraryChips({
             ...ratingFloors.map((floor) => ({ value: String(floor), label: ratingName(floor) })),
           ]}
           chosen={choiceOf(view.minRating)}
-          set={view.minRating !== null}
+          filtered={view.minRating !== null}
           onChoose={(rating) => {
             const chosen = chosenOf(rating);
             onFilter({ minRating: chosen === null ? null : Number(chosen) });

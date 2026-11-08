@@ -4,7 +4,9 @@
 import type { LibraryItem, MediaType } from "../../shared/api";
 import type { LibraryTab } from "./library-tabs";
 
-export type LibrarySort = "added" | "watched" | "rating" | "title" | "year";
+// Date added and Last watched are the tabs' own orders: by when a Media Item joined the Backlog,
+// and by its last Log Entry in Log Order.
+export type LibrarySort = "added" | "experienced" | "rating" | "title" | "year";
 
 export interface LibraryView {
   sort: LibrarySort;
@@ -16,14 +18,23 @@ export interface LibraryView {
 // Each tab's sorts, its default first.
 export const librarySorts: Record<LibraryTab, readonly [LibrarySort, ...LibrarySort[]]> = {
   backlog: ["added", "title", "year"],
-  experienced: ["watched", "rating", "title", "year"],
+  experienced: ["experienced", "rating", "title", "year"],
 };
 
 // The Current Ratings the experienced tab filters from: "4★ and up", "4.5★ and up", "5★ only".
 export const ratingFloors = [4, 4.5, 5] as const;
 
 // The names of the address's query parameters.
-const keys = { sort: "sort", genre: "genre", decade: "decade", minRating: "rating" } as const;
+const queryKeys = { sort: "sort", genre: "genre", decade: "decade", minRating: "rating" } as const;
+
+// Each sort's word in the address and in the browser's memory: the UI's, as for the tabs.
+const sortSlugs: Record<LibrarySort, string> = {
+  added: "added",
+  experienced: "watched",
+  rating: "rating",
+  title: "title",
+  year: "year",
+};
 
 // The view the tab's address asks for. The address's sort wins, then the one remembered in the
 // browser, then the tab's default; whatever this tab can't show is left out.
@@ -33,12 +44,12 @@ export function libraryView(
   rememberedSort: string | null,
 ): LibraryView {
   const sorts = librarySorts[tab];
-  const sortOf = (value: string | null) => sorts.find((sort) => sort === value);
-  const decade = params.get(keys.decade);
-  const minRating = Number(params.get(keys.minRating));
+  const sortOf = (slug: string | null) => sorts.find((sort) => sortSlugs[sort] === slug);
+  const decade = params.get(queryKeys.decade);
+  const minRating = Number(params.get(queryKeys.minRating));
   return {
-    sort: sortOf(params.get(keys.sort)) ?? sortOf(rememberedSort) ?? sorts[0],
-    genre: params.get(keys.genre) || null,
+    sort: sortOf(params.get(queryKeys.sort)) ?? sortOf(rememberedSort) ?? sorts[0],
+    genre: params.get(queryKeys.genre) || null,
     decade: decade && /^\d{3}0$/.test(decade) ? Number(decade) : null,
     minRating:
       tab === "experienced" && ratingFloors.some((floor) => floor === minRating) ? minRating : null,
@@ -60,7 +71,7 @@ function by<Value>(
   };
 }
 
-// The ways to sort that change the tab's own order, which is by Date added or by Last watched.
+// The sorts that change the tab's own order.
 const comparators: Partial<Record<LibrarySort, (a: LibraryItem, b: LibraryItem) => number>> = {
   title: by((item) => item.mediaItem.metadata?.title, titleOrder.compare),
   year: by(
@@ -73,7 +84,7 @@ const comparators: Partial<Record<LibrarySort, (a: LibraryItem, b: LibraryItem) 
   ),
 };
 
-export function decadeOf(year: number): number {
+function decadeOf(year: number): number {
   return Math.floor(year / 10) * 10;
 }
 
@@ -101,11 +112,19 @@ export function showLibrary(items: readonly LibraryItem[], view: LibraryView): L
 export function changeView(params: URLSearchParams, change: Partial<LibraryView>): URLSearchParams {
   const changed = new URLSearchParams(params);
   for (const [name, value] of Object.entries(change)) {
-    const key = keys[name as keyof LibraryView];
+    const key = queryKeys[name as keyof LibraryView];
     if (value === null || value === undefined) changed.delete(key);
-    else changed.set(key, String(value));
+    else changed.set(key, name === "sort" ? sortSlugs[value as LibrarySort] : String(value));
   }
   return changed;
+}
+
+// The address's filters, as they are, without its sort: what goes along to the other tab, where
+// a filter it can't show waits, as Rating does on the Watchlist.
+export function filtersOf(params: URLSearchParams): URLSearchParams {
+  const filters = new URLSearchParams(params);
+  filters.delete(queryKeys.sort);
+  return filters;
 }
 
 // The genres the tab's films have, from A to Z, and the chosen one, so that its menu checks it.
@@ -142,7 +161,7 @@ export function rememberedSort(mediaType: MediaType, tab: LibraryTab): string | 
 // Best-effort: a browser that blocks storage just forgets.
 export function rememberSort(mediaType: MediaType, tab: LibraryTab, sort: LibrarySort): void {
   try {
-    localStorage.setItem(sortKey(mediaType, tab), sort);
+    localStorage.setItem(sortKey(mediaType, tab), sortSlugs[sort]);
   } catch {
     // Nothing to do: the address still holds the sort.
   }

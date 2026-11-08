@@ -1,19 +1,13 @@
-import type { NewManualMediaItemRequest } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
+import { manualFilm } from "../support/scenarios/films";
 import { expect, test } from "../support/ui/fixtures";
 import type { LibraryPage } from "../support/ui/pages/LibraryPage";
 
-// Films added by hand, so that each has the year and genres the test gives it, whatever TMDB says.
-async function manualFilm(api: ApiClient, data: Omit<NewManualMediaItemRequest, "mediaType">) {
-  const created = api.catalog.addManualMediaItem({ mediaType: "film", ...data });
-  return (await expectBody(created, 201)).mediaItem;
-}
-
-// Four planned films, the last added first: Cold Signal, Blue Harbour, Amber Fields, Night Train.
-// Blue Harbour has no year or genres.
-async function fillWatchlist(api: ApiClient) {
+// Four films the User made by hand and planned, the last added first: Cold Signal, Blue Harbour,
+// Amber Fields, Night Train. Blue Harbour has no year or genres.
+async function fillBacklog(api: ApiClient) {
   const films = [
     { title: "Night Train", year: 1995, genres: ["Crime", "Thriller"] },
     { title: "Amber Fields", year: 2019, genres: ["Drama", "Romance"] },
@@ -30,8 +24,9 @@ async function fillWatchlist(api: ApiClient) {
   }
 }
 
-// Four watched films, the last watched first: Echo Lane, Golden Hour, Dust Road, Iron Bridge.
-async function fillWatched(api: ApiClient) {
+// Four films the User made by hand and logged, the last experienced first: Echo Lane, Golden Hour,
+// Dust Road, Iron Bridge.
+async function fillExperienced(api: ApiClient) {
   const films = [
     { title: "Iron Bridge", year: 1995, genres: ["Crime"], rating: 4, date: "2026-09-01" },
     {
@@ -68,7 +63,7 @@ test("the Watchlist sorts by Date added, Title and Release year, kept across a r
   api,
   loggedInUi: ui,
 }) => {
-  await fillWatchlist(api);
+  await fillBacklog(api);
   const { libraryPage } = ui;
   await libraryPage.goto();
 
@@ -104,7 +99,7 @@ test("Watched sorts by Last watched, Rating, Title and Release year", async ({
   api,
   loggedInUi: ui,
 }) => {
-  await fillWatched(api);
+  await fillExperienced(api);
   const { libraryPage } = ui;
   await libraryPage.goto("Watched");
 
@@ -149,7 +144,7 @@ test("the Watchlist filters by genre and decade, and a film without them shows o
   api,
   loggedInUi: ui,
 }) => {
-  await fillWatchlist(api);
+  await fillBacklog(api);
   const { libraryPage } = ui;
   await libraryPage.goto();
   const unsetLook = await libraryPage.chip("Genre").evaluate((chip) => {
@@ -198,7 +193,7 @@ test("Watched filters by genre, decade and Rating at once, kept across a reload 
   api,
   loggedInUi: ui,
 }) => {
-  await fillWatched(api);
+  await fillExperienced(api);
   const { libraryPage, filmPage } = ui;
   await libraryPage.goto("Watched");
 
@@ -246,7 +241,7 @@ test("filters that match nothing say so, and Clear filters keeps the sort", asyn
   api,
   loggedInUi: ui,
 }) => {
-  await fillWatchlist(api);
+  await fillBacklog(api);
   const { libraryPage } = ui;
   await libraryPage.goto();
   await libraryPage.choose("Sort", "Title");
@@ -270,8 +265,8 @@ test("the browser remembers each tab's sort, and the filters go along to the oth
   api,
   loggedInUi: ui,
 }) => {
-  await fillWatchlist(api);
-  await fillWatched(api);
+  await fillBacklog(api);
+  await fillExperienced(api);
   const { libraryPage } = ui;
   await libraryPage.goto();
   await libraryPage.choose("Sort", "Title");
@@ -284,6 +279,17 @@ test("the browser remembers each tab's sort, and the filters go along to the oth
   await expect(libraryPage.chip("Sort")).toHaveAccessibleName("Sort: Last watched");
   await expect(libraryPage.posters("Watched")).toHaveText(inOrder(["Golden Hour", "Dust Road"]));
   await libraryPage.choose("Sort", "Rating");
+  await libraryPage.choose("Rating", "5★ only");
+  await expect(libraryPage.posters("Watched")).toHaveText(inOrder(["Golden Hour"]));
+
+  // The Watchlist has no Rating filter, but keeps it for the way back to Watched.
+  await libraryPage.tab("Watchlist").click();
+  await expect(page).toHaveURL(`${libraryPage.path()}?genre=Drama&rating=5`);
+  await expect(libraryPage.chips).toHaveCount(3);
+  await expect(libraryPage.posters("Watchlist")).toHaveText(inOrder(["Amber Fields"]));
+  await libraryPage.tab("Watched").click();
+  await expect(libraryPage.chip("Rating")).toHaveAccessibleName("Rating: 5★ only");
+  await expect(libraryPage.posters("Watched")).toHaveText(inOrder(["Golden Hour"]));
 
   await libraryPage.goto();
   await expect(libraryPage.chip("Sort")).toHaveAccessibleName("Sort: Title");
@@ -299,7 +305,7 @@ test("on a phone the chips sit on one line that scrolls sideways", async ({
   api,
   loggedInUi: ui,
 }) => {
-  await fillWatched(api);
+  await fillExperienced(api);
   const { libraryPage } = ui;
   await page.setViewportSize({ width: 402, height: 874 });
   await libraryPage.goto("Watched");
