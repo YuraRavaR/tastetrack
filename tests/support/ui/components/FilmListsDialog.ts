@@ -5,7 +5,7 @@ import { ScopedComponent } from "./ScopedComponent";
 export class FilmListsDialog extends ScopedComponent {
   readonly doneButton = this.root.getByRole("button", { name: "Done" });
   // Shown to a User with no Lists yet.
-  readonly makeListLink = this.root.getByRole("link", { name: "Make a List" });
+  readonly makeListLink = this.root.getByRole("link", { name: "Make a collection" });
 
   checkbox(listName: string) {
     return this.root.getByRole("checkbox", { name: listName });

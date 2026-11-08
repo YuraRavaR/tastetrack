@@ -25,9 +25,9 @@ test("a User plans films from search, then orders and notes their Watchlist", {
   await expect(items.first()).toContainText("Alien (1979)");
 
   // Moving Aliens up puts it first.
-  await watchlistPage.lastItem().moveUpButton.click();
+  await watchlistPage.lastItem().moveEarlierButton.click();
   await expect(items.first()).toContainText("Aliens (1986)");
-  await expect(watchlistPage.firstItem().moveUpButton).toBeDisabled();
+  await expect(watchlistPage.firstItem().moveEarlierButton).toBeDisabled();
 
   // A Note, added and then changed.
   await watchlistPage.lastItem().addNoteButton.click();

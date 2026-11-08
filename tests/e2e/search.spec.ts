@@ -279,7 +279,7 @@ test("a result shows two of its Lists, then how many more, each linking to its L
   await expect(page).toHaveURL(listPage.path(first.id));
 });
 
-test("a result's List chips follow Add to list, without a new search", async ({
+test("a result's List chips follow Add to collection, without a new search", async ({
   ui,
   loggedInApi: api,
 }) => {

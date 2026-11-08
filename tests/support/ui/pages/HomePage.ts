@@ -92,6 +92,8 @@ export class HomePage extends BasePage<[query?: string]> {
 
   // Named after the film's label: "Lists for Alien (1979)".
   filmListsDialog(filmLabel: string) {
-    return new FilmListsDialog(this.page.getByRole("dialog", { name: `Lists for ${filmLabel}` }));
+    return new FilmListsDialog(
+      this.page.getByRole("dialog", { name: `Collections for ${filmLabel}` }),
+    );
   }
 }

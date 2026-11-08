@@ -14,7 +14,7 @@ function sectionsOf(ui: Ui) {
     { name: "Home", sectionPage: ui.homePage },
     { name: "Log", sectionPage: ui.logPage },
     { name: "Watchlist", sectionPage: ui.watchlistPage },
-    { name: "Lists", sectionPage: ui.listsPage },
+    { name: "Collections", sectionPage: ui.listsPage },
   ];
 }
 
@@ -127,7 +127,7 @@ test.describe("on a phone", () => {
 
     await ui.listPage.goto(list.id);
 
-    await expect(ui.listPage.mainNav.link("Lists")).toHaveAttribute("aria-current", "page");
+    await expect(ui.listPage.mainNav.link("Collections")).toHaveAttribute("aria-current", "page");
   });
 
   test("the account button is the avatar alone and opens the account menu", async ({
