@@ -14,11 +14,11 @@ export class ListPage extends BasePage<[listId: number]> {
   }
 
   readonly shareLinkPanel = new ShareLinkPanel(this.page);
-  readonly editListButton = this.page.getByRole("button", { name: "Edit List" });
+  readonly editListButton = this.page.getByRole("button", { name: "Edit collection" });
   readonly editListDialog = new ListFormDialog(
-    this.page.getByRole("dialog", { name: "Edit List" }),
+    this.page.getByRole("dialog", { name: "Edit collection" }),
   );
-  readonly deleteListButton = this.page.getByRole("button", { name: "Delete List" });
+  readonly deleteListButton = this.page.getByRole("button", { name: "Delete collection" });
 
   // Adding films: a search whose results each have an Add button.
   readonly searchBox = this.page.getByRole("searchbox", { name: "Search films" });

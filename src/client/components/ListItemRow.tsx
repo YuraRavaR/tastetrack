@@ -60,8 +60,8 @@ export function ListItemRow({
         <Button
           variant="outline"
           size="icon-sm"
-          aria-label={t("listItem.moveUp")}
-          title={t("listItem.moveUp")}
+          aria-label={t("listItem.moveEarlier")}
+          title={t("listItem.moveEarlier")}
           disabled={first}
           onClick={() => onMove(item.position - 1)}
         >
@@ -70,8 +70,8 @@ export function ListItemRow({
         <Button
           variant="outline"
           size="icon-sm"
-          aria-label={t("listItem.moveDown")}
-          title={t("listItem.moveDown")}
+          aria-label={t("listItem.moveLater")}
+          title={t("listItem.moveLater")}
           disabled={last}
           onClick={() => onMove(item.position + 1)}
         >

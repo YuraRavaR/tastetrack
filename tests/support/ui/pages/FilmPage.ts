@@ -45,7 +45,7 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     name: "On your Watchlist",
     pressed: true,
   });
-  readonly addToListButton = this.main.getByRole("button", { name: "Add to list" });
+  readonly addToListButton = this.main.getByRole("button", { name: "Add to collection" });
   readonly toast = new Toast(this.page.getByRole("status"));
   // Only for a film the User added themselves.
   readonly editFilmButton = this.main.getByRole("button", { name: "Edit film" });
@@ -118,6 +118,8 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   }
 
   filmListsDialog(filmLabel: string) {
-    return new FilmListsDialog(this.page.getByRole("dialog", { name: `Lists for ${filmLabel}` }));
+    return new FilmListsDialog(
+      this.page.getByRole("dialog", { name: `Collections for ${filmLabel}` }),
+    );
   }
 }

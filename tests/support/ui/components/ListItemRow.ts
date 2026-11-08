@@ -2,7 +2,7 @@ import { ScopedComponent } from "./ScopedComponent";
 
 // One film in a List or on the Watchlist, with its order and Note.
 export class ListItemRow extends ScopedComponent {
-  readonly moveUpButton = this.root.getByRole("button", { name: "Move up" });
+  readonly moveEarlierButton = this.root.getByRole("button", { name: "Move earlier" });
   readonly addNoteButton = this.root.getByRole("button", { name: "Add a Note" });
   readonly editNoteButton = this.root.getByRole("button", { name: "Edit Note" });
   readonly removeButton = this.root.getByRole("button", { name: "Remove" });

@@ -10,7 +10,7 @@ export class NewPasswordPage extends BasePage {
 
   readonly heading = this.page.getByRole("heading", { name: "Set a new password" });
   // A way to the Lists, which this page must not offer.
-  readonly listsLink = this.page.getByRole("link", { name: "Lists" });
+  readonly listsLink = this.page.getByRole("link", { name: "Collections" });
   readonly newPasswordInput = this.page.getByLabel("New password");
   readonly setPasswordButton = this.page.getByRole("button", { name: "Set password" });
   readonly errorMessage = this.page.getByRole("alert");

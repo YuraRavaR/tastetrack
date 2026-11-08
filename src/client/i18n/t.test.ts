@@ -11,12 +11,12 @@ describe("English plurals", () => {
   });
 });
 
-describe("how many Lists", () => {
+describe("how many Lists, in UI words", () => {
   it.each([
-    [0, "0 Lists"],
-    [1, "1 List"],
-    [2, "2 Lists"],
-    [100, "100 Lists"],
+    [0, "0 Collections"],
+    [1, "1 Collection"],
+    [2, "2 Collections"],
+    [100, "100 Collections"],
   ])("%i → %s", (count, expected) => {
     expect(t("lists.count", { count })).toBe(expected);
   });
@@ -32,9 +32,9 @@ describe("what deleting a Manual Media Item deletes with it", () => {
   });
 
   it.each([
-    [0, "It isn't on your Watchlist or in any of your Lists."],
-    [1, "It will be removed from 1 List, where your Watchlist counts as a List."],
-    [2, "It will be removed from 2 Lists, where your Watchlist counts as a List."],
+    [0, "It isn't on your Watchlist or in any of your Collections."],
+    [1, "It will be removed from 1 Collection, where your Watchlist counts as a Collection."],
+    [2, "It will be removed from 2 Collections, where your Watchlist counts as a Collection."],
   ])("%i List Items → %s", (count, expected) => {
     expect(t("manualItem.deleteListItems", { count })).toBe(expected);
   });

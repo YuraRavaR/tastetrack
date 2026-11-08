@@ -19,7 +19,7 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
 }, async ({ page, loggedInUi: ui }) => {
   const { homePage, listsPage, listPage } = ui;
   await homePage.goto();
-  await homePage.mainNav.link("Lists").click();
+  await homePage.mainNav.link("Collections").click();
   await expect(listsPage.emptyMessage).toBeVisible();
 
   // A reserved name is refused, then a free one makes the List.
@@ -46,7 +46,7 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(listPage.text("2 films")).toBeVisible();
 
   // Moving Aliens up puts it first, and a Note says why it's there.
-  await listPage.lastItem("Space horror").moveUpButton.click();
+  await listPage.lastItem("Space horror").moveEarlierButton.click();
   await expect(items.first()).toContainText("Aliens (1986)");
   await listPage.firstItem("Space horror").addNoteButton.click();
   await listPage.noteDialog("Aliens (1986)").saveNote("The sequel is the scarier one.");
@@ -61,7 +61,7 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(listPage.heading("Horror in space")).toBeVisible();
   await page.reload();
   await expect(listPage.items("Horror in space").first()).toContainText("Aliens (1986)");
-  await listPage.mainNav.link("Lists").click();
+  await listPage.mainNav.link("Collections").click();
   const { lists } = listsPage;
   await expect(lists).toHaveCount(1);
   await expect(lists).toContainText("Horror in space");
@@ -86,7 +86,7 @@ test("a name the User already has is refused", async ({ ui, loggedInApi: api }) 
   await dialog.nameInput.fill("horror");
   await dialog.createButton.click();
 
-  await expect(dialog.errorMessage).toHaveText("You already have a List with this name.");
+  await expect(dialog.errorMessage).toHaveText("You already have a Collection with this name.");
 });
 
 test("a User puts a search result on Lists and takes it off again, from home", async ({
@@ -157,7 +157,7 @@ test("a User with no Lists is pointed to the Lists page", async ({
 
   await filmPage.addToListButton.click();
   const dialog = filmPage.filmListsDialog("Alien (1979)");
-  await expect(dialog.root).toContainText("You have no Lists yet.");
+  await expect(dialog.root).toContainText("You have no Collections yet.");
   await dialog.makeListLink.click();
 
   await expect(page).toHaveURL(listsPage.path());

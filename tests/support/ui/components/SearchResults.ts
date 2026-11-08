@@ -13,11 +13,11 @@ export class SearchResultRow extends ScopedComponent {
     name: "Want to watch",
     pressed: true,
   });
-  readonly addToListButton = this.root.getByRole("button", { name: "Add to list" });
+  readonly addToListButton = this.root.getByRole("button", { name: "Add to collection" });
   // On a List's page: adds the film to that List, which then says so.
   readonly addButton = this.root.getByRole("button", { name: "Add", exact: true });
-  readonly inThisListLabel = this.root.getByText("In this List");
-  readonly listsIcon = this.root.getByRole("img", { name: "Lists" });
+  readonly inThisListLabel = this.root.getByText("In this Collection");
+  readonly listsIcon = this.root.getByRole("img", { name: "Collections" });
   readonly addedByYouLabel = this.root.getByText("Added by you");
 
   // The link to the film's page, by its label.

@@ -74,7 +74,9 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   await filmPage.deleteFilmButton.click();
   const confirm = filmPage.deleteFilmDialog(renamed);
   await expect(confirm.root).toContainText("Your Log Entry for it will be deleted.");
-  await expect(confirm.root).toContainText("It isn't on your Watchlist or in any of your Lists.");
+  await expect(confirm.root).toContainText(
+    "It isn't on your Watchlist or in any of your Collections.",
+  );
   await confirm.confirm("Delete");
   await expect(logPage.emptyMessage).toBeVisible();
 });

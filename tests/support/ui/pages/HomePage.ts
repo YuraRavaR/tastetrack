@@ -90,8 +90,10 @@ export class HomePage extends BasePage<[query?: string]> {
     return new LogEntryDialog(this.page.getByRole("dialog", { name: filmTitle, exact: true }));
   }
 
-  // Named after the film's label: "Lists for Alien (1979)".
+  // Named after the film's label: "Collections for Alien (1979)".
   filmListsDialog(filmLabel: string) {
-    return new FilmListsDialog(this.page.getByRole("dialog", { name: `Lists for ${filmLabel}` }));
+    return new FilmListsDialog(
+      this.page.getByRole("dialog", { name: `Collections for ${filmLabel}` }),
+    );
   }
 }
