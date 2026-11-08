@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shared Collection, variant A</title>
+<!--
+  Static mockup of the public page a Share Link opens, variant A "poster grid", seen logged out.
+  Colours copy the tokens in src/client/styles.css (Gold · Paper); dark mode follows the system
+  setting. Logged out, so the frame is the app name and a "Log in" link, with no tab bar.
+  States: the Collection "Slow cinema" by Yurii (no hash) and a link that no longer works
+  (#notshared). Notes that run past three lines get More / Less, which work. Posters are placeholders.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --shadow: oklch(0.2 0.01 50 / 14%);
+  --poster-text: oklch(0.97 0.01 80);
+  --overlay: oklch(0.2 0.01 50 / 50%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --shadow: oklch(0 0 0 / 50%);
+    --overlay: oklch(0 0 0 / 60%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, p, ul, ol { margin: 0; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted-foreground); }
+[hidden] { display: none !important; }
+
+/* Header, logged out: the app name and a "Log in" link. */
+header { background: var(--card); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+header .wrap { min-height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; }
+.login { margin-left: auto; height: 44px; padding: 0 12px; margin-right: -12px; display: inline-flex; align-items: center; border-radius: 999px; font-size: 15px; font-weight: 600; color: var(--primary-strong); }
+
+main.wrap { flex: 1; padding-top: 22px; padding-bottom: 32px; display: flex; flex-direction: column; }
+
+/* The Collection */
+.coll { display: flex; flex-direction: column; gap: 22px; }
+.intro { display: flex; flex-direction: column; gap: 8px; }
+.kind { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted-foreground); }
+.page-title { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.desc { font-size: 15px; line-height: 1.5; }
+.owner { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted-foreground); }
+.initial { width: 24px; height: 24px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-strong); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+.grid { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 14px; align-items: start; }
+.grid li { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.poster { position: relative; aspect-ratio: 2 / 3; border-radius: 10px; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; box-shadow: 0 4px 12px var(--shadow); }
+.poster-title { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 17px; line-height: 1.15; color: var(--poster-text); }
+.num { position: absolute; top: 8px; left: 8px; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; background: var(--overlay); color: var(--poster-text); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.film { display: flex; flex-direction: column; gap: 2px; }
+.title { font-size: 14px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.year { font-size: 12px; color: var(--muted-foreground); }
+
+/* A Note: a bubble under the poster, its tail pointing up. Long ones clamp to three lines. */
+.note { position: relative; width: 100%; padding: 9px 10px; display: flex; flex-direction: column; gap: 4px; border: 0; border-radius: 10px; background: var(--muted); text-align: left; font-size: 13px; line-height: 1.4; }
+.note::before { content: ""; position: absolute; top: -5px; left: 14px; width: 10px; height: 10px; background: var(--muted); transform: rotate(45deg); }
+button.note { min-height: 44px; }
+.note-text { position: relative; }
+.note.clamped .note-text { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.more { font-size: 12px; font-weight: 600; color: var(--primary-strong); }
+
+/* Not shared any more */
+.gone { flex: 1; padding: 48px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
+.gone-art { position: relative; width: 120px; height: 120px; margin-bottom: 8px; }
+.gone-art span { position: absolute; border-radius: 8px; }
+.gone-art .ghost { top: 16px; width: 56px; height: 84px; border: 1.5px dashed var(--border); }
+.gone-art .ghost:nth-child(1) { left: 14px; transform: rotate(-8deg); }
+.gone-art .ghost:nth-child(2) { right: 14px; transform: rotate(8deg); }
+.gone-art .card { left: 30px; top: 6px; width: 60px; height: 90px; background: var(--muted); color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+.gone h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.gone p { max-width: 30rem; font-size: 15px; line-height: 1.5; color: var(--muted-foreground); }
+.outline { margin-top: 10px; height: 44px; padding: 0 20px; display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 15px; font-weight: 600; }
+
+/* Logged out there is no tab bar, so the footer shows at every width. */
+footer { border-top: 1px solid var(--border); }
+footer .wrap { padding-top: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); display: flex; gap: 12px; font-size: 12px; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  .wrap { padding: 0 24px; }
+  header .wrap { min-height: 64px; }
+  main.wrap { padding-top: 40px; padding-bottom: 56px; }
+  .coll { gap: 36px; }
+  .intro { max-width: 40rem; gap: 10px; }
+  .kind { font-size: 14px; }
+  .page-title { font-size: 40px; }
+  .desc { font-size: 17px; line-height: 1.55; }
+  .owner { font-size: 15px; }
+  .initial { width: 26px; height: 26px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 36px 22px; }
+  .grid li { gap: 10px; }
+  .poster { padding: 12px; box-shadow: 0 6px 16px var(--shadow); }
+  .poster-title { font-size: 19px; }
+  .num { top: 10px; left: 10px; min-width: 26px; height: 26px; padding: 0 7px; }
+  .title { font-size: 15px; }
+  .year { font-size: 13px; }
+  .note { padding: 10px 12px; font-size: 14px; line-height: 1.45; }
+  .note::before { left: 16px; }
+  .more { font-size: 13px; }
+  .gone { padding: 80px 0; gap: 16px; }
+  .gone-art { width: 160px; height: 150px; }
+  .gone-art span { border-radius: 10px; }
+  .gone-art .ghost { top: 20px; width: 74px; height: 111px; }
+  .gone-art .ghost:nth-child(1) { left: 16px; }
+  .gone-art .ghost:nth-child(2) { right: 16px; }
+  .gone-art .card { left: 40px; width: 80px; height: 120px; }
+  .gone h1 { font-size: 32px; letter-spacing: -0.02em; }
+  .gone p { font-size: 17px; line-height: 1.55; }
+  .outline { padding: 0 22px; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<a class="brand" href="#">TasteTrack</a>
+<a class="login" href="#login">Log in</a>
+</div>
+</header>
+
+<main class="wrap">
+<section id="coll" class="coll" aria-labelledby="coll-h">
+<div class="intro">
+<span class="kind"><svg class="i" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Film collection</span>
+<h1 id="coll-h" class="page-title">Slow cinema</h1>
+<p class="desc">Films that take their time. Best on a quiet evening, with the phone in another room.</p>
+<p class="owner"><span class="initial" aria-hidden="true">Y</span>Shared by Yurii · 10 films</p>
+</div>
+<ol class="grid" id="grid" aria-label="Slow cinema"></ol>
+</section>
+
+<section id="gone" class="gone" aria-labelledby="gone-h" hidden>
+<span class="gone-art" aria-hidden="true">
+<span class="ghost"></span><span class="ghost"></span>
+<span class="card"><svg class="i" width="28" height="28" viewBox="0 0 24 24"><path d="M9 15l6-6"/><path d="M11 6l.5-.5a4.2 4.2 0 0 1 6 6l-.5.5"/><path d="M13 18l-.5.5a4.2 4.2 0 0 1-6-6l.5-.5"/><path d="M4 4l16 16"/></svg></span>
+</span>
+<h1 id="gone-h">This Collection isn’t shared any more</h1>
+<p>Its owner may have stopped sharing it or made a new link. Ask the person who sent it to you for the new one.</p>
+<a class="outline" href="#login">Log in to TasteTrack</a>
+</section>
+</main>
+
+<footer><div class="wrap"><span>Film data from TMDB</span><span>v0.6.0</span></div></footer>
+
+<script>
+const tone = (h) => `oklch(0.42 0.075 ${h})`;
+const FILMS = [
+  ["Tokyo Story", 1953, 40, "Start here. Ozu keeps the camera low and still, and lets a family drift apart in plain sight. The last ten minutes stay with you for days."],
+  ["Jeanne Dielman, 23 quai du Commerce, 1080 Bruxelles", 1975, 15, "Three days in one kitchen. Give it the first hour and it never lets go."],
+  ["Stalker", 1979, 140, "Long takes, dripping water, and the best argument for leaving your phone in another room."],
+  ["Werckmeister Harmonies", 2000, 230, null],
+  ["Uncle Boonmee Who Can Recall His Past Lives", 2010, 160, "Go with it. The ghosts are polite."],
+  ["The Turin Horse", 2011, 60, "Béla Tarr’s last film. Save it for a night with no plans."],
+  ["Paterson", 2016, 200, null],
+  ["Columbus", 2017, 185, "Architecture and grief, framed like a photo book."],
+  ["Drive My Car", 2021, 260, null],
+  ["Perfect Days", 2023, 95, "The gentlest one here. Watch it first if slow films are new to you."],
+];
+const open = new Set();
+const $ = (id) => document.getElementById(id);
+
+function render() {
+  const notShared = location.hash === "#notshared";
+  $("coll").hidden = notShared;
+  $("gone").hidden = !notShared;
+  if (notShared) return;
+  $("grid").innerHTML = FILMS.map(([t, y, h, note], i) => `<li>
+    <span class="poster" style="background: ${tone(h)}"><span class="poster-title" aria-hidden="true">${t}</span><span class="num" aria-hidden="true">${i + 1}</span></span>
+    <span class="film"><span class="title">${t}</span><span class="year">${y}</span></span>
+    ${note ? `<p class="note clamped" data-i="${i}"><span class="note-text">${note}</span></p>` : ""}
+  </li>`).join("");
+  // A Note gets More / Less only when it runs past three lines at this width.
+  for (const p of $("grid").querySelectorAll(".note")) {
+    const i = +p.dataset.i;
+    const text = p.querySelector(".note-text");
+    if (text.scrollHeight <= text.clientHeight + 1) { p.classList.remove("clamped"); continue; }
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = open.has(i) ? "note" : "note clamped";
+    b.dataset.i = i;
+    b.setAttribute("aria-expanded", String(open.has(i)));
+    b.innerHTML = `<span class="note-text">${text.textContent}</span><span class="more">${open.has(i) ? "Less" : "More"}</span>`;
+    p.replaceWith(b);
+  }
+}
+
+$("grid").addEventListener("click", (e) => {
+  const b = e.target.closest("button.note");
+  if (!b) return;
+  const i = +b.dataset.i;
+  if (open.has(i)) open.delete(i); else open.add(i);
+  render();
+});
+let resizing;
+window.addEventListener("resize", () => { clearTimeout(resizing); resizing = setTimeout(render, 100); });
+window.addEventListener("hashchange", render);
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Empty states A, quiet, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt button:disabled{cursor:not-allowed}
+.tt input{font:inherit;color:inherit}
+.tt input::placeholder{color:var(--mfg)}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="position: relative; min-height: 1040px; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<header style="background: var(--card); border-bottom: 1px solid var(--border)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 0 24px; min-height: 64px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 32px">
+<a href="#" onClick="{{goSaved}}" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; text-decoration: none">TasteTrack</a>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex: 1">
+<a href="#" aria-current="{{navSaved.cur}}" onClick="{{goSaved}}" style="padding: 10px 14px; border-radius: 10px; background: {{navSaved.bg}}; font-size: 15px; font-weight: {{navSaved.w}}; text-decoration: none; color: {{navSaved.fgWeb}}">Saved</a>
+<a href="#" aria-current="{{navCollections.cur}}" onClick="{{goCollections}}" style="padding: 10px 14px; border-radius: 10px; background: {{navCollections.bg}}; font-size: 15px; font-weight: {{navCollections.w}}; text-decoration: none; color: {{navCollections.fgWeb}}">Collections</a>
+<a href="#" aria-current="{{navSearch.cur}}" onClick="{{goSearch}}" style="padding: 10px 14px; border-radius: 10px; background: {{navSearch.bg}}; font-size: 15px; font-weight: {{navSearch.w}}; text-decoration: none; color: {{navSearch.fgWeb}}">Search</a>
+</nav>
+<button type="button" aria-label="Account: Invites, Settings, Log out" style="height: 44px; padding: 0 12px 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500"><span style="width: 32px; height: 32px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Yurii</button>
+</div>
+</header>
+
+<main style="flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 32px 24px 48px; box-sizing: border-box">
+
+<sc-if value="{{onSaved}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Saved</h1>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+<sc-if value="{{isNew}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="films-new-w" style="min-height: 220px; padding: 24px; box-sizing: border-box; display: flex; justify-content: space-between; gap: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card)">
+<div style="display: flex; flex-direction: column; justify-content: space-between; gap: 20px">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: var(--psoft); color: var(--pstrong); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></span>
+<div style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="films-new-w" style="margin: 0; font-size: 28px; font-weight: 700">Films</h2>
+<p style="margin: 0; font-size: 15px; color: var(--mfg)">Nothing saved yet.</p>
+</div>
+<button type="button" onClick="{{findFilm}}" style="height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 12px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Find a film</button>
+</div>
+</div>
+<span aria-hidden="true" style="position: relative; width: 190px; height: 172px; flex-shrink: 0">
+<span style="position: absolute; right: 90px; top: 26px; width: 86px; height: 129px; border-radius: 10px; border: 1.5px dashed var(--border); transform: rotate(-9deg)"></span>
+<span style="position: absolute; right: 8px; top: 26px; width: 86px; height: 129px; border-radius: 10px; border: 1.5px dashed var(--border); transform: rotate(9deg)"></span>
+<span style="position: absolute; right: 45px; top: 8px; width: 96px; height: 144px; border-radius: 10px; border: 1.5px dashed var(--mfg); background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--mfg)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+</span>
+</section>
+</sc-if>
+<sc-if value="{{hasSaved}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{openFilms}}" style="height: 220px; padding: 24px; box-sizing: border-box; display: flex; justify-content: space-between; border: 1px solid var(--border); border-radius: 20px; background: var(--card); text-align: left; overflow: hidden">
+<span style="display: flex; flex-direction: column; justify-content: space-between">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: var(--psoft); color: var(--pstrong); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 28px; font-weight: 700">Films</span><span style="font-size: 15px; color: var(--mfg)">{{filmsCount}}</span></span>
+</span>
+<span aria-hidden="true" style="position: relative; width: 200px; flex-shrink: 0">
+<span style="position: absolute; right: 92px; top: 30px; width: 92px; height: 138px; border-radius: 10px; background: {{collage0}}; transform: rotate(-9deg); box-shadow: 0 8px 20px var(--shadow)"></span>
+<span style="position: absolute; right: 8px; top: 30px; width: 92px; height: 138px; border-radius: 10px; background: {{collage2}}; transform: rotate(9deg); box-shadow: 0 8px 20px var(--shadow)"></span>
+<span style="position: absolute; right: 46px; top: 10px; width: 104px; height: 156px; border-radius: 10px; background: {{collage1}}; box-shadow: 0 10px 24px var(--shadow)"></span>
+</span>
+</button>
+</sc-if>
+<button type="button" disabled style="min-height: 220px; padding: 24px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start; border: 1.5px dashed var(--border); border-radius: 20px; background: transparent; text-align: left; color: var(--mfg)">
+<span style="align-self: stretch; display: flex; flex-direction: column; justify-content: space-between">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg></span>
+<span style="font-size: 24px; font-weight: 600">Books</span>
+</span>
+<span style="padding: 4px 10px; border-radius: 999px; background: var(--muted); font-size: 12px; font-weight: 600">Coming soon</span>
+</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{onFilms}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div>
+<nav aria-label="Breadcrumb" style="font-size: 14px; color: var(--mfg)"><a href="#" onClick="{{goSaved}}" style="color: var(--mfg); text-decoration: none">Saved</a> <span aria-hidden="true">›</span> Films</nav>
+<h1 style="margin: 4px 0 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Films</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div role="tablist" aria-label="Status" style="display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--muted)">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+<button type="button" role="tab" aria-selected="{{t.active}}" onClick="{{t.pick}}" style="height: 38px; padding: 0 18px; border: 0; border-radius: 9px; font-size: 14px; font-weight: 600; background: {{t.bg}}; box-shadow: {{t.shadow}}">{{t.label}} <span style="color: var(--mfg); font-weight: 500">{{t.count}}</span></button>
+</sc-for>
+</div>
+<sc-if value="{{hasItems}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+<button type="button" aria-haspopup="menu" style="height: 36px; padding: 0 10px 0 12px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; white-space: nowrap">
+<sc-if value="{{c.isSort}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"></path></svg></sc-if>
+{{c.label}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{hasItems}}" hint-placeholder-val="{{false}}">
+<ul style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 24px 20px">
+<sc-for list="{{items}}" as="f" hint-placeholder-count="9">
+<li style="min-width: 0">
+<a href="#" style="display: flex; flex-direction: column; gap: 8px; text-decoration: none">
+<span style="position: relative; aspect-ratio: 2 / 3; border-radius: 10px; background: {{f.tone}}; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box">
+<span aria-hidden="true" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 17px; line-height: 1.15; color: oklch(0.97 0.01 80)">{{f.t}}</span>
+<sc-if value="{{f.seenBefore}}" hint-placeholder-val="{{false}}"><span role="img" aria-label="Watched before" style="position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 999px; background: var(--pri); color: var(--pfg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px oklch(0 0 0 / 30%)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></span></sc-if>
+</span>
+<span style="font-size: 14px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical">{{f.t}}</span>
+<span style="margin-top: -4px; display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--mfg)">
+<sc-if value="{{f.rated}}" hint-placeholder-val="{{false}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--pstrong)" stroke="var(--pstrong)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if>{{f.meta}}</span>
+</a>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+
+<sc-if value="{{emptyWL}}" hint-placeholder-val="{{true}}">
+<div style="padding: 96px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+<span style="width: 64px; height: 64px; border-radius: 999px; background: var(--psoft); color: var(--pstrong); display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></span>
+<p style="margin: 0; font-size: 17px">Nothing on your Watchlist yet.</p>
+<button type="button" onClick="{{findFilm}}" style="height: 44px; padding: 0 20px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 12px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Find a film</button>
+</div>
+</sc-if>
+<sc-if value="{{emptyWD}}" hint-placeholder-val="{{false}}">
+<div style="padding: 96px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+<span style="width: 64px; height: 64px; border-radius: 999px; background: var(--psoft); color: var(--pstrong); display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+<p style="margin: 0; font-size: 17px">Films you mark Watched show up here.</p>
+<button type="button" onClick="{{toWatchlist}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600">Go to Watchlist</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{onCollections}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Collections</h1>
+<button type="button" onClick="{{openDialog}}" style="height: 44px; padding: 0 16px 0 12px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New collection</button>
+</div>
+<div role="group" aria-label="Media Type" style="display: flex; gap: 8px">
+<button type="button" aria-pressed="true" style="height: 36px; padding: 0 14px; border: 1px solid var(--pstrong); border-radius: 999px; background: var(--psoft); font-size: 14px; font-weight: 600">Films</button>
+<button type="button" disabled style="height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 6px; border: 1.5px dashed var(--border); border-radius: 999px; background: transparent; color: var(--mfg); font-size: 14px; font-weight: 500">Books <span style="font-size: 11px; font-weight: 600">Coming soon</span></button>
+</div>
+<div style="padding: 96px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+<span style="width: 64px; height: 64px; border-radius: 999px; background: var(--psoft); color: var(--pstrong); display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></span>
+<p style="margin: 0; font-size: 17px">No collections yet.</p>
+<button type="button" onClick="{{openDialog}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600">New collection</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{onSearch}}" hint-placeholder-val="{{false}}">
+<div style="max-width: 44rem; margin: 0 auto; display: flex; flex-direction: column; gap: 14px">
+<label for="q-aw" style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Search</label>
+<div style="position: relative">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--mfg)" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 16px; top: 16px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input id="q-aw" type="search" value="{{query}}" onChange="{{onQuery}}" placeholder="Title in English or Ukrainian" autocomplete="off" style="width: 100%; height: 52px; box-sizing: border-box; padding: 0 52px 0 48px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 16px; outline-color: var(--pstrong)">
+<sc-if value="{{hasQuery}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="Clear search" onClick="{{clearQuery}}" style="position: absolute; right: 4px; top: 4px; width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg></button></sc-if>
+</div>
+<div role="group" aria-label="Media Type" style="display: flex; gap: 8px">
+<button type="button" aria-pressed="true" style="height: 36px; padding: 0 14px; border: 1px solid var(--pstrong); border-radius: 999px; background: var(--psoft); font-size: 14px; font-weight: 600">Films</button>
+<button type="button" disabled style="height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 6px; border: 1.5px dashed var(--border); border-radius: 999px; background: transparent; color: var(--mfg); font-size: 14px; font-weight: 500">Books <span style="font-size: 11px; font-weight: 600">Coming soon</span></button>
+</div>
+<sc-if value="{{hasQuery}}" hint-placeholder-val="{{true}}">
+<div role="status" style="padding: 80px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+<span style="width: 64px; height: 64px; border-radius: 999px; background: var(--psoft); color: var(--pstrong); display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="6.5"></circle><path d="M15 15l5.5 5.5M8 8l4 4M12 8l-4 4"></path></svg></span>
+<p style="margin: 0; font-size: 17px">No films found for {{queryQuoted}}.</p>
+<button type="button" style="height: 44px; padding: 0 18px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 600">Add manually</button>
+</div>
+</sc-if>
+<sc-if value="{{noQuery}}" hint-placeholder-val="{{false}}">
+<p style="margin: 48px 0 0; font-size: 15px; color: var(--mfg); text-align: center">Type a title to search your Saved and TMDB.</p>
+</sc-if>
+</div>
+</sc-if>
+</main>
+
+<footer style="border-top: 1px solid var(--border)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 16px 24px; display: flex; gap: 12px; font-size: 12px; color: var(--mfg)"><span>Film data from TMDB</span><span>v0.6.0</span></div>
+</footer>
+
+<sc-if value="{{dialogOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; z-index: 20; display: flex; align-items: flex-start; justify-content: center; padding: 160px 16px 16px; box-sizing: border-box; background: oklch(0 0 0 / 45%)">
+<div role="dialog" aria-modal="true" aria-labelledby="nc-title-aw" style="width: 100%; max-width: 28rem; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 16px 40px var(--shadow)">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="nc-title-aw" style="margin: 0; font-size: 20px; font-weight: 700">New collection</h2>
+<p style="margin: 0; font-size: 14px; color: var(--mfg)">Collect films around a theme, in the order you choose.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="nc-name-aw" style="font-size: 14px; font-weight: 600">Name</label>
+<input id="nc-name-aw" type="text" placeholder="Rainy Sunday films" style="height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="nc-desc-aw" style="font-size: 14px; font-weight: 600">Description <span style="font-weight: 400; color: var(--mfg)">Optional</span></label>
+<input id="nc-desc-aw" type="text" style="height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px">
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{closeDialog}}" style="height: 44px; padding: 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 14px; font-weight: 600">Cancel</button>
+<button type="button" onClick="{{closeDialog}}" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 14px; font-weight: 600">Create</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["newUser","watchlistEmpty","watchedEmpty","noCollections","searchNoMatch"],"default":"newUser"},"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+componentDidUpdate(prev) {
+if (prev.startOn !== this.props.startOn) this.setState({ screen: null, tab: null, query: null, dialog: false });
+}
+renderVals() {
+const st = this.state || {};
+const start = this.props.startOn || 'newUser';
+const init = { newUser: ['saved', 'watchlist'], watchlistEmpty: ['films', 'watchlist'], watchedEmpty: ['films', 'watched'], noCollections: ['collections', 'watchlist'], searchNoMatch: ['search', 'watchlist'] }[start] || ['saved', 'watchlist'];
+const screen = st.screen || init[0];
+const tab = st.tab || init[1];
+const query = typeof st.query === 'string' ? st.query : (start === 'searchNoMatch' ? 'Grand Budapest Hotle' : '');
+const tone = (h) => 'oklch(0.42 0.075 ' + h + ')';
+const noWL = start === 'newUser' || start === 'watchlistEmpty';
+const noWD = start === 'newUser' || start === 'watchedEmpty';
+const ALLW = [['Past Lives', 2023, 250], ['Perfect Days', 2023, 150], ['Anatomy of a Fall', 2023, 30], ['Parasite', 2019, 95, true], ['Aftersun', 2022, 210], ['Drive My Car', 2021, 15], ['The Zone of Interest', 2023, 125], ['Poor Things', 2023, 335], ['Fallen Leaves', 2023, 5]].map((r) => ({ t: r[0], tone: tone(r[2]), seenBefore: !!r[3] && !noWD, meta: String(r[1]), rated: false }));
+const ALLD = [['Dune: Part Two', 4.5, 60], ['Parasite', 5, 95], ['Oppenheimer', 4, 40], ['In the Mood for Love', 5, 20], ['Spirited Away', 4.5, 175], ['Arrival', 4, 230], ['Whiplash', 4.5, 30], ['Portrait of a Lady on Fire', 5, 140], ['Her', 3.5, 10]].map((r) => ({ t: r[0], tone: tone(r[2]), seenBefore: false, meta: r[1].toFixed(1), rated: true }));
+const WL = noWL ? [] : ALLW;
+const WD = noWD ? [] : ALLD;
+const isW = tab === 'watchlist';
+const items = isW ? WL : WD;
+const cover = WL.length ? WL : WD;
+const nav = (on) => ({ cur: on ? 'page' : 'false', bg: on ? 'var(--psoft)' : 'transparent', fgWeb: on ? 'var(--fg)' : 'var(--mfg)', w: on ? '600' : '500' });
+const go = (s) => (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ screen: s, dialog: false }); };
+const parts = [];
+if (WL.length) parts.push(WL.length + ' to watch');
+if (WD.length) parts.push(WD.length + ' watched');
+const tabs = [['watchlist', 'Watchlist', WL.length], ['watched', 'Watched', WD.length]].map((t) => ({ label: t[1], count: t[2], active: tab === t[0], bg: tab === t[0] ? 'var(--card)' : 'transparent', shadow: tab === t[0] ? '0 1px 3px var(--shadow)' : 'none', pick: () => this.setState({ tab: t[0] }) }));
+const chips = (isW ? ['Date added', 'Genre', 'Decade'] : ['Last watched', 'Genre', 'Decade', 'Rating']).map((l, i) => ({ label: l, isSort: i === 0 }));
+const q = query.trim();
+return {
+themeClass: this.props.dark ? 'dark' : '',
+onSaved: screen === 'saved', onFilms: screen === 'films', onCollections: screen === 'collections', onSearch: screen === 'search',
+navSaved: nav(screen === 'saved' || screen === 'films'), navCollections: nav(screen === 'collections'), navSearch: nav(screen === 'search'),
+goSaved: go('saved'), goCollections: go('collections'), goSearch: go('search'),
+isNew: !WL.length && !WD.length, hasSaved: WL.length + WD.length > 0, filmsCount: parts.join(' · '),
+collage0: cover.length ? cover[0].tone : 'var(--muted)', collage1: cover.length ? cover[1].tone : 'var(--muted)', collage2: cover.length ? cover[2].tone : 'var(--muted)',
+openFilms: () => this.setState({ screen: 'films', tab: 'watchlist' }),
+tabs, chips, items, hasItems: items.length > 0, emptyWL: isW && !WL.length, emptyWD: !isW && !WD.length,
+findFilm: () => this.setState({ screen: 'search', query: '', dialog: false }),
+toWatchlist: () => this.setState({ screen: 'films', tab: 'watchlist' }),
+dialogOpen: !!st.dialog, openDialog: () => this.setState({ dialog: true }), closeDialog: () => this.setState({ dialog: false }),
+query, hasQuery: q.length > 0, noQuery: q.length === 0, queryQuoted: '“' + q + '”',
+onQuery: (e) => this.setState({ query: e.target.value }), clearQuery: () => this.setState({ query: '' })
+};
+}
+}
+</script>
+</body>
+</html>

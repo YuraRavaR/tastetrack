@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in C, editorial, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%);--destr:oklch(0.46 0.18 25)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%);--destr:oklch(0.66 0.2 22)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt input{font:inherit;color:var(--fg)}
+.tt input:focus-visible{outline:none;border-bottom-color:var(--pstrong)!important;box-shadow:0 1.5px 0 var(--pstrong)}
+.tt .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="min-height: 1040px; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<div style="position: relative; width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 24px; box-sizing: border-box; height: 64px; display: flex; align-items: center; justify-content: flex-end">
+<sc-if value="{{onNew}}" hint-placeholder-val="{{false}}">
+<button type="button" aria-label="Account: Log out" aria-haspopup="menu" aria-expanded="{{menuOpen}}" onClick="{{toggleMenu}}" style="height: 44px; padding: 0 12px 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500"><span style="width: 32px; height: 32px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Yurii</button>
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; top: 58px; right: 24px; z-index: 10; min-width: 180px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow)">
+<button type="button" role="menuitem" onClick="{{logOut}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg>Log out</button>
+</div>
+</sc-if>
+</sc-if>
+</div>
+
+<main style="flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 56px 24px 80px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 48px 96px">
+
+<header style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+<a href="#" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: clamp(64px, 9vw, 136px); line-height: 0.92; letter-spacing: -0.035em; text-decoration: none">TasteTrack</a>
+<div style="height: 1px; max-width: 40rem; background: var(--fg); opacity: 0.85"></div>
+<p style="margin: 0; max-width: 30rem; font-size: 22px; line-height: 1.45; color: var(--mfg)">A personal record of the films you watch, how you rate them and what you mean to see next.</p>
+</header>
+
+<div style="flex: 1 1 340px; min-width: 0; max-width: 26rem; padding-top: 12px; display: flex; flex-direction: column; gap: 28px">
+
+<sc-if value="{{onAuth}}" hint-placeholder-val="{{true}}">
+<div role="tablist" aria-label="Log in or register" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 12px; background: var(--muted)">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+<button type="button" role="tab" aria-selected="{{t.active}}" onClick="{{t.pick}}" style="height: 40px; border: 0; border-radius: 9px; font-size: 15px; font-weight: 600; background: {{t.bg}}; box-shadow: {{t.shadow}}; color: {{t.color}}">{{t.label}}</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{onLogin}}" hint-placeholder-val="{{true}}">
+<form onSubmit="{{submitLogin}}" style="display: flex; flex-direction: column; gap: 24px">
+<h1 class="sr">Log in</h1>
+<sc-if value="{{errLogin}}" hint-placeholder-val="{{false}}">
+<div role="alert" style="padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--destr); border-radius: 12px; background: var(--card); font-size: 14px; line-height: 1.4; color: var(--destr)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>{{errMsg}}</div>
+</sc-if>
+<sc-if value="{{deleted}}" hint-placeholder-val="{{false}}">
+<p role="status" style="margin: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 14px; color: var(--mfg)">Your account and everything in it have been deleted.</p>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label for="cw-login-user" style="font-size: 13px; font-weight: 600; color: var(--mfg)">Username</label>
+<input id="cw-login-user" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" style="height: 46px; padding: 0; box-sizing: border-box; border: 0; border-bottom: 1.5px solid var(--mfg); border-radius: 0; background: transparent; font-size: 19px">
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label for="cw-login-pw" style="font-size: 13px; font-weight: 600; color: var(--mfg)">Password</label>
+<input id="cw-login-pw" name="password" type="password" autocomplete="current-password" style="height: 46px; padding: 0; box-sizing: border-box; border: 0; border-bottom: 1.5px solid var(--mfg); border-radius: 0; background: transparent; font-size: 19px">
+</div>
+<button type="submit" style="height: 50px; margin-top: 4px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 16px; font-weight: 600">Log in<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+</form>
+</sc-if>
+
+<sc-if value="{{onRegister}}" hint-placeholder-val="{{false}}">
+<form onSubmit="{{submitRegister}}" style="display: flex; flex-direction: column; gap: 24px">
+<h1 class="sr">Register</h1>
+<p style="margin: 0; font-size: 14px; color: var(--mfg)">TasteTrack is invite only. Ask someone already on it for an Invite Code.</p>
+<sc-if value="{{errReg}}" hint-placeholder-val="{{false}}">
+<div role="alert" style="padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--destr); border-radius: 12px; background: var(--card); font-size: 14px; line-height: 1.4; color: var(--destr)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>{{errMsg}}</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label for="cw-reg-code" style="font-size: 13px; font-weight: 600; color: var(--mfg)">Invite Code</label>
+<input id="cw-reg-code" name="inviteCode" aria-invalid="{{errInvite}}" autocomplete="off" autocapitalize="characters" spellcheck="false" style="height: 46px; padding: 0; box-sizing: border-box; border: 0; border-bottom: 1.5px solid {{inviteBorder}}; border-radius: 0; background: transparent; font-size: 19px; letter-spacing: 0.08em">
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label for="cw-reg-user" style="font-size: 13px; font-weight: 600; color: var(--mfg)">Username</label>
+<input id="cw-reg-user" name="username" onInput="{{onUser}}" aria-invalid="{{userInvalid}}" aria-describedby="cw-reg-user-rules" autocomplete="username" autocapitalize="none" spellcheck="false" style="height: 46px; padding: 0; box-sizing: border-box; border: 0; border-bottom: 1.5px solid {{userBorder}}; border-radius: 0; background: transparent; font-size: 19px">
+<p id="cw-reg-user-rules" style="margin: 6px 0 0; font-size: 13px; color: {{userRuleColor}}">3–30 characters: letters, digits and underscores</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label for="cw-reg-pw" style="font-size: 13px; font-weight: 600; color: var(--mfg)">Password</label>
+<input id="cw-reg-pw" name="password" type="password" minlength="10" maxlength="128" aria-describedby="cw-reg-pw-rules" autocomplete="new-password" style="height: 46px; padding: 0; box-sizing: border-box; border: 0; border-bottom: 1.5px solid var(--mfg); border-radius: 0; background: transparent; font-size: 19px">
+<p id="cw-reg-pw-rules" style="margin: 6px 0 0; font-size: 13px; color: var(--mfg)">10–128 characters, anything you like</p>
+</div>
+<button type="submit" style="height: 50px; margin-top: 4px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 16px; font-weight: 600">Register<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+</form>
+</sc-if>
+
+<sc-if value="{{onNew}}" hint-placeholder-val="{{false}}">
+<form onSubmit="{{submitNew}}" style="display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Set a new password</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--mfg)">You logged in with a Temporary Password. Choose your own to carry on; it logs you out everywhere else.</p>
+</div>
+<sc-if value="{{errNew}}" hint-placeholder-val="{{false}}">
+<div role="alert" style="padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--destr); border-radius: 12px; background: var(--card); font-size: 14px; line-height: 1.4; color: var(--destr)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>{{errMsg}}</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label for="cw-new-pw" style="font-size: 13px; font-weight: 600; color: var(--mfg)">New password</label>
+<input id="cw-new-pw" name="newPassword" type="password" minlength="10" maxlength="128" onInput="{{onNewInput}}" aria-invalid="{{errNew}}" aria-describedby="cw-new-pw-rules" autocomplete="new-password" style="height: 46px; padding: 0; box-sizing: border-box; border: 0; border-bottom: 1.5px solid {{newBorder}}; border-radius: 0; background: transparent; font-size: 19px">
+<p id="cw-new-pw-rules" style="margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: var(--mfg)">10–128 characters, anything you like, but not the Temporary Password</p>
+</div>
+<button type="submit" style="height: 50px; margin-top: 4px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 16px; font-weight: 600">Set password<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+</form>
+</sc-if>
+</div>
+</main>
+
+<footer style="border-top: 1px solid var(--border)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 16px 24px; display: flex; gap: 12px; font-size: 12px; color: var(--mfg)"><span>Film data from TMDB</span><span>v0.6.0</span></div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["login","login-wrong-password","login-locked","login-account-deleted","register","register-invite-expired","register-invite-used","register-username-taken","new-password","new-password-reused"],"default":"login"},"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const S = { 'login': ['login', null], 'login-wrong-password': ['login', 'invalid'], 'login-locked': ['login', 'locked'], 'login-account-deleted': ['login', 'deleted'], 'register': ['register', null], 'register-invite-expired': ['register', 'expired'], 'register-invite-used': ['register', 'used'], 'register-username-taken': ['register', 'taken'], 'new-password': ['newpw', null], 'new-password-reused': ['newpw', 'reused'] };
+const s0 = S[this.props.startOn] || S.login;
+const screen = st.screen || s0[0];
+const err = st.screen ? (st.err || null) : s0[1];
+const user = st.user || '';
+const userInvalid = user !== '' && !/^[A-Za-z0-9_]{3,30}$/.test(user);
+const stop = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+const go = (sc) => (e) => { stop(e); this.setState({ screen: sc, err: null, user: '', menu: false }); };
+const M = { invalid: 'Wrong Username or password', locked: 'Too many failed attempts. Try again in 15 minutes.', expired: 'That Invite Code has expired. Ask for a new one.', used: 'That Invite Code has already been used. Ask for a new one.', taken: 'That Username is taken. Please choose another.', reused: 'That’s the Temporary Password. Choose one of your own.' };
+const errInvite = screen === 'register' && (err === 'expired' || err === 'used');
+const errTaken = screen === 'register' && err === 'taken';
+const errNew = screen === 'newpw' && err === 'reused';
+const destr = 'var(--destr)', line = 'var(--mfg)';
+const tabs = [['login', 'Log in'], ['register', 'Register']].map((t) => ({ label: t[1], active: screen === t[0], bg: screen === t[0] ? 'var(--card)' : 'transparent', shadow: screen === t[0] ? '0 1px 3px var(--shadow)' : 'none', color: screen === t[0] ? 'var(--fg)' : 'var(--mfg)', pick: go(t[0]) }));
+return {
+themeClass: this.props.dark ? 'dark' : '',
+tabs: tabs, onAuth: screen !== 'newpw',
+onLogin: screen === 'login', onRegister: screen === 'register', onNew: screen === 'newpw',
+errMsg: M[err] || '',
+errLogin: screen === 'login' && (err === 'invalid' || err === 'locked'),
+deleted: screen === 'login' && err === 'deleted',
+errInvite: errInvite, errTaken: errTaken, errReg: errInvite || errTaken, errNew: errNew,
+inviteBorder: errInvite ? destr : line,
+userInvalid: userInvalid,
+userBorder: userInvalid || errTaken ? destr : line,
+userRuleColor: userInvalid ? destr : 'var(--mfg)',
+newBorder: errNew ? destr : line,
+toLogin: go('login'), toRegister: go('register'), logOut: go('login'),
+submitLogin: (e) => { stop(e); this.setState({ screen: 'login', err: 'invalid' }); },
+submitRegister: (e) => { stop(e); if (userInvalid) return; this.setState({ screen: 'register', err: 'expired' }); },
+submitNew: (e) => { stop(e); this.setState({ screen: 'newpw', err: 'reused', menu: false }); },
+onUser: (e) => this.setState({ screen: screen, err: err === 'taken' ? null : err, user: e.target.value }),
+onNewInput: () => this.setState({ screen: screen, err: null }),
+menuOpen: !!st.menu,
+toggleMenu: () => this.setState({ screen: screen, err: err, menu: !st.menu })
+};
+}
+}
+</script>
+</body>
+</html>

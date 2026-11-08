@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shared Collection A, poster grid, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt button:disabled{cursor:not-allowed}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="width: 402px; height: 874px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<header style="flex-shrink: 0; padding: 62px 16px 10px; display: flex; align-items: center; min-height: 44px; background: var(--card); border-bottom: 1px solid var(--border)">
+<a href="#" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; text-decoration: none; line-height: 44px">TasteTrack</a>
+</header>
+
+<main style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column">
+
+<sc-if value="{{onCollection}}" hint-placeholder-val="{{true}}">
+<div style="padding: 22px 16px 0; display: flex; flex-direction: column; gap: 22px">
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--mfg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>Film collection</span>
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1">Slow cinema</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.5">Films that take their time. Best on a quiet evening, with the phone in another room.</p>
+<p style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--mfg)"><span aria-hidden="true" style="width: 24px; height: 24px; border-radius: 999px; background: var(--psoft); color: var(--pstrong); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700">Y</span>Shared by Yurii · 10 films</p>
+</div>
+
+<ol aria-label="Slow cinema" style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 14px; align-items: start">
+<sc-for list="{{films}}" as="f" hint-placeholder-count="10">
+<li style="min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<span style="position: relative; aspect-ratio: 2 / 3; border-radius: 10px; background: {{f.tone}}; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box; box-shadow: 0 4px 12px var(--shadow)">
+<span aria-hidden="true" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 17px; line-height: 1.15; color: oklch(0.97 0.01 80)">{{f.t}}</span>
+<span aria-hidden="true" style="position: absolute; top: 8px; left: 8px; min-width: 24px; height: 24px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: oklch(0.15 0.01 50 / 55%); color: oklch(0.97 0.01 80); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{f.n}}</span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical">{{f.t}}</span>
+<span style="font-size: 12px; color: var(--mfg)">{{f.y}}</span>
+</span>
+<sc-if value="{{f.longNote}}" hint-placeholder-val="{{false}}">
+<button type="button" aria-expanded="{{f.open}}" onClick="{{f.toggle}}" style="position: relative; width: 100%; min-height: 44px; padding: 9px 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; border: 0; border-radius: 10px; background: var(--muted); text-align: left">
+<span aria-hidden="true" style="position: absolute; top: -5px; left: 14px; width: 10px; height: 10px; background: var(--muted); transform: rotate(45deg)"></span>
+<span style="font-size: 13px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: {{f.clamp}}; -webkit-box-orient: vertical; white-space: pre-line">{{f.note}}</span>
+<span style="font-size: 12px; font-weight: 600; color: var(--pstrong)">{{f.moreLabel}}</span>
+</button>
+</sc-if>
+<sc-if value="{{f.shortNote}}" hint-placeholder-val="{{false}}">
+<p style="position: relative; margin: 0; padding: 9px 10px; border-radius: 10px; background: var(--muted); font-size: 13px; line-height: 1.4"><span aria-hidden="true" style="position: absolute; top: -5px; left: 14px; width: 10px; height: 10px; background: var(--muted); transform: rotate(45deg)"></span>{{f.note}}</p>
+</sc-if>
+</li>
+</sc-for>
+</ol>
+
+<div style="margin-top: 6px; padding: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--card)">
+<p style="margin: 0; font-size: 14px; line-height: 1.4; color: var(--mfg)">Have a TasteTrack account?</p>
+<a href="#" style="flex-shrink: 0; height: 44px; padding: 0 18px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600; text-decoration: none">Log in</a>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{onGone}}" hint-placeholder-val="{{false}}">
+<div style="flex: 1; padding: 0 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center">
+<span aria-hidden="true" style="position: relative; width: 120px; height: 120px; margin-bottom: 8px">
+<span style="position: absolute; left: 14px; top: 16px; width: 56px; height: 84px; border: 1.5px dashed var(--border); border-radius: 8px; transform: rotate(-8deg)"></span>
+<span style="position: absolute; right: 14px; top: 16px; width: 56px; height: 84px; border: 1.5px dashed var(--border); border-radius: 8px; transform: rotate(8deg)"></span>
+<span style="position: absolute; left: 30px; top: 6px; width: 60px; height: 90px; border-radius: 8px; background: var(--muted); color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"></path><path d="M11 6l.5-.5a4.2 4.2 0 0 1 6 6l-.5.5"></path><path d="M13 18l-.5.5a4.2 4.2 0 0 1-6-6l.5-.5"></path><path d="M4 4l16 16"></path></svg></span>
+</span>
+<h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2">This Collection isn’t shared any more</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--mfg)">Its owner may have stopped sharing it or made a new link. Ask the person who sent it to you for the new one.</p>
+<a href="#" style="margin-top: 10px; height: 44px; padding: 0 20px; display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 15px; font-weight: 600; text-decoration: none">Log in to TasteTrack</a>
+</div>
+</sc-if>
+
+<footer style="flex-shrink: 0; margin-top: 28px; padding: 16px 16px 40px; border-top: 1px solid var(--border); display: flex; gap: 12px; font-size: 12px; color: var(--mfg)"><span>Film data from TMDB</span><span>v0.6.0</span></footer>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["collection","notShared"],"default":"collection"},"$preview":{"width":402,"height":874}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const open = st.open || {};
+const tone = (h) => 'oklch(0.42 0.075 ' + h + ')';
+const FILMS = [
+['Tokyo Story', 1953, 40, 'Start here. Ozu keeps the camera low and still, and lets a family drift apart in plain sight. The last ten minutes stay with you for days.'],
+['Jeanne Dielman, 23 quai du Commerce, 1080 Bruxelles', 1975, 15, 'Three days in one kitchen. Give it the first hour and it never lets go.'],
+['Stalker', 1979, 140, 'Long takes, dripping water, and the best argument for leaving your phone in another room.'],
+['Werckmeister Harmonies', 2000, 230, null],
+['Uncle Boonmee Who Can Recall His Past Lives', 2010, 160, 'Go with it. The ghosts are polite.'],
+['The Turin Horse', 2011, 60, 'Béla Tarr’s last film. Save it for a night with no plans.'],
+['Paterson', 2016, 200, null],
+['Columbus', 2017, 185, 'Architecture and grief, framed like a photo book.'],
+['Drive My Car', 2021, 260, null],
+['Perfect Days', 2023, 95, 'The gentlest one here. Watch it first if slow films are new to you.']
+];
+const films = FILMS.map((r, i) => {
+const isOpen = !!open[i];
+const long = !!r[3] && r[3].length > 60;
+return {
+n: i + 1, t: r[0], y: r[1], tone: tone(r[2]), note: r[3],
+longNote: long, shortNote: !!r[3] && !long,
+open: isOpen, clamp: isOpen ? 'none' : 3, moreLabel: isOpen ? 'Less' : 'More',
+toggle: () => { const o = Object.assign({}, open); o[i] = !isOpen; this.setState({ open: o }); }
+};
+});
+const gone = (this.props.startOn || 'collection') === 'notShared';
+return {
+themeClass: this.props.dark ? 'dark' : '',
+onCollection: !gone, onGone: gone,
+films
+};
+}
+}
+</script>
+</body>
+</html>

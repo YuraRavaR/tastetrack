@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Account, variant A</title>
+<!--
+  Static mockup of the account pages, variant A "stacked cards". Colours copy the tokens in
+  src/client/styles.css (Gold · Paper); dark mode follows the system setting. Below md the
+  account menu is a bottom sheet and the sections sit in a bottom tab bar; from md the menu is a
+  dropdown under the avatar and the sections move into the header.
+  States: Settings (no hash), Settings with the account menu open (#menu), Invite Codes with two
+  active codes (#invites), and Invite Codes with none (#invitesEmpty).
+  The avatar opens and closes the menu (Esc and a tap outside close it too), its items switch
+  pages, the three Settings forms show their result, and "Generate an Invite Code" adds codes up
+  to 5, then shows the limit message. Nothing is saved.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --shadow: oklch(0.2 0.01 50 / 14%);
+  --poster-text: oklch(0.97 0.01 80);
+  --destructive: oklch(0.46 0.18 25);
+  --destructive-foreground: oklch(0.985 0 0);
+  --overlay: oklch(0.2 0.01 50 / 50%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --shadow: oklch(0 0 0 / 50%);
+    --destructive: oklch(0.66 0.2 22);
+    --destructive-foreground: oklch(0.17 0.006 50);
+    --overlay: oklch(0 0 0 / 60%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+h1, h2, p, ul { margin: 0; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted-foreground); }
+[hidden] { display: none !important; }
+
+/* Header: the app name and the account on a phone; the section nav joins them from md. */
+header { position: relative; z-index: 20; background: var(--card); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+header .wrap { position: relative; min-height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; }
+.top-nav { display: none; flex: 1; gap: 4px; font-size: 15px; font-weight: 500; }
+.top-nav a { padding: 8px 14px; border-radius: 10px; color: var(--muted-foreground); }
+.top-nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); font-weight: 600; }
+.account { margin-left: auto; height: 44px; padding: 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500; }
+.account .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.account .name, .account .chev { display: none; }
+
+/* Account menu: a bottom sheet over a scrim on a phone, a dropdown from md. */
+.acct { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; justify-content: flex-end; }
+.scrim { position: absolute; inset: 0; border: 0; background: var(--overlay); cursor: default; }
+.acct-menu { position: relative; padding: 12px 12px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; background: var(--card); border-radius: 28px 28px 0 0; box-shadow: 0 -10px 30px var(--shadow); }
+.acct-menu a, .acct-menu button { height: 52px; padding: 0 12px; display: flex; align-items: center; gap: 14px; border: 0; border-radius: 12px; background: transparent; font-size: 17px; font-weight: 500; text-align: left; }
+.acct-menu a[aria-current] { background: var(--muted); }
+.acct-menu svg { color: var(--muted-foreground); }
+.sep { height: 1px; margin: 6px 12px; background: var(--border); }
+
+main.wrap { flex: 1; padding-top: 20px; padding-bottom: 28px; }
+.page { display: flex; flex-direction: column; gap: 16px; }
+.page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+
+/* Settings cards */
+.card { padding: 18px; display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--border); border-radius: 18px; background: var(--card); }
+.card h2 { font-size: 18px; font-weight: 650; }
+.card-head { display: flex; flex-direction: column; gap: 6px; }
+.desc { font-size: 14px; line-height: 1.45; color: var(--muted-foreground); }
+form { display: flex; flex-direction: column; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 14px; font-weight: 600; }
+.field input { height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); color: var(--foreground); font-size: 16px; }
+.field input:focus { outline: 2px solid var(--primary-strong); outline-offset: 1px; }
+.hint { font-size: 13px; line-height: 1.45; color: var(--muted-foreground); }
+.status { font-size: 14px; color: var(--muted-foreground); }
+.alert { font-size: 14px; color: var(--destructive); }
+.btn { height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--primary); color: var(--primary-foreground); font-size: 15px; font-weight: 600; }
+.btn.destructive { background: var(--destructive); color: var(--destructive-foreground); }
+
+/* Invite Codes */
+.codes { padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 18px; background: var(--card); overflow: hidden; }
+.codes li { padding: 14px 18px; display: flex; flex-direction: column; gap: 4px; }
+.codes li + li { border-top: 1px solid var(--border); }
+.codes code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px; letter-spacing: 0.08em; }
+.codes span { font-size: 14px; color: var(--muted-foreground); }
+
+/* Bottom tab bar, phone only. None of its tabs is current on the account pages. */
+.tabbar { position: sticky; bottom: 0; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--card); border-top: 1px solid var(--border); }
+.tabbar a { padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; color: var(--muted-foreground); font-size: 11px; font-weight: 500; }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+
+footer { display: none; border-top: 1px solid var(--border); }
+footer .wrap { padding-top: 16px; padding-bottom: 16px; display: flex; gap: 12px; font-size: 12px; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  .wrap { padding: 0 24px; }
+  header .wrap { min-height: 64px; }
+  .top-nav { display: flex; }
+  .account { margin-left: 0; padding: 0 10px 0 4px; }
+  .account[aria-expanded="true"] { background: var(--muted); }
+  .account .name, .account .chev { display: inline; }
+  .acct { position: absolute; inset: auto; top: 58px; right: 24px; display: block; }
+  .scrim { display: none; }
+  .acct-menu { min-width: 200px; padding: 4px; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow); }
+  .acct-menu a, .acct-menu button { height: 44px; padding: 0 10px; gap: 10px; border-radius: 8px; font-size: 15px; font-weight: 400; }
+  .acct-menu svg { width: 17px; height: 17px; }
+  .sep { margin: 4px 6px; }
+  main.wrap { padding-top: 32px; padding-bottom: 48px; }
+  .page { max-width: 48rem; margin: 0 auto; gap: 20px; }
+  .page-title { font-size: 32px; }
+  .card { padding: 24px; gap: 16px; border-radius: 20px; }
+  form { gap: 16px; }
+  .field { max-width: 28rem; }
+  .field input { font-size: 15px; }
+  .intro { max-width: 40rem; font-size: 15px; }
+  .codes { border-radius: 20px; }
+  .codes li { min-height: 60px; padding: 12px 24px; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; }
+  .tabbar { display: none; }
+  footer { display: block; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<a class="brand" href="#">TasteTrack</a>
+<nav class="top-nav" aria-label="Main">
+<a href="#saved">Saved</a>
+<a href="#collections">Collections</a>
+<a href="#search">Search</a>
+</nav>
+<button class="account" id="account" type="button" aria-label="Account menu, Yurii" aria-haspopup="menu" aria-expanded="false" aria-controls="acct"><span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="name">Yurii</span><svg class="i chev" width="14" height="14" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+<div class="acct" id="acct" hidden>
+<button class="scrim" id="scrim" type="button" aria-label="Close the account menu" tabindex="-1"></button>
+<div class="acct-menu" role="menu" aria-label="Account menu">
+<a href="#invites" role="menuitem" data-page="invites"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>Invites</a>
+<a href="#" role="menuitem" data-page="settings"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
+<div class="sep" role="separator"></div>
+<button type="button" role="menuitem" id="logout"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Log out</button>
+</div>
+</div>
+</div>
+</header>
+
+<main class="wrap">
+<div class="page" id="settings" aria-labelledby="settings-h">
+<h1 id="settings-h" class="page-title">Settings</h1>
+
+<section class="card" aria-labelledby="dn-h">
+<h2 id="dn-h">Display Name</h2>
+<form id="dn-form">
+<div class="field">
+<label for="dn">Display Name</label>
+<input id="dn" name="displayName" value="Yurii" maxlength="50" autocomplete="nickname" aria-describedby="dn-hint">
+<p id="dn-hint" class="hint">How others see you on collections you share. Up to 50 characters; leave it empty to use your Username, yurii.</p>
+</div>
+<p class="status" role="status" id="dn-ok" hidden>Display Name saved.</p>
+<div><button class="btn" type="submit">Save Display Name</button></div>
+</form>
+</section>
+
+<section class="card" aria-labelledby="pw-h">
+<div class="card-head">
+<h2 id="pw-h">Password</h2>
+<p class="desc">Changing your password logs you out everywhere else, so a device you've lost or a session someone took stops working.</p>
+</div>
+<form id="pw-form">
+<div class="field">
+<label for="cur">Current password</label>
+<input id="cur" name="currentPassword" type="password" autocomplete="current-password">
+</div>
+<div class="field">
+<label for="new">New password</label>
+<input id="new" name="newPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" aria-describedby="new-rules">
+<p id="new-rules" class="hint">10–128 characters, anything you like</p>
+</div>
+<p class="status" role="status" id="pw-ok" hidden>Password changed. You've been logged out everywhere else.</p>
+<div><button class="btn" type="submit">Change password</button></div>
+</form>
+</section>
+
+<section class="card" aria-labelledby="del-h">
+<div class="card-head">
+<h2 id="del-h">Delete account</h2>
+<p class="desc">Deletes your account for good, with your Log, Watchlist, Collections, the films you added by hand, your Share Links and your Invite Codes. People you invited keep their accounts. This can't be undone.</p>
+</div>
+<form id="del-form">
+<div class="field">
+<label for="delpw">Your password</label>
+<input id="delpw" name="deletionPassword" type="password" autocomplete="current-password">
+</div>
+<p class="alert" role="alert" id="del-err" hidden>That isn't your password. Nothing was deleted.</p>
+<div><button class="btn destructive" type="submit">Delete account</button></div>
+</form>
+</section>
+</div>
+
+<div class="page" id="invites" aria-labelledby="invites-h" hidden>
+<h1 id="invites-h" class="page-title">Invite Codes</h1>
+<p class="desc intro">Give a friend an Invite Code so they can register at https://tastetrack.example/register. Each code works once and expires after 7 days. You can have up to 5 active codes.</p>
+<div><button class="btn" type="button" id="generate">Generate an Invite Code</button></div>
+<p class="alert" role="alert" id="limit" hidden>You already have 5 active Invite Codes. Wait for one to be used or to expire.</p>
+<p class="status" id="none" hidden>You have no active Invite Codes.</p>
+<ul class="codes" id="codes" aria-label="Active Invite Codes"></ul>
+</div>
+</main>
+
+<footer><div class="wrap"><span>Film data from TMDB</span><span>v0.6.0</span></div></footer>
+
+<nav class="tabbar" aria-label="Main">
+<a href="#saved"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved</a>
+<a href="#collections"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Collections</a>
+<a href="#search"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</a>
+</nav>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const START = [["7KQM-2XPA-H4RT", "Nov 9, 2026"], ["D3WN-8FJC-QV5B", "Nov 12, 2026"]];
+const MORE = ["M6PZ-T1KE-9GRX", "R2HB-5NWQ-K8DT", "Y9CF-3MAV-P0JS", "B4XG-7TQE-N2HM", "W5JD-6RYA-C1QZ"];
+let codes = [];
+
+function setMenu(open) {
+  $("acct").hidden = !open;
+  $("account").setAttribute("aria-expanded", String(open));
+}
+
+function renderCodes() {
+  $("codes").innerHTML = codes.map(([c, exp]) => `<li><code>${c}</code><span>Expires ${exp}</span></li>`).join("");
+  $("codes").hidden = codes.length === 0;
+  $("none").hidden = codes.length > 0;
+}
+
+function render() {
+  const h = location.hash;
+  const page = h === "#invites" || h === "#invitesEmpty" ? "invites" : "settings";
+  $("settings").hidden = page !== "settings";
+  $("invites").hidden = page !== "invites";
+  for (const a of document.querySelectorAll("[data-page]")) {
+    if (a.dataset.page === page) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+  codes = h === "#invitesEmpty" ? [] : START.slice();
+  $("limit").hidden = true;
+  renderCodes();
+  setMenu(h === "#menu");
+  document.title = `${page === "invites" ? "Invite Codes" : "Settings"}, variant A`;
+}
+
+$("account").addEventListener("click", (e) => { e.stopPropagation(); setMenu($("acct").hidden); });
+$("scrim").addEventListener("click", () => setMenu(false));
+$("logout").addEventListener("click", () => setMenu(false));
+for (const a of document.querySelectorAll("[data-page]")) a.addEventListener("click", () => setMenu(false));
+document.addEventListener("click", (e) => { if (!$("acct").hidden && !$("acct").contains(e.target)) setMenu(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
+
+$("dn").addEventListener("input", () => { $("dn-ok").hidden = true; });
+$("dn-form").addEventListener("submit", (e) => { e.preventDefault(); if ($("dn").value.trim() === "") $("dn").value = "yurii"; $("dn-ok").hidden = false; });
+$("pw-form").addEventListener("submit", (e) => { e.preventDefault(); $("pw-ok").hidden = false; });
+$("del-form").addEventListener("submit", (e) => { e.preventDefault(); $("del-err").hidden = false; });
+$("generate").addEventListener("click", () => {
+  if (codes.length >= 5) { $("limit").hidden = false; return; }
+  codes.push([MORE.find((m) => !codes.some(([c]) => c === m)), "Nov 14, 2026"]);
+  renderCodes();
+});
+window.addEventListener("hashchange", render);
+render();
+</script>
+</body>
+</html>

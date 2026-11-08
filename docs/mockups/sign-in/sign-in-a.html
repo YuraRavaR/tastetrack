@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in, variant A</title>
+<!--
+  Static mockup of Log in, Register and Set a new password, variant A "plain card": today's forms
+  (fields and copy from LoginPage, RegisterPage, NewPasswordPage and en.ts) in a centred card.
+  Colours copy the tokens in src/client/styles.css (Gold · Paper); dark mode follows the system setting.
+  Logged-out frame: the app name only, no tab bar. Set a new password: the app name and an account
+  menu that holds only Log out. Errors sit above the button, in --destructive.
+  States, by URL hash:
+    (none)            Log in
+    #loginError       Log in, wrong Username or password
+    #locked           Log in, too many failed attempts
+    #deleted          Log in, after the account was deleted
+    #register         Register
+    #inviteExpired    Register, the Invite Code has expired
+    #inviteUsed       Register, the Invite Code has already been used
+    #inviteUnknown    Register, the Invite Code doesn't exist
+    #usernameTaken    Register, the Username is taken
+    #newPassword      Set a new password (after a Temporary Password)
+    #passwordReused   Set a new password, the Temporary Password again
+  Works: the Register / Log in links, submitting each form (Log in shows the wrong-password error,
+  Register checks the Username as you type and then shows the expired-code error, Set password shows
+  the reused error), typing clears a field's error, the account menu and its Log out.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --shadow: oklch(0.2 0.01 50 / 14%);
+  --poster-text: oklch(0.97 0.01 80);
+  --destructive: oklch(0.46 0.18 25);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --shadow: oklch(0 0 0 / 50%);
+    --destructive: oklch(0.66 0.2 22);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, p, ul { margin: 0; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted-foreground); }
+[hidden] { display: none !important; }
+
+/* Header: the app name; the account menu only while a new password must be set. */
+header { background: var(--card); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+header .wrap { position: relative; min-height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; }
+.account { margin-left: auto; height: 44px; padding: 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500; }
+.account .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.account .name { display: none; }
+.menu { position: absolute; top: calc(100% - 6px); right: 12px; z-index: 10; min-width: 180px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow); }
+.menu button { height: 44px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 15px; text-align: left; }
+.menu button:hover { background: var(--muted); }
+
+main.wrap { flex: 1; padding-top: 32px; padding-bottom: 40px; display: flex; flex-direction: column; align-items: center; }
+
+/* The card */
+.card { width: 100%; max-width: 24rem; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; }
+.card h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.card > h1 { margin-bottom: 4px; }
+.lead { display: flex; flex-direction: column; gap: 6px; }
+.lead p { font-size: 14px; line-height: 1.45; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 14px; font-weight: 600; }
+.field input { height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--foreground); font: inherit; font-size: 16px; }
+.field input:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 1px; }
+.field input[aria-invalid="true"] { border-color: var(--destructive); }
+.field input.code { letter-spacing: 0.06em; }
+.rules { font-size: 13px; line-height: 1.4; color: var(--muted-foreground); }
+.rules.bad { color: var(--destructive); }
+.status { font-size: 14px; color: var(--muted-foreground); }
+.alert { display: flex; align-items: flex-start; gap: 6px; font-size: 14px; color: var(--destructive); }
+.alert svg { margin-top: 1px; stroke-width: 2; }
+.submit { height: 44px; border: 0; border-radius: 10px; background: var(--primary); color: var(--primary-foreground); font-size: 15px; font-weight: 600; }
+.switch { margin-top: 4px; text-align: center; font-size: 14px; color: var(--muted-foreground); }
+.switch a { color: var(--primary-strong); font-weight: 600; text-underline-offset: 4px; }
+.switch a:hover { text-decoration: underline; }
+
+footer { display: none; border-top: 1px solid var(--border); }
+footer .wrap { padding-top: 16px; padding-bottom: 16px; display: flex; gap: 12px; font-size: 12px; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  .wrap { padding: 0 24px; }
+  header .wrap { min-height: 64px; }
+  .account { padding-right: 12px; }
+  .account .avatar { width: 32px; height: 32px; }
+  .account .name { display: inline; }
+  .menu { right: 24px; }
+  .menu button { height: 40px; font-size: 14px; }
+  main.wrap { padding-top: 72px; padding-bottom: 64px; }
+  .card { padding: 28px 28px 24px; box-shadow: 0 1px 3px var(--shadow); }
+  .field input { font-size: 15px; }
+  footer { display: block; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<a class="brand" href="#">TasteTrack</a>
+<button class="account" id="account" type="button" aria-label="Account: Log out" aria-haspopup="menu" aria-expanded="false" hidden><span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="name">Yurii</span></button>
+<div class="menu" id="menu" role="menu" hidden>
+<button type="button" role="menuitem" id="logout"><svg class="i" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Log out</button>
+</div>
+</div>
+</header>
+
+<main class="wrap">
+
+<form class="card" id="login" novalidate>
+<h1>Log in</h1>
+<div class="field">
+<label for="login-user">Username</label>
+<input id="login-user" name="username" autocomplete="username" autocapitalize="none" spellcheck="false">
+</div>
+<div class="field">
+<label for="login-pw">Password</label>
+<input id="login-pw" name="password" type="password" autocomplete="current-password">
+</div>
+<p class="status" id="login-deleted" role="status" hidden>Your account and everything in it have been deleted.</p>
+<p class="alert" id="login-alert" role="alert" hidden></p>
+<button class="submit" type="submit">Log in</button>
+<p class="switch">Have an Invite Code? <a href="#register">Register</a></p>
+</form>
+
+<form class="card" id="register" novalidate hidden>
+<h1>Register</h1>
+<div class="field">
+<label for="reg-code">Invite Code</label>
+<input id="reg-code" class="code" name="inviteCode" autocomplete="off" autocapitalize="characters" spellcheck="false">
+</div>
+<div class="field">
+<label for="reg-user">Username</label>
+<input id="reg-user" name="username" aria-describedby="reg-user-rules" autocomplete="username" autocapitalize="none" spellcheck="false">
+<p class="rules" id="reg-user-rules">3–30 characters: letters, digits and underscores</p>
+</div>
+<div class="field">
+<label for="reg-pw">Password</label>
+<input id="reg-pw" name="password" type="password" minlength="10" maxlength="128" aria-describedby="reg-pw-rules" autocomplete="new-password">
+<p class="rules" id="reg-pw-rules">10–128 characters, anything you like</p>
+</div>
+<p class="alert" id="reg-alert" role="alert" hidden></p>
+<button class="submit" type="submit">Register</button>
+<p class="switch">Already have an account? <a href="#">Log in</a></p>
+</form>
+
+<form class="card" id="newpw" novalidate hidden>
+<div class="lead">
+<h1>Set a new password</h1>
+<p>You logged in with a Temporary Password. Choose your own to carry on; it logs you out everywhere else.</p>
+</div>
+<div class="field">
+<label for="new-pw">New password</label>
+<input id="new-pw" name="newPassword" type="password" minlength="10" maxlength="128" aria-describedby="new-pw-rules" autocomplete="new-password">
+<p class="rules" id="new-pw-rules">10–128 characters, anything you like, but not the Temporary Password</p>
+</div>
+<p class="alert" id="new-alert" role="alert" hidden></p>
+<button class="submit" type="submit">Set password</button>
+</form>
+
+</main>
+
+<footer><div class="wrap"><span>Film data from TMDB</span><span>v0.6.0</span></div></footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const ALERT_ICON = '<svg class="i" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>';
+// hash → [screen, error]
+const STATES = {
+  "": ["login", null], loginError: ["login", "invalid"], locked: ["login", "locked"], deleted: ["login", "deleted"],
+  register: ["register", null], inviteExpired: ["register", "expired"], inviteUsed: ["register", "used"],
+  inviteUnknown: ["register", "unknown"], usernameTaken: ["register", "taken"],
+  newPassword: ["newpw", null], passwordReused: ["newpw", "reused"],
+};
+const MESSAGES = {
+  invalid: "Wrong Username or password",
+  locked: "Too many failed attempts. Try again in 15 minutes.",
+  expired: "That Invite Code has expired. Ask for a new one.",
+  used: "That Invite Code has already been used. Ask for a new one.",
+  unknown: "That Invite Code doesn't exist. Check it, or ask for a new one.",
+  taken: "That Username is taken. Please choose another.",
+  reused: "That’s the Temporary Password. Choose one of your own.",
+};
+const USERNAME = /^[A-Za-z0-9_]{3,30}$/;
+const state = { screen: "login", err: null, menu: false };
+
+function showAlert(id, err) {
+  $(id).hidden = !err;
+  $(id).innerHTML = err ? ALERT_ICON + MESSAGES[err] : "";
+}
+
+function render() {
+  const { screen, err } = state;
+  for (const s of ["login", "register", "newpw"]) $(s).hidden = s !== screen;
+  $("account").hidden = screen !== "newpw";
+  $("account").setAttribute("aria-expanded", String(state.menu));
+  $("menu").hidden = !(screen === "newpw" && state.menu);
+
+  $("login-deleted").hidden = !(screen === "login" && err === "deleted");
+  showAlert("login-alert", screen === "login" && (err === "invalid" || err === "locked") ? err : null);
+
+  const inviteErr = screen === "register" && ["expired", "used", "unknown"].includes(err);
+  const user = $("reg-user").value;
+  const userBad = user !== "" && !USERNAME.test(user);
+  const taken = screen === "register" && err === "taken";
+  $("reg-code").setAttribute("aria-invalid", String(inviteErr));
+  $("reg-user").setAttribute("aria-invalid", String(userBad || taken));
+  $("reg-user-rules").classList.toggle("bad", userBad);
+  showAlert("reg-alert", inviteErr || taken ? err : null);
+
+  const reused = screen === "newpw" && err === "reused";
+  $("new-pw").setAttribute("aria-invalid", String(reused));
+  showAlert("new-alert", reused ? err : null);
+}
+
+function fromHash() {
+  const [screen, err] = STATES[location.hash.slice(1)] ?? STATES[""];
+  Object.assign(state, { screen, err, menu: false });
+  if (err === "taken") $("reg-user").value = "yurii";
+  render();
+}
+
+$("login").addEventListener("submit", (e) => { e.preventDefault(); location.hash = "loginError"; });
+$("register").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (!USERNAME.test($("reg-user").value)) { $("reg-user").focus(); return; }
+  location.hash = "inviteExpired";
+});
+$("newpw").addEventListener("submit", (e) => { e.preventDefault(); location.hash = "passwordReused"; });
+$("reg-user").addEventListener("input", () => { if (state.err === "taken") state.err = null; render(); });
+$("reg-code").addEventListener("input", () => { if (["expired", "used", "unknown"].includes(state.err)) state.err = null; render(); });
+$("new-pw").addEventListener("input", () => { state.err = null; render(); });
+$("account").addEventListener("click", () => { state.menu = !state.menu; render(); });
+$("logout").addEventListener("click", () => { location.hash = ""; });
+document.addEventListener("click", (e) => {
+  if (state.menu && !e.target.closest("#account, #menu")) { state.menu = false; render(); }
+});
+window.addEventListener("hashchange", fromHash);
+fromHash();
+</script>
+</body>
+</html>

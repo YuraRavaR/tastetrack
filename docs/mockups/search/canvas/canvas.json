@@ -1,0 +1,22 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-07T18:00:00Z" },
+  "title": "TasteTrack Search",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 402, "h": 874, "title": "A · Poster strip, live, field on top · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "AWeb.dc.html": { "x": 482, "y": 0, "w": 1440, "h": 1200, "title": "A · Poster strip, live, field on top · Web", "expand": "fill", "is_interactive": true },
+    "BPhone.dc.html": { "x": 0, "y": 1400, "w": 402, "h": 874, "title": "B · Status rows, centred field · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "BWeb.dc.html": { "x": 482, "y": 1400, "w": 1440, "h": 1120, "title": "B · Status rows, centred field · Web", "expand": "fill", "is_interactive": true },
+    "CPhone.dc.html": { "x": 0, "y": 2800, "w": 402, "h": 874, "title": "C · One merged list, search on submit · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "CWeb.dc.html": { "x": 482, "y": 2800, "w": 1440, "h": 1240, "title": "C · One merged list, search on submit · Web", "expand": "fill", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "AWeb.dc.html", "BPhone.dc.html", "BWeb.dc.html", "CPhone.dc.html", "CWeb.dc.html"],
+  "notes": {
+    "titleA": { "x": 0, "y": -260, "text": "A · Poster strip: your Saved as a row of covers, results as you type, field on top", "kind": "title1", "maxW": 1922 },
+    "titleB": { "x": 0, "y": 1140, "text": "B · Status rows: big centred field before typing, your Saved as rows that say where each film is", "kind": "title1", "maxW": 1922 },
+    "titleC": { "x": 0, "y": 2540, "text": "C · One list: Saved films first with a Saved label, results when you press Search", "kind": "title1", "maxW": 1922 }
+  },
+  "designSystems": []
+}

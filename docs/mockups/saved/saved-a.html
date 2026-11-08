@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Saved, variant A</title>
+<!--
+  Static mockup of Saved, variant A "tiles and chips". Colours copy the tokens in
+  src/client/styles.css (Gold · Paper); dark mode follows the system setting. Below md the
+  sections sit in a bottom tab bar; from md they move into the header.
+  Screens: the categories (no hash), a Media Type's Watchlist (#watchlist) and Watched (#watched).
+  The Films tile, the tabs, the sort and filter chips and Back work. Posters are placeholders.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --shadow: oklch(0.2 0.01 50 / 14%);
+  --poster-text: oklch(0.97 0.01 80);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --shadow: oklch(0 0 0 / 50%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+h1, h2, p, ul { margin: 0; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted-foreground); }
+[hidden] { display: none !important; }
+
+/* Header: the app name and the account on a phone; the section nav joins them from md. */
+header { background: var(--card); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+header .wrap { min-height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; }
+.top-nav { display: none; flex: 1; gap: 4px; font-size: 15px; font-weight: 500; }
+.top-nav a { padding: 8px 14px; border-radius: 10px; color: var(--muted-foreground); }
+.top-nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); font-weight: 600; }
+.account { margin-left: auto; height: 44px; padding: 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500; }
+.account .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.account .name { display: none; }
+
+main.wrap { flex: 1; padding-top: 20px; padding-bottom: 24px; }
+.page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+
+/* Categories */
+.cats { display: flex; flex-direction: column; gap: 14px; }
+.tiles { display: grid; gap: 14px; }
+.tile { position: relative; height: 172px; padding: 18px; display: flex; justify-content: space-between; border: 1px solid var(--border); border-radius: 18px; background: var(--card); text-align: left; overflow: hidden; }
+.tile-text { display: flex; flex-direction: column; justify-content: space-between; }
+.tile-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-strong); display: flex; align-items: center; justify-content: center; }
+.tile-name { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.tile-count { font-size: 14px; color: var(--muted-foreground); }
+.fan { position: relative; width: 150px; flex-shrink: 0; }
+.fan span { position: absolute; width: 70px; height: 105px; border-radius: 8px; box-shadow: 0 6px 16px var(--shadow); }
+.fan span:nth-child(1) { right: 70px; top: 22px; transform: rotate(-9deg); }
+.fan span:nth-child(2) { right: 8px; top: 22px; transform: rotate(9deg); }
+.fan span:nth-child(3) { right: 36px; top: 6px; width: 78px; height: 117px; }
+.tile.soon { height: 120px; align-items: flex-start; border: 1.5px dashed var(--border); background: transparent; color: var(--muted-foreground); }
+.tile.soon .tile-text { gap: 14px; justify-content: flex-start; }
+.tile.soon .tile-icon { background: var(--muted); color: inherit; }
+.tile.soon .tile-name { font-size: 20px; font-weight: 600; }
+.badge { padding: 4px 10px; border-radius: 999px; background: var(--muted); font-size: 12px; font-weight: 600; }
+
+/* A Media Type's page */
+.type { display: flex; flex-direction: column; gap: 12px; }
+.back { height: 36px; margin-left: -8px; padding: 0 8px; display: inline-flex; align-items: center; gap: 2px; border: 0; background: transparent; color: var(--muted-foreground); font-size: 15px; }
+.crumb { display: none; font-size: 14px; color: var(--muted-foreground); }
+.bar { display: flex; flex-direction: column; gap: 12px; }
+.tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 12px; background: var(--muted); }
+.tabs button { height: 38px; border: 0; border-radius: 9px; background: transparent; font-size: 14px; font-weight: 600; }
+.tabs button[aria-selected="true"] { background: var(--card); box-shadow: 0 1px 3px var(--shadow); }
+.tabs .n { color: var(--muted-foreground); font-weight: 500; }
+.chips-wrap { position: relative; }
+.chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+.chip { flex-shrink: 0; height: 36px; padding: 0 10px 0 12px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; white-space: nowrap; }
+.chip.on { border-color: var(--primary-strong); background: var(--primary-soft); }
+.menu { position: absolute; top: 42px; z-index: 10; min-width: 190px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow); }
+.menu button { height: 44px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 15px; text-align: left; }
+.menu button[aria-checked="true"] { background: var(--muted); }
+.menu svg { stroke: var(--primary-strong); stroke-width: 2.25; }
+
+.grid { margin-top: 4px; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 12px; }
+.grid a { display: flex; flex-direction: column; gap: 6px; }
+.poster { position: relative; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; display: flex; align-items: flex-end; padding: 8px; }
+.poster-title { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 14px; line-height: 1.15; color: var(--poster-text); }
+.seen { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px oklch(0 0 0 / 30%); }
+.title { font-size: 13px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.meta { margin-top: -3px; display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted-foreground); }
+.meta svg { fill: var(--primary-strong); stroke: var(--primary-strong); stroke-width: 2; }
+.empty { padding: 40px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; color: var(--muted-foreground); }
+.empty button { height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 600; color: var(--foreground); }
+
+/* Bottom tab bar, phone only */
+.tabbar { position: sticky; bottom: 0; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--card); border-top: 1px solid var(--border); }
+.tabbar a { padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; color: var(--muted-foreground); font-size: 11px; font-weight: 500; }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+
+footer { display: none; border-top: 1px solid var(--border); }
+footer .wrap { padding-top: 16px; padding-bottom: 16px; display: flex; gap: 12px; font-size: 12px; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  .wrap { padding: 0 24px; }
+  header .wrap { min-height: 64px; }
+  .top-nav { display: flex; }
+  .account { margin-left: 0; padding-right: 12px; }
+  .account .name { display: inline; }
+  main.wrap { padding-top: 32px; padding-bottom: 48px; }
+  .page-title { font-size: 32px; }
+  .cats { gap: 20px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .tile, .tile.soon { height: 220px; padding: 24px; border-radius: 20px; }
+  .tile.soon .tile-text { height: 100%; justify-content: space-between; }
+  .tile-name { font-size: 28px; }
+  .fan { width: 200px; }
+  .fan span { width: 92px; height: 138px; border-radius: 10px; }
+  .fan span:nth-child(1) { right: 92px; top: 30px; }
+  .fan span:nth-child(2) { right: 8px; top: 30px; }
+  .fan span:nth-child(3) { right: 46px; top: 10px; width: 104px; height: 156px; }
+  .type { gap: 20px; }
+  .back { display: none; }
+  .crumb { display: block; }
+  .bar { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .tabs { display: flex; }
+  .tabs button { height: 36px; padding: 0 18px; }
+  .chips { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; }
+  .menu { left: auto !important; right: 0; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 24px 20px; }
+  .poster { border-radius: 10px; padding: 10px; }
+  .poster-title { font-size: 17px; }
+  .title { font-size: 14px; }
+  .meta { font-size: 13px; }
+  .tabbar { display: none; }
+  footer { display: block; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<a class="brand" href="#">TasteTrack</a>
+<nav class="top-nav" aria-label="Main">
+<a href="#" aria-current="page">Saved</a>
+<a href="#collections">Collections</a>
+<a href="#search">Search</a>
+</nav>
+<button class="account" type="button" aria-label="Account: Invites, Settings, Log out"><span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="name">Yurii</span></button>
+</div>
+</header>
+
+<main class="wrap">
+<section id="cats" class="cats" aria-labelledby="cats-h">
+<h1 id="cats-h" class="page-title">Saved</h1>
+<div class="tiles">
+<a class="tile" href="#watchlist">
+<span class="tile-text">
+<span class="tile-icon"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"/></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span class="tile-name">Films</span><span class="tile-count">12 to watch · 14 watched</span></span>
+</span>
+<span class="fan" aria-hidden="true"><span style="background: oklch(0.42 0.075 250)"></span><span style="background: oklch(0.42 0.075 30)"></span><span style="background: oklch(0.42 0.075 150)"></span></span>
+</a>
+<button class="tile soon" type="button" disabled aria-describedby="books-soon">
+<span class="tile-text">
+<span class="tile-icon"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></span>
+<span class="tile-name">Books</span>
+</span>
+<span id="books-soon" class="badge">Coming soon</span>
+</button>
+</div>
+</section>
+
+<section id="type" class="type" aria-labelledby="type-h" hidden>
+<div>
+<a class="back" href="#"><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Saved</a>
+<nav class="crumb" aria-label="Breadcrumb"><a href="#">Saved</a> <span aria-hidden="true">›</span> Films</nav>
+<h1 id="type-h" class="page-title">Films</h1>
+</div>
+<div class="bar">
+<div class="tabs" role="tablist" aria-label="Status">
+<button type="button" role="tab" data-tab="watchlist">Watchlist <span class="n">12</span></button>
+<button type="button" role="tab" data-tab="watched">Watched <span class="n">14</span></button>
+</div>
+<div class="chips-wrap">
+<div class="chips" id="chips"></div>
+<div class="menu" id="menu" role="menu" hidden></div>
+</div>
+</div>
+<ul class="grid" id="grid"></ul>
+<div class="empty" id="empty" hidden><p>No films match these filters.</p><button type="button" id="clear">Clear filters</button></div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>Film data from TMDB</span><span>v0.6.0</span></div></footer>
+
+<nav class="tabbar" aria-label="Main">
+<a href="#" aria-current="page"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved</a>
+<a href="#collections"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Collections</a>
+<a href="#search"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</a>
+</nav>
+
+<script>
+const tone = (h) => `oklch(0.42 0.075 ${h})`;
+const WATCHLIST = [
+  ["Past Lives", 2023, ["Drama", "Romance"], 250], ["Perfect Days", 2023, ["Drama"], 150],
+  ["Anatomy of a Fall", 2023, ["Drama", "Thriller"], 30], ["Parasite", 2019, ["Thriller", "Comedy"], 95, true],
+  ["Aftersun", 2022, ["Drama"], 210], ["Drive My Car", 2021, ["Drama"], 15],
+  ["The Zone of Interest", 2023, ["Drama", "History"], 125], ["Poor Things", 2023, ["Comedy", "Sci-Fi"], 335],
+  ["Decision to Leave", 2022, ["Thriller", "Romance"], 185], ["Fallen Leaves", 2023, ["Comedy", "Romance"], 5],
+  ["Paris, 13th District", 2021, ["Drama", "Romance"], 280], ["Close", 2022, ["Drama"], 65],
+].map(([t, y, g, h, seen], i) => ({ t, y, g, tone: tone(h), seen: !!seen, order: i }));
+const WATCHED = [
+  ["Dune: Part Two", 2024, ["Sci-Fi"], 4.5, 60], ["Parasite", 2019, ["Thriller", "Comedy"], 5, 95],
+  ["Oppenheimer", 2023, ["Drama", "History"], 4, 40], ["In the Mood for Love", 2000, ["Romance", "Drama"], 5, 20],
+  ["Spirited Away", 2001, ["Animation"], 4.5, 175], ["Arrival", 2016, ["Sci-Fi", "Drama"], 4, 230],
+  ["Whiplash", 2014, ["Drama"], 4.5, 30], ["Portrait of a Lady on Fire", 2019, ["Romance", "Drama"], 5, 140],
+  ["Her", 2013, ["Romance", "Sci-Fi"], 3.5, 10], ["La La Land", 2016, ["Romance", "Comedy"], 3.5, 265],
+  ["Prisoners", 2013, ["Thriller"], 4, 200], ["Amélie", 2001, ["Comedy", "Romance"], 4, 115],
+  ["Before Sunrise", 1995, ["Romance"], 4.5, 300], ["Heat", 1995, ["Thriller"], 4, 50],
+].map(([t, y, g, r, h], i) => ({ t, y, g, r, tone: tone(h), order: i }));
+const SORTS = {
+  watchlist: [["added", "Date added"], ["title", "Title"], ["year", "Release year"]],
+  watched: [["last", "Last watched"], ["rating", "Rating"], ["title", "Title"], ["year", "Release year"]],
+};
+const BY = {
+  added: (a, b) => a.order - b.order, last: (a, b) => a.order - b.order,
+  rating: (a, b) => b.r - a.r || a.order - b.order,
+  title: (a, b) => a.t.localeCompare(b.t), year: (a, b) => b.y - a.y,
+};
+const GENRES = ["Drama", "Romance", "Thriller", "Comedy", "Sci-Fi", "Animation", "History"];
+const DECADES = [2020, 2010, 2000, 1990];
+const RATINGS = [[4, "4★ and up"], [4.5, "4.5★ and up"], [5, "5★ only"]];
+const state = { sort: { watchlist: "added", watched: "last" }, genre: null, decade: null, minRating: 0, menu: null };
+const icon = (d, size = 14, extra = "") => `<svg class="i" width="${size}" height="${size}" viewBox="0 0 24 24" ${extra} aria-hidden="true">${d}</svg>`;
+const CHEVRON = icon('<path d="M6 9l6 6 6-6"/>', 14, 'style="stroke-width: 2"');
+const SORT_ICON = icon('<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>', 15, 'style="stroke-width: 2"');
+const CHECK = icon('<path d="M20 6L9 17l-5-5"/>', 16);
+const STAR = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>';
+const $ = (id) => document.getElementById(id);
+
+function tab() { return location.hash === "#watched" ? "watched" : "watchlist"; }
+
+function render() {
+  const onType = location.hash === "#watchlist" || location.hash === "#watched";
+  $("cats").hidden = onType;
+  $("type").hidden = !onType;
+  if (!onType) return;
+  const t = tab();
+  for (const b of document.querySelectorAll("[data-tab]")) b.setAttribute("aria-selected", String(b.dataset.tab === t));
+  const sort = state.sort[t];
+  const chips = [
+    { id: "sort", label: SORTS[t].find(([k]) => k === sort)[1], on: false, lead: SORT_ICON },
+    { id: "genre", label: state.genre ?? "Genre", on: !!state.genre },
+    { id: "decade", label: state.decade ? `${state.decade}s` : "Decade", on: !!state.decade },
+  ];
+  if (t === "watched") chips.push({ id: "rating", label: state.minRating ? RATINGS.find(([v]) => v === state.minRating)[1] : "Rating", on: !!state.minRating });
+  $("chips").innerHTML = chips.map((c) =>
+    `<button type="button" class="chip${c.on ? " on" : ""}" data-menu="${c.id}" aria-haspopup="menu" aria-expanded="${state.menu === c.id}">${c.lead ?? ""}${c.label}${CHEVRON}</button>`).join("");
+
+  let opts = [];
+  if (state.menu === "sort") opts = SORTS[t].map(([k, l]) => [l, k === sort, () => { state.sort[t] = k; }]);
+  if (state.menu === "genre") opts = [null, ...GENRES].map((g) => [g ?? "Any genre", state.genre === g, () => { state.genre = g; }]);
+  if (state.menu === "decade") opts = [null, ...DECADES].map((d) => [d ? `${d}s` : "Any decade", state.decade === d, () => { state.decade = d; }]);
+  if (state.menu === "rating") opts = [[0, "Any rating"], ...RATINGS].map(([v, l]) => [l, state.minRating === v, () => { state.minRating = v; }]);
+  const menu = $("menu");
+  menu.hidden = !state.menu;
+  menu.innerHTML = opts.map(([l, on], i) => `<button type="button" role="menuitemradio" aria-checked="${on}" data-opt="${i}">${l}${on ? CHECK : ""}</button>`).join("");
+  menu.onclick = (e) => { const b = e.target.closest("[data-opt]"); if (!b) return; opts[+b.dataset.opt][2](); state.menu = null; render(); };
+  const chip = $("chips").querySelector(`[data-menu="${state.menu}"]`);
+  if (chip) menu.style.left = `${chip.offsetLeft - $("chips").scrollLeft}px`;
+
+  const list = (t === "watchlist" ? WATCHLIST : WATCHED)
+    .filter((f) => (!state.genre || f.g.includes(state.genre))
+      && (!state.decade || Math.floor(f.y / 10) * 10 === state.decade)
+      && (t === "watchlist" || !state.minRating || f.r >= state.minRating))
+    .sort(BY[sort]);
+  $("grid").innerHTML = list.map((f) => `<li><a href="#film">
+    <span class="poster" style="background: ${f.tone}"><span class="poster-title" aria-hidden="true">${f.t}</span>${f.seen ? `<span class="seen" role="img" aria-label="Watched before">${icon('<path d="M20 6L9 17l-5-5"/>', 14, 'style="stroke-width: 2.75"')}</span>` : ""}</span>
+    <span class="title">${f.t}</span>
+    <span class="meta">${t === "watched" ? STAR + f.r.toFixed(1) : f.y}</span></a></li>`).join("");
+  $("grid").hidden = list.length === 0;
+  $("empty").hidden = list.length > 0;
+}
+
+$("chips").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-menu]");
+  if (!b) return;
+  state.menu = state.menu === b.dataset.menu ? null : b.dataset.menu;
+  render();
+});
+for (const b of document.querySelectorAll("[data-tab]")) b.addEventListener("click", () => { state.menu = null; location.hash = b.dataset.tab; });
+$("clear").addEventListener("click", () => { state.genre = null; state.decade = null; state.minRating = 0; render(); });
+window.addEventListener("hashchange", () => { state.menu = null; render(); });
+render();
+</script>
+</body>
+</html>

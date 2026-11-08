@@ -93,8 +93,12 @@ _Avoid_: Favourite, heart
 ### Lists
 
 **List**:
-A named, ordered collection of Media Items of one Media Type, owned by a User; its name is unique for that User.
-_Avoid_: Collection, playlist, custom list
+A named, ordered collection of Media Items of one Media Type, owned by a User; its name is unique for that User ("Collection" in the UI).
+_Avoid_: Collection (as a domain term), playlist, custom list
+
+**Library**:
+All of one User's Media Items of one Media Type that are in their Backlog or have at least one of their Log Entries ("Saved" in the UI).
+_Avoid_: Saved (as a domain term), shelf, collection
 
 **List Item**:
 The appearance of one Media Item in one List, at a position and with an optional Note.

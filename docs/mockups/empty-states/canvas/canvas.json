@@ -1,0 +1,22 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-07T15:00:00Z" },
+  "title": "TasteTrack empty states",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 402, "h": 874, "title": "A · Quiet · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "AWeb.dc.html": { "x": 482, "y": 0, "w": 1440, "h": 1040, "title": "A · Quiet · Web", "expand": "fill", "is_interactive": true },
+    "BPhone.dc.html": { "x": 0, "y": 1400, "w": 402, "h": 874, "title": "B · Illustrated · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "BWeb.dc.html": { "x": 482, "y": 1400, "w": 1440, "h": 1040, "title": "B · Illustrated · Web", "expand": "fill", "is_interactive": true },
+    "CPhone.dc.html": { "x": 0, "y": 2800, "w": 402, "h": 874, "title": "C · Guided first run · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "CWeb.dc.html": { "x": 482, "y": 2800, "w": 1440, "h": 1040, "title": "C · Guided first run · Web", "expand": "fill", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "AWeb.dc.html", "BPhone.dc.html", "BWeb.dc.html", "CPhone.dc.html", "CWeb.dc.html"],
+  "notes": {
+    "titleA": { "x": 0, "y": -260, "text": "A · Quiet: an icon, one line and one button", "kind": "title1", "maxW": 1922 },
+    "titleB": { "x": 0, "y": 1140, "text": "B · Illustrated: no-poster placeholders and a playful headline", "kind": "title1", "maxW": 1922 },
+    "titleC": { "x": 0, "y": 2540, "text": "C · Guided first run: numbered steps that tick off as you go", "kind": "title1", "maxW": 1922 }
+  },
+  "designSystems": []
+}

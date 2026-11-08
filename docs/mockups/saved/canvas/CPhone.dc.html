@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Saved C, square tiles and icon menus, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt button:disabled{cursor:not-allowed}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="width: 402px; height: 874px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<header style="flex-shrink: 0; padding: 62px 16px 8px; display: flex; align-items: center; justify-content: space-between; background: var(--card); border-bottom: 1px solid var(--border)">
+<a href="#" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; text-decoration: none">TasteTrack</a>
+<button type="button" aria-label="Account: Invites, Settings, Log out" style="width: 44px; height: 44px; margin-right: -4px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span></button>
+</header>
+
+<main style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column">
+
+<sc-if value="{{onCats}}" hint-placeholder-val="{{true}}">
+<div style="padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Saved</h1>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<button type="button" onClick="{{openFilms}}" style="padding: 8px 8px 12px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border); border-radius: 18px; background: var(--card); text-align: left">
+<span aria-hidden="true" style="width: 100%; aspect-ratio: 1 / 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; border-radius: 12px; overflow: hidden">
+<span style="background: {{collage0}}"></span><span style="background: {{collage1}}"></span><span style="background: {{collage2}}"></span><span style="background: {{collage3}}"></span>
+</span>
+<span style="padding: 0 4px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 17px; font-weight: 700">Films</span>
+<span style="font-size: 13px; color: var(--mfg)">12 to watch · 14 watched</span>
+</span>
+</button>
+<button type="button" disabled style="padding: 8px 8px 12px; display: flex; flex-direction: column; gap: 10px; border: 1.5px dashed var(--border); border-radius: 18px; background: transparent; text-align: left; color: var(--mfg)">
+<span style="position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg></span>
+<span style="padding: 0 4px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 17px; font-weight: 700">Books</span>
+<span style="font-size: 13px">Coming soon</span>
+</span>
+</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{onType}}" hint-placeholder-val="{{false}}">
+<div style="padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="position: relative">
+<button type="button" aria-haspopup="menu" aria-expanded="{{typeOpen}}" onClick="{{toggleType}}" style="height: 44px; margin-left: -6px; padding: 0 6px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: 10px; background: transparent; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Films<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--mfg)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<sc-if value="{{typeOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; top: 48px; left: 0; z-index: 10; min-width: 220px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow)">
+<button type="button" role="menuitemradio" aria-checked="true" onClick="{{toggleType}}" style="height: 44px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: var(--muted); font-size: 15px; font-weight: 600; text-align: left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg><span style="flex: 1">Films</span><span style="color: var(--mfg); font-weight: 500">26</span></button>
+<button type="button" role="menuitemradio" aria-checked="false" disabled style="height: 44px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 15px; text-align: left; color: var(--mfg)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg><span style="flex: 1">Books</span><span style="font-size: 12px; font-weight: 600">Coming soon</span></button>
+<div style="height: 1px; margin: 4px 0; background: var(--border)"></div>
+<button type="button" role="menuitem" onClick="{{back}}" style="height: 44px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 15px; text-align: left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>All of Saved</button>
+</div>
+</sc-if>
+</div>
+
+<div style="position: relative; display: flex; align-items: center; gap: 8px">
+<div role="tablist" aria-label="Status" style="flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 12px; background: var(--muted)">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+<button type="button" role="tab" aria-selected="{{t.active}}" onClick="{{t.pick}}" style="height: 38px; border: 0; border-radius: 9px; font-size: 14px; font-weight: 600; background: {{t.bg}}; box-shadow: {{t.shadow}}">{{t.label}} <span style="color: var(--mfg); font-weight: 500">{{t.count}}</span></button>
+</sc-for>
+</div>
+<button type="button" aria-label="Sort: {{sortLabel}}" aria-haspopup="menu" aria-expanded="{{sortOpen}}" onClick="{{toggleSort}}" style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 12px; background: var(--card)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"></path></svg></button>
+<button type="button" aria-label="Filter" aria-haspopup="dialog" aria-expanded="{{filterOpen}}" onClick="{{toggleFilter}}" style="position: relative; width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid {{filterBorder}}; border-radius: 12px; background: {{filterBg}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z"></path></svg><sc-if value="{{hasActive}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{activeCount}}</span></sc-if></button>
+
+<sc-if value="{{sortOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; top: 50px; right: 52px; z-index: 10; min-width: 200px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow)">
+<p style="margin: 0; padding: 8px 10px 4px; font-size: 12px; font-weight: 600; color: var(--mfg)">Sort by</p>
+<sc-for list="{{sortOpts}}" as="o" hint-placeholder-count="3">
+<button type="button" role="menuitemradio" aria-checked="{{o.active}}" onClick="{{o.pick}}" style="height: 44px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 8px; background: {{o.bg}}; font-size: 15px; text-align: left">{{o.label}}<sc-if value="{{o.active}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pstrong)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></sc-if></button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{filterOpen}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Filter" style="position: absolute; top: 50px; right: 0; left: 0; z-index: 10; padding: 14px; display: flex; flex-direction: column; gap: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 10px 28px var(--shadow)">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<fieldset style="margin: 0; padding: 0; border: 0">
+<legend style="margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--mfg)">{{g.label}}</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{o.active}}" onClick="{{o.pick}}" style="height: 34px; padding: 0 12px; border: 1px solid {{o.border}}; border-radius: 999px; background: {{o.bg}}; font-size: 13px; font-weight: 500">{{o.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+</sc-for>
+<div style="display: flex; justify-content: space-between; gap: 8px">
+<button type="button" onClick="{{clear}}" style="height: 40px; padding: 0 14px; border: 0; background: transparent; color: var(--pstrong); font-size: 14px; font-weight: 600">Clear</button>
+<button type="button" onClick="{{toggleFilter}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 14px; font-weight: 700">{{showLabel}}</button>
+</div>
+</div>
+</sc-if>
+</div>
+
+<p style="margin: -2px 0 0; font-size: 13px; color: var(--mfg)">{{summary}}</p>
+
+<sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
+<ul style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 12px">
+<sc-for list="{{items}}" as="f" hint-placeholder-count="9">
+<li style="min-width: 0">
+<a href="#" style="display: flex; flex-direction: column; gap: 6px; text-decoration: none">
+<span style="position: relative; aspect-ratio: 2 / 3; border-radius: 8px; background: {{f.tone}}; overflow: hidden; display: flex; align-items: flex-end; padding: 8px; box-sizing: border-box">
+<span aria-hidden="true" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 14px; line-height: 1.15; color: oklch(0.97 0.01 80)">{{f.t}}</span>
+<sc-if value="{{f.seenBefore}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 6px; left: 6px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--card); color: var(--fg); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px oklch(0 0 0 / 25%)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>Seen</span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical">{{f.t}}</span>
+<span style="margin-top: -3px; display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--mfg)"><sc-if value="{{f.rated}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--pstrong)" stroke="var(--pstrong)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if>{{f.meta}}</span>
+</a>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{noItems}}" hint-placeholder-val="{{false}}">
+<div style="padding: 40px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--mfg)">
+<p style="margin: 0; font-size: 15px">No films match these filters.</p>
+<button type="button" onClick="{{clear}}" style="height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 600">Clear filters</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</main>
+
+<nav aria-label="Main" style="flex-shrink: 0; padding: 6px 12px 34px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--card); border-top: 1px solid var(--border)">
+<a href="#" aria-current="page" onClick="{{back}}" style="padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; background: var(--psoft); text-decoration: none; color: var(--pstrong); font-size: 11px; font-weight: 600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved</a>
+<a href="#" style="padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: var(--mfg); font-size: 11px; font-weight: 500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>Collections</a>
+<a href="#" style="padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: var(--mfg); font-size: 11px; font-weight: 500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Search</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["categories","watchlist","watched"],"default":"categories"},"$preview":{"width":402,"height":874}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const start = this.props.startOn || 'categories';
+const screen = st.screen || (start === 'categories' ? 'cats' : 'type');
+const tab = st.tab || (start === 'watched' ? 'watched' : 'watchlist');
+const pop = st.pop || null;
+const sortW = st.sortW || 'added';
+const sortD = st.sortD || 'last';
+const genre = st.genre || null;
+const decade = st.decade || null;
+const minR = st.minR || 0;
+const tone = (h) => 'oklch(0.42 0.075 ' + h + ')';
+const WL = [
+['Past Lives', 2023, ['Drama', 'Romance'], 250], ['Perfect Days', 2023, ['Drama'], 150],
+['Anatomy of a Fall', 2023, ['Drama', 'Thriller'], 30], ['Parasite', 2019, ['Thriller', 'Comedy'], 95, true],
+['Aftersun', 2022, ['Drama'], 210], ['Drive My Car', 2021, ['Drama'], 15],
+['The Zone of Interest', 2023, ['Drama', 'History'], 125], ['Poor Things', 2023, ['Comedy', 'Sci-Fi'], 335],
+['Decision to Leave', 2022, ['Thriller', 'Romance'], 185], ['Fallen Leaves', 2023, ['Comedy', 'Romance'], 5],
+['Paris, 13th District', 2021, ['Drama', 'Romance'], 280], ['Close', 2022, ['Drama'], 65]
+].map((r, i) => ({ t: r[0], y: r[1], g: r[2], tone: tone(r[3]), seenBefore: !!r[4], added: i }));
+const WD = [
+['Dune: Part Two', 2024, ['Sci-Fi'], 4.5, 60], ['Parasite', 2019, ['Thriller', 'Comedy'], 5, 95],
+['Oppenheimer', 2023, ['Drama', 'History'], 4, 40], ['In the Mood for Love', 2000, ['Romance', 'Drama'], 5, 20],
+['Spirited Away', 2001, ['Animation'], 4.5, 175], ['Arrival', 2016, ['Sci-Fi', 'Drama'], 4, 230],
+['Whiplash', 2014, ['Drama'], 4.5, 30], ['Portrait of a Lady on Fire', 2019, ['Romance', 'Drama'], 5, 140],
+['Her', 2013, ['Romance', 'Sci-Fi'], 3.5, 10], ['La La Land', 2016, ['Romance', 'Comedy'], 3.5, 265],
+['Prisoners', 2013, ['Thriller'], 4, 200], ['Amélie', 2001, ['Comedy', 'Romance'], 4, 115],
+['Before Sunrise', 1995, ['Romance'], 4.5, 300], ['Heat', 1995, ['Thriller'], 4, 50]
+].map((r, i) => ({ t: r[0], y: r[1], g: r[2], r: r[3], tone: tone(r[4]), last: i }));
+const isW = tab === 'watchlist';
+const sort = isW ? sortW : sortD;
+const SORTS = isW ? [['added', 'Date added'], ['title', 'Title'], ['year', 'Release year']] : [['last', 'Last watched'], ['rating', 'Rating'], ['title', 'Title'], ['year', 'Release year']];
+let list = (isW ? WL : WD).filter((f) => (!genre || f.g.indexOf(genre) >= 0) && (!decade || Math.floor(f.y / 10) * 10 === decade) && (isW || !minR || f.r >= minR));
+const by = { added: (a, b) => a.added - b.added, last: (a, b) => a.last - b.last, rating: (a, b) => b.r - a.r || a.last - b.last, title: (a, b) => a.t.localeCompare(b.t), year: (a, b) => b.y - a.y };
+list = list.slice().sort(by[sort]);
+const items = list.map((f) => Object.assign({}, f, { rated: !isW, meta: isW ? String(f.y) : f.r.toFixed(1) }));
+const sortLabel = SORTS.filter((s) => s[0] === sort)[0][1];
+const activeCount = (genre ? 1 : 0) + (decade ? 1 : 0) + (!isW && minR ? 1 : 0);
+const chip = (active) => ({ bg: active ? 'var(--psoft)' : 'transparent', border: active ? 'var(--pstrong)' : 'var(--border)' });
+const groups = [
+{ label: 'Genre', opts: ['Drama', 'Romance', 'Thriller', 'Comedy', 'Sci-Fi', 'Animation', 'History'].map((g) => Object.assign({ label: g, active: genre === g, pick: () => this.setState({ genre: genre === g ? null : g }) }, chip(genre === g))) },
+{ label: 'Decade', opts: [2020, 2010, 2000, 1990].map((d) => Object.assign({ label: d + 's', active: decade === d, pick: () => this.setState({ decade: decade === d ? null : d }) }, chip(decade === d))) }
+];
+if (!isW) groups.push({ label: 'Rating', opts: [[4, '4★ and up'], [4.5, '4.5★ and up'], [5, '5★ only']].map((o) => Object.assign({ label: o[1], active: minR === o[0], pick: () => this.setState({ minR: minR === o[0] ? 0 : o[0] }) }, chip(minR === o[0]))) });
+const sortOpts = SORTS.map((s) => ({ label: s[1], active: s[0] === sort, bg: s[0] === sort ? 'var(--muted)' : 'transparent', pick: () => this.setState(isW ? { sortW: s[0], pop: null } : { sortD: s[0], pop: null }) }));
+const tabs = [['watchlist', 'Watchlist', WL.length], ['watched', 'Watched', WD.length]].map((t) => ({ label: t[1], count: t[2], active: tab === t[0], bg: tab === t[0] ? 'var(--card)' : 'transparent', shadow: tab === t[0] ? '0 1px 3px var(--shadow)' : 'none', pick: () => this.setState({ tab: t[0], pop: null, screen: 'type' }) }));
+const toggle = (p) => () => this.setState({ pop: pop === p ? null : p });
+return {
+themeClass: this.props.dark ? 'dark' : '',
+onCats: screen === 'cats', onType: screen === 'type',
+openFilms: () => this.setState({ screen: 'type', tab: 'watchlist', pop: null }),
+back: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ screen: 'cats', pop: null }); },
+collage0: WL[0].tone, collage1: WD[0].tone, collage2: WL[2].tone, collage3: WD[3].tone,
+typeOpen: pop === 'type', toggleType: toggle('type'),
+sortOpen: pop === 'sort', toggleSort: toggle('sort'),
+filterOpen: pop === 'filter', toggleFilter: toggle('filter'),
+filterBg: activeCount ? 'var(--psoft)' : 'var(--card)', filterBorder: activeCount ? 'var(--pstrong)' : 'var(--border)',
+hasActive: activeCount > 0, activeCount,
+tabs, sortLabel, sortOpts, groups, showLabel: 'Show ' + items.length,
+summary: items.length + ' films · ' + sortLabel + (genre ? ' · ' + genre : '') + (decade ? ' · ' + decade + 's' : '') + (!isW && minR ? ' · ' + minR + '★+' : ''),
+items, hasItems: items.length > 0, noItems: items.length === 0,
+clear: () => this.setState({ genre: null, decade: null, minR: 0 })
+};
+}
+}
+</script>
+</body>
+</html>

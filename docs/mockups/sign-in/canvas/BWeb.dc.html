@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in B, poster wall, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%);--destr:oklch(0.46 0.18 25)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%);--destr:oklch(0.66 0.2 22)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt input{font:inherit;color:var(--fg)}
+.tt input:focus-visible{outline:2px solid var(--pstrong);outline-offset:1px}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="min-height: 1040px; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<div aria-hidden="true" style="position: relative; flex: 1 1 560px; min-height: 280px; overflow: hidden; background: var(--muted); border-right: 1px solid var(--border)">
+<div style="position: absolute; top: -80px; left: -24px; right: -24px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; transform: rotate(-4deg)">
+<sc-for list="{{cols}}" as="c" hint-placeholder-count="5">
+<div style="margin-top: {{c.off}}px; display: flex; flex-direction: column; gap: 16px">
+<sc-for list="{{c.posters}}" as="p" hint-placeholder-count="5">
+<span style="aspect-ratio: 2 / 3; padding: 10px; box-sizing: border-box; display: flex; align-items: flex-end; border-radius: 10px; background: {{p.tone}}; box-shadow: 0 8px 22px var(--shadow); font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 15px; line-height: 1.15; color: oklch(0.97 0.01 80)">{{p.t}}</span>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column">
+<header style="position: relative; height: 72px; padding: 0 48px; display: flex; align-items: center; justify-content: space-between">
+<a href="#" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; text-decoration: none">TasteTrack</a>
+<sc-if value="{{onNew}}" hint-placeholder-val="{{false}}">
+<button type="button" aria-label="Account: Log out" aria-haspopup="menu" aria-expanded="{{menuOpen}}" onClick="{{toggleMenu}}" style="height: 44px; padding: 0 12px 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500"><span style="width: 32px; height: 32px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Yurii</button>
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; top: 62px; right: 48px; z-index: 10; min-width: 180px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow)">
+<button type="button" role="menuitem" onClick="{{logOut}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 14px; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg>Log out</button>
+</div>
+</sc-if>
+</sc-if>
+</header>
+
+<main style="flex: 1; padding: 48px 48px 64px; display: flex; flex-direction: column; justify-content: center; align-items: center">
+<div style="width: 100%; max-width: 24rem">
+
+<sc-if value="{{onLogin}}" hint-placeholder-val="{{true}}">
+<form onSubmit="{{submitLogin}}" style="display: flex; flex-direction: column; gap: 18px">
+<h1 style="margin: 0 0 4px; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Log in</h1>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bw-login-user" style="font-size: 14px; font-weight: 600">Username</label>
+<input id="bw-login-user" name="username" aria-invalid="{{errLogin}}" autocomplete="username" autocapitalize="none" spellcheck="false" style="height: 48px; padding: 0 14px; box-sizing: border-box; border: 1px solid {{loginBorder}}; border-radius: 12px; background: var(--card); font-size: 15px">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bw-login-pw" style="font-size: 14px; font-weight: 600">Password</label>
+<input id="bw-login-pw" name="password" type="password" aria-invalid="{{errLogin}}" aria-describedby="bw-login-err" autocomplete="current-password" style="height: 48px; padding: 0 14px; box-sizing: border-box; border: 1px solid {{loginBorder}}; border-radius: 12px; background: var(--card); font-size: 15px">
+<sc-if value="{{errLogin}}" hint-placeholder-val="{{false}}">
+<p id="bw-login-err" role="alert" style="margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--destr)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>{{errMsg}}</p>
+</sc-if>
+</div>
+<sc-if value="{{deleted}}" hint-placeholder-val="{{false}}">
+<p role="status" style="margin: 0; font-size: 14px; color: var(--mfg)">Your account and everything in it have been deleted.</p>
+</sc-if>
+<button type="submit" style="height: 48px; border: 0; border-radius: 12px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600">Log in</button>
+<p style="margin: 2px 0 0; font-size: 14px; color: var(--mfg)">Have an Invite Code? <a href="#" onClick="{{toRegister}}" style="color: var(--pstrong); font-weight: 600; text-underline-offset: 4px">Register</a></p>
+</form>
+</sc-if>
+
+<sc-if value="{{onRegister}}" hint-placeholder-val="{{false}}">
+<form onSubmit="{{submitRegister}}" style="display: flex; flex-direction: column; gap: 18px">
+<h1 style="margin: 0 0 4px; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Register</h1>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bw-reg-code" style="font-size: 14px; font-weight: 600">Invite Code</label>
+<input id="bw-reg-code" name="inviteCode" aria-invalid="{{errInvite}}" aria-describedby="bw-reg-code-err" autocomplete="off" autocapitalize="characters" spellcheck="false" style="height: 48px; padding: 0 14px; box-sizing: border-box; border: 1px solid {{inviteBorder}}; border-radius: 12px; background: var(--card); font-size: 15px; letter-spacing: 0.06em">
+<sc-if value="{{errInvite}}" hint-placeholder-val="{{false}}">
+<p id="bw-reg-code-err" role="alert" style="margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--destr)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>{{errMsg}}</p>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bw-reg-user" style="font-size: 14px; font-weight: 600">Username</label>
+<input id="bw-reg-user" name="username" onInput="{{onUser}}" aria-invalid="{{userInvalid}}" aria-describedby="bw-reg-user-rules" autocomplete="username" autocapitalize="none" spellcheck="false" style="height: 48px; padding: 0 14px; box-sizing: border-box; border: 1px solid {{userBorder}}; border-radius: 12px; background: var(--card); font-size: 15px">
+<sc-if value="{{errTaken}}" hint-placeholder-val="{{false}}">
+<p role="alert" style="margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--destr)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>{{errMsg}}</p>
+</sc-if>
+<p id="bw-reg-user-rules" style="margin: 0; font-size: 13px; color: {{userRuleColor}}">3–30 characters: letters, digits and underscores</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bw-reg-pw" style="font-size: 14px; font-weight: 600">Password</label>
+<input id="bw-reg-pw" name="password" type="password" minlength="10" maxlength="128" aria-describedby="bw-reg-pw-rules" autocomplete="new-password" style="height: 48px; padding: 0 14px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 15px">
+<p id="bw-reg-pw-rules" style="margin: 0; font-size: 13px; color: var(--mfg)">10–128 characters, anything you like</p>
+</div>
+<button type="submit" style="height: 48px; border: 0; border-radius: 12px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600">Register</button>
+<p style="margin: 2px 0 0; font-size: 14px; color: var(--mfg)">Already have an account? <a href="#" onClick="{{toLogin}}" style="color: var(--pstrong); font-weight: 600; text-underline-offset: 4px">Log in</a></p>
+</form>
+</sc-if>
+
+<sc-if value="{{onNew}}" hint-placeholder-val="{{false}}">
+<form onSubmit="{{submitNew}}" style="display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Set a new password</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--mfg)">You logged in with a Temporary Password. Choose your own to carry on; it logs you out everywhere else.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bw-new-pw" style="font-size: 14px; font-weight: 600">New password</label>
+<input id="bw-new-pw" name="newPassword" type="password" minlength="10" maxlength="128" onInput="{{onNewInput}}" aria-invalid="{{errNew}}" aria-describedby="bw-new-pw-rules" autocomplete="new-password" style="height: 48px; padding: 0 14px; box-sizing: border-box; border: 1px solid {{newBorder}}; border-radius: 12px; background: var(--card); font-size: 15px">
+<sc-if value="{{errNew}}" hint-placeholder-val="{{false}}">
+<p role="alert" style="margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--destr)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>{{errMsg}}</p>
+</sc-if>
+<p id="bw-new-pw-rules" style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--mfg)">10–128 characters, anything you like, but not the Temporary Password</p>
+</div>
+<button type="submit" style="height: 48px; border: 0; border-radius: 12px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600">Set password</button>
+</form>
+</sc-if>
+</div>
+</main>
+
+<footer style="padding: 16px 48px; display: flex; gap: 12px; font-size: 12px; color: var(--mfg); border-top: 1px solid var(--border)"><span>Film data from TMDB</span><span>v0.6.0</span></footer>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["login","login-wrong-password","login-locked","login-account-deleted","register","register-invite-expired","register-invite-used","register-username-taken","new-password","new-password-reused"],"default":"login"},"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const S = { 'login': ['login', null], 'login-wrong-password': ['login', 'invalid'], 'login-locked': ['login', 'locked'], 'login-account-deleted': ['login', 'deleted'], 'register': ['register', null], 'register-invite-expired': ['register', 'expired'], 'register-invite-used': ['register', 'used'], 'register-username-taken': ['register', 'taken'], 'new-password': ['newpw', null], 'new-password-reused': ['newpw', 'reused'] };
+const s0 = S[this.props.startOn] || S.login;
+const screen = st.screen || s0[0];
+const err = st.screen ? (st.err || null) : s0[1];
+const user = st.user || '';
+const userInvalid = user !== '' && !/^[A-Za-z0-9_]{3,30}$/.test(user);
+const stop = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+const go = (sc) => (e) => { stop(e); this.setState({ screen: sc, err: null, user: '', menu: false }); };
+const M = { invalid: 'Wrong Username or password', locked: 'Too many failed attempts. Try again in 15 minutes.', expired: 'That Invite Code has expired. Ask for a new one.', used: 'That Invite Code has already been used. Ask for a new one.', taken: 'That Username is taken. Please choose another.', reused: 'That’s the Temporary Password. Choose one of your own.' };
+const errLogin = screen === 'login' && (err === 'invalid' || err === 'locked');
+const errInvite = screen === 'register' && (err === 'expired' || err === 'used');
+const errTaken = screen === 'register' && err === 'taken';
+const errNew = screen === 'newpw' && err === 'reused';
+const destr = 'var(--destr)', line = 'var(--border)';
+const tone = (h) => 'oklch(0.42 0.075 ' + h + ')';
+const P = [['Past Lives', 250], ['Perfect Days', 150], ['Anatomy of a Fall', 30], ['Parasite', 95], ['Aftersun', 210], ['Drive My Car', 15], ['The Zone of Interest', 125], ['Poor Things', 335], ['Decision to Leave', 185], ['Fallen Leaves', 5], ['Dune: Part Two', 60], ['In the Mood for Love', 20], ['Spirited Away', 175], ['Arrival', 230], ['Whiplash', 45], ['Portrait of a Lady on Fire', 140], ['Her', 10], ['La La Land', 265], ['Prisoners', 200], ['Amélie', 115], ['Before Sunrise', 300], ['Heat', 50], ['Paris, 13th District', 280], ['Close', 65], ['Oppenheimer', 40]].map((r) => ({ t: r[0], tone: tone(r[1]) }));
+const offs = [0, -120, -40, -160, -70];
+const cols = offs.map((o, i) => ({ off: o, posters: [0, 1, 2, 3, 4].map((k) => P[(i + k * 5) % P.length]) }));
+return {
+themeClass: this.props.dark ? 'dark' : '',
+cols: cols,
+onLogin: screen === 'login', onRegister: screen === 'register', onNew: screen === 'newpw',
+errMsg: M[err] || '',
+errLogin: errLogin,
+loginBorder: errLogin ? destr : line,
+deleted: screen === 'login' && err === 'deleted',
+errInvite: errInvite, errTaken: errTaken, errNew: errNew,
+inviteBorder: errInvite ? destr : line,
+userInvalid: userInvalid,
+userBorder: userInvalid || errTaken ? destr : line,
+userRuleColor: userInvalid ? destr : 'var(--mfg)',
+newBorder: errNew ? destr : line,
+toLogin: go('login'), toRegister: go('register'), logOut: go('login'),
+submitLogin: (e) => { stop(e); this.setState({ screen: 'login', err: 'invalid' }); },
+submitRegister: (e) => { stop(e); if (userInvalid) return; this.setState({ screen: 'register', err: 'expired' }); },
+submitNew: (e) => { stop(e); this.setState({ screen: 'newpw', err: 'reused', menu: false }); },
+onUser: (e) => this.setState({ screen: screen, err: err === 'taken' ? null : err, user: e.target.value }),
+onNewInput: () => this.setState({ screen: screen, err: null }),
+menuOpen: !!st.menu,
+toggleMenu: () => this.setState({ screen: screen, err: err, menu: !st.menu })
+};
+}
+}
+</script>
+</body>
+</html>

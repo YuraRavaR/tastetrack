@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Collections C, stacked posters, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%);--destr:oklch(0.46 0.18 25);--scrim:oklch(0.15 0.01 60 / 45%)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%);--destr:oklch(0.66 0.2 22);--scrim:oklch(0 0 0 / 60%)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt button:disabled{cursor:not-allowed}
+.tt input,.tt textarea{font:inherit;color:var(--fg)}
+.tt input::placeholder{color:var(--mfg)}
+.tt .stack-card:hover{border-color:var(--pstrong)}
+.tt .mi:hover{background:var(--muted)}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="position: relative; min-height: 1040px; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<header style="background: var(--card); border-bottom: 1px solid var(--border)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 32px">
+<a href="#" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; text-decoration: none">TasteTrack</a>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex: 1">
+<a href="#" style="padding: 8px 14px; border-radius: 10px; font-size: 15px; font-weight: 500; text-decoration: none; color: var(--mfg)">Saved</a>
+<a href="#" aria-current="page" onClick="{{back}}" style="padding: 8px 14px; border-radius: 10px; background: var(--psoft); font-size: 15px; font-weight: 600; text-decoration: none">Collections</a>
+<a href="#" style="padding: 8px 14px; border-radius: 10px; font-size: 15px; font-weight: 500; text-decoration: none; color: var(--mfg)">Search</a>
+</nav>
+<button type="button" aria-label="Account: Invites, Settings, Log out" style="height: 40px; padding: 0 12px 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500"><span style="width: 32px; height: 32px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Yurii</button>
+</div>
+</header>
+
+<main style="flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 32px 24px 56px; box-sizing: border-box">
+
+<sc-if value="{{onCols}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Collections</h1>
+<button type="button" onClick="{{openNew}}" style="height: 42px; padding: 0 18px 0 14px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New collection</button>
+</div>
+<div role="radiogroup" aria-label="Media Type" style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" role="radio" aria-checked="true" style="height: 36px; padding: 0 14px 0 10px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--pstrong); border-radius: 999px; background: var(--psoft); font-size: 14px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg>Films <span style="color: var(--mfg); font-weight: 500">{{colCount}}</span></button>
+<button type="button" role="radio" aria-checked="false" disabled style="height: 36px; padding: 0 6px 0 10px; display: flex; align-items: center; gap: 6px; border: 1.5px dashed var(--border); border-radius: 999px; background: transparent; color: var(--mfg); font-size: 14px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg>Books <span style="padding: 3px 8px; border-radius: 999px; background: var(--muted); font-size: 11px; font-weight: 600">Coming soon</span></button>
+</div>
+<sc-if value="{{hasCols}}" hint-placeholder-val="{{true}}">
+<ul aria-label="Your Collections" style="margin: 4px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="6">
+<li style="min-width: 0">
+<button type="button" class="stack-card" onClick="{{c.open}}" style="width: 100%; padding: 14px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); text-align: left; transition: border-color 0.15s">
+<span aria-hidden="true" style="position: relative; height: 210px; border-radius: 14px; background: var(--muted); overflow: hidden">
+<sc-for list="{{c.stack}}" as="p" hint-placeholder-count="3">
+<span style="position: absolute; left: calc(50% + {{p.dx}}px); top: {{p.top}}px; width: 104px; height: 156px; box-sizing: border-box; padding: 8px; display: flex; align-items: flex-end; border-radius: 9px; background: {{p.tone}}; box-shadow: 0 8px 18px var(--shadow), 0 0 0 1px oklch(1 0 0 / 12%) inset"><span style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 13px; line-height: 1.15; color: oklch(0.97 0.01 80); opacity: {{p.labelOpacity}}">{{p.t}}</span></span>
+</sc-for>
+<sc-if value="{{c.empty}}" hint-placeholder-val="{{false}}"><span style="position: absolute; left: 50%; top: 26px; width: 104px; height: 156px; margin-left: -52px; box-sizing: border-box; border: 1.5px dashed var(--mfg); border-radius: 9px; opacity: 0.6"></span></sc-if>
+</span>
+<span style="display: flex; flex-direction: column; gap: 4px; padding: 0 2px">
+<span style="font-size: 17px; font-weight: 700; line-height: 1.25">{{c.name}}</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--mfg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Films"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg>{{c.count}}<sc-if value="{{c.shared}}" hint-placeholder-val="{{false}}"><span style="margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 13px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"></path></svg>Shared</span></sc-if></span>
+</span>
+</button>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{noCols}}" hint-placeholder-val="{{false}}">
+<p style="margin: 32px 0; font-size: 15px; color: var(--mfg)">You have no Collections yet. Make one to collect films around a theme.</p>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{onOne}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px">
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<nav aria-label="Breadcrumb" style="font-size: 14px; color: var(--mfg)"><a href="#" onClick="{{back}}" style="color: var(--mfg); text-decoration: none">Collections</a> <span aria-hidden="true">›</span> {{cur.name}}</nav>
+<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; overflow-wrap: anywhere">{{cur.name}}</h1>
+<sc-if value="{{cur.hasDesc}}" hint-placeholder-val="{{true}}"><p style="margin: 0; max-width: 40rem; font-size: 16px; line-height: 1.5">{{cur.desc}}</p></sc-if>
+<p style="margin: 0; font-size: 14px; color: var(--mfg)">{{cur.count}}</p>
+</div>
+<div style="position: relative; display: flex; align-items: center; gap: 8px; padding-top: 24px">
+<button type="button" onClick="{{openShare}}" style="height: 42px; padding: 0 18px 0 14px; display: flex; align-items: center; gap: 8px; border: 1px solid {{shareBorder}}; border-radius: 999px; background: {{shareBg}}; font-size: 14px; font-weight: 600"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"></path></svg>{{shareLabel}}</button>
+<button type="button" aria-label="More for this Collection" aria-haspopup="menu" aria-expanded="{{menuOpen}}" onClick="{{toggleMenu}}" style="width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; top: 74px; right: 0; z-index: 10; width: 210px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow)">
+<button type="button" class="mi" role="menuitem" onClick="{{openEdit}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 14px; text-align: left"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg>Edit collection</button>
+<button type="button" class="mi" role="menuitem" onClick="{{openDelete}}" style="height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--destr); font-size: 14px; text-align: left"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>Delete collection</button>
+</div>
+</sc-if>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px">
+<div role="radiogroup" aria-label="View" style="display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--muted)">
+<sc-for list="{{views}}" as="v" hint-placeholder-count="2">
+<button type="button" role="radio" aria-checked="{{v.active}}" onClick="{{v.pick}}" style="height: 36px; padding: 0 16px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: 9px; background: {{v.bg}}; box-shadow: {{v.shadow}}; font-size: 14px; font-weight: 600"><sc-if value="{{v.isGrid}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></sc-if><sc-if value="{{v.isList}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"></path></svg></sc-if>{{v.label}}</button>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 13px; color: var(--mfg)">{{viewHint}}</p>
+</div>
+<div style="position: relative; width: 300px; max-width: 100%">
+<label for="add-cw" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Add films</label>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mfg)" stroke-width="1.75" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 12px; top: 11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input id="add-cw" type="search" placeholder="Search films to add" style="width: 100%; height: 40px; box-sizing: border-box; padding: 0 12px 0 38px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 15px">
+</div>
+</div>
+
+<sc-if value="{{hasRemoved}}" hint-placeholder-val="{{false}}">
+<div role="status" style="align-self: flex-start; padding: 4px 4px 4px 14px; display: flex; align-items: center; gap: 10px; border-radius: 12px; background: var(--muted); font-size: 14px">
+<span>Removed {{removedLabel}} from this Collection.</span>
+<button type="button" onClick="{{undo}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--pstrong); font-size: 14px; font-weight: 700">Undo</button>
+</div>
+</sc-if>
+
+<sc-if value="{{gridOn}}" hint-placeholder-val="{{true}}">
+<ol aria-label="{{cur.name}}" style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 28px 20px; align-items: start">
+<sc-for list="{{items}}" as="f" hint-placeholder-count="8">
+<li style="min-width: 0">
+<a href="#" style="display: flex; flex-direction: column; gap: 6px; text-decoration: none">
+<span style="position: relative; aspect-ratio: 2 / 3; border-radius: 10px; background: {{f.tone}}; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box">
+<span aria-hidden="true" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 16px; line-height: 1.15; color: oklch(0.97 0.01 80)">{{f.t}}</span>
+</span>
+<span style="font-size: 14px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical">{{f.t}}</span>
+<span style="margin-top: -3px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mfg)">{{f.y}}<sc-if value="{{f.hasNote}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; gap: 4px; color: var(--pstrong); font-weight: 600"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Note</span></sc-if></span>
+</a>
+</li>
+</sc-for>
+</ol>
+</sc-if>
+
+<sc-if value="{{listOn}}" hint-placeholder-val="{{false}}">
+<ol aria-label="{{cur.name}}" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 18px; background: var(--card); overflow: hidden">
+<sc-for list="{{items}}" as="f" hint-placeholder-count="5">
+<li style="padding: 16px 16px 16px 20px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; border-top: {{f.rowBorder}}">
+<span aria-hidden="true" style="width: 28px; padding-top: 4px; flex-shrink: 0; font-size: 18px; font-weight: 800; color: var(--mfg); text-align: right">{{f.pos}}</span>
+<a href="#" aria-label="{{f.label}}" style="width: 64px; height: 96px; flex-shrink: 0; border-radius: 7px; background: {{f.tone}}"></a>
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 16px; font-weight: 600; line-height: 1.25">{{f.t}} <span style="font-weight: 400; color: var(--mfg)">{{f.y}}</span></span>
+<sc-if value="{{f.hasNote}}" hint-placeholder-val="{{false}}"><p style="margin: 0; max-width: 44rem; padding: 10px 12px; border-radius: 10px; background: var(--psoft); font-size: 15px; line-height: 1.45; white-space: pre-line">{{f.note}}</p></sc-if>
+<div style="display: flex; gap: 4px; margin-left: -10px">
+<button type="button" onClick="{{f.openNote}}" style="height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--pstrong); font-size: 14px; font-weight: 700">{{f.noteAction}}</button>
+<button type="button" onClick="{{f.remove}}" aria-label="{{f.removeLabel}}" style="height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--mfg); font-size: 14px; font-weight: 600">Remove</button>
+</div>
+</div>
+<div role="group" aria-label="{{f.moveGroup}}" style="display: flex; gap: 4px; flex-shrink: 0">
+<button type="button" aria-label="{{f.topLabel}}" title="Move to top" disabled="{{f.first}}" onClick="{{f.top}}" style="width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); display: flex; align-items: center; justify-content: center; opacity: {{f.topOpacity}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14M12 20V9M7 13l5-5 5 5"></path></svg></button>
+<button type="button" aria-label="{{f.upLabel}}" title="Move up" disabled="{{f.first}}" onClick="{{f.up}}" style="width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); display: flex; align-items: center; justify-content: center; opacity: {{f.topOpacity}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button>
+<button type="button" aria-label="{{f.downLabel}}" title="Move down" disabled="{{f.last}}" onClick="{{f.down}}" style="width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); display: flex; align-items: center; justify-content: center; opacity: {{f.downOpacity}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"></path></svg></button>
+</div>
+</li>
+</sc-for>
+</ol>
+</sc-if>
+
+<sc-if value="{{noItems}}" hint-placeholder-val="{{false}}">
+<div style="padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; border: 1.5px dashed var(--border); border-radius: 18px; color: var(--mfg)">
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg>
+<p style="margin: 0; font-size: 16px">This Collection is empty. Search for films to add to it.</p>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</main>
+
+<footer style="border-top: 1px solid var(--border)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 16px 24px; display: flex; gap: 12px; font-size: 12px; color: var(--mfg)"><span>Film data from TMDB</span><span>v0.6.0</span></div>
+</footer>
+
+<sc-if value="{{formOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-start; justify-content: center; padding: 120px 16px 16px; box-sizing: border-box">
+<button type="button" aria-label="Close" onClick="{{close}}" style="position: absolute; inset: 0; border: 0; background: var(--scrim)"></button>
+<form role="dialog" aria-modal="true" aria-labelledby="form-title-cw" onSubmit="{{submitForm}}" style="position: relative; width: 100%; max-width: 480px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 20px 50px var(--shadow)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="form-title-cw" style="margin: 0; font-size: 20px; font-weight: 700">{{formTitle}}</h2>
+<p style="margin: 0; font-size: 14px; color: var(--mfg)">{{formText}}</p>
+</div>
+<button type="button" aria-label="Close" onClick="{{close}}" style="width: 36px; height: 36px; margin: -6px -8px 0 0; flex-shrink: 0; border: 0; border-radius: 999px; background: transparent; color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="col-name-cw" style="font-size: 14px; font-weight: 600">Name</label>
+<input id="col-name-cw" required value="{{draftName}}" onChange="{{onName}}" aria-invalid="{{hasErr}}" style="height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid {{nameBorder}}; border-radius: 10px; background: var(--bg); font-size: 15px">
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; font-size: 13px; color: var(--destr)">{{formErr}}</p></sc-if>
+</div>
+<sc-if value="{{isNew}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span id="mt-cw" style="font-size: 14px; font-weight: 600">Media Type</span>
+<div role="radiogroup" aria-labelledby="mt-cw" style="display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; overflow: hidden">
+<button type="button" role="radio" aria-checked="true" style="height: 44px; padding: 0 14px; display: flex; align-items: center; gap: 10px; border: 0; background: var(--psoft); font-size: 15px; font-weight: 600; text-align: left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg>Films<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pstrong)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left: auto"><path d="M20 6L9 17l-5-5"></path></svg></button>
+<button type="button" role="radio" aria-checked="false" disabled style="height: 44px; padding: 0 14px; display: flex; align-items: center; gap: 10px; border: 0; border-top: 1px solid var(--border); background: transparent; color: var(--mfg); font-size: 15px; font-weight: 500; text-align: left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg>Books<span style="margin-left: auto; padding: 3px 8px; border-radius: 999px; background: var(--muted); font-size: 11px; font-weight: 600">Coming soon</span></button>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="col-desc-cw" style="font-size: 14px; font-weight: 600">Description <span style="font-weight: 400; color: var(--mfg)">Optional</span></label>
+<textarea id="col-desc-cw" rows="3" value="{{draftDesc}}" onChange="{{onDesc}}" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px; resize: vertical"></textarea>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{close}}" style="height: 40px; padding: 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 14px; font-weight: 600">Cancel</button>
+<button type="submit" style="height: 40px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 14px; font-weight: 700">{{formSubmit}}</button>
+</div>
+</form>
+</div>
+</sc-if>
+
+<sc-if value="{{noteOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-start; justify-content: center; padding: 120px 16px 16px; box-sizing: border-box">
+<button type="button" aria-label="Close" onClick="{{close}}" style="position: absolute; inset: 0; border: 0; background: var(--scrim)"></button>
+<form role="dialog" aria-modal="true" aria-labelledby="note-title-cw" onSubmit="{{saveNote}}" style="position: relative; width: 100%; max-width: 480px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 20px 50px var(--shadow)">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="note-title-cw" style="margin: 0; font-size: 20px; font-weight: 700">{{noteTitle}}</h2>
+<p style="margin: 0; font-size: 14px; color: var(--mfg)">Why it's here, or anything to remember about it.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="note-cw" style="font-size: 14px; font-weight: 600">Note</label>
+<textarea id="note-cw" rows="4" value="{{noteDraft}}" onChange="{{onNote}}" aria-describedby="note-hint-cw" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px; line-height: 1.45; resize: vertical"></textarea>
+<p id="note-hint-cw" style="margin: 0; font-size: 13px; color: var(--mfg)">Optional. Leave it empty to remove the Note.</p>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{close}}" style="height: 40px; padding: 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 14px; font-weight: 600">Cancel</button>
+<button type="submit" style="height: 40px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 14px; font-weight: 700">Save</button>
+</div>
+</form>
+</div>
+</sc-if>
+
+<sc-if value="{{shareOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-start; justify-content: center; padding: 120px 16px 16px; box-sizing: border-box">
+<button type="button" aria-label="Close" onClick="{{close}}" style="position: absolute; inset: 0; border: 0; background: var(--scrim)"></button>
+<section role="dialog" aria-modal="true" aria-labelledby="share-title-cw" style="position: relative; width: 100%; max-width: 520px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 20px 50px var(--shadow)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="share-title-cw" style="margin: 0; font-size: 20px; font-weight: 700">{{shareTitle}}</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.45; color: var(--mfg)">Anyone with this link can see these films, their Notes and your name without logging in. They never see your Ratings or your Log.</p>
+</div>
+<button type="button" aria-label="Close" onClick="{{close}}" style="width: 36px; height: 36px; margin: -6px -8px 0 0; flex-shrink: 0; border: 0; border-radius: 999px; background: transparent; color: var(--mfg); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<sc-if value="{{notShared}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{makeLink}}" style="align-self: flex-start; height: 40px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 14px; font-weight: 700"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"></path></svg>Share</button>
+</sc-if>
+<sc-if value="{{isSharedIdle}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; gap: 8px">
+<label for="link-cw" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Share Link</label>
+<input id="link-cw" readonly value="{{shareUrl}}" style="flex: 1; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 14px">
+<button type="button" onClick="{{copy}}" style="flex-shrink: 0; height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 14px; font-weight: 700">{{copyLabel}}</button>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" onClick="{{askRegen}}" style="height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 13px; font-weight: 600">New link</button>
+<button type="button" onClick="{{askRevoke}}" style="height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--destr); font-size: 13px; font-weight: 600">Stop sharing</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{confirming}}" hint-placeholder-val="{{false}}">
+<div role="alertdialog" aria-labelledby="share-confirm-cw" style="padding: 16px; display: flex; flex-direction: column; gap: 10px; border-radius: 14px; background: var(--muted)">
+<p id="share-confirm-cw" style="margin: 0; font-size: 15px; font-weight: 700">{{confirmTitle}}</p>
+<p style="margin: 0; font-size: 14px; line-height: 1.45">{{confirmText}}</p>
+<div style="display: flex; justify-content: flex-end; gap: 8px">
+<button type="button" onClick="{{cancelConfirm}}" style="height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 13px; font-weight: 600">Cancel</button>
+<button type="button" onClick="{{doConfirm}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: {{confirmBg}}; color: {{confirmFg}}; font-size: 13px; font-weight: 700">{{confirmLabel}}</button>
+</div>
+</div>
+</sc-if>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{deleteOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-start; justify-content: center; padding: 160px 16px 16px; box-sizing: border-box">
+<button type="button" aria-label="Close" onClick="{{close}}" style="position: absolute; inset: 0; border: 0; background: var(--scrim)"></button>
+<div role="alertdialog" aria-modal="true" aria-labelledby="del-title-cw" style="position: relative; width: 100%; max-width: 440px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 20px 50px var(--shadow)">
+<h2 id="del-title-cw" style="margin: 0; font-size: 19px; font-weight: 700">Delete {{cur.name}}?</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mfg)">The Collection and its Notes will be deleted for good. Your Log stays as it is. This can't be undone.</p>
+<div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{close}}" style="height: 40px; padding: 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 14px; font-weight: 600">Cancel</button>
+<button type="button" onClick="{{confirmDelete}}" style="height: 40px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--destr); color: oklch(0.985 0 0); font-size: 14px; font-weight: 700">Delete</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["collections","collection grid","collection list","new collection"],"default":"collections"},"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const start = this.props.startOn || 'collections';
+const tone = (h) => 'oklch(0.42 0.075 ' + h + ')';
+const F = {
+pd: ['Perfect Days', 2023, 150], dmc: ['Drive My Car', 2021, 15], ts: ['Tokyo Story', 1953, 60], st: ['Stalker', 1979, 110],
+as: ['Aftersun', 2022, 210], col: ['Columbus', 2017, 175], tth: ['The Turin Horse', 2011, 40], jd: ['Jeanne Dielman', 1975, 320],
+p2: ['Paddington 2', 2017, 25], am: ['Amélie', 2001, 115], gbh: ['The Grand Budapest Hotel', 2014, 350], lw: ['Little Women', 2019, 280],
+sa: ['Spirited Away', 2001, 175], mm: ['Mamma Mia!', 2008, 90],
+pl: ['Past Lives', 2023, 250], aof: ['Anatomy of a Fall', 2023, 30], zoi: ['The Zone of Interest', 2023, 125], pt: ['Poor Things', 2023, 335],
+fl: ['Fallen Leaves', 2023, 5], op: ['Oppenheimer', 2023, 45], ho: ['The Holdovers', 2023, 70], kfm: ['Killers of the Flower Moon', 2023, 20],
+pa: ['Parasite', 2019, 95], mom: ['Memories of Murder', 2003, 135], ob: ['Oldboy', 2003, 355], hm: ['The Handmaiden', 2016, 300],
+dtl: ['Decision to Leave', 2022, 185], bu: ['Burning', 2018, 45], ch: ['The Chaser', 2008, 220],
+itm: ['In the Mood for Love', 2000, 20], bs: ['Before Sunrise', 1995, 300], her: ['Her', 2013, 10], lit: ['Lost in Translation', 2003, 240], pat: ['Paterson', 2016, 160],
+heat: ['Heat', 1995, 50], o11: ['Ocean’s Eleven', 2001, 230], im: ['Inside Man', 2006, 200]
+};
+const mk = (id, name, desc, tok, rows) => ({ id: id, name: name, desc: desc, tok: tok, items: rows.map((r) => ({ k: r[0], note: r[1] || null })) });
+const C0 = [
+mk('slow', 'Slow cinema', 'Long takes, few cuts, for evenings with nowhere to be.', null, [['pd', 'The toilet cleaner who reads Faulkner. Save it for a Sunday morning.'], ['dmc', 'Three hours and it never drags. The car scenes are the film.'], ['ts'], ['jd', 'Keep it for a day off; the potatoes scene is the point.'], ['st'], ['as', 'Not slow so much as patient. Have tissues.'], ['col'], ['tth']]),
+mk('mum', 'Watch with Mum', 'Nothing too loud, nothing too sad, subtitles fine.', 'M2pd7XcKa4Hs', [['p2', 'She laughed at the prison laundry for a full minute.'], ['am'], ['gbh', 'Colours she will love.'], ['lw'], ['sa', 'Try the English dub.'], ['mm']]),
+mk('b23', 'Best of 2023', null, null, [['pl', 'The best last ten minutes of the year.'], ['aof'], ['zoi', 'Listen to it as much as watch it.'], ['pt'], ['pd'], ['fl', 'Kaurismäki at his driest.'], ['op'], ['ho', 'A Christmas film for people who avoid Christmas films.'], ['kfm']]),
+mk('kor', 'Korean thrillers', 'From Bong to Park, in the order I would show a friend.', 'r8Vt3nQe5LwB', [['mom', 'Start here, before Parasite.'], ['pa'], ['ob', 'Not for the squeamish: the corridor, the octopus.'], ['ch'], ['hm', 'Three parts; the second changes everything.'], ['bu'], ['dtl']]),
+mk('rain', 'Rainy Sunday', null, null, [['itm'], ['bs', 'Then Before Sunset, the same afternoon.'], ['lit'], ['her'], ['pat']]),
+mk('heist', 'Heist nights', 'For when the whole flat is in.', null, [['heat', 'The bank shoot-out, with the sound up.'], ['o11'], ['im']])
+];
+const cols = st.cols || C0;
+const screen = st.screen || (start === 'collections' || start === 'new collection' ? 'cols' : 'one');
+const dialog = st.dialog !== undefined ? st.dialog : (start === 'new collection' ? 'new' : null);
+const view = st.view || (start === 'collection list' ? 'list' : 'grid');
+const cur = cols.filter((c) => c.id === (st.cur || 'slow'))[0] || cols[0] || { id: 'x', name: '', desc: null, tok: null, items: [] };
+const film = (k) => ({ t: F[k][0], y: F[k][1], tone: tone(F[k][2]) });
+const nFilms = (n) => n === 1 ? '1 film' : n + ' films';
+const update = (fn, extra) => this.setState(Object.assign({ cols: cols.map((c) => c.id === cur.id ? Object.assign({}, c, fn(c)) : c) }, extra || {}));
+const close = () => this.setState({ dialog: null, menu: null, formErr: null, confirm: null });
+const n = cur.items.length;
+const move = (i, to) => { const a = cur.items.slice(); const x = a.splice(i, 1)[0]; a.splice(to, 0, x); update(() => ({ items: a })); };
+const POS = [[-96, 44], [-52, 26], [-8, 8]];
+const cards = cols.map((c) => {
+const top3 = c.items.slice(0, 3);
+const stack = top3.map((it, j) => ({ tone: film(it.k).tone, t: film(it.k).t, dx: POS[j][0], top: POS[j][1], labelOpacity: j === 0 ? 1 : 0 })).reverse();
+return { name: c.name, count: nFilms(c.items.length), shared: !!c.tok, stack: stack, empty: c.items.length === 0, open: () => this.setState({ screen: 'one', cur: c.id, menu: null, removed: null }) };
+});
+const items = cur.items.map((it, i) => {
+const f = film(it.k);
+const label = f.t + ' (' + f.y + ')';
+return Object.assign({}, f, {
+pos: i + 1, label: label, note: it.note, hasNote: !!it.note, first: i === 0, last: i === n - 1,
+rowBorder: i === 0 ? '0' : '1px solid var(--border)',
+topOpacity: i === 0 ? 0.3 : 1, downOpacity: i === n - 1 ? 0.3 : 1,
+removeLabel: 'Remove ' + label + ' from this Collection', moveGroup: 'Move ' + f.t,
+topLabel: 'Move ' + f.t + ' to top', upLabel: 'Move ' + f.t + ' up', downLabel: 'Move ' + f.t + ' down',
+top: () => move(i, 0), up: () => move(i, i - 1), down: () => move(i, i + 1),
+openNote: () => this.setState({ dialog: 'note', noteFor: i, noteDraft: it.note || '' }),
+noteAction: it.note ? 'Edit Note' : 'Add a Note',
+remove: () => { const a = cur.items.slice(); a.splice(i, 1); update(() => ({ items: a }), { removed: { item: it, i: i, col: cur.id } }); }
+});
+});
+const views = [['grid', 'Grid'], ['list', 'List']].map((v) => ({ label: v[1], isGrid: v[0] === 'grid', isList: v[0] === 'list', active: view === v[0], bg: view === v[0] ? 'var(--card)' : 'transparent', shadow: view === v[0] ? '0 1px 3px var(--shadow)' : 'none', pick: () => this.setState({ view: v[0] }) }));
+const removed = st.removed && st.removed.col === cur.id ? st.removed : null;
+const noteFilm = st.noteFor != null && cur.items[st.noteFor] ? film(cur.items[st.noteFor].k) : null;
+const draftName = st.draftName || '';
+const draftDesc = st.draftDesc || '';
+const isNew = dialog === 'new';
+const submitForm = (e) => {
+if (e && e.preventDefault) e.preventDefault();
+const nm = draftName.trim();
+if (!nm) return this.setState({ formErr: 'Give the Collection a name.' });
+if (cols.some((c) => c.name.toLowerCase() === nm.toLowerCase() && (isNew || c.id !== cur.id))) return this.setState({ formErr: 'You already have a Collection with this name.' });
+if (isNew) {
+const id = 'c' + Date.now();
+this.setState({ cols: cols.concat([{ id: id, name: nm, desc: draftDesc.trim() || null, tok: null, items: [] }]), screen: 'one', cur: id, dialog: null, formErr: null, removed: null });
+} else {
+update(() => ({ name: nm, desc: draftDesc.trim() || null }), { dialog: null, formErr: null });
+}
+};
+const confirm = st.confirm || null;
+const tokOf = () => Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8);
+return {
+themeClass: this.props.dark ? 'dark' : '',
+onCols: screen === 'cols', onOne: screen === 'one',
+colCount: cols.length, hasCols: cols.length > 0, noCols: cols.length === 0, cards: cards,
+openNew: () => this.setState({ dialog: 'new', draftName: '', draftDesc: '', formErr: null }),
+back: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ screen: 'cols', menu: null, dialog: null, removed: null }); },
+cur: { name: cur.name, desc: cur.desc, hasDesc: !!cur.desc, count: nFilms(n) },
+shareLabel: cur.tok ? 'Shared by link' : 'Share', shareBg: cur.tok ? 'var(--psoft)' : 'var(--card)', shareBorder: cur.tok ? 'var(--pstrong)' : 'var(--border)',
+menuOpen: st.menu === 'col',
+toggleMenu: () => this.setState({ menu: st.menu === 'col' ? null : 'col' }),
+openEdit: () => this.setState({ dialog: 'edit', menu: null, draftName: cur.name, draftDesc: cur.desc || '', formErr: null }),
+openShare: () => this.setState({ dialog: 'share', menu: null, copied: false, confirm: null }),
+openDelete: () => this.setState({ dialog: 'delete', menu: null }),
+views: views, viewHint: view === 'grid' ? 'Switch to List to read Notes and reorder.' : 'Notes in full, with arrows to reorder.',
+gridOn: view === 'grid' && n > 0, listOn: view === 'list' && n > 0,
+items: items, noItems: n === 0,
+hasRemoved: !!removed, removedLabel: removed ? film(removed.item.k).t + ' (' + film(removed.item.k).y + ')' : '',
+undo: () => { const a = cur.items.slice(); a.splice(removed.i, 0, removed.item); update(() => ({ items: a }), { removed: null }); },
+close: close,
+formOpen: dialog === 'new' || dialog === 'edit', isNew: isNew,
+formTitle: isNew ? 'New collection' : 'Edit collection',
+formText: isNew ? 'Collect films around a theme, in the order you choose.' : 'Change the Collection’s name or description.',
+formSubmit: isNew ? 'Create' : 'Save',
+draftName: draftName, draftDesc: draftDesc,
+onName: (e) => this.setState({ draftName: e.target.value, formErr: null }),
+onDesc: (e) => this.setState({ draftDesc: e.target.value }),
+hasErr: !!st.formErr, formErr: st.formErr || '', nameBorder: st.formErr ? 'var(--destr)' : 'var(--border)',
+submitForm: submitForm,
+noteOpen: dialog === 'note' && !!noteFilm,
+noteTitle: noteFilm ? 'Note for ' + noteFilm.t + ' (' + noteFilm.y + ')' : '',
+noteDraft: st.noteDraft || '',
+onNote: (e) => this.setState({ noteDraft: e.target.value }),
+saveNote: (e) => { if (e && e.preventDefault) e.preventDefault(); const v = (st.noteDraft || '').trim(); update((c) => ({ items: c.items.map((it, j) => j === st.noteFor ? Object.assign({}, it, { note: v || null }) : it) }), { dialog: null, noteFor: null }); },
+shareOpen: dialog === 'share',
+shareTitle: cur.tok ? 'Shared by link' : 'Share ' + cur.name,
+notShared: !cur.tok, isSharedIdle: !!cur.tok && !confirm,
+shareUrl: 'https://tastetrack.app/s/' + (cur.tok || ''),
+makeLink: () => update(() => ({ tok: tokOf() }), { copied: false }),
+copy: () => this.setState({ copied: true }),
+copyLabel: st.copied ? 'Copied' : 'Copy link',
+askRegen: () => this.setState({ confirm: 'regen' }), askRevoke: () => this.setState({ confirm: 'revoke' }),
+confirming: !!cur.tok && !!confirm,
+confirmTitle: confirm === 'regen' ? 'Make a new link?' : 'Stop sharing?',
+confirmText: confirm === 'regen' ? 'The current link will stop working at once. Anyone you sent it to will need the new one.' : 'The link will stop working at once, and only you will see these films.',
+confirmLabel: confirm === 'regen' ? 'Make a new link' : 'Stop sharing',
+confirmBg: confirm === 'regen' ? 'var(--pri)' : 'var(--destr)', confirmFg: confirm === 'regen' ? 'var(--pfg)' : 'oklch(0.985 0 0)',
+cancelConfirm: () => this.setState({ confirm: null }),
+doConfirm: () => update(() => ({ tok: confirm === 'regen' ? tokOf() : null }), { confirm: null, copied: false }),
+deleteOpen: dialog === 'delete',
+confirmDelete: () => this.setState({ cols: cols.filter((c) => c.id !== cur.id), screen: 'cols', dialog: null, removed: null })
+};
+}
+}
+</script>
+</body>
+</html>

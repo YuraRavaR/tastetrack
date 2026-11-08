@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Empty states, variant A</title>
+<!--
+  Static mockup of the empty states, variant A "quiet": an icon on primary-soft, one line and
+  one button. Colours copy the tokens in src/client/styles.css (Gold · Paper); dark mode follows
+  the system setting. Below md the sections sit in a bottom tab bar; from md they move into the header.
+  States, by URL hash:
+    (no hash)        newUser: Saved for a User with nothing saved; the Films tile has three empty
+                     dashed poster slots and "Find a film", which opens Search.
+    #watchlistEmpty  Films, Watchlist tab empty (Watched has films). "Find a film" opens Search.
+    #watchedEmpty    Films, Watched tab empty (the Watchlist has films). "Go to Watchlist" switches tab.
+    #noCollections   Collections with none yet. Both "New collection" buttons open the dialog.
+    #searchNoMatch   Search for "Grand Budapest Hotle" with no match, and "Add manually".
+  The tabs, the header and tab bar links, "Find a film", "Go to Watchlist", the New collection
+  dialog (Cancel, Create, Esc, the scrim), the search field and its Clear button work. Search with
+  an empty field shows the hint line. Posters are coloured placeholders; the chips are not wired.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --shadow: oklch(0.2 0.01 50 / 14%);
+  --poster-text: oklch(0.97 0.01 80);
+  --overlay: oklch(0.2 0.01 50 / 50%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --shadow: oklch(0 0 0 / 50%);
+    --overlay: oklch(0 0 0 / 60%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+input::placeholder { color: var(--muted-foreground); }
+h1, h2, p, ul { margin: 0; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted-foreground); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+[hidden] { display: none !important; }
+
+/* Header: the app name and the account on a phone; the section nav joins them from md. */
+header.top { background: var(--card); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+header.top .wrap { min-height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; }
+.top-nav { display: none; flex: 1; gap: 4px; font-size: 15px; font-weight: 500; }
+.top-nav a { padding: 8px 14px; border-radius: 10px; color: var(--muted-foreground); }
+.top-nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); font-weight: 600; }
+.account { margin-left: auto; height: 44px; padding: 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500; }
+.account .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.account .name { display: none; }
+
+main.wrap { flex: 1; padding-top: 20px; padding-bottom: 24px; }
+.page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.screen { display: flex; flex-direction: column; gap: 14px; }
+
+/* Buttons */
+.btn-primary { height: 48px; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; background: var(--primary); color: var(--primary-foreground); font-size: 15px; font-weight: 600; }
+.btn-outline { height: 44px; padding: 0 18px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 600; }
+.btn-outline.lead { padding: 0 14px 0 10px; }
+
+/* Saved: category tiles */
+.tiles { display: grid; gap: 14px; }
+.tile { position: relative; height: 172px; padding: 18px; display: flex; justify-content: space-between; border: 1px solid var(--border); border-radius: 18px; background: var(--card); text-align: left; overflow: hidden; }
+.tile-text { display: flex; flex-direction: column; justify-content: space-between; }
+.tile-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-strong); display: flex; align-items: center; justify-content: center; }
+.tile-words { display: flex; flex-direction: column; gap: 4px; }
+.tile-name { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.tile-count { font-size: 14px; color: var(--muted-foreground); }
+.fan { position: relative; width: 150px; flex-shrink: 0; }
+.fan span { position: absolute; width: 70px; height: 105px; border-radius: 8px; box-shadow: 0 6px 16px var(--shadow); }
+.fan span:nth-child(1) { right: 70px; top: 22px; transform: rotate(-9deg); }
+.fan span:nth-child(2) { right: 8px; top: 22px; transform: rotate(9deg); }
+.fan span:nth-child(3) { right: 36px; top: 6px; width: 78px; height: 117px; }
+.tile.soon { height: 120px; align-items: flex-start; border: 1.5px dashed var(--border); background: transparent; color: var(--muted-foreground); }
+.tile.soon .tile-text { gap: 14px; justify-content: flex-start; }
+.tile.soon .tile-icon { background: var(--muted); color: inherit; }
+.tile.soon .tile-name { font-size: 20px; font-weight: 600; }
+.badge { padding: 4px 10px; border-radius: 999px; background: var(--muted); font-size: 12px; font-weight: 600; }
+
+/* The new User's Films tile: empty dashed slots, and Find a film full width under them */
+.tile.new { height: auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "icon slots" "words slots" "btn btn"; grid-template-rows: auto 1fr auto; column-gap: 12px; row-gap: 0; }
+.tile.new .tile-icon { grid-area: icon; }
+.tile.new .tile-words { grid-area: words; align-self: end; }
+.tile.new .slots { grid-area: slots; }
+.tile.new .btn-primary { grid-area: btn; margin-top: 18px; width: 100%; padding: 0 20px; }
+.slots { position: relative; width: 140px; height: 124px; }
+.slots span { position: absolute; top: 18px; width: 62px; height: 93px; border-radius: 8px; border: 1.5px dashed var(--border); }
+.slots span:nth-child(1) { right: 66px; transform: rotate(-9deg); }
+.slots span:nth-child(2) { right: 6px; transform: rotate(9deg); }
+.slots span:nth-child(3) { right: 33px; top: 4px; width: 70px; height: 105px; border-color: var(--muted-foreground); background: var(--background); color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+
+/* A Media Type's page */
+.type { gap: 12px; }
+.back { height: 36px; margin-left: -8px; padding: 0 8px; display: inline-flex; align-items: center; gap: 2px; border: 0; background: transparent; color: var(--muted-foreground); font-size: 15px; }
+.crumb { display: none; font-size: 14px; color: var(--muted-foreground); }
+.bar { display: flex; flex-direction: column; gap: 12px; }
+.tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 12px; background: var(--muted); }
+.tabs button { height: 38px; border: 0; border-radius: 9px; background: transparent; font-size: 14px; font-weight: 600; }
+.tabs button[aria-selected="true"] { background: var(--card); box-shadow: 0 1px 3px var(--shadow); }
+.tabs .n { color: var(--muted-foreground); font-weight: 500; }
+.chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+.chip { flex-shrink: 0; height: 36px; padding: 0 10px 0 12px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; white-space: nowrap; }
+.grid { margin-top: 4px; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 12px; }
+.grid a { display: flex; flex-direction: column; gap: 6px; }
+.poster { position: relative; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; display: flex; align-items: flex-end; padding: 8px; }
+.poster-title { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 14px; line-height: 1.15; color: var(--poster-text); }
+.seen { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px oklch(0 0 0 / 30%); }
+.title { font-size: 13px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.meta { margin-top: -3px; display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted-foreground); }
+.meta svg { fill: var(--primary-strong); stroke: var(--primary-strong); stroke-width: 2; }
+
+/* The empty state: an icon on primary-soft, one line, one button */
+.empty { padding: 72px 24px 40px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.empty.tall { padding-top: 88px; }
+.empty-icon { width: 56px; height: 56px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-strong); display: flex; align-items: center; justify-content: center; }
+.empty p { max-width: 300px; font-size: 16px; line-height: 1.4; }
+.hint { margin: 56px 24px 0; font-size: 15px; line-height: 1.4; color: var(--muted-foreground); text-align: center; }
+
+/* Category chips: Films picked, Books the stub */
+.cat-chips { display: flex; gap: 8px; }
+.cat-chips button { height: 36px; padding: 0 12px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--primary-strong); border-radius: 999px; background: var(--primary-soft); font-size: 14px; font-weight: 600; }
+.cat-chips button:disabled { border: 1.5px dashed var(--border); background: transparent; color: var(--muted-foreground); font-weight: 500; }
+.cat-chips button:disabled span { font-size: 11px; font-weight: 600; }
+
+.head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* Search */
+.search { padding-top: 0; gap: 12px; }
+.search-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.field-wrap { position: relative; }
+.field-wrap > svg { position: absolute; left: 14px; top: 14px; color: var(--muted-foreground); }
+.field { width: 100%; height: 48px; padding: 0 48px 0 44px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 16px; outline-color: var(--primary-strong); }
+.field::-webkit-search-cancel-button { display: none; }
+.clear { position: absolute; right: 2px; top: 2px; width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+
+/* New collection: a bottom sheet on a phone, a centred dialog from md */
+.overlay { position: fixed; inset: 0; z-index: 30; background: var(--overlay); }
+.dialog { position: fixed; z-index: 31; left: 0; right: 0; bottom: 0; max-height: calc(100% - 48px); overflow-y: auto; padding: 20px 16px calc(12px + max(22px, env(safe-area-inset-bottom))); display: flex; flex-direction: column; gap: 14px; background: var(--card); border-radius: 28px 28px 0 0; box-shadow: 0 -8px 32px var(--shadow); }
+.dialog h2 { font-size: 20px; font-weight: 700; }
+.dialog .lede { margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--muted-foreground); }
+.dialog label { font-size: 14px; font-weight: 600; }
+.dialog label span { font-weight: 400; color: var(--muted-foreground); }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.input { height: 46px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); font-size: 16px; outline-color: var(--primary-strong); }
+.actions { margin-top: 4px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.actions button { height: 48px; border-radius: 12px; font-size: 15px; font-weight: 600; }
+.actions .cancel { border: 1px solid var(--border); background: var(--card); }
+.actions .create { border: 0; background: var(--primary); color: var(--primary-foreground); }
+
+/* Bottom tab bar, phone only */
+.tabbar { position: sticky; bottom: 0; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--card); border-top: 1px solid var(--border); }
+.tabbar a { padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; color: var(--muted-foreground); font-size: 11px; font-weight: 500; }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+
+footer { display: none; border-top: 1px solid var(--border); }
+footer .wrap { padding-top: 16px; padding-bottom: 16px; display: flex; gap: 12px; font-size: 12px; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  .wrap { padding: 0 24px; }
+  header.top .wrap { min-height: 64px; }
+  .top-nav { display: flex; }
+  .account { margin-left: 0; padding-right: 12px; }
+  .account .name { display: inline; }
+  main.wrap { padding-top: 32px; padding-bottom: 48px; }
+  .page-title { font-size: 32px; }
+  .screen { gap: 20px; }
+  .btn-primary { height: 44px; padding: 0 20px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .tile, .tile.soon { height: 220px; padding: 24px; border-radius: 20px; }
+  .tile.soon .tile-text { height: 100%; justify-content: space-between; }
+  .tile-icon { width: 44px; height: 44px; }
+  .tile-name { font-size: 28px; }
+  .tile-count { font-size: 15px; }
+  .fan { width: 200px; }
+  .fan span { width: 92px; height: 138px; border-radius: 10px; }
+  .fan span:nth-child(1) { right: 92px; top: 30px; }
+  .fan span:nth-child(2) { right: 8px; top: 30px; }
+  .fan span:nth-child(3) { right: 46px; top: 10px; width: 104px; height: 156px; }
+  .tile.new { min-height: 220px; height: auto; grid-template-areas: "icon slots" "words slots" "btn slots"; grid-template-rows: auto 1fr auto; column-gap: 16px; }
+  .tile.new .btn-primary { width: auto; justify-self: start; margin-top: 14px; padding: 0 18px; }
+  .slots { width: 190px; height: 172px; }
+  .slots span { top: 26px; width: 86px; height: 129px; border-radius: 10px; }
+  .slots span:nth-child(1) { right: 90px; }
+  .slots span:nth-child(2) { right: 8px; }
+  .slots span:nth-child(3) { right: 45px; top: 8px; width: 96px; height: 144px; }
+  .type { gap: 20px; }
+  .back { display: none; }
+  .crumb { display: block; }
+  .bar { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .tabs { display: flex; }
+  .tabs button { height: 38px; padding: 0 18px; }
+  .chips { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 24px 20px; }
+  .poster { border-radius: 10px; padding: 10px; }
+  .poster-title { font-size: 17px; }
+  .title { font-size: 14px; }
+  .meta { font-size: 13px; }
+  .empty, .empty.tall { padding: 96px 24px; }
+  .empty-icon { width: 64px; height: 64px; }
+  .empty-icon svg { width: 28px; height: 28px; }
+  .empty p { max-width: none; font-size: 17px; }
+  .btn-outline.lead { padding: 0 16px 0 12px; }
+  .cat-chips button { padding: 0 14px; }
+  .search { width: 100%; max-width: 44rem; margin: 0 auto; gap: 14px; }
+  .search-title { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+  .field { height: 52px; padding: 0 52px 0 48px; }
+  .field-wrap > svg { left: 16px; top: 16px; }
+  .clear { right: 4px; top: 4px; }
+  .search .empty { padding: 80px 24px; }
+  .hint { margin: 48px 0 0; }
+  .dialog { top: 72px; bottom: auto; left: 50%; right: auto; transform: translateX(-50%); width: calc(100% - 32px); max-width: 480px; max-height: calc(100% - 144px); padding: 24px; gap: 16px; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 16px 48px var(--shadow); }
+  .input { height: 42px; font-size: 15px; }
+  .actions { display: flex; justify-content: flex-end; }
+  .actions button { height: 40px; padding: 0 18px; border-radius: 10px; font-size: 14px; }
+  .tabbar { display: none; }
+  footer { display: block; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="wrap">
+<a class="brand" href="#" data-go="saved">TasteTrack</a>
+<nav class="top-nav" aria-label="Main">
+<a href="#" data-go="saved" data-nav="saved">Saved</a>
+<a href="#" data-go="collections" data-nav="collections">Collections</a>
+<a href="#" data-go="search" data-nav="search">Search</a>
+</nav>
+<button class="account" type="button" aria-label="Account: Invites, Settings, Log out"><span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="name">Yurii</span></button>
+</div>
+</header>
+
+<main class="wrap">
+
+<!-- Saved: the categories -->
+<section id="saved" class="screen" aria-labelledby="saved-h">
+<h1 id="saved-h" class="page-title">Saved</h1>
+<div class="tiles">
+<section id="tile-new" class="tile new" aria-labelledby="films-new">
+<span class="tile-icon"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"/></svg></span>
+<span class="tile-words"><h2 id="films-new" class="tile-name">Films</h2><p class="tile-count">Nothing saved yet.</p></span>
+<span class="slots" aria-hidden="true"><span></span><span></span><span><svg class="i" width="22" height="22" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></span>
+<button type="button" class="btn-primary" data-go="search"><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Find a film</button>
+</section>
+<a id="tile-films" class="tile" href="#" data-go="films">
+<span class="tile-text">
+<span class="tile-icon"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"/></svg></span>
+<span class="tile-words"><span class="tile-name">Films</span><span class="tile-count" id="films-count"></span></span>
+</span>
+<span class="fan" id="fan" aria-hidden="true"><span></span><span></span><span></span></span>
+</a>
+<button class="tile soon" type="button" disabled aria-describedby="books-soon">
+<span class="tile-text">
+<span class="tile-icon"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></span>
+<span class="tile-name">Books</span>
+</span>
+<span id="books-soon" class="badge">Coming soon</span>
+</button>
+</div>
+</section>
+
+<!-- Films: Watchlist and Watched -->
+<section id="films" class="screen type" aria-labelledby="films-h" hidden>
+<div>
+<a class="back" href="#" data-go="saved"><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Saved</a>
+<nav class="crumb" aria-label="Breadcrumb"><a href="#" data-go="saved">Saved</a> <span aria-hidden="true">›</span> Films</nav>
+<h1 id="films-h" class="page-title">Films</h1>
+</div>
+<div class="bar">
+<div class="tabs" role="tablist" aria-label="Status">
+<button type="button" role="tab" data-tab="watchlist">Watchlist <span class="n" id="n-watchlist"></span></button>
+<button type="button" role="tab" data-tab="watched">Watched <span class="n" id="n-watched"></span></button>
+</div>
+<div class="chips" id="chips"></div>
+</div>
+<ul class="grid" id="grid"></ul>
+<div class="empty" id="empty-watchlist" hidden>
+<span class="empty-icon"><svg class="i" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span>
+<p>Nothing on your Watchlist yet.</p>
+<button type="button" class="btn-primary" data-go="search"><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Find a film</button>
+</div>
+<div class="empty" id="empty-watched" hidden>
+<span class="empty-icon"><svg class="i" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+<p>Films you mark Watched show up here.</p>
+<button type="button" class="btn-primary" data-tab="watchlist">Go to Watchlist</button>
+</div>
+</section>
+
+<!-- Collections: none yet -->
+<section id="collections" class="screen" aria-labelledby="collections-h" hidden>
+<div class="head-row">
+<h1 id="collections-h" class="page-title">Collections</h1>
+<button type="button" class="btn-outline lead" data-dialog><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New collection</button>
+</div>
+<div class="cat-chips" role="group" aria-label="Media Type">
+<button type="button" aria-pressed="true">Films</button>
+<button type="button" disabled>Books <span>Coming soon</span></button>
+</div>
+<div class="empty tall">
+<span class="empty-icon"><svg class="i" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+<p>No collections yet.</p>
+<button type="button" class="btn-primary" data-dialog>New collection</button>
+</div>
+</section>
+
+<!-- Search: no match, or the hint with an empty field -->
+<section id="search" class="screen search" hidden>
+<label for="q" class="search-title">Search<span class="sr-only"> films</span></label>
+<div class="field-wrap">
+<svg class="i" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+<input id="q" class="field" type="search" placeholder="Title in English or Ukrainian" autocomplete="off">
+<button type="button" class="clear" id="clear" aria-label="Clear search"><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+</div>
+<div class="cat-chips" role="group" aria-label="Media Type">
+<button type="button" aria-pressed="true">Films</button>
+<button type="button" disabled>Books <span>Coming soon</span></button>
+</div>
+<div class="empty" id="no-match" role="status">
+<span class="empty-icon"><svg class="i" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="M15 15l5.5 5.5M8 8l4 4M12 8l-4 4"/></svg></span>
+<p id="no-match-text"></p>
+<button type="button" class="btn-outline">Add manually</button>
+</div>
+<p class="hint" id="hint" hidden>Type a title to search your Saved and TMDB.</p>
+</section>
+</main>
+
+<footer><div class="wrap"><span>Film data from TMDB</span><span>v0.6.0</span></div></footer>
+
+<nav class="tabbar" aria-label="Main">
+<a href="#" data-go="saved" data-nav="saved"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved</a>
+<a href="#" data-go="collections" data-nav="collections"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Collections</a>
+<a href="#" data-go="search" data-nav="search"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</a>
+</nav>
+
+<div class="overlay" id="overlay" hidden></div>
+<div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="nc-title" aria-describedby="nc-lede" hidden>
+<div>
+<h2 id="nc-title">New collection</h2>
+<p id="nc-lede" class="lede">Collect films around a theme, in the order you choose.</p>
+</div>
+<div class="form-field"><label for="nc-name">Name</label><input id="nc-name" class="input" type="text" placeholder="Rainy Sunday films"></div>
+<div class="form-field"><label for="nc-desc">Description <span>Optional</span></label><input id="nc-desc" class="input" type="text"></div>
+<div class="actions">
+<button type="button" class="cancel" data-close>Cancel</button>
+<button type="button" class="create" data-close>Create</button>
+</div>
+</div>
+
+<script>
+const tone = (h) => `oklch(0.42 0.075 ${h})`;
+const WATCHLIST = [["Past Lives", 2023, 250], ["Perfect Days", 2023, 150], ["Anatomy of a Fall", 2023, 30], ["Parasite", 2019, 95, true], ["Aftersun", 2022, 210], ["Drive My Car", 2021, 15], ["The Zone of Interest", 2023, 125], ["Poor Things", 2023, 335], ["Fallen Leaves", 2023, 5]]
+  .map(([t, y, h, seen]) => ({ t, meta: String(y), tone: tone(h), seen: !!seen }));
+const WATCHED = [["Dune: Part Two", 4.5, 60], ["Parasite", 5, 95], ["Oppenheimer", 4, 40], ["In the Mood for Love", 5, 20], ["Spirited Away", 4.5, 175], ["Arrival", 4, 230], ["Whiplash", 4.5, 30], ["Portrait of a Lady on Fire", 5, 140], ["Her", 3.5, 10]]
+  .map(([t, r, h]) => ({ t, meta: r.toFixed(1), tone: tone(h), rated: true }));
+// Each state: which screen and tab it opens on, what is saved, and the search text.
+const STATES = {
+  newUser: { screen: "saved", tab: "watchlist", wl: false, wd: false, query: "" },
+  watchlistEmpty: { screen: "films", tab: "watchlist", wl: false, wd: true, query: "" },
+  watchedEmpty: { screen: "films", tab: "watched", wl: true, wd: false, query: "" },
+  noCollections: { screen: "collections", tab: "watchlist", wl: true, wd: true, query: "" },
+  searchNoMatch: { screen: "search", tab: "watchlist", wl: true, wd: true, query: "Grand Budapest Hotle" },
+};
+const $ = (id) => document.getElementById(id);
+const icon = (d, size, extra = "") => `<svg class="i" width="${size}" height="${size}" viewBox="0 0 24 24" ${extra} aria-hidden="true">${d}</svg>`;
+const CHEVRON = icon('<path d="M6 9l6 6 6-6"/>', 14, 'style="stroke-width: 2"');
+const SORT_ICON = icon('<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>', 15, 'style="stroke-width: 2"');
+const STAR = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>';
+let state;
+
+function load() {
+  const key = location.hash.slice(1);
+  state = { ...(STATES[key] ?? STATES.newUser), dialog: false };
+  $("q").value = state.query;
+  render();
+}
+
+function render() {
+  const wl = state.wl ? WATCHLIST.map((f) => ({ ...f, seen: f.seen && state.wd })) : [];
+  const wd = state.wd ? WATCHED : [];
+  for (const id of ["saved", "films", "collections", "search"]) $(id).hidden = state.screen !== id;
+  const section = state.screen === "films" ? "saved" : state.screen;
+  for (const a of document.querySelectorAll("[data-nav]")) {
+    if (a.dataset.nav === section) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+
+  // Saved
+  const isNew = !wl.length && !wd.length;
+  $("tile-new").hidden = !isNew;
+  $("tile-films").hidden = isNew;
+  $("films-count").textContent = [wl.length && `${wl.length} to watch`, wd.length && `${wd.length} watched`].filter(Boolean).join(" · ");
+  const cover = wl.length ? wl : wd;
+  [...$("fan").children].forEach((s, i) => { s.style.background = cover[[0, 2, 1][i]]?.tone ?? "var(--muted)"; });
+
+  // Films
+  const onWL = state.tab === "watchlist";
+  const items = onWL ? wl : wd;
+  for (const b of document.querySelectorAll('[role="tab"]')) b.setAttribute("aria-selected", String(b.dataset.tab === state.tab));
+  $("n-watchlist").textContent = wl.length;
+  $("n-watched").textContent = wd.length;
+  $("chips").hidden = !items.length;
+  $("chips").innerHTML = (onWL ? ["Date added", "Genre", "Decade"] : ["Last watched", "Genre", "Decade", "Rating"])
+    .map((l, i) => `<button type="button" class="chip" aria-haspopup="menu">${i === 0 ? SORT_ICON : ""}${l}${CHEVRON}</button>`).join("");
+  $("grid").hidden = !items.length;
+  $("grid").innerHTML = items.map((f) => `<li><a href="#">
+    <span class="poster" style="background: ${f.tone}"><span class="poster-title" aria-hidden="true">${f.t}</span>${f.seen ? `<span class="seen" role="img" aria-label="Watched before">${icon('<path d="M20 6L9 17l-5-5"/>', 14, 'style="stroke-width: 2.75"')}</span>` : ""}</span>
+    <span class="title">${f.t}</span>
+    <span class="meta">${f.rated ? STAR : ""}${f.meta}</span></a></li>`).join("");
+  $("empty-watchlist").hidden = !(onWL && !wl.length);
+  $("empty-watched").hidden = !(!onWL && !wd.length);
+
+  // Search
+  const q = $("q").value.trim();
+  $("clear").hidden = !q;
+  $("no-match").hidden = !q;
+  $("hint").hidden = !!q;
+  $("no-match-text").textContent = `No films found for “${q}”.`;
+
+  // Dialog
+  $("overlay").hidden = !state.dialog;
+  $("dialog").hidden = !state.dialog;
+}
+
+document.addEventListener("click", (e) => {
+  const go = e.target.closest("[data-go]");
+  if (go) {
+    e.preventDefault();
+    state.screen = go.dataset.go;
+    if (go.dataset.go === "films") state.tab = "watchlist";
+    if (go.dataset.go === "search") $("q").value = "";
+    render();
+    if (go.dataset.go === "search") $("q").focus();
+    window.scrollTo(0, 0);
+    return;
+  }
+  const tab = e.target.closest("[data-tab]");
+  if (tab) { state.tab = tab.dataset.tab; render(); return; }
+  if (e.target.closest("[data-dialog]")) { state.dialog = true; render(); $("nc-name").focus(); return; }
+  if (e.target.closest("[data-close]") || e.target === $("overlay")) { state.dialog = false; render(); }
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && state.dialog) { state.dialog = false; render(); } });
+$("q").addEventListener("input", render);
+$("clear").addEventListener("click", () => { $("q").value = ""; render(); $("q").focus(); });
+window.addEventListener("hashchange", load);
+load();
+</script>
+</body>
+</html>
