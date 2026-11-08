@@ -46,9 +46,9 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(listPage.text("2 films")).toBeVisible();
 
   // Moving Aliens up puts it first, and a Note says why it's there.
-  await listPage.lastItem("Space horror").moveEarlierButton.click();
-  await expect(items.first()).toContainText("Aliens (1986)");
-  await listPage.firstItem("Space horror").addNoteButton.click();
+  await listPage.choose("Space horror", "Aliens", "Move earlier");
+  await expect(items.first()).toContainText("Aliens");
+  await listPage.choose("Space horror", "Aliens", "Add a Note");
   await listPage.noteDialog("Aliens (1986)").saveNote("The sequel is the scarier one.");
   await expect(items.first()).toContainText("The sequel is the scarier one.");
 
@@ -60,7 +60,7 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await editList.saveButton.click();
   await expect(listPage.heading("Horror in space")).toBeVisible();
   await page.reload();
-  await expect(listPage.items("Horror in space").first()).toContainText("Aliens (1986)");
+  await expect(listPage.items("Horror in space").first()).toContainText("Aliens");
   await listPage.mainNav.link("Collections").click();
   const { lists } = listsPage;
   await expect(lists).toHaveCount(1);
@@ -110,6 +110,87 @@ test("Collections shows each List as a card with its covers, its count and wheth
   await expect(spaceCard.sharedMark).toHaveText("Shared");
   await spaceCard.link.click();
   await expect(page).toHaveURL(listPage.path(space.id));
+});
+
+test("a Collection is a grid of posters, each with its Note, which the User writes and clears", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const list = await createList(api, "Space horror");
+  const alienId = (await alien(api)).id;
+  for (const mediaItemId of [alienId, (await aliens(api)).id]) {
+    await expectBody(api.lists.addListItem(list.id, { mediaItemId }), 201);
+  }
+  const { listPage, filmPage } = ui;
+  await listPage.goto(list.id);
+
+  const items = listPage.items("Space horror");
+  await expect(items).toHaveCount(2);
+  const alienPoster = listPage.poster("Space horror", "Alien");
+  await expect(alienPoster.root).toContainText("1979");
+  await expect(alienPoster.noteButton).toHaveCount(0);
+
+  // A Note from the poster's menu shows under the poster.
+  await listPage.choose("Space horror", "Alien", "Add a Note");
+  await listPage.noteDialog("Alien (1979)").saveNote("Watch it first.");
+  await expect(alienPoster.noteButton).toHaveText("Watch it first.");
+
+  // Tapping the Note opens it to edit; emptied from the menu, it's gone.
+  await alienPoster.noteButton.click();
+  const noteDialog = listPage.noteDialog("Alien (1979)");
+  await expect(noteDialog.noteInput).toHaveValue("Watch it first.");
+  await noteDialog.saveNote("Watch it first, alone.");
+  await expect(alienPoster.noteButton).toHaveText("Watch it first, alone.");
+  await listPage.choose("Space horror", "Alien", "Edit Note");
+  await noteDialog.saveNote("");
+  await expect(alienPoster.noteButton).toHaveCount(0);
+  await expect(listPage.text("Watch it first, alone.")).toHaveCount(0);
+
+  // The poster opens the film's page.
+  await alienPoster.link.click();
+  await expect(page).toHaveURL(filmPage.path(alienId));
+});
+
+test("a film removed from a Collection comes back where it was, with its Note, on Undo", async ({
+  ui,
+  loggedInApi: api,
+}) => {
+  const list = await createList(api, "Space horror");
+  for (const listItem of [
+    { mediaItemId: (await alien(api)).id, note: "Watch it first." },
+    { mediaItemId: (await aliens(api)).id },
+  ]) {
+    await expectBody(api.lists.addListItem(list.id, listItem), 201);
+  }
+  const { listPage } = ui;
+  await listPage.goto(list.id);
+
+  await listPage.choose("Space horror", "Alien", "Remove from collection");
+  const items = listPage.items("Space horror");
+  await expect(items).toHaveCount(1);
+  await expect(listPage.text("Removed Alien (1979) from this Collection.")).toBeVisible();
+  await expect(listPage.text("1 film")).toBeVisible();
+
+  await listPage.undoButton.click();
+  await expect(items).toHaveCount(2);
+  await expect(items.first().getByText("Alien", { exact: true })).toBeVisible();
+  await expect(listPage.poster("Space horror", "Alien").noteButton).toHaveText("Watch it first.");
+  await expect(listPage.undoButton).toHaveCount(0);
+});
+
+test("an empty Collection says so, with a button to add films", async ({
+  ui,
+  loggedInApi: api,
+}) => {
+  const list = await createList(api, "Space horror");
+  const { listPage } = ui;
+  await listPage.goto(list.id);
+
+  await expect(listPage.text("This Collection is empty.")).toBeVisible();
+  await expect(listPage.items("Space horror")).toHaveCount(0);
+  await listPage.addFilmsButton.click();
+  await expect(listPage.searchBox).toBeFocused();
 });
 
 test("a name the User already has is refused", async ({ ui, loggedInApi: api }) => {

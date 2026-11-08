@@ -4,19 +4,21 @@ import { Link, useMatch } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { useAuth } from "../auth";
 import { t } from "../i18n/t";
+import {
+  menuSheetIconClasses as iconClasses,
+  MenuSheetContent,
+  menuSheetItemClasses,
+} from "./MenuSheetContent";
 
-// A sheet's roomy rows on a phone, a dropdown's from `md`; the page the User is on is marked.
-const itemClasses =
-  "min-h-13 gap-3.5 rounded-lg px-3 font-medium text-[17px] aria-[current=page]:bg-muted md:min-h-11 md:gap-2.5 md:rounded-md md:px-2.5 md:font-normal md:text-[15px]";
-const iconClasses = "size-5.5 md:size-4.25";
+// The page the User is on is marked.
+const itemClasses = cn(menuSheetItemClasses, "aria-[current=page]:bg-muted");
 
 // The avatar button at the end of the header, with the User's Display Name from `md`, and its menu
 // of the pages that aren't sections (`docs/mockups/account/`). Below `md` the menu is a bottom
@@ -47,22 +49,7 @@ export function AccountMenu() {
           <ChevronDown aria-hidden className="hidden md:block" />
         </Button>
       </DropdownMenuTrigger>
-      {/* The menu is modal, so a tap on the scrim lands outside it and closes it. In a portal, so
-          nothing the header's styles do can confine it. */}
-      {open && (
-        <DropdownMenuPortal>
-          <div
-            aria-hidden
-            className="fade-in-0 fixed inset-0 z-40 animate-in bg-overlay md:hidden"
-          />
-        </DropdownMenuPortal>
-      )}
-      <DropdownMenuContent
-        align="end"
-        // Pins the menu to the bottom edge below `md`; see the rule in styles.css.
-        data-sheet=""
-        className="max-h-[calc(100dvh-3rem)] w-full rounded-t-sheet rounded-b-none border-x-0 border-b-0 bg-card p-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-lg data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100 data-[state=closed]:slide-out-to-bottom-8 data-[state=open]:slide-in-from-bottom-8 md:max-h-(--radix-dropdown-menu-content-available-height) md:w-auto md:min-w-50 md:rounded-xl md:border md:p-1 md:data-[state=closed]:zoom-out-95 md:data-[state=open]:zoom-in-95 md:data-[state=closed]:slide-out-to-bottom-0 md:data-[state=open]:slide-in-from-bottom-0"
-      >
+      <MenuSheetContent open={open} align="end">
         {user && (
           <>
             <DropdownMenuItem asChild className={itemClasses}>
@@ -84,7 +71,7 @@ export function AccountMenu() {
           <LogOut aria-hidden className={iconClasses} />
           {t("auth.logout")}
         </DropdownMenuItem>
-      </DropdownMenuContent>
+      </MenuSheetContent>
     </DropdownMenu>
   );
 }
