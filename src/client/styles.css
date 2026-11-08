@@ -113,3 +113,17 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 }
+
+/*
+ * A menu whose content has `data-sheet` is a bottom sheet below md, such as the account menu.
+ * Radix places a menu's wrapper under its trigger with inline styles, which this overrides to pin
+ * it to the bottom edge; from md it drops down as usual.
+ */
+[data-radix-popper-content-wrapper]:has(> [data-sheet]) {
+  @variant max-md {
+    /* biome-ignore lint/complexity/noImportantStyles: only !important beats Radix's inline styles */
+    inset: auto 0 0 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: only !important beats Radix's inline styles */
+    transform: none !important;
+  }
+}

@@ -3,8 +3,9 @@ import { Navigate, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { LoginResult } from "../api";
 import { type LoginLocationState, useAuth } from "../auth";
-import { AuthCard, AuthField, SwitchFormLink } from "../components/AuthCard";
+import { AuthCard, SwitchFormLink } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
+import { FormField } from "../components/FormField";
 import { t } from "../i18n/t";
 
 export function LoginPage() {
@@ -34,7 +35,7 @@ export function LoginPage() {
   return (
     <AuthCard title={t("login.title")}>
       <form className="flex flex-col gap-4" onSubmit={submit}>
-        <AuthField
+        <FormField
           id="username"
           label={t("login.username")}
           autoComplete="username"
@@ -42,7 +43,7 @@ export function LoginPage() {
           spellCheck={false}
           required
         />
-        <AuthField
+        <FormField
           id="password"
           label={t("login.password")}
           type="password"

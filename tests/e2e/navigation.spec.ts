@@ -124,6 +124,16 @@ function heightOf(control: Locator) {
   return control.evaluate((element: HTMLElement) => element.offsetHeight);
 }
 
+// Where an element sits once its opening animation has finished.
+async function settledBoxOf(element: Locator) {
+  await element.evaluate((node) =>
+    Promise.all(node.getAnimations().map(({ finished }) => finished)),
+  );
+  const box = await element.boundingBox();
+  if (!box) throw new Error("The element isn't rendered");
+  return box;
+}
+
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 402, height: 874 } });
 
@@ -165,6 +175,27 @@ test.describe("on a phone", () => {
     await expect(ui.libraryPage.header.displayName(loggedInUser.username)).toBeHidden();
 
     await expectAccountMenuPages(page, ui);
+  });
+
+  test("the account menu is a sheet on the bottom edge, which a tap above it closes", async ({
+    page,
+    loggedInUi: ui,
+  }) => {
+    await ui.libraryPage.goto();
+    const { accountMenu } = ui.libraryPage.header;
+    await accountMenu.open();
+
+    const screen = page.viewportSize();
+    if (!screen) throw new Error("The page has no viewport");
+    const sheet = await settledBoxOf(accountMenu.menu);
+    expect(sheet.x).toBe(0);
+    expect(sheet.width).toBe(screen.width);
+    expect(sheet.y + sheet.height).toBeCloseTo(screen.height, 0);
+
+    // Above the sheet is the scrim, over the header too: a tap on the app name only closes it.
+    await page.mouse.click(screen.width / 2, 28);
+    await expect(accountMenu.menu).toBeHidden();
+    await expect(page).toHaveURL(ui.libraryPage.path());
   });
 
   test("a logged-out page has the plain frame", async ({ ui }) => {
@@ -241,6 +272,22 @@ test.describe("from md", () => {
     await expect(ui.libraryPage.header.displayName(loggedInUser.username)).toBeVisible();
 
     await expectAccountMenuPages(page, ui);
+  });
+
+  test("the account menu drops down under the account button, flush with its right edge", async ({
+    loggedInUi: ui,
+  }) => {
+    await ui.libraryPage.goto();
+    const { accountMenu } = ui.libraryPage.header;
+    // Measured while closed: the open menu hides the rest of the page from assistive technology.
+    const button = await settledBoxOf(accountMenu.button);
+    await accountMenu.open();
+
+    const dropdown = await settledBoxOf(accountMenu.menu);
+    expect(dropdown.y).toBeGreaterThanOrEqual(button.y + button.height);
+    expect(dropdown.y).toBeLessThan(button.y + button.height + 16);
+    expect(dropdown.x + dropdown.width).toBeCloseTo(button.x + button.width, 0);
+    expect(dropdown.width).toBeGreaterThanOrEqual(200);
   });
 
   test("a logged-out page has the plain frame", async ({ ui }) => {

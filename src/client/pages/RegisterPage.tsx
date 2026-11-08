@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { passwordLength, usernamePattern } from "../../shared/accounts";
 import type { RegisterError } from "../api";
 import { useAuth } from "../auth";
-import { AuthCard, AuthField, SwitchFormLink } from "../components/AuthCard";
+import { AuthCard, SwitchFormLink } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
+import { FormField } from "../components/FormField";
 import { type MessageId, t } from "../i18n/t";
 
 const errorMessages: Record<RegisterError, MessageId> = {
@@ -63,7 +64,7 @@ export function RegisterPage() {
   return (
     <AuthCard title={t("register.title")}>
       <form className="flex flex-col gap-4" onSubmit={submit}>
-        <AuthField
+        <FormField
           id="inviteCode"
           label={t("register.inviteCode")}
           defaultValue={searchParams.get("code") ?? ""}
@@ -75,7 +76,7 @@ export function RegisterPage() {
           spellCheck={false}
           required
         />
-        <AuthField
+        <FormField
           id="username"
           label={t("register.username")}
           rules={t("register.usernameRules")}
@@ -91,7 +92,7 @@ export function RegisterPage() {
           spellCheck={false}
           required
         />
-        <AuthField
+        <FormField
           id="password"
           label={t("register.password")}
           rules={t("register.passwordRules")}
