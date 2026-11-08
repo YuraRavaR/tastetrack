@@ -15,7 +15,7 @@ export function SegmentedLinks({ label, segments }: { label: string; segments: S
   return (
     <nav
       aria-label={label}
-      className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-xl bg-muted p-0.75 md:flex md:self-start"
+      className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-xl bg-muted p-0.75 md:flex"
     >
       {segments.map(({ to, label: segmentLabel, count, current }) => (
         <Link
