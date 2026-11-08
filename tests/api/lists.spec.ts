@@ -10,7 +10,7 @@ import {
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
-import { alien, aliens, amelie, titlesOf } from "../support/scenarios/films";
+import { alien, aliens, amelie, manualFilm, titlesOf } from "../support/scenarios/films";
 
 // Makes a film List: its summary, as the Worker answers.
 async function createList(api: ApiClient, data: { name: string; description?: string }) {
@@ -62,7 +62,42 @@ test("a User creates a film List with a name and a description, private and empt
     items: [],
   });
   const { lists } = await expectBody(loggedInApi.lists.getLists(), 200, ListsResponse);
-  expect(lists).toEqual([list]);
+  expect(lists).toEqual([{ ...list, covers: [], shared: false }]);
+});
+
+test("each List comes with its first four films in order, its count and whether it's shared", async ({
+  loggedInApi,
+}) => {
+  const horror = await createList(loggedInApi, { name: "Horror" });
+  const empty = await createList(loggedInApi, { name: "Empty" });
+  const films = [];
+  for (const title of ["One", "Two", "Three", "Four", "Five"]) {
+    const mediaItem = await manualFilm(loggedInApi, { title });
+    await addToList(loggedInApi, horror.id, { mediaItemId: mediaItem.id });
+    films.push(mediaItem);
+  }
+  const [one, two, three, , five] = films;
+  // Five moves to the top, so it leads the covers and Four drops out of them.
+  const fifth = (await theList(loggedInApi, horror.id)).items[4];
+  await expectBody(loggedInApi.listItems.updateListItem(fifth.id, { position: 0 }));
+  await expectBody(loggedInApi.lists.createShareLink(horror.id), 201);
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: one.id }), 201);
+
+  const { lists } = await expectBody(loggedInApi.lists.getLists(), 200, ListsResponse);
+  expect(lists).toEqual([
+    {
+      ...horror,
+      visibility: "link",
+      itemCount: 5,
+      covers: [five, one, two, three],
+      shared: true,
+    },
+    { ...empty, covers: [], shared: false },
+  ]);
+
+  // Stopping the Share Link takes the mark off.
+  expect((await loggedInApi.lists.revokeShareLink(horror.id)).status()).toBe(204);
+  expect((await theLists(loggedInApi))[0]).toMatchObject({ visibility: "private", shared: false });
 });
 
 test("the description is optional, and an empty one is none", async ({ loggedInApi }) => {
@@ -85,7 +120,7 @@ test("a User's List names are unique regardless of case, but not across Users", 
     expect(await response.json()).toEqual({ error: "list_name_taken" });
   }
 
-  expect(await theLists(loggedInApi)).toEqual([horror]);
+  expect(await theLists(loggedInApi)).toEqual([{ ...horror, covers: [], shared: false }]);
   expect((await createList(otherUserClient, { name: "Жахи" })).name).toBe("Жахи");
 });
 
@@ -163,7 +198,14 @@ test("films join a List at the end, and the User reorders and notes them", async
   });
   expect(second).toMatchObject({ position: 1, note: "The sequel." });
   expect((await theList(loggedInApi, list.id)).items).toEqual([first, second, third]);
-  expect(await theLists(loggedInApi)).toEqual([{ ...list, itemCount: 3 }]);
+  expect(await theLists(loggedInApi)).toEqual([
+    {
+      ...list,
+      itemCount: 3,
+      covers: [first, second, third].map(({ mediaItem }) => mediaItem),
+      shared: false,
+    },
+  ]);
 
   await expectBody(loggedInApi.listItems.updateListItem(third.id, { position: 0 }));
   const noted = await expectBody(

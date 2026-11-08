@@ -1,7 +1,7 @@
 // A User's own Lists, beside the Backlog: making, reading, renaming and deleting them, and adding
 // Media Items to them. Route handlers only translate HTTP to these calls; the List rules are the
 // domain core's (src/shared/lists.ts).
-import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, lte, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, shareLinks, tmdbCache, users } from "../../db/schema";
 import type {
@@ -10,13 +10,21 @@ import type {
   ListEditRequest,
   ListedMediaItem,
   ListItem,
+  ListPreview,
   ListSummary,
+  MediaItem,
   MediaItemList,
   MediaType,
   NewListItemRequest,
   NewListRequest,
 } from "../../shared/api";
-import { isReservedListName, listNameKey, maxLists } from "../../shared/lists";
+import {
+  isReservedListName,
+  isShared,
+  listCoverCount,
+  listNameKey,
+  maxLists,
+} from "../../shared/lists";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
@@ -121,6 +129,48 @@ export async function userLists(db: DrizzleD1Database, userId: number): Promise<
     .groupBy(lists.id)
     .orderBy(asc(lists.createdAt), asc(lists.id));
   return rows.map(toSummary);
+}
+
+// The User's own Lists, oldest first, each with how many items it holds, its first
+// `listCoverCount` Media Items in List order and whether it has a Share Link, in two queries
+// however many Lists and items there are.
+export async function listPreviews(
+  db: DrizzleD1Database,
+  userId: number,
+  now: Date,
+): Promise<ListPreview[]> {
+  // Each of the User's List Items with its place in its List, counted from 1.
+  const places = db
+    .select({
+      id: listItems.id,
+      place: sql<number>`row_number() over (
+        partition by ${listItems.listId} order by ${sql.join(listOrder, sql`, `)}
+      )`.as("place"),
+    })
+    .from(listItems)
+    .innerJoin(lists, eq(listItems.listId, lists.id))
+    .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
+    .as("places");
+  const [summaries, coverRows] = await Promise.all([
+    userLists(db, userId),
+    db
+      .select({ listId: listItems.listId, ...mediaItemColumns })
+      .from(listItems)
+      .innerJoin(places, eq(places.id, listItems.id))
+      .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
+      .leftJoin(tmdbCache, cacheOfMediaItem(now))
+      .where(lte(places.place, listCoverCount))
+      .orderBy(asc(places.place)),
+  ]);
+  const covers = new Map<number, MediaItem[]>();
+  for (const row of coverRows) {
+    covers.set(row.listId, [...(covers.get(row.listId) ?? []), toMediaItem(row)]);
+  }
+  return summaries.map((summary) => ({
+    ...summary,
+    covers: covers.get(summary.id) ?? [],
+    shared: isShared(summary.visibility),
+  }));
 }
 
 export type EditedList =

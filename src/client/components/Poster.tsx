@@ -4,11 +4,12 @@ import { type CoverShape, coverOf, coverShape, placeholderFor } from "../catalog
 import type { Found } from "../catalog/found";
 import { t } from "../i18n/t";
 
-type PosterSize = "dialog" | "thumbnail" | "search" | "large" | "grid" | "fan";
+type PosterSize = "dialog" | "thumbnail" | "search" | "large" | "grid" | "fan" | "collage";
 
 // Fixed heights, not an aspect ratio: a row's flex stretch would pull an auto height out of shape.
 // A grid's poster is the exception: it fills its column's width, which a grid cell keeps fixed, and
-// so is a fan's on Saved's tile, which fills the slot the fan sizes.
+// so is a fan's on Saved's tile, which fills the slot the fan sizes, and a collage's on a List's
+// card, which fills its square cell and so loses a little of its top and bottom.
 const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
   "2:3": {
     dialog: "h-13.5 w-9 rounded-sm md:h-15 md:w-10",
@@ -17,6 +18,7 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
     large: "h-42 w-28 rounded-md",
     grid: "aspect-2/3 w-full rounded-lg",
     fan: "size-full rounded-md",
+    collage: "size-full",
   },
 };
 

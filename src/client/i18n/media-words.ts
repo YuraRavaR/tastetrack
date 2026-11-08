@@ -8,7 +8,8 @@ import { t } from "./t";
 // Item History's name, what it says while empty, the labels of its first date and of a Log Entry's
 // date field, the mark of a planned Media Item already experienced, the action that opens search,
 // what Saved's two tabs say while empty, the label over a shared Collection, the sort by the last
-// Log Entry, what Saved says when its filters match nothing, and the counts on Saved's tile.
+// Log Entry, what Saved says when its filters match nothing, the counts on Saved's tile, and how
+// many a Collection holds.
 type MediaWord =
   | "experienced"
   | "experiencedAgain"
@@ -31,7 +32,8 @@ type MediaWord =
   | "collection"
   | "lastExperienced"
   | "noMatch"
-  | "tileCounts";
+  | "tileCounts"
+  | "count";
 
 // What a page with no Media Item of its own reads its words by, and the only Media Type built.
 export const pageMediaType: MediaType = "film";
