@@ -10,10 +10,9 @@ import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 // The frame of every page: a header above a content column, and a footer with the app version and
 // the credit TMDB's terms require (ADR-0004). Header and footer stop at `max-w-6xl`, which home
 // uses for its blocks side by side and Saved for its grids of posters; every other page keeps the
-// narrower column. Logged out, the
-// header holds only the app name. A logged-in User gets the sections, in a bottom tab bar on a
-// phone and in the header from `md`, and the account menu. A User who must set a new password gets
-// only the account menu, to log out.
+// narrower column. Logged out, the header holds only the app name. A logged-in User gets the
+// sections, in a bottom tab bar on a phone and in the header from `md`, and the account menu. A
+// User who must set a new password gets only the account menu, to log out.
 export function AppLayout() {
   const { state } = useAuth();
   const authenticated = state.status === "authenticated";

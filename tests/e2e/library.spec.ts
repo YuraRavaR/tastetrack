@@ -1,16 +1,8 @@
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { at } from "../support/clock";
+import { at, minutesAgo } from "../support/clock";
 import { alien, aliens, amelie } from "../support/scenarios/films";
 import { expect, test } from "../support/ui/fixtures";
-
-const minute = 60 * 1000;
-
-// A time shortly before now: one far back would move the session's expiry, which runs from the
-// last request, into the past.
-function minutesAgo(minutes: number) {
-  return new Date(Date.now() - minutes * minute).toISOString();
-}
 
 async function plan(api: ApiClient, mediaItemId: number, time: string) {
   await expectBody(api.backlog.addBacklogItem({ mediaItemId }, at(time)), 201);
@@ -123,7 +115,7 @@ test("on a phone the posters sit 3 a row under a link back to Saved", async ({
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(libraryPage.breadcrumb).toBeVisible();
-  await expect(libraryPage.breadcrumb).toHaveText(/Saved\s*›\s*Films/);
+  await expect(libraryPage.breadcrumb).toHaveText(/Saved\s*Films/);
   await libraryPage.backToSavedLink.click();
   await expect(page).toHaveURL("/");
 });

@@ -1,33 +1,84 @@
-import { Bookmark, ChevronLeft, Eye, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Bookmark, ChevronLeft, Eye, type LucideIcon, Search } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router";
-import { cn } from "@/lib/utils";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import type { LibraryItem, MediaType } from "../../shared/api";
 import * as api from "../api";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { EmptyState } from "../components/EmptyState";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { RatingValue } from "../components/Rating";
+import { SegmentedLinks } from "../components/SegmentedLinks";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import {
-  isLibraryTab,
   type LibraryTab,
   libraryPath,
+  libraryTabItems,
+  libraryTabOfSlug,
   libraryTabs,
   mediaTypeOfSlug,
-  tabItems,
 } from "../library/library-tabs";
 
-// Where Saved's tiles are, which the way back up leads to.
+// Saved's tiles, where the way back up leads.
 const savedPath = "/";
 
-// Where the film search is, which an empty Watchlist sends the User to.
+// The film search, where an empty Backlog tab sends the User.
 const searchPath = "/";
+
+// What differs between the two tabs: the tab's name, its empty state, and what each poster shows
+// besides its title.
+interface TabParts {
+  name: string;
+  empty: {
+    icon: LucideIcon;
+    message: string;
+    action: { label: string; to: string; icon?: LucideIcon };
+  };
+  meta(item: LibraryItem, year: number | null | undefined): ReactNode;
+  mark(item: LibraryItem): string | undefined;
+}
+
+function tabParts(mediaType: MediaType): Record<LibraryTab, TabParts> {
+  const backlogName = mediaWord(mediaType, "backlog");
+  return {
+    backlog: {
+      name: backlogName,
+      empty: {
+        icon: Bookmark,
+        message: mediaWord(mediaType, "backlogEmpty"),
+        action: { label: mediaWord(mediaType, "find"), to: searchPath, icon: Search },
+      },
+      meta: (_item, year) => year,
+      // A planned Media Item the User experienced before, planned again for a Revisit.
+      mark: (item) => (item.log ? mediaWord(mediaType, "experiencedBefore") : undefined),
+    },
+    experienced: {
+      name: mediaWord(mediaType, "experienced"),
+      empty: {
+        icon: Eye,
+        message: mediaWord(mediaType, "experiencedEmpty"),
+        action: {
+          label: t("saved.goTo", { backlogName }),
+          to: libraryPath(mediaType, "backlog"),
+        },
+      },
+      meta: (item) => item.log && <RatingValue rating={item.log.currentRating} compact />,
+      mark: () => undefined,
+    },
+  };
+}
 
 type LibraryState =
   | { status: "loading" }
-  | { status: "loaded"; items: LibraryItem[] }
+  | { status: "loaded"; tabs: Record<LibraryTab, LibraryItem[]> }
   | { status: "failed" };
 
 // Saved for one Media Type at /saved/<type>/<tab>; an address naming no Media Type or tab opens
@@ -35,29 +86,25 @@ type LibraryState =
 export function LibraryPage() {
   const params = useParams();
   const mediaType = mediaTypeOfSlug(params.type);
-  if (!mediaType || !isLibraryTab(params.tab)) {
-    return <Navigate to={libraryPath("film", "watchlist")} replace />;
-  }
-  return <LibraryTabs mediaType={mediaType} tab={params.tab} />;
+  const tab = libraryTabOfSlug(params.tab);
+  if (!mediaType || !tab) return <Navigate to={libraryPath("film", "backlog")} replace />;
+  return <LibraryTabs mediaType={mediaType} tab={tab} />;
 }
 
-// The tab's name, the Backlog's or the Experienced verb: "Watchlist", "Watched".
-function tabName(mediaType: MediaType, tab: LibraryTab): string {
-  return mediaWord(mediaType, tab === "watchlist" ? "backlog" : "experienced");
-}
-
-// The Media Type's heading, the way back up to Saved, its Watchlist and Watched tabs with their
-// counts, and the open tab's grid of posters. The Library loads once for both tabs.
+// The Media Type's heading, the way back up to Saved, its two tabs with their counts, and the open
+// tab's grid of posters. The Library loads once for both tabs.
 function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab }) {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const typeName = mediaWord(mediaType, "tab");
+  const parts = tabParts(mediaType);
+  const open = parts[tab];
 
   useEffect(() => {
     let cancelled = false;
     setState({ status: "loading" });
     api.fetchLibrary(mediaType).then(
       (items) => {
-        if (!cancelled) setState({ status: "loaded", items });
+        if (!cancelled) setState({ status: "loaded", tabs: libraryTabItems(items) });
       },
       () => {
         if (!cancelled) setState({ status: "failed" });
@@ -68,7 +115,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
     };
   }, [mediaType]);
 
-  const items = state.status === "loaded" ? tabItems(tab, state.items) : [];
+  const items = state.status === "loaded" ? state.tabs[tab] : [];
   const fill = useMetadataFill(items.map((item) => item.mediaItem));
 
   return (
@@ -81,45 +128,31 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
           <ChevronLeft aria-hidden className="size-4.5" />
           {t("saved.title")}
         </Link>
-        <nav aria-label={t("saved.breadcrumb")} className="hidden md:block">
-          <ol className="flex items-center gap-1.5 text-muted-foreground text-sm">
-            <li>
-              <Link to={savedPath} className="hover:text-foreground">
-                {t("saved.title")}
-              </Link>
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span aria-hidden>›</span>
-              <span aria-current="page">{typeName}</span>
-            </li>
-          </ol>
-        </nav>
+        <Breadcrumb aria-label={t("saved.breadcrumb")} className="hidden md:block">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to={savedPath}>{t("saved.title")}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{typeName}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <h1 className="font-bold text-3xl tracking-tight md:text-4xl">{typeName}</h1>
       </div>
 
-      <nav
-        aria-label={t("saved.tabs")}
-        className="grid grid-cols-2 gap-0.5 self-stretch rounded-xl bg-muted p-0.75 md:flex md:self-start"
-      >
-        {libraryTabs.map((each) => (
-          <Link
-            key={each}
-            to={libraryPath(mediaType, each)}
-            aria-current={each === tab ? "page" : undefined}
-            className={cn(
-              "flex h-9.5 items-center justify-center gap-1 rounded-lg font-semibold text-sm md:h-9 md:px-4.5",
-              each === tab && "bg-card shadow-sm",
-            )}
-          >
-            {tabName(mediaType, each)}
-            {state.status === "loaded" && (
-              <span className="font-medium text-muted-foreground">
-                {tabItems(each, state.items).length}
-              </span>
-            )}
-          </Link>
-        ))}
-      </nav>
+      <SegmentedLinks
+        label={t("saved.tabs")}
+        segments={libraryTabs.map((each) => ({
+          to: libraryPath(mediaType, each),
+          label: parts[each].name,
+          count: state.status === "loaded" ? state.tabs[each].length : undefined,
+          current: each === tab,
+        }))}
+      />
 
       {state.status === "loading" && (
         <p className="text-muted-foreground text-sm">{t("saved.loading")}</p>
@@ -129,61 +162,26 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
           {t("saved.unavailable")}
         </p>
       )}
-      {state.status === "loaded" && items.length === 0 && (
-        <TabEmptyState mediaType={mediaType} tab={tab} />
-      )}
+      {state.status === "loaded" && items.length === 0 && <EmptyState {...open.empty} />}
       {items.length > 0 && (
         <ul
-          aria-label={tabName(mediaType, tab)}
+          aria-label={open.name}
           className="grid grid-cols-3 gap-x-3 gap-y-4.5 md:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:gap-x-5 md:gap-y-6"
         >
           {items.map((item) => {
             const mediaItem = fill.filled(item.mediaItem);
-            const year = mediaItem.metadata?.year;
             return (
               <PosterGridItem
                 key={mediaItem.id}
                 mediaItem={mediaItem}
                 loading={fill.loading(item.mediaItem)}
-                meta={
-                  tab === "watched" && item.log ? (
-                    <RatingValue rating={item.log.currentRating} compact />
-                  ) : (
-                    year
-                  )
-                }
-                mark={
-                  tab === "watchlist" && item.log
-                    ? mediaWord(mediaType, "experiencedBefore")
-                    : undefined
-                }
+                meta={open.meta(item, mediaItem.metadata?.year)}
+                mark={open.mark(item)}
               />
             );
           })}
         </ul>
       )}
     </div>
-  );
-}
-
-function TabEmptyState({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab }) {
-  if (tab === "watchlist") {
-    return (
-      <EmptyState
-        icon={Bookmark}
-        message={mediaWord(mediaType, "backlogEmpty")}
-        action={{ label: mediaWord(mediaType, "find"), to: searchPath, icon: Search }}
-      />
-    );
-  }
-  return (
-    <EmptyState
-      icon={Eye}
-      message={mediaWord(mediaType, "experiencedEmpty")}
-      action={{
-        label: t("saved.goTo", { backlogName: mediaWord(mediaType, "backlog") }),
-        to: libraryPath(mediaType, "watchlist"),
-      }}
-    />
   );
 }

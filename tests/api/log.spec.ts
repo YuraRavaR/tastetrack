@@ -9,7 +9,7 @@ import {
 import type { ApiClient } from "../support/api/ApiClient";
 import type { RequestOptions } from "../support/api/controllers/BaseController";
 import { expectBody } from "../support/api/responses";
-import { at } from "../support/clock";
+import { at, minutesAgo } from "../support/clock";
 import { expect, test } from "../support/fixtures";
 import { alien, aliens, film, searchResult } from "../support/scenarios/films";
 import { callsRealTmdb } from "../support/scenarios/tmdb";
@@ -107,15 +107,6 @@ test("a search result that isn't one is a 400", async ({ loggedInApi }) => {
     expect(response.status(), JSON.stringify(data)).toBe(400);
   }
 });
-
-const minute = 60 * 1000;
-
-// The moment `minutes` ago, for tests that need one creation time before another. A request at a
-// test time sets the session's expiry from that time, so a fixed date would end the session for
-// the test's later requests once the real date passes that expiry.
-function minutesAgo(minutes: number) {
-  return new Date(Date.now() - minutes * minute).toISOString();
-}
 
 async function postLogEntry(api: ApiClient, data: NewLogEntryRequest, options?: RequestOptions) {
   return (await expectBody(api.log.createLogEntry(data, options), 201)).logEntry;

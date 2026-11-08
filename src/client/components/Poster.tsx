@@ -37,7 +37,7 @@ export function Poster({ subject, size }: { subject: MediaItem | Found; size: Po
 
   const { icon: Icon, caption } = placeholderFor(cover.mediaItemId);
   const large = size === "large";
-  const roomy = large || size === "grid";
+  const withCaption = large || size === "grid";
   return (
     <div
       role="img"
@@ -45,11 +45,11 @@ export function Poster({ subject, size }: { subject: MediaItem | Found; size: Po
       className={cn(
         "flex shrink-0 flex-col items-center justify-center gap-2 bg-muted text-center text-muted-foreground",
         large ? "size-full" : sizeClass,
-        roomy && "p-2.5",
+        withCaption && "p-2.5",
       )}
     >
-      <Icon aria-hidden className={roomy ? "size-14" : "size-5"} />
-      {roomy && <p className="text-xs">{t(caption)}</p>}
+      <Icon aria-hidden className={withCaption ? "size-14" : "size-5"} />
+      {withCaption && <p className="text-xs">{t(caption)}</p>}
     </div>
   );
 }

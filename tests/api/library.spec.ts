@@ -1,18 +1,10 @@
 import { LibraryResponse } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { at } from "../support/clock";
+import { at, minutesAgo } from "../support/clock";
 import { expect, test } from "../support/fixtures";
 import { alien, aliens, amelie } from "../support/scenarios/films";
 import { createUser } from "../support/scenarios/users";
-
-const minute = 60 * 1000;
-
-// A time shortly before now: one far back would move the session's expiry, which runs from the
-// last request, into the past.
-function minutesAgo(minutes: number) {
-  return new Date(Date.now() - minutes * minute).toISOString();
-}
 
 async function theLibrary(api: ApiClient) {
   const library = api.library.getLibrary({ mediaType: "film" });

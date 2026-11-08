@@ -15,7 +15,7 @@ export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
   // "‹ Saved" above the heading on a phone, the breadcrumb's first link from md.
   readonly backToSavedLink = this.main.getByRole("link", { name: "Saved", exact: true });
   readonly breadcrumb = this.main.getByRole("navigation", { name: "Breadcrumb" });
-  readonly tabs = this.main.getByRole("navigation", { name: "Status" }).getByRole("link");
+  readonly tabsNav = this.main.getByRole("navigation", { name: "Status" });
   // The buttons of an empty tab's quiet block.
   readonly findFilmLink = this.main.getByRole("link", { name: "Find a film" });
   readonly goToWatchlistLink = this.main.getByRole("link", { name: "Go to Watchlist" });
@@ -27,9 +27,7 @@ export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
 
   // A tab's link, named with its count, such as "Watchlist 2".
   tab(name: LibraryTab) {
-    return this.main
-      .getByRole("navigation", { name: "Status" })
-      .getByRole("link", { name: new RegExp(`^${name}\\b`) });
+    return this.tabsNav.getByRole("link", { name: new RegExp(`^${name}\\b`) });
   }
 
   // The posters of the tab that is open.
