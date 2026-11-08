@@ -42,16 +42,17 @@ export function RatingStars({ rating }: { rating: number }) {
   );
 }
 
-// A Rating shown as one filled star and its number, read out the same way.
-export function RatingValue({ rating }: { rating: number }) {
+// A Rating shown as one filled star and its number, read out the same way. A compact one, as under
+// a poster, is smaller and always shows one decimal: "4.0".
+export function RatingValue({ rating, compact = false }: { rating: number; compact?: boolean }) {
   return (
     <span
       role="img"
       aria-label={t("rating.stars", { stars: rating })}
-      className="flex items-center gap-1.5"
+      className={cn("flex items-center", compact ? "gap-1" : "gap-1.5")}
     >
-      <StarShape fill={1} className="size-4.5" />
-      {t("rating.value", { stars: rating })}
+      <StarShape fill={1} className={compact ? "size-3" : "size-4.5"} />
+      {t(compact ? "rating.short" : "rating.value", { stars: rating })}
     </span>
   );
 }

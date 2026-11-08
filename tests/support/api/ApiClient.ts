@@ -3,6 +3,7 @@ import { AuthController } from "./controllers/AuthController";
 import { BacklogController } from "./controllers/BacklogController";
 import { CatalogController } from "./controllers/CatalogController";
 import { InviteCodesController } from "./controllers/InviteCodesController";
+import { LibraryController } from "./controllers/LibraryController";
 import { ListItemsController } from "./controllers/ListItemsController";
 import { ListsController } from "./controllers/ListsController";
 import { LogController } from "./controllers/LogController";
@@ -17,6 +18,7 @@ export class ApiClient {
   readonly backlog: BacklogController;
   readonly catalog: CatalogController;
   readonly inviteCodes: InviteCodesController;
+  readonly library: LibraryController;
   readonly listItems: ListItemsController;
   readonly lists: ListsController;
   readonly log: LogController;
@@ -29,6 +31,7 @@ export class ApiClient {
     this.backlog = new BacklogController(requestContext);
     this.catalog = new CatalogController(requestContext);
     this.inviteCodes = new InviteCodesController(requestContext);
+    this.library = new LibraryController(requestContext);
     this.listItems = new ListItemsController(requestContext);
     this.lists = new ListsController(requestContext);
     this.log = new LogController(requestContext);

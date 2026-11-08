@@ -9,6 +9,8 @@ import type {
   InviteCodeResponse,
   InviteCodesResponse,
   ItemHistoryResponse,
+  LibraryItem,
+  LibraryResponse,
   List,
   ListEditRequest,
   ListItem,
@@ -31,6 +33,7 @@ import type {
   MediaItemListsResponse,
   MediaItemResponse,
   MediaItemsResponse,
+  MediaType,
   NewListItemRequest,
   NewListRequest,
   NewLogEntryRequest,
@@ -425,6 +428,13 @@ export async function fetchItemHistory(mediaItemId: number): Promise<ItemHistory
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Loading the Item History failed: ${response.status}`);
   return (await response.json()) as ItemHistoryResponse;
+}
+
+// The User's Library of the Media Type, each Media Item once, in no particular order.
+export async function fetchLibrary(mediaType: MediaType): Promise<LibraryItem[]> {
+  const response = await fetch(`/api/library?mediaType=${mediaType}`);
+  if (!response.ok) throw new Error(`Loading the Library failed: ${response.status}`);
+  return ((await response.json()) as LibraryResponse).items;
 }
 
 export async function fetchBacklog(): Promise<Backlog> {

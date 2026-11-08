@@ -3,6 +3,7 @@ import { step } from "../step";
 import { FilmPage } from "./pages/FilmPage";
 import { HomePage } from "./pages/HomePage";
 import { InvitesPage } from "./pages/InvitesPage";
+import { LibraryPage } from "./pages/LibraryPage";
 import { ListPage } from "./pages/ListPage";
 import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -19,6 +20,7 @@ export class Ui {
   readonly filmPage: FilmPage;
   readonly homePage: HomePage;
   readonly invitesPage: InvitesPage;
+  readonly libraryPage: LibraryPage;
   readonly listPage: ListPage;
   readonly listsPage: ListsPage;
   readonly loginPage: LoginPage;
@@ -33,6 +35,7 @@ export class Ui {
     this.filmPage = new FilmPage(page);
     this.homePage = new HomePage(page);
     this.invitesPage = new InvitesPage(page);
+    this.libraryPage = new LibraryPage(page);
     this.listPage = new ListPage(page);
     this.listsPage = new ListsPage(page);
     this.loginPage = new LoginPage(page);
