@@ -52,8 +52,39 @@ test("a used Invite Code shows why registration failed", async ({ page, ui, logg
     password: "a long enough password",
   });
 
-  await expect(ui.registerPage.errorMessage).toHaveText(
+  const { registerPage } = ui;
+  await expect(registerPage.errorMessage).toHaveText(
     "That Invite Code has already been used. Ask for a new one.",
   );
-  await expect(page).toHaveURL(ui.registerPage.path(code));
+  await expect(page).toHaveURL(registerPage.path(code));
+  await expect(registerPage.inviteCodeInput).toHaveAttribute("aria-invalid", "true");
+  await expect(registerPage.usernameInput).toHaveAttribute("aria-invalid", "false");
+
+  // Typing in the field at fault clears the error.
+  await registerPage.inviteCodeInput.fill("ANOTHERCODE");
+  await expect(registerPage.errorMessage).toHaveCount(0);
+  await expect(registerPage.inviteCodeInput).toHaveAttribute("aria-invalid", "false");
+});
+
+test("a taken Username marks the Username field", async ({ ui, api, loggedInUser }) => {
+  const { inviteCode } = await expectBody(api.inviteCodes.issueInviteCode(), 201);
+  await api.auth.logout();
+  const { registerPage } = ui;
+
+  await registerPage.goto(inviteCode.code);
+  await registerPage.register({
+    username: loggedInUser.username,
+    password: "a long enough password",
+  });
+
+  await expect(registerPage.errorMessage).toHaveText(
+    "That Username is taken. Please choose another.",
+  );
+  await expect(registerPage.usernameInput).toHaveAttribute("aria-invalid", "true");
+  await expect(registerPage.inviteCodeInput).toHaveAttribute("aria-invalid", "false");
+
+  // Typing in the field at fault clears the error.
+  await registerPage.usernameInput.fill(uniqueUsername());
+  await expect(registerPage.errorMessage).toHaveCount(0);
+  await expect(registerPage.usernameInput).toHaveAttribute("aria-invalid", "false");
 });

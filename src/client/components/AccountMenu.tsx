@@ -1,4 +1,4 @@
-import { ChevronDown, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,9 @@ import { t } from "../i18n/t";
 export function AccountMenu() {
   const { state, logOut } = useAuth();
   const user = state.status === "authenticated" ? state.user : null;
+  // A User setting a new password has no Display Name yet to show, only the Username they typed.
+  const name =
+    user?.displayName ?? (state.status === "passwordChangeRequired" ? state.username : null);
 
   return (
     <DropdownMenu>
@@ -25,7 +28,7 @@ export function AccountMenu() {
           <span className="flex size-8.5 items-center justify-center rounded-full bg-muted text-secondary-foreground">
             <UserRound aria-hidden className="size-5" />
           </span>
-          {user && <span className="hidden max-w-48 truncate md:inline">{user.displayName}</span>}
+          {name && <span className="hidden max-w-48 truncate md:inline">{name}</span>}
           <ChevronDown aria-hidden className="hidden md:block" />
         </Button>
       </DropdownMenuTrigger>
@@ -42,6 +45,7 @@ export function AccountMenu() {
           </>
         )}
         <DropdownMenuItem className="min-h-11" onSelect={() => logOut()}>
+          <LogOut aria-hidden />
           {t("auth.logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
