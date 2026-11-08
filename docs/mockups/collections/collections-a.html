@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Collections, variant A</title>
+<!--
+  Static mockup of Collections, variant A "collage cards". Colours copy the tokens in
+  src/client/styles.css (Gold · Paper); dark mode follows the system setting. Below md the
+  sections sit in a bottom tab bar and dialogs are bottom sheets; from md the sections move into
+  the header and dialogs are centred.
+  States, by URL hash:
+    (no hash)    the Collections grid: collage cards, the category picker, "New collection"
+    #collection  one Collection (Slow cinema): poster grid, a Note under each poster
+    #reorder     the same Collection in "Reorder films" mode, arrows on each poster
+    #new         the Collections grid with the "New collection" dialog open
+    #share       Watch with Mum, already shared, with the Share Link dialog open
+  Working: open a card, Back, the header ⋯ menu (Edit, Reorder films, Share, Delete), each
+  poster's ⋯ (a sheet on a phone, a menu from md: Note, Move to top, Remove, with Undo), the Note
+  dialog, the New and Edit forms with their errors, Share, Copy link, New link, Stop sharing.
+  Posters are coloured placeholders; the add-films search is not wired.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --shadow: oklch(0.2 0.01 50 / 14%);
+  --poster-text: oklch(0.97 0.01 80);
+  --destructive: oklch(0.46 0.18 25);
+  --destructive-foreground: oklch(0.985 0 0);
+  --overlay: oklch(0.2 0.01 50 / 50%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --shadow: oklch(0 0 0 / 50%);
+    --destructive: oklch(0.66 0.2 22);
+    --destructive-foreground: oklch(0.17 0.006 50);
+    --overlay: oklch(0 0 0 / 60%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+input, textarea { font: inherit; color: var(--foreground); }
+input::placeholder { color: var(--muted-foreground); }
+h1, h2, p, ul, ol { margin: 0; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+svg.dots { fill: currentColor; flex-shrink: 0; }
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted-foreground); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.md { display: none; }
+[hidden] { display: none !important; }
+
+/* Header: the app name and the account on a phone; the section nav joins them from md. */
+header { background: var(--card); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+header .wrap { min-height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; }
+.top-nav { display: none; flex: 1; gap: 4px; font-size: 15px; font-weight: 500; }
+.top-nav a { padding: 8px 14px; border-radius: 10px; color: var(--muted-foreground); }
+.top-nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); font-weight: 600; }
+.account { margin-left: auto; height: 44px; padding: 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500; }
+.account .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.account .name { display: none; }
+
+main.wrap { flex: 1; padding-top: 20px; padding-bottom: 28px; }
+.page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+
+/* Buttons */
+.btn { height: 48px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.btn.primary { border: 0; background: var(--primary); color: var(--primary-foreground); font-weight: 700; }
+.btn.danger { border: 0; background: var(--destructive); color: var(--destructive-foreground); font-weight: 700; }
+.btn.danger-text { color: var(--destructive); }
+.btn.sm { height: 44px; font-size: 14px; }
+.pill { height: 40px; padding: 0 14px 0 10px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); font-size: 14px; font-weight: 600; white-space: nowrap; }
+.icon-btn { width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 999px; background: var(--card); }
+
+/* The Collections grid */
+.cols { display: flex; flex-direction: column; gap: 16px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.types { display: flex; flex-wrap: wrap; gap: 8px; }
+.type-chip { height: 36px; padding: 0 14px 0 10px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--primary-strong); border-radius: 999px; background: var(--primary-soft); font-size: 14px; font-weight: 600; }
+.type-chip .n { color: var(--muted-foreground); font-weight: 500; }
+.type-chip.soon { padding-right: 6px; border: 1.5px dashed var(--border); background: transparent; color: var(--muted-foreground); font-weight: 500; }
+.badge { padding: 3px 8px; border-radius: 999px; background: var(--muted); font-size: 11px; font-weight: 600; }
+.cards { margin-top: 4px; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 12px; }
+.card { width: 100%; padding: 0; border: 0; background: transparent; text-align: left; display: flex; flex-direction: column; gap: 9px; }
+.collage { width: 100%; aspect-ratio: 1 / 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 2px; border-radius: 14px; overflow: hidden; background: var(--card); box-shadow: 0 1px 3px var(--shadow); transition: box-shadow 0.15s; }
+.card:hover .collage { box-shadow: 0 8px 22px var(--shadow); }
+.card-text { display: flex; flex-direction: column; gap: 3px; padding: 0 2px; }
+.card-name { font-size: 15px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.card-meta, .one-meta { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted-foreground); }
+.empty-text { margin: 24px 0; font-size: 15px; color: var(--muted-foreground); text-align: center; }
+
+/* One Collection */
+.one { display: flex; flex-direction: column; gap: 14px; }
+.one-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "back more" "lead lead" "add add"; gap: 8px 12px; align-items: center; }
+.back { grid-area: back; justify-self: start; height: 44px; margin-left: -8px; padding: 0 8px; display: inline-flex; align-items: center; gap: 2px; color: var(--muted-foreground); font-size: 15px; }
+.more-wrap { grid-area: more; position: relative; margin-right: -6px; }
+.lead { grid-area: lead; display: flex; flex-direction: column; gap: 6px; }
+.crumb { display: none; font-size: 14px; color: var(--muted-foreground); }
+.desc { font-size: 15px; line-height: 1.45; max-width: 40rem; }
+.add { grid-area: add; position: relative; margin-top: 6px; }
+.add svg { position: absolute; left: 12px; top: 13px; color: var(--muted-foreground); }
+.add input { width: 100%; height: 44px; padding: 0 12px 0 38px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 15px; }
+
+.menu { position: absolute; z-index: 10; width: 220px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow); }
+.col-menu { top: 50px; right: 0; }
+.menu button { height: 44px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; font-size: 15px; text-align: left; }
+.menu button:hover:not(:disabled) { background: var(--muted); }
+.menu button:disabled { opacity: 0.4; }
+.menu .danger, .rows .danger { color: var(--destructive); }
+.menu .sep { height: 1px; margin: 4px 6px; background: var(--border); }
+
+.bar { position: sticky; top: 0; z-index: 5; padding: 8px 8px 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--primary-strong); border-radius: 14px; background: var(--primary-soft); font-size: 14px; }
+.bar .pill { flex-shrink: 0; padding: 0 16px; }
+.removed { align-self: stretch; padding: 4px 4px 4px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: 12px; background: var(--muted); font-size: 14px; }
+.removed button { flex-shrink: 0; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--primary-strong); font-size: 14px; font-weight: 700; }
+
+.posters { margin-top: 2px; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 12px; align-items: start; }
+.posters li { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.pwrap { position: relative; }
+.poster { position: relative; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; display: flex; align-items: flex-end; padding: 8px; }
+.poster-title { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 14px; line-height: 1.15; color: var(--poster-text); }
+.pos { position: absolute; top: 6px; left: 6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--overlay); color: var(--poster-text); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.pmore { position: absolute; top: 0; right: 0; width: 44px; height: 44px; padding: 5px; border: 0; background: transparent; display: flex; align-items: flex-start; justify-content: flex-end; }
+.pmore span { width: 28px; height: 28px; border-radius: 999px; background: var(--overlay); color: var(--poster-text); display: flex; align-items: center; justify-content: center; }
+.item-menu { top: 44px; right: 4px; }
+.arrows { position: absolute; inset: 0; border-radius: 8px; background: var(--overlay); outline: 2px solid var(--primary); outline-offset: 2px; display: flex; flex-direction: column; justify-content: space-between; }
+.pwrap:has(.arrows) .poster-title { visibility: hidden; }
+.arrows .row { display: flex; justify-content: space-between; }
+.arrows .row.top { justify-content: flex-end; }
+.arrows button { width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--poster-text); display: flex; align-items: center; justify-content: center; }
+.arrows button:disabled { opacity: 0.35; }
+.ptitle { font-size: 13px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.year { margin-top: -3px; font-size: 12px; color: var(--muted-foreground); }
+.note { margin: 0 -4px; min-height: 44px; padding: 6px 4px; display: flex; align-items: flex-start; gap: 5px; border: 0; border-top: 1px solid var(--border); background: transparent; color: var(--muted-foreground); text-align: left; }
+.note svg { margin-top: 2px; }
+.note span { font-size: 12px; font-style: italic; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.empty-box { padding: 32px 12px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; border: 1.5px dashed var(--border); border-radius: 16px; color: var(--muted-foreground); font-size: 15px; }
+
+/* Bottom tab bar, phone only */
+.tabbar { position: sticky; bottom: 0; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--card); border-top: 1px solid var(--border); }
+.tabbar a { padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; color: var(--muted-foreground); font-size: 11px; font-weight: 500; }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+
+footer { display: none; border-top: 1px solid var(--border); }
+footer .wrap { padding-top: 16px; padding-bottom: 16px; display: flex; gap: 12px; font-size: 12px; color: var(--muted-foreground); }
+
+/* Dialogs: a bottom sheet on a phone, a centred dialog from md */
+.layer { position: fixed; inset: 0; z-index: 30; }
+.scrim { position: absolute; inset: 0; width: 100%; border: 0; background: var(--overlay); cursor: default; }
+.dialog { position: absolute; left: 0; right: 0; bottom: 0; max-height: calc(100% - 48px); overflow-y: auto; padding: 16px 16px calc(16px + max(18px, env(safe-area-inset-bottom))); display: flex; flex-direction: column; gap: 18px; background: var(--card); border-radius: 24px 24px 0 0; box-shadow: 0 -10px 30px var(--shadow); }
+.dhead { display: flex; align-items: flex-start; gap: 12px; }
+.dhead .what { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.dhead h2 { font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+.dhead p { font-size: 14px; line-height: 1.45; color: var(--muted-foreground); }
+.close { width: 44px; height: 44px; margin: -8px -8px 0 0; flex-shrink: 0; border: 0; border-radius: 999px; background: transparent; color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label, .field .label { font-size: 14px; font-weight: 600; }
+.field .opt { font-weight: 400; color: var(--muted-foreground); }
+.field input, .field textarea { height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); font-size: 16px; }
+.field textarea { height: auto; padding: 10px 12px; line-height: 1.4; resize: none; }
+.field input[aria-invalid="true"] { border-color: var(--destructive); }
+.err { font-size: 13px; color: var(--destructive); }
+.hint { font-size: 13px; color: var(--muted-foreground); }
+.mt { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mt button { height: 52px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--primary-strong); border-radius: 12px; background: var(--primary-soft); font-size: 15px; font-weight: 600; text-align: left; }
+.mt button:disabled { border: 1.5px dashed var(--border); background: transparent; color: var(--muted-foreground); font-weight: 500; }
+.mt .stack { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+.mt .badge { padding: 0; background: transparent; font-size: 12px; font-weight: 500; }
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.film-row { display: flex; align-items: center; gap: 12px; }
+.film-row .thumb { width: 40px; height: 60px; flex-shrink: 0; border-radius: 6px; }
+.rows { margin: -8px -4px 0; display: flex; flex-direction: column; gap: 4px; }
+.rows button { height: 52px; padding: 0 10px; display: flex; align-items: center; gap: 12px; border: 0; border-radius: 12px; background: transparent; font-size: 16px; text-align: left; }
+.rows button:first-child { background: var(--muted); }
+.rows button:disabled { opacity: 0.4; }
+.link-row { display: flex; flex-direction: column; gap: 10px; }
+.link-row input { height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); font-size: 15px; }
+.confirm { padding: 14px; display: flex; flex-direction: column; gap: 10px; border-radius: 14px; background: var(--muted); }
+.confirm .t { font-size: 15px; font-weight: 700; }
+.confirm p { font-size: 14px; line-height: 1.45; }
+
+@media (min-width: 768px) {
+  .wrap { padding: 0 24px; }
+  header .wrap { min-height: 64px; }
+  .top-nav { display: flex; }
+  .account { margin-left: 0; padding-right: 12px; }
+  .account .name { display: inline; }
+  main.wrap { padding-top: 32px; padding-bottom: 56px; }
+  .page-title { font-size: 32px; }
+  .md { display: inline; }
+  .cols { gap: 20px; }
+  .head { flex-wrap: wrap; gap: 16px; }
+  .pill { height: 42px; padding: 0 18px 0 14px; gap: 8px; font-size: 15px; }
+  .cards { margin-top: 8px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 32px 24px; }
+  .collage { gap: 3px; border-radius: 16px; }
+  .card { gap: 10px; }
+  .card-name { font-size: 16px; }
+  .card-meta, .one-meta { font-size: 14px; }
+  .empty-text { margin: 32px 0; text-align: left; }
+
+  .one { gap: 20px; }
+  .one-head { grid-template-columns: minmax(0, 1fr) 280px auto; grid-template-areas: "lead add more"; gap: 16px 10px; align-items: start; }
+  .back { display: none; }
+  .crumb { display: block; }
+  .desc { font-size: 16px; line-height: 1.5; }
+  .add, .more-wrap { margin: 24px 0 0; }
+  .add svg { top: 11px; }
+  .add input { height: 44px; border-radius: 10px; }
+  .menu { width: 230px; }
+  .menu button { height: 40px; font-size: 14px; }
+  .bar { top: 12px; padding-left: 16px; font-size: 15px; }
+  .removed { align-self: flex-start; }
+  .posters { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 28px 20px; }
+  .poster, .arrows { border-radius: 10px; }
+  .poster { padding: 10px; }
+  .poster-title { font-size: 16px; }
+  .pos { top: 8px; left: 8px; min-width: 24px; height: 24px; padding: 0 7px; }
+  .pmore { padding: 6px; }
+  .pmore span { width: 30px; height: 30px; }
+  .ptitle { font-size: 14px; }
+  .year { font-size: 13px; }
+  .note { margin: 2px -6px 0; padding: 8px 6px; min-height: 0; gap: 6px; }
+  .note span { font-size: 13px; line-height: 1.4; }
+  .empty-box { padding: 56px 24px; border-radius: 18px; font-size: 16px; }
+  .tabbar { display: none; }
+  footer { display: block; }
+
+  .dialog { top: 72px; bottom: auto; left: 50%; right: auto; transform: translateX(-50%); width: calc(100% - 32px); max-width: 480px; max-height: calc(100% - 144px); padding: 24px; gap: 20px; border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 20px 50px var(--shadow); }
+  .dialog.wide { max-width: 520px; }
+  .close { width: 36px; height: 36px; margin: -6px -8px 0 0; }
+  .field input { height: 40px; font-size: 15px; }
+  .field textarea { font-size: 15px; resize: vertical; }
+  .mt button { height: 48px; }
+  .mt .stack { flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+  .mt .badge { padding: 3px 8px; background: var(--muted); font-size: 11px; font-weight: 600; }
+  .actions { display: flex; justify-content: flex-end; }
+  .actions .btn { height: 40px; border-radius: 10px; font-size: 14px; }
+  .link-row { flex-direction: row; }
+  .link-row input { flex: 1; min-width: 0; height: 40px; font-size: 14px; }
+  .link-row .btn { height: 40px; border-radius: 10px; font-size: 14px; }
+  .share-more { display: flex !important; gap: 8px; }
+  .share-more .btn { height: 36px; padding: 0 14px; border-radius: 10px; font-size: 13px; }
+  .confirm { padding: 16px; }
+  .confirm .actions .btn { height: 36px; padding: 0 14px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<a class="brand" href="#">TasteTrack</a>
+<nav class="top-nav" aria-label="Main">
+<a href="#saved">Saved</a>
+<a href="#" aria-current="page">Collections</a>
+<a href="#search">Search</a>
+</nav>
+<button class="account" type="button" aria-label="Account: Invites, Settings, Log out"><span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="name">Yurii</span></button>
+</div>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<footer><div class="wrap"><span>Film data from TMDB</span><span>v0.6.0</span></div></footer>
+
+<nav class="tabbar" aria-label="Main">
+<a href="#saved"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved</a>
+<a href="#" aria-current="page"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Collections</a>
+<a href="#search"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</a>
+</nav>
+
+<div class="layer" id="layer" hidden>
+<button class="scrim" type="button" aria-label="Close" data-act="close" tabindex="-1"></button>
+<div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="d-title"></div>
+</div>
+
+<script>
+const tone = (h) => `oklch(0.42 0.075 ${h})`;
+const F = {
+  pd: ["Perfect Days", 2023, 150], dmc: ["Drive My Car", 2021, 15], ts: ["Tokyo Story", 1953, 60], st: ["Stalker", 1979, 110],
+  as: ["Aftersun", 2022, 210], col: ["Columbus", 2017, 175], tth: ["The Turin Horse", 2011, 40], jd: ["Jeanne Dielman", 1975, 320],
+  p2: ["Paddington 2", 2017, 25], am: ["Amélie", 2001, 115], gbh: ["The Grand Budapest Hotel", 2014, 350], lw: ["Little Women", 2019, 280],
+  sa: ["Spirited Away", 2001, 175], mm: ["Mamma Mia!", 2008, 90],
+  pl: ["Past Lives", 2023, 250], aof: ["Anatomy of a Fall", 2023, 30], zoi: ["The Zone of Interest", 2023, 125], pt: ["Poor Things", 2023, 335],
+  fl: ["Fallen Leaves", 2023, 5], op: ["Oppenheimer", 2023, 45], ho: ["The Holdovers", 2023, 70], kfm: ["Killers of the Flower Moon", 2023, 20],
+  pa: ["Parasite", 2019, 95], mom: ["Memories of Murder", 2003, 135], ob: ["Oldboy", 2003, 355], hm: ["The Handmaiden", 2016, 300],
+  dtl: ["Decision to Leave", 2022, 185], bu: ["Burning", 2018, 45], ch: ["The Chaser", 2008, 220],
+  itm: ["In the Mood for Love", 2000, 20], bs: ["Before Sunrise", 1995, 300], her: ["Her", 2013, 10], lit: ["Lost in Translation", 2003, 240], pat: ["Paterson", 2016, 160],
+  heat: ["Heat", 1995, 50], o11: ["Ocean’s Eleven", 2001, 230], im: ["Inside Man", 2006, 200],
+};
+const mk = (id, name, desc, tok, rows) => ({ id, name, desc, tok, items: rows.map(([k, note]) => ({ k, note: note ?? null })) });
+let cols = [
+  mk("slow", "Slow cinema", "Long takes, few cuts, for evenings with nowhere to be.", null, [["pd", "The toilet cleaner who reads Faulkner. Save it for a Sunday morning."], ["dmc", "Three hours and it never drags. The car scenes are the film."], ["ts"], ["jd", "Keep it for a day off; the potatoes scene is the point."], ["st"], ["as", "Not slow so much as patient. Have tissues."], ["col"], ["tth"]]),
+  mk("mum", "Watch with Mum", "Nothing too loud, nothing too sad, subtitles fine.", "M2pd7XcKa4Hs", [["p2", "She laughed at the prison laundry for a full minute."], ["am"], ["gbh", "Colours she will love."], ["lw"], ["sa", "Try the English dub."], ["mm"]]),
+  mk("b23", "Best of 2023", null, null, [["pl", "The best last ten minutes of the year."], ["aof"], ["zoi", "Listen to it as much as watch it."], ["pt"], ["pd"], ["fl", "Kaurismäki at his driest."], ["op"], ["ho", "A Christmas film for people who avoid Christmas films."], ["kfm"]]),
+  mk("kor", "Korean thrillers", "From Bong to Park, in the order I would show a friend.", "r8Vt3nQe5LwB", [["mom", "Start here, before Parasite."], ["pa"], ["ob", "Not for the squeamish: the corridor, the octopus."], ["ch"], ["hm", "Three parts; the second changes everything."], ["bu"], ["dtl"]]),
+  mk("rain", "Rainy Sunday", null, null, [["itm"], ["bs", "Then Before Sunset, the same afternoon."], ["lit"], ["her"], ["pat"]]),
+  mk("heist", "Heist nights", "For when the whole flat is in.", null, [["heat", "The bank shoot-out, with the sound up."], ["o11"], ["im"]]),
+];
+const SHARE_BASE = "https://tastetrack.example/s/";
+
+const icon = (d, size = 18, extra = "") => `<svg class="i" width="${size}" height="${size}" viewBox="0 0 24 24" ${extra} aria-hidden="true">${d}</svg>`;
+const P = {
+  film: '<rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"/>',
+  book: '<path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>', back: '<path d="M15 18l-6-6 6-6"/>', next: '<path d="M9 6l6 6-6 6"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>', reorder: '<path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', top: '<path d="M5 4h14M12 20V9M7 13l5-5 5 5"/>',
+  note: '<path d="M4 5h16v11H9l-5 4z"/>', search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
+};
+const DOTS = (r = 2, size = 16) => `<svg class="dots" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="${r}"/><circle cx="12" cy="12" r="${r}"/><circle cx="19" cy="12" r="${r}"/></svg>`;
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+const $ = (id) => document.getElementById(id);
+const wide = () => matchMedia("(min-width: 768px)").matches;
+const film = (k) => ({ t: F[k][0], y: F[k][1], tone: tone(F[k][2]) });
+const label = (f) => `${f.t} (${f.y})`;
+const nFilms = (n) => (n === 1 ? "1 film" : `${n} films`);
+const token = () => Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8);
+
+const state = { screen: "cols", cur: "slow", mode: null, menu: null, dialog: null, sheetFor: null, noteFor: null, confirm: null, copied: false, removed: null, formErr: null, draftName: "", draftDesc: "", noteDraft: "" };
+const cur = () => cols.find((c) => c.id === state.cur) ?? cols[0];
+
+function fromHash(first) {
+  const h = location.hash.slice(1);
+  Object.assign(state, { menu: null, dialog: null, mode: null, confirm: null, copied: false, formErr: null });
+  if (h === "collection" || h === "reorder" || h === "share") {
+    state.screen = "one";
+    if (first || !cols.some((c) => c.id === state.cur)) state.cur = h === "share" ? "mum" : "slow";
+    if (h === "reorder") state.mode = "reorder";
+    if (h === "share") state.dialog = "share";
+  } else {
+    state.screen = "cols";
+    if (h === "new") Object.assign(state, { dialog: "new", draftName: "", draftDesc: "" });
+  }
+}
+
+function renderCols() {
+  const cards = cols.map((c) => {
+    const cell = (i) => (c.items[i] ? film(c.items[i].k).tone : "var(--muted)");
+    return `<li><button type="button" class="card" data-act="open" data-id="${c.id}">
+      <span class="collage" aria-hidden="true">${[0, 1, 2, 3].map((i) => `<span style="background: ${cell(i)}"></span>`).join("")}</span>
+      <span class="card-text"><span class="card-name">${esc(c.name)}</span>
+      <span class="card-meta">${icon(P.film, 14, 'role="img" aria-label="Films"').replace(' aria-hidden="true"', "")}${nFilms(c.items.length)}${c.tok ? `<span aria-hidden="true">·</span>${icon(P.link, 13, 'style="stroke-width: 2"')}<span>Shared<span class="md"> by link</span></span>` : ""}</span></span>
+    </button></li>`;
+  }).join("");
+  return `<section class="cols" aria-labelledby="cols-h">
+    <div class="head"><h1 id="cols-h" class="page-title">Collections</h1>
+    <button type="button" class="pill" data-act="new">${icon(P.plus, 18, 'style="stroke-width: 2.25"')}New collection</button></div>
+    <div class="types" role="radiogroup" aria-label="Media Type">
+      <button type="button" class="type-chip" role="radio" aria-checked="true">${icon(P.film, 16)}Films <span class="n">${cols.length}</span></button>
+      <button type="button" class="type-chip soon" role="radio" aria-checked="false" disabled>${icon(P.book, 16)}Books <span class="badge">Coming soon</span></button>
+    </div>
+    ${cols.length ? `<ul class="cards" aria-label="Your Collections">${cards}</ul>` : `<p class="empty-text">You have no Collections yet. Make one to collect films around a theme.</p>`}
+  </section>`;
+}
+
+function renderOne() {
+  const c = cur();
+  const n = c.items.length;
+  const reorder = state.mode === "reorder";
+  const items = c.items.map((it, i) => {
+    const f = film(it.k);
+    const menuOpen = state.menu === i;
+    return `<li>
+      <div class="pwrap">
+        <a class="poster" href="#film" aria-label="${esc(label(f))}" style="background: ${f.tone}"><span class="poster-title" aria-hidden="true">${esc(f.t)}</span><span class="pos" aria-hidden="true">${i + 1}</span></a>
+        ${reorder ? `<div class="arrows">
+          <div class="row top"><button type="button" data-act="move" data-i="${i}" data-to="0" aria-label="Move ${esc(f.t)} to top" title="Move to top"${i === 0 ? " disabled" : ""}>${icon(P.top, 20, 'style="stroke-width: 2.25"')}</button></div>
+          <div class="row"><button type="button" data-act="move" data-i="${i}" data-to="${i - 1}" aria-label="Move ${esc(f.t)} earlier" title="Move earlier"${i === 0 ? " disabled" : ""}>${icon(P.back, 22, 'style="stroke-width: 2.5"')}</button>
+          <button type="button" data-act="move" data-i="${i}" data-to="${i + 1}" aria-label="Move ${esc(f.t)} later" title="Move later"${i === n - 1 ? " disabled" : ""}>${icon(P.next, 22, 'style="stroke-width: 2.5"')}</button></div>
+        </div>` : `<button type="button" class="pmore" data-act="item" data-i="${i}" aria-label="More for ${esc(label(f))}" aria-haspopup="menu" aria-expanded="${menuOpen}"><span>${DOTS(2, 16)}</span></button>`}
+        ${menuOpen ? `<div class="menu item-menu" role="menu">
+          <button type="button" role="menuitem" data-act="note" data-i="${i}">${icon(P.note, 17)}${it.note ? "Edit Note" : "Add a Note"}</button>
+          <button type="button" role="menuitem" data-act="move" data-i="${i}" data-to="0"${i === 0 ? " disabled" : ""}>${icon(P.top, 17)}Move to top</button>
+          <button type="button" role="menuitem" class="danger" data-act="remove" data-i="${i}">${icon(P.trash, 17)}Remove from collection</button>
+        </div>` : ""}
+      </div>
+      <span class="ptitle">${esc(f.t)}</span>
+      <span class="year">${f.y}</span>
+      ${it.note ? `<button type="button" class="note" data-act="note" data-i="${i}" aria-label="Note for ${esc(label(f))}: ${esc(it.note)}">${icon(P.note, 12, 'style="stroke-width: 2"')}<span>${esc(it.note)}</span></button>` : ""}
+    </li>`;
+  }).join("");
+  const removed = state.removed && state.removed.col === c.id ? state.removed : null;
+  return `<section class="one" aria-labelledby="one-h">
+    <div class="one-head">
+      <a class="back" href="#" data-act="back">${icon(P.back, 18, 'style="stroke-width: 2"')}Collections</a>
+      <div class="lead">
+        <nav class="crumb" aria-label="Breadcrumb"><a href="#" data-act="back">Collections</a> <span aria-hidden="true">›</span> ${esc(c.name)}</nav>
+        <h1 id="one-h" class="page-title">${esc(c.name)}</h1>
+        ${c.desc ? `<p class="desc">${esc(c.desc)}</p>` : ""}
+        <p class="one-meta">${nFilms(n)}${c.tok ? `<span aria-hidden="true">·</span>${icon(P.link, 13, 'style="stroke-width: 2"')}Shared by link` : ""}</p>
+      </div>
+      ${reorder ? "" : `<div class="add"><label for="add" class="sr">Add films</label>${icon(P.search, 18)}<input id="add" type="search" placeholder="Search films to add"></div>`}
+      <div class="more-wrap">
+        <button type="button" class="icon-btn" data-act="colmenu" aria-label="Collection actions" aria-haspopup="menu" aria-expanded="${state.menu === "col"}">${DOTS(1.8, 20)}</button>
+        ${state.menu === "col" ? `<div class="menu col-menu" role="menu">
+          <button type="button" role="menuitem" data-act="edit">${icon(P.edit, 17)}Edit collection</button>
+          <button type="button" role="menuitem" data-act="reorder"${n < 2 ? " disabled" : ""}>${icon(P.reorder, 17)}Reorder films</button>
+          <button type="button" role="menuitem" data-act="share">${icon(P.link, 17)}${c.tok ? "Share Link" : "Share"}</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" role="menuitem" class="danger" data-act="delete">${icon(P.trash, 17)}Delete collection</button>
+        </div>` : ""}
+      </div>
+    </div>
+    ${reorder ? `<div class="bar" role="status"><span>Use the arrows on each poster to move it earlier or later, or to the top.</span><button type="button" class="pill" data-act="done">Done</button></div>` : ""}
+    ${removed ? `<div class="removed" role="status"><span>Removed ${esc(label(film(removed.item.k)))} from this Collection.</span><button type="button" data-act="undo">Undo</button></div>` : ""}
+    ${n ? `<ol class="posters" aria-label="${esc(c.name)}">${items}</ol>` : `<div class="empty-box">${icon(P.film, 30, 'style="stroke-width: 1.5"')}<p>This Collection is empty. Search for films to add to it.</p></div>`}
+  </section>`;
+}
+
+const dhead = (title, text) => `<div class="dhead"><div class="what"><h2 id="d-title">${esc(title)}</h2>${text ? `<p>${esc(text)}</p>` : ""}</div><button type="button" class="close" data-act="close" aria-label="Close">${icon(P.x, 18, 'style="stroke-width: 2"')}</button></div>`;
+
+function renderDialog() {
+  const d = state.dialog;
+  const c = cur();
+  const box = $("dialog");
+  box.className = "dialog" + (d === "share" ? " wide" : "");
+  box.setAttribute("role", d === "delete" ? "alertdialog" : "dialog");
+  if (d === "new" || d === "edit") {
+    const isNew = d === "new";
+    return `<form id="form" novalidate style="display: contents">
+      ${dhead(isNew ? "New collection" : "Edit collection", isNew ? "Collect films around a theme, in the order you choose." : "Change the Collection’s name or description.")}
+      <div class="field"><label for="f-name">Name</label>
+        <input id="f-name" required maxlength="100" value="${esc(state.draftName)}" aria-invalid="${!!state.formErr}"${state.formErr ? ' aria-describedby="f-err"' : ""}>
+        ${state.formErr ? `<p id="f-err" class="err" role="alert">${esc(state.formErr)}</p>` : ""}</div>
+      ${isNew ? `<div class="field"><span id="f-mt" class="label">Media Type</span><div class="mt" role="radiogroup" aria-labelledby="f-mt">
+        <button type="button" role="radio" aria-checked="true">${icon(P.film, 20)}Films</button>
+        <button type="button" role="radio" aria-checked="false" disabled>${icon(P.book, 20)}<span class="stack">Books<span class="badge">Coming soon</span></span></button></div></div>` : ""}
+      <div class="field"><label for="f-desc">Description <span class="opt">Optional</span></label><textarea id="f-desc" rows="2">${esc(state.draftDesc)}</textarea></div>
+      <div class="actions"><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary">${isNew ? "Create" : "Save"}</button></div>
+    </form>`;
+  }
+  if (d === "item") {
+    const i = state.sheetFor, it = c.items[i], f = film(it.k);
+    return `<div class="dhead"><div class="film-row" style="flex: 1; min-width: 0"><span class="thumb" aria-hidden="true" style="background: ${f.tone}"></span>
+      <div class="what"><h2 id="d-title" style="font-size: 17px">${esc(f.t)}</h2><p style="font-size: 13px">${f.y} · number ${i + 1} in ${esc(c.name)}</p></div></div>
+      <button type="button" class="close" data-act="close" aria-label="Close">${icon(P.x, 18, 'style="stroke-width: 2"')}</button></div>
+      <div class="rows">
+        <button type="button" data-act="note" data-i="${i}">${icon(P.note, 20)}${it.note ? "Edit Note" : "Add a Note"}</button>
+        <button type="button" data-act="move" data-i="${i}" data-to="0"${i === 0 ? " disabled" : ""}>${icon(P.top, 20)}Move to top</button>
+        <button type="button" class="danger" data-act="remove" data-i="${i}">${icon(P.trash, 20)}Remove from collection</button>
+      </div>`;
+  }
+  if (d === "note") {
+    const f = film(c.items[state.noteFor].k);
+    return `<form id="note-form" style="display: contents">
+      ${dhead(`Note for ${label(f)}`, "Why it's here, or anything to remember about it.")}
+      <div class="field"><label for="n-text">Note</label><textarea id="n-text" rows="4" aria-describedby="n-hint">${esc(state.noteDraft)}</textarea>
+      <p id="n-hint" class="hint">Optional. Leave it empty to remove the Note.</p></div>
+      <div class="actions"><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary">Save</button></div>
+    </form>`;
+  }
+  if (d === "share") {
+    const body = !c.tok
+      ? `<button type="button" class="btn primary" data-act="makelink">${icon(P.link, 18, 'style="stroke-width: 2"')}Share</button>`
+      : state.confirm
+        ? `<div class="confirm" role="alertdialog" aria-labelledby="c-title"><p id="c-title" class="t">${state.confirm === "regen" ? "Make a new link?" : "Stop sharing?"}</p>
+            <p>${state.confirm === "regen" ? "The current link will stop working at once. Anyone you sent it to will need the new one." : "The link will stop working at once, and only you will see these films."}</p>
+            <div class="actions"><button type="button" class="btn sm" data-act="cancelconfirm">Cancel</button><button type="button" class="btn sm ${state.confirm === "regen" ? "primary" : "danger"}" data-act="doconfirm">${state.confirm === "regen" ? "Make a new link" : "Stop sharing"}</button></div></div>`
+        : `<div class="link-row"><label for="s-link" class="sr">Share Link</label><input id="s-link" readonly value="${SHARE_BASE}${c.tok}">
+            <button type="button" class="btn primary" data-act="copy">${state.copied ? "Copied" : "Copy link"}</button></div>
+            <div class="actions share-more"><button type="button" class="btn sm" data-act="regen">New link</button><button type="button" class="btn sm danger-text" data-act="revoke">Stop sharing</button></div>`;
+    return `${dhead(c.tok ? "Shared by link" : `Share ${c.name}`, "Anyone with this link can see these films, their Notes and your name without logging in. They never see your Ratings or your Log.")}${body}`;
+  }
+  if (d === "delete") {
+    return `${dhead(`Delete ${c.name}?`, "The Collection and its Notes will be deleted for good. Your Log stays as it is. This can't be undone.")}
+      <div class="actions"><button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn danger" data-act="confirmdelete">Delete</button></div>`;
+  }
+  return "";
+}
+
+function render() {
+  if (state.screen === "one" && !cols.some((c) => c.id === state.cur)) state.screen = "cols";
+  $("main").innerHTML = state.screen === "one" ? renderOne() : renderCols();
+  $("layer").hidden = !state.dialog;
+  $("dialog").innerHTML = state.dialog ? renderDialog() : "";
+  const form = $("form");
+  if (form) {
+    $("f-name").addEventListener("input", (e) => { state.draftName = e.target.value; });
+    $("f-desc").addEventListener("input", (e) => { state.draftDesc = e.target.value; });
+    form.addEventListener("submit", submitForm);
+  }
+  const noteForm = $("note-form");
+  if (noteForm) {
+    $("n-text").addEventListener("input", (e) => { state.noteDraft = e.target.value; });
+    noteForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = state.noteDraft.trim();
+      cur().items[state.noteFor].note = v || null;
+      state.dialog = null; render();
+    });
+  }
+}
+
+function submitForm(e) {
+  e.preventDefault();
+  const isNew = state.dialog === "new";
+  const name = state.draftName.trim();
+  const c = cur();
+  if (!name) state.formErr = "Give the Collection a name.";
+  else if (cols.some((x) => x.name.toLowerCase() === name.toLowerCase() && (isNew || x.id !== c.id))) state.formErr = "You already have a Collection with this name.";
+  else state.formErr = null;
+  if (state.formErr) { render(); $("f-name").focus(); return; }
+  if (isNew) {
+    const id = "c" + Date.now();
+    cols.push({ id, name, desc: state.draftDesc.trim() || null, tok: null, items: [] });
+    state.cur = id; state.dialog = null; state.removed = null;
+    location.hash = "collection";
+    render();
+  } else {
+    c.name = name; c.desc = state.draftDesc.trim() || null;
+    state.dialog = null; render();
+  }
+}
+
+function move(i, to) {
+  const a = cur().items;
+  a.splice(to, 0, a.splice(i, 1)[0]);
+  state.menu = null; state.dialog = null;
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]");
+  if (!b) {
+    if (state.menu !== null && !e.target.closest(".menu")) { state.menu = null; render(); }
+    return;
+  }
+  const act = b.dataset.act, i = +b.dataset.i, c = cur();
+  switch (act) {
+    case "open": state.cur = b.dataset.id; state.removed = null; location.hash = "collection"; return;
+    case "back": e.preventDefault(); state.removed = null; location.hash = ""; return;
+    case "new": Object.assign(state, { dialog: "new", draftName: "", draftDesc: "", formErr: null }); break;
+    case "colmenu": state.menu = state.menu === "col" ? null : "col"; break;
+    case "edit": Object.assign(state, { menu: null, dialog: "edit", draftName: c.name, draftDesc: c.desc ?? "", formErr: null }); break;
+    case "reorder": Object.assign(state, { menu: null, mode: "reorder", removed: null }); break;
+    case "done": state.mode = null; break;
+    case "share": Object.assign(state, { menu: null, dialog: "share", confirm: null, copied: false }); break;
+    case "delete": Object.assign(state, { menu: null, dialog: "delete" }); break;
+    case "confirmdelete": cols = cols.filter((x) => x.id !== c.id); state.dialog = null; location.hash = ""; return;
+    case "item":
+      if (wide()) state.menu = state.menu === i ? null : i;
+      else Object.assign(state, { menu: null, dialog: "item", sheetFor: i });
+      break;
+    case "note": Object.assign(state, { menu: null, dialog: "note", noteFor: i, noteDraft: c.items[i].note ?? "" }); break;
+    case "move": move(i, +b.dataset.to); break;
+    case "remove": state.removed = { item: c.items.splice(i, 1)[0], i, col: c.id }; state.menu = null; state.dialog = null; break;
+    case "undo": c.items.splice(state.removed.i, 0, state.removed.item); state.removed = null; break;
+    case "makelink": c.tok = token(); state.copied = false; break;
+    case "copy": state.copied = true; break;
+    case "regen": state.confirm = "regen"; break;
+    case "revoke": state.confirm = "revoke"; break;
+    case "cancelconfirm": state.confirm = null; break;
+    case "doconfirm": c.tok = state.confirm === "regen" ? token() : null; state.confirm = null; state.copied = false; break;
+    case "close": Object.assign(state, { dialog: null, confirm: null, formErr: null }); break;
+    default: return;
+  }
+  render();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (state.dialog) state.dialog = null; else if (state.menu !== null) state.menu = null; else return;
+  render();
+});
+window.addEventListener("hashchange", () => { fromHash(false); render(); });
+fromHash(true);
+render();
+</script>
+</body>
+</html>

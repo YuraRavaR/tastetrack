@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shared Collection C, hero and grid, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%);--hero:oklch(0.24 0.02 60);--onhero:oklch(0.97 0.01 80);--onhero2:oklch(0.82 0.02 75);--scrim:oklch(0.15 0.01 50 / 45%)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%);--hero:oklch(0.13 0.008 60);--onhero:oklch(0.97 0.01 80);--onhero2:oklch(0.8 0.02 75);--scrim:oklch(0 0 0 / 60%)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt button:disabled{cursor:not-allowed}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="position: relative; min-height: 1240px; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<div style="background: var(--hero); color: var(--onhero)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 0 24px 48px; box-sizing: border-box">
+<header style="height: 64px; display: flex; align-items: center; justify-content: space-between">
+<a href="#" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; text-decoration: none; color: var(--onhero)">TasteTrack</a>
+<a href="#" style="height: 40px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid oklch(0.97 0.01 80 / 35%); border-radius: 999px; font-size: 15px; font-weight: 600; text-decoration: none; color: var(--onhero)">Log in</a>
+</header>
+
+<sc-if value="{{onCollection}}" hint-placeholder-val="{{true}}">
+<div style="padding-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 40px">
+<div style="flex: 1 1 360px; max-width: 34rem; display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 14px; font-weight: 600; color: var(--onhero2)">Film collection · 10 films</span>
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 76px; line-height: 1; color: var(--onhero)">Slow cinema</h1>
+<p style="margin: 0; font-size: 18px; line-height: 1.55; color: var(--onhero)">Films that take their time. Best on a quiet evening, with the phone in another room.</p>
+<p style="margin: 0; font-size: 15px; color: var(--onhero2)">Shared by <span style="font-weight: 600; color: var(--onhero)">Yurii</span></p>
+</div>
+<div aria-hidden="true" style="position: relative; flex: 0 0 520px; height: 300px">
+<span style="position: absolute; left: 10px; top: 70px; width: 130px; height: 195px; border-radius: 10px; background: {{c0}}; transform: rotate(-12deg); box-shadow: 0 14px 30px oklch(0 0 0 / 40%)"></span>
+<span style="position: absolute; left: 380px; top: 70px; width: 130px; height: 195px; border-radius: 10px; background: {{c4}}; transform: rotate(12deg); box-shadow: 0 14px 30px oklch(0 0 0 / 40%)"></span>
+<span style="position: absolute; left: 96px; top: 34px; width: 136px; height: 204px; border-radius: 10px; background: {{c1}}; transform: rotate(-6deg); box-shadow: 0 14px 30px oklch(0 0 0 / 40%)"></span>
+<span style="position: absolute; left: 288px; top: 34px; width: 136px; height: 204px; border-radius: 10px; background: {{c3}}; transform: rotate(6deg); box-shadow: 0 14px 30px oklch(0 0 0 / 40%)"></span>
+<span style="position: absolute; left: 180px; top: 6px; width: 160px; height: 240px; border-radius: 12px; background: {{c2}}; box-shadow: 0 18px 40px oklch(0 0 0 / 45%); display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; line-height: 1.15; color: oklch(0.97 0.01 80)">Stalker</span>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{onGone}}" hint-placeholder-val="{{false}}">
+<div style="padding-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 40px">
+<div style="flex: 1 1 360px; max-width: 36rem; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 60px; line-height: 1.04; color: var(--onhero)">This Collection isn’t shared any more</h1>
+<p style="margin: 0; font-size: 18px; line-height: 1.55; color: var(--onhero)">Its owner may have stopped sharing it or made a new link. Ask the person who sent it to you for the new one.</p>
+</div>
+<div aria-hidden="true" style="position: relative; flex: 0 0 420px; height: 280px">
+<span style="position: absolute; left: 50px; top: 50px; width: 130px; height: 195px; border: 1.5px dashed oklch(0.97 0.01 80 / 30%); border-radius: 10px; transform: rotate(-8deg)"></span>
+<span style="position: absolute; left: 240px; top: 50px; width: 130px; height: 195px; border: 1.5px dashed oklch(0.97 0.01 80 / 30%); border-radius: 10px; transform: rotate(8deg)"></span>
+<span style="position: absolute; left: 136px; top: 14px; width: 148px; height: 222px; border: 1.5px dashed oklch(0.97 0.01 80 / 45%); border-radius: 12px; color: var(--onhero2); display: flex; align-items: center; justify-content: center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"></path><path d="M11 6l.5-.5a4.2 4.2 0 0 1 6 6l-.5.5"></path><path d="M13 18l-.5.5a4.2 4.2 0 0 1-6-6l.5-.5"></path><path d="M4 4l16 16"></path></svg></span>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+
+<main style="flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 40px 24px 56px; box-sizing: border-box">
+<sc-if value="{{onCollection}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 24px">
+<p style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--mfg)"><span aria-hidden="true" style="width: 22px; height: 22px; border-radius: 999px; background: var(--pri); color: var(--pfg); display: inline-flex; align-items: center; justify-content: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></span>Yurii left a Note on 7 films. Open a poster to read it.</p>
+<ol aria-label="Slow cinema" style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 28px 20px">
+<sc-for list="{{films}}" as="f" hint-placeholder-count="10">
+<li style="min-width: 0">
+<button type="button" aria-haspopup="dialog" aria-label="{{f.label}}" onClick="{{f.open}}" style="width: 100%; padding: 0; display: flex; flex-direction: column; gap: 8px; border: 0; background: transparent; text-align: left">
+<span style="position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; background: {{f.tone}}; overflow: hidden; display: flex; align-items: flex-end; padding: 12px; box-sizing: border-box; box-shadow: 0 6px 16px var(--shadow)">
+<span aria-hidden="true" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 18px; line-height: 1.15; color: oklch(0.97 0.01 80)">{{f.t}}</span>
+<sc-if value="{{f.hasNote}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 999px; background: var(--pri); color: var(--pfg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px oklch(0 0 0 / 30%)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></span></sc-if>
+</span>
+<span aria-hidden="true" style="font-size: 15px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical">{{f.t}}</span>
+<span aria-hidden="true" style="margin-top: -4px; font-size: 13px; color: var(--mfg)">{{f.y}}</span>
+</button>
+</li>
+</sc-for>
+</ol>
+</div>
+</sc-if>
+<sc-if value="{{onGone}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<p style="margin: 0; font-size: 15px; color: var(--mfg)">Have a TasteTrack account?</p>
+<a href="#" style="height: 44px; padding: 0 20px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600; text-decoration: none">Log in</a>
+</div>
+</sc-if>
+</main>
+
+<footer style="border-top: 1px solid var(--border)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 16px 24px; display: flex; gap: 12px; font-size: 12px; color: var(--mfg)"><span>Film data from TMDB</span><span>v0.6.0</span></div>
+</footer>
+
+<sc-if value="{{dialogOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 24px">
+<button type="button" aria-label="Close" onClick="{{close}}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--scrim); cursor: default"></button>
+<div role="dialog" aria-modal="true" aria-labelledby="cw-dialog-title" style="position: relative; width: 100%; max-width: 680px; padding: 28px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 28px; background: var(--card); border-radius: 20px; box-shadow: 0 24px 60px var(--shadow)">
+<span aria-hidden="true" style="flex: 0 0 200px; aspect-ratio: 2 / 3; border-radius: 10px; background: {{cur.tone}}; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 20px; line-height: 1.15; color: oklch(0.97 0.01 80)">{{cur.t}}</span>
+<div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; gap: 12px">
+<div style="min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; font-weight: 600; color: var(--mfg)">{{cur.pos}}</span>
+<h2 id="cw-dialog-title" style="margin: 0; font-size: 26px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em">{{cur.t}}</h2>
+<span style="font-size: 15px; color: var(--mfg)">{{cur.meta}}</span>
+</div>
+<button type="button" aria-label="Close" onClick="{{close}}" style="flex-shrink: 0; width: 44px; height: 44px; margin: -8px -8px 0 0; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></span></button>
+</div>
+<sc-if value="{{cur.hasNote}}" hint-placeholder-val="{{true}}">
+<div style="padding: 16px 18px; border-radius: 14px; background: var(--muted); display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 700; color: var(--mfg)">Yurii’s note</span>
+<p style="margin: 0; font-size: 17px; line-height: 1.55">{{cur.note}}</p>
+</div>
+</sc-if>
+<sc-if value="{{cur.noNote}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 16px 18px; border: 1.5px dashed var(--border); border-radius: 14px; font-size: 15px; color: var(--mfg)">No Note on this one.</p>
+</sc-if>
+<div style="margin-top: auto; display: flex; gap: 10px">
+<button type="button" onClick="{{prev}}" disabled="{{atFirst}}" style="height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 15px; font-weight: 600; opacity: {{prevOpacity}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Previous</button>
+<button type="button" onClick="{{next}}" disabled="{{atLast}}" style="height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600; opacity: {{nextOpacity}}">Next<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg></button>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["collection","notShared"],"default":"collection"},"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const sel = typeof st.sel === 'number' ? st.sel : -1;
+const tone = (h) => 'oklch(0.42 0.075 ' + h + ')';
+const FILMS = [
+['Tokyo Story', null, 1953, 40, 'Start here. Ozu keeps the camera low and still, and lets a family drift apart in plain sight. The last ten minutes stay with you for days.'],
+['Jeanne Dielman, 23 quai du Commerce, 1080 Bruxelles', null, 1975, 15, 'Three days in one kitchen. Give it the first hour and it never lets go.'],
+['Stalker', 'Сталкер', 1979, 140, 'Long takes, dripping water, and the best argument for leaving your phone in another room.'],
+['Werckmeister Harmonies', 'Werckmeister harmóniák', 2000, 230, null],
+['Uncle Boonmee Who Can Recall His Past Lives', null, 2010, 160, 'Go with it. The ghosts are polite.'],
+['The Turin Horse', 'A torinói ló', 2011, 60, 'Béla Tarr’s last film. Save it for a night with no plans.'],
+['Paterson', null, 2016, 200, null],
+['Columbus', null, 2017, 185, 'Architecture and grief, framed like a photo book.'],
+['Drive My Car', null, 2021, 260, null],
+['Perfect Days', null, 2023, 95, 'The gentlest one here. Watch it first if slow films are new to you.']
+];
+const films = FILMS.map((r, i) => ({
+i, t: r[0], y: r[2], meta: r[1] ? r[1] + ' · ' + r[2] : String(r[2]), tone: tone(r[3]),
+note: r[4], hasNote: !!r[4], noNote: !r[4], pos: (i + 1) + ' of ' + FILMS.length,
+label: (i + 1) + '. ' + r[0] + ', ' + r[2] + (r[4] ? ', with a Note' : ''),
+open: () => this.setState({ sel: i })
+}));
+const cur = sel >= 0 ? films[sel] : films[0];
+const gone = (this.props.startOn || 'collection') === 'notShared';
+return {
+themeClass: this.props.dark ? 'dark' : '',
+onCollection: !gone, onGone: gone,
+films, c0: films[0].tone, c1: films[1].tone, c2: films[2].tone, c3: films[5].tone, c4: films[9].tone,
+dialogOpen: !gone && sel >= 0, cur,
+close: () => this.setState({ sel: -1 }),
+prev: () => this.setState({ sel: Math.max(0, sel - 1) }),
+next: () => this.setState({ sel: Math.min(films.length - 1, sel + 1) }),
+atFirst: sel <= 0, atLast: sel >= films.length - 1,
+prevOpacity: sel <= 0 ? 0.45 : 1, nextOpacity: sel >= films.length - 1 ? 0.45 : 1
+};
+}
+}
+</script>
+</body>
+</html>

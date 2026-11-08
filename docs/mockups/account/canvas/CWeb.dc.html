@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Account C, one Account page, web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tt{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--muted:oklch(0.935 0.016 75);--mfg:oklch(0.47 0.02 60);--pri:oklch(0.82 0.16 88);--pfg:oklch(0.22 0.02 60);--pstrong:oklch(0.52 0.11 80);--psoft:oklch(0.96 0.037 87);--border:oklch(0.88 0.015 75);--shadow:oklch(0.2 0.01 50 / 14%);--dest:oklch(0.46 0.18 25);--destfg:oklch(0.985 0 0)}
+.tt.dark{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--muted:oklch(0.28 0.014 60);--mfg:oklch(0.74 0.02 70);--pri:oklch(0.84 0.16 90);--pfg:oklch(0.17 0.006 50);--pstrong:oklch(0.84 0.16 90);--psoft:oklch(0.31 0.034 85);--border:oklch(1 0 0 / 11%);--shadow:oklch(0 0 0 / 50%);--dest:oklch(0.66 0.2 22);--destfg:oklch(0.17 0.006 50)}
+.tt a{color:var(--fg)}
+.tt button{font:inherit;cursor:pointer;color:inherit}
+.tt button:disabled{cursor:not-allowed}
+.tt input{font:inherit;color:var(--fg)}
+</style>
+</helmet>
+<div class="tt {{themeClass}}" style="min-height: 1500px; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased">
+
+<header style="position: relative; z-index: 5; background: var(--card); border-bottom: 1px solid var(--border)">
+<div style="position: relative; max-width: 72rem; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 32px">
+<a href="#" onClick="{{goHome}}" style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; text-decoration: none">TasteTrack</a>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex: 1">
+<a href="#" aria-current="{{savedCurrent}}" onClick="{{goHome}}" style="padding: 8px 14px; border-radius: 10px; background: {{savedBg}}; font-size: 15px; font-weight: {{savedWeight}}; text-decoration: none; color: {{savedFg}}">Saved</a>
+<a href="#" style="padding: 8px 14px; border-radius: 10px; font-size: 15px; font-weight: 500; text-decoration: none; color: var(--mfg)">Collections</a>
+<a href="#" style="padding: 8px 14px; border-radius: 10px; font-size: 15px; font-weight: 500; text-decoration: none; color: var(--mfg)">Search</a>
+</nav>
+<button type="button" aria-label="Account menu, Yurii" aria-haspopup="menu" aria-expanded="{{menuOpen}}" onClick="{{toggleMenu}}" style="height: 44px; padding: 0 10px 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: {{triggerBg}}; font-size: 14px; font-weight: 500"><span style="width: 32px; height: 32px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>Yurii<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" aria-label="Account menu" style="position: absolute; top: 58px; right: 24px; min-width: 200px; padding: 4px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 28px var(--shadow)">
+<a href="#" role="menuitem" onClick="{{goAccount}}" style="height: 44px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border-radius: 8px; background: {{accItemBg}}; text-decoration: none; font-size: 15px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mfg)" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Account</a>
+<div role="separator" style="height: 1px; margin: 4px 6px; background: var(--border)"></div>
+<button type="button" role="menuitem" onClick="{{closeMenu}}" style="height: 44px; padding: 0 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; text-align: left; font-size: 15px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mfg)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg>Log out</button>
+</div>
+</sc-if>
+</div>
+</header>
+
+<main style="flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 32px 24px 56px; box-sizing: border-box">
+
+<sc-if value="{{onHome}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Saved</h1>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+<a href="#" style="height: 220px; padding: 24px; box-sizing: border-box; display: flex; justify-content: space-between; border: 1px solid var(--border); border-radius: 20px; background: var(--card); text-decoration: none; overflow: hidden">
+<span style="display: flex; flex-direction: column; justify-content: space-between">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: var(--psoft); color: var(--pstrong); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"></rect><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 28px; font-weight: 700">Films</span><span style="font-size: 15px; color: var(--mfg)">12 to watch · 14 watched</span></span>
+</span>
+<span aria-hidden="true" style="position: relative; width: 200px; flex-shrink: 0">
+<span style="position: absolute; right: 92px; top: 30px; width: 92px; height: 138px; border-radius: 10px; background: oklch(0.42 0.075 250); transform: rotate(-9deg); box-shadow: 0 8px 20px var(--shadow)"></span>
+<span style="position: absolute; right: 8px; top: 30px; width: 92px; height: 138px; border-radius: 10px; background: oklch(0.42 0.075 30); transform: rotate(9deg); box-shadow: 0 8px 20px var(--shadow)"></span>
+<span style="position: absolute; right: 46px; top: 10px; width: 104px; height: 156px; border-radius: 10px; background: oklch(0.42 0.075 150); box-shadow: 0 10px 24px var(--shadow)"></span>
+</span>
+</a>
+<button type="button" disabled style="height: 220px; padding: 24px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start; border: 1.5px dashed var(--border); border-radius: 20px; background: transparent; text-align: left; color: var(--mfg)">
+<span style="height: 100%; display: flex; flex-direction: column; justify-content: space-between">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: var(--muted); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg></span>
+<span style="font-size: 24px; font-weight: 600">Books</span>
+</span>
+<span style="padding: 4px 10px; border-radius: 999px; background: var(--muted); font-size: 12px; font-weight: 600">Coming soon</span>
+</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{onAccount}}" hint-placeholder-val="{{true}}">
+<div style="max-width: 64rem; margin: 0 auto; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Account</h1>
+<nav aria-label="On this page" style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="#cw-dn" style="height: 36px; padding: 0 14px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; text-decoration: none">Display Name</a>
+<a href="#cw-inv" style="height: 36px; padding: 0 14px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; text-decoration: none">Invite Codes</a>
+<a href="#cw-pw" style="height: 36px; padding: 0 14px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; text-decoration: none">Password</a>
+<a href="#cw-del" style="height: 36px; padding: 0 14px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; text-decoration: none">Delete account</a>
+</nav>
+
+<section id="cw-dn" role="region" aria-labelledby="cw-dn-title" style="padding: 28px 0; display: flex; flex-wrap: wrap; gap: 16px 40px; border-bottom: 1px solid var(--border)">
+<div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px">
+<h2 id="cw-dn-title" style="margin: 0; font-size: 20px; font-weight: 700">Display Name</h2>
+</div>
+<form onSubmit="{{saveName}}" style="flex: 999 1 460px; min-width: 0; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card)">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="cw-dn-in" style="font-size: 14px; font-weight: 600">Display Name</label>
+<input id="cw-dn-in" name="displayName" value="{{dn}}" onChange="{{typeName}}" maxlength="50" autocomplete="nickname" aria-describedby="cw-dn-hint" style="height: 44px; padding: 0 12px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px">
+<p id="cw-dn-hint" style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--mfg)">How others see you on lists you share. Up to 50 characters; leave it empty to use your Username, yurii.</p>
+</div>
+<sc-if value="{{nameSaved}}" hint-placeholder-val="{{false}}"><p role="status" style="margin: 0; font-size: 14px; color: var(--mfg)">Display Name saved.</p></sc-if>
+<div><button type="submit" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600">Save Display Name</button></div>
+</form>
+</section>
+
+<section id="cw-inv" role="region" aria-labelledby="cw-inv-title" style="padding: 12px 0 28px; display: flex; flex-wrap: wrap; gap: 16px 40px; border-bottom: 1px solid var(--border)">
+<div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px">
+<h2 id="cw-inv-title" style="margin: 0; font-size: 20px; font-weight: 700">Invite Codes</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mfg)">Give a friend an Invite Code so they can register at [app URL]/register. Each code works once and expires after 7 days. You can have up to 5 active codes.</p>
+</div>
+<div style="flex: 999 1 460px; min-width: 0; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card)">
+<sc-if value="{{noCodes}}" hint-placeholder-val="{{false}}"><p style="margin: 0; font-size: 14px; color: var(--mfg)">You have no active Invite Codes.</p></sc-if>
+<sc-if value="{{hasCodes}}" hint-placeholder-val="{{true}}">
+<ul aria-label="Active Invite Codes" style="margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 12px; overflow: hidden">
+<sc-for list="{{codes}}" as="c" hint-placeholder-count="2">
+<li style="min-height: 52px; padding: 0 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; border-top: {{c.rule}}">
+<code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 17px; letter-spacing: 0.08em">{{c.code}}</code>
+<span style="font-size: 14px; color: var(--mfg)">Expires {{c.exp}}</span>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{limitErr}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; font-size: 14px; color: var(--dest)">You already have 5 active Invite Codes. Wait for one to be used or to expire.</p></sc-if>
+<div><button type="button" onClick="{{generate}}" style="height: 44px; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Generate an Invite Code</button></div>
+</div>
+</section>
+
+<section id="cw-pw" role="region" aria-labelledby="cw-pw-title" style="padding: 12px 0 28px; display: flex; flex-wrap: wrap; gap: 16px 40px; border-bottom: 1px solid var(--border)">
+<div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px">
+<h2 id="cw-pw-title" style="margin: 0; font-size: 20px; font-weight: 700">Password</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mfg)">Changing your password logs you out everywhere else, so a device you've lost or a session someone took stops working.</p>
+</div>
+<form onSubmit="{{changePw}}" style="flex: 999 1 460px; min-width: 0; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card)">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="cw-cur" style="font-size: 14px; font-weight: 600">Current password</label>
+<input id="cw-cur" name="currentPassword" type="password" autocomplete="current-password" required style="height: 44px; padding: 0 12px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="cw-new" style="font-size: 14px; font-weight: 600">New password</label>
+<input id="cw-new" name="newPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required aria-describedby="cw-new-rules" style="height: 44px; padding: 0 12px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px">
+<p id="cw-new-rules" style="margin: 0; font-size: 13px; color: var(--mfg)">10–128 characters, anything you like</p>
+</div>
+<sc-if value="{{pwChanged}}" hint-placeholder-val="{{false}}"><p role="status" style="margin: 0; font-size: 14px; color: var(--mfg)">Password changed. You've been logged out everywhere else.</p></sc-if>
+<div><button type="submit" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--pri); color: var(--pfg); font-size: 15px; font-weight: 600">Change password</button></div>
+</form>
+</section>
+
+<section id="cw-del" role="region" aria-labelledby="cw-del-title" style="padding: 12px 0 8px; display: flex; flex-wrap: wrap; gap: 16px 40px">
+<div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px">
+<h2 id="cw-del-title" style="margin: 0; font-size: 20px; font-weight: 700">Delete account</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mfg)">Deletes your account for good, with your Log, Watchlist, Lists, the films you added by hand, your Share Links and your Invite Codes. People you invited keep their accounts. This can't be undone.</p>
+</div>
+<form onSubmit="{{deleteAcc}}" style="flex: 999 1 460px; min-width: 0; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card)">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="cw-delpw" style="font-size: 14px; font-weight: 600">Your password</label>
+<input id="cw-delpw" name="deletionPassword" type="password" autocomplete="current-password" required style="height: 44px; padding: 0 12px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 15px">
+</div>
+<sc-if value="{{delError}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; font-size: 14px; color: var(--dest)">That isn't your password. Nothing was deleted.</p></sc-if>
+<div><button type="submit" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--dest); color: var(--destfg); font-size: 15px; font-weight: 600">Delete account</button></div>
+</form>
+</section>
+</div>
+</sc-if>
+</main>
+
+<footer style="border-top: 1px solid var(--border)">
+<div style="max-width: 72rem; margin: 0 auto; padding: 16px 24px; display: flex; gap: 12px; font-size: 12px; color: var(--mfg)"><span>Film data from TMDB</span><span>v0.6.0</span></div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"startOn":{"editor":"enum","options":["home","menu","account","account-no-codes"],"default":"account"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = this.state || {};
+const start = this.props.startOn || 'account';
+const firstScreen = start === 'account' || start === 'account-no-codes' ? 'account' : 'home';
+const screen = st.screen || firstScreen;
+const menuOpen = st.menu !== undefined ? st.menu : start === 'menu';
+const START = start === 'account-no-codes' ? [] : [{ code: '7KQM-2XPA-H4RT', exp: 'Nov 9, 2026' }, { code: 'D3WN-8FJC-QV5B', exp: 'Nov 12, 2026' }];
+const MORE = ['M6PZ-T1KE-9GRX', 'R2HB-5NWQ-K8DT', 'Y9CF-3MAV-P0JS', 'B4XG-7TQE-N2HM', 'W5JD-6RYA-C1QZ'];
+const codes = st.codes || START;
+const dn = st.dn !== undefined ? st.dn : 'Yurii';
+const go = (s) => (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ screen: s, menu: false }); };
+const stop = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+const onHome = screen === 'home';
+return {
+themeClass: this.props.dark ? 'dark' : '',
+onHome, onAccount: screen === 'account',
+menuOpen,
+triggerBg: menuOpen ? 'var(--muted)' : 'transparent',
+accItemBg: screen === 'account' ? 'var(--muted)' : 'transparent',
+toggleMenu: () => this.setState({ menu: !menuOpen }),
+closeMenu: () => this.setState({ menu: false }),
+goHome: go('home'), goAccount: go('account'),
+savedCurrent: onHome ? 'page' : 'false',
+savedBg: onHome ? 'var(--psoft)' : 'transparent',
+savedFg: onHome ? 'var(--fg)' : 'var(--mfg)',
+savedWeight: onHome ? '600' : '500',
+dn,
+typeName: (e) => this.setState({ dn: e.target.value, nameSaved: false }),
+saveName: (e) => { stop(e); this.setState({ nameSaved: true, dn: dn.trim() === '' ? 'yurii' : dn }); },
+nameSaved: !!st.nameSaved,
+changePw: (e) => { stop(e); this.setState({ pwChanged: true }); },
+pwChanged: !!st.pwChanged,
+deleteAcc: (e) => { stop(e); this.setState({ delError: true }); },
+delError: !!st.delError,
+generate: () => {
+if (codes.length >= 5) { this.setState({ limitErr: true }); return; }
+const next = MORE.filter((m) => !codes.some((c) => c.code === m))[0];
+this.setState({ codes: codes.concat([{ code: next, exp: 'Nov 14, 2026' }]), limitErr: false });
+},
+limitErr: !!st.limitErr,
+codes: codes.map((c, i) => Object.assign({}, c, { rule: i === 0 ? '0' : '1px solid var(--border)' })),
+hasCodes: codes.length > 0, noCodes: codes.length === 0
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-07T16:30:00Z" },
+  "title": "TasteTrack account",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 402, "h": 874, "title": "A · Sheet and stacked cards · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "AWeb.dc.html": { "x": 482, "y": 0, "w": 1440, "h": 1100, "title": "A · Dropdown and stacked cards · Web", "expand": "fill", "is_interactive": true },
+    "BPhone.dc.html": { "x": 0, "y": 1400, "w": 402, "h": 874, "title": "B · Grouped settings list · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "BWeb.dc.html": { "x": 482, "y": 1400, "w": 1440, "h": 900, "title": "B · Grouped list with a detail pane · Web", "expand": "fill", "is_interactive": true },
+    "CPhone.dc.html": { "x": 0, "y": 2800, "w": 402, "h": 874, "title": "C · One Account page · iPhone 17 Pro", "radius": 55, "is_interactive": true },
+    "CWeb.dc.html": { "x": 482, "y": 2800, "w": 1440, "h": 1500, "title": "C · One Account page · Web", "expand": "fill", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "AWeb.dc.html", "BPhone.dc.html", "BWeb.dc.html", "CPhone.dc.html", "CWeb.dc.html"],
+  "notes": {
+    "titleA": { "x": 0, "y": -260, "text": "A · Stacked cards: the menu as a sheet or dropdown, each form in its own card", "kind": "title1", "maxW": 1922 },
+    "titleB": { "x": 0, "y": 1140, "text": "B · Grouped list: settings as rows that open one form at a time", "kind": "title1", "maxW": 1922 },
+    "titleC": { "x": 0, "y": 2540, "text": "C · One Account page: Settings and Invites as sections, the menu holds Account and Log out", "kind": "title1", "maxW": 1922 }
+  },
+  "designSystems": []
+}

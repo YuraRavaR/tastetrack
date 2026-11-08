@@ -1,5 +1,7 @@
 # Navigation and home with several Media Types
 
+> **Superseded on 2026-11-07** by [`saved/`](../saved/): the sections become Saved · Collections · Search, the old home goes, and the type picker shows from the start with Books as a stub. The frame, the account menu and the wording per Media Type below still hold.
+
 **Picked:** variant A, "by section" (2026-10-29).
 **Canvas:** <https://claude.ai/artifact/CZZHxh7zSKTAziwzsW8T6w> (private). Variant A is on the top row and variant B, "by type", on the bottom row, each on an iPhone 17 Pro (402×874) and the web.
 

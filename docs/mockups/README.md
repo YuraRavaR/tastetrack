@@ -38,3 +38,10 @@ Shoots every `.html` in the folder at 390 and 1440 px, in light and dark, with t
 | [`navigation/`](navigation/) | Header, bottom tab bar and home with several Media Types | #58 (phone header), new issues to come | Variant A, by section |
 | [`log-entry-dialog/`](log-entry-dialog/) | The "Watched" dialog: Rating, date, Review, Rewatch; a bottom sheet on a phone | none yet | Variant A, full form |
 | [`search-results/`](search-results/) | Search results, and the film's page before a first viewing | #62, revision #82 | Search C, icon actions, revised to A with "Watched again"; page A, button row |
+| [`saved/`](saved/) | Saved, Collections and Search: the redesign, replacing the section navigation | none yet | Saved: variant A, tiles and chips; Collections and Search to come |
+| [`collections/`](collections/) | Collections, one Collection, New collection, Share Link | none yet | Variant A, collage cards |
+| [`search/`](search/) | The Search section: your Saved first, then TMDB | none yet | Variant A, poster strip |
+| [`shared-collection/`](shared-collection/) | The public page a Share Link opens | none yet | Variant A, poster grid |
+| [`empty-states/`](empty-states/) | Empty Saved, Watchlist, Watched, Collections and Search | none yet | Variant A, quiet |
+| [`sign-in/`](sign-in/) | Log in, Register, set a new password | none yet | Variant A, plain card |
+| [`account/`](account/) | The account menu, Settings and Invites | none yet | Variant A, stacked cards |

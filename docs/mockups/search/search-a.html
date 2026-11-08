@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Search, variant A</title>
+<!--
+  Static mockup of Search, variant A "poster strip". Colours copy the tokens in
+  src/client/styles.css (Gold · Paper); dark mode follows the system setting. Below md the
+  sections sit in a bottom tab bar; from md they move into the header.
+  States: the empty field (no hash), results for "par" (#results), nothing found for
+  "prasite" (#nomatch). Results follow the field as you type; the clear button, the
+  Want to watch toggle and its toast work. "In your Saved" is a sideways strip on a phone and
+  a grid from md; its films are acted on from the film's page. "From TMDB" reuses the rows of
+  ../search-results/ (revision #82), and hides films already in Saved. Posters are placeholders.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --shadow: oklch(0.2 0.01 50 / 14%);
+  --poster-text: oklch(0.97 0.01 80);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+    --shadow: oklch(0 0 0 / 50%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--background); color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+h1, h2, p, ul { margin: 0; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted-foreground); }
+[hidden] { display: none !important; }
+
+/* Header: the app name and the account on a phone; the section nav joins them from md. */
+header { background: var(--card); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+header .wrap { min-height: 56px; display: flex; align-items: center; gap: 32px; }
+.brand { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 22px; }
+.top-nav { display: none; flex: 1; gap: 4px; font-size: 15px; font-weight: 500; }
+.top-nav a { padding: 8px 14px; border-radius: 10px; color: var(--muted-foreground); }
+.top-nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); font-weight: 600; }
+.account { margin-left: auto; height: 44px; padding: 0 4px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500; }
+.account .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.account .name { display: none; }
+
+main.wrap { flex: 1; max-width: 52rem; padding-top: 20px; padding-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+.page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+
+/* Field and category chips */
+.top { display: flex; flex-direction: column; gap: 8px; }
+.field { position: relative; }
+.field > svg { position: absolute; left: 14px; top: 15px; color: var(--muted-foreground); }
+.field input { width: 100%; height: 48px; padding: 0 48px 0 42px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 16px; color: var(--foreground); }
+.field input::placeholder { color: var(--muted-foreground); }
+.field input:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.field input::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
+.clear { position: absolute; right: 2px; top: 2px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; }
+.clear span { width: 28px; height: 28px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); display: flex; align-items: center; justify-content: center; }
+.cats { display: flex; gap: 8px; }
+.cat { height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; }
+.cat > span { height: 36px; padding: 0 14px 0 12px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; font-size: 14px; font-weight: 500; }
+.cat[aria-pressed="true"] > span { border-color: var(--primary-strong); background: var(--primary-soft); font-weight: 600; }
+.cat:disabled { color: var(--muted-foreground); }
+.cat:disabled > span { padding-right: 6px; border: 1.5px dashed var(--border); }
+.badge { padding: 3px 8px; border-radius: 999px; background: var(--muted); font-size: 11px; font-weight: 600; }
+
+/* Empty field */
+.hint { padding: 32px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; color: var(--muted-foreground); }
+.hint .icon { width: 48px; height: 48px; border-radius: 14px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+.hint p { max-width: 280px; font-size: 15px; line-height: 1.45; }
+
+/* Result blocks */
+.block { display: flex; flex-direction: column; gap: 10px; }
+.block h2 { display: flex; align-items: baseline; gap: 6px; font-size: 16px; font-weight: 700; }
+.block h2 .n { font-size: 14px; font-weight: 500; color: var(--muted-foreground); }
+
+/* In your Saved: a sideways strip on a phone, a grid from md */
+.strip { margin: 0 -16px; padding: 0 16px 4px; list-style: none; display: flex; gap: 12px; overflow-x: auto; }
+.strip li { flex-shrink: 0; width: 104px; }
+.strip a { display: flex; flex-direction: column; gap: 6px; }
+.poster { aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; display: flex; align-items: flex-end; padding: 8px; }
+.poster-title { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 13px; line-height: 1.15; color: var(--poster-text); }
+.title { font-size: 13px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.status { margin-top: -3px; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.status.rated { font-weight: 600; color: var(--primary-strong); }
+.status span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* From TMDB: the rows of search-results/ (revision #82) */
+.rows { padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.row { padding: 12px; display: grid; grid-template-columns: 72px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 0 12px; align-items: start; }
+.row + .row { border-top: 1px solid var(--border); }
+.row-poster { grid-row: span 2; width: 72px; height: 108px; flex-shrink: 0; border-radius: 6px; display: flex; align-items: flex-end; padding: 6px; overflow: hidden; }
+.row-poster span { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: 11px; line-height: 1.15; color: var(--poster-text); }
+.row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.row-title { font-size: 16px; font-weight: 600; line-height: 1.3; }
+.row-year { font-size: 13px; color: var(--muted-foreground); }
+.actions { grid-column: 2; margin-top: 10px; display: flex; gap: 6px; }
+.btn { height: 44px; padding: 0 8px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--border); border-radius: 10px; background: transparent; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.icon-btn { width: 44px; padding: 0; flex-shrink: 0; }
+.icon-btn[aria-pressed="true"] { border-color: var(--primary-strong); background: var(--primary-soft); color: var(--primary-strong); }
+.icon-btn[aria-pressed="true"] svg { fill: currentColor; }
+
+.none { margin-top: 8px; font-size: 15px; color: var(--muted-foreground); }
+.manual { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 14px; }
+.manual button { height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; }
+.manual button span { height: 36px; padding: 0 12px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 14px; font-weight: 600; }
+
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 20; padding: 4px 4px 4px 14px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: 0 10px 28px var(--shadow); font-size: 14px; }
+.toast span { flex: 1; }
+.toast button { width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: var(--muted-foreground); }
+
+/* Bottom tab bar, phone only */
+.tabbar { position: sticky; bottom: 0; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--card); border-top: 1px solid var(--border); }
+.tabbar a { padding: 5px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; color: var(--muted-foreground); font-size: 11px; font-weight: 500; }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+
+footer { display: none; border-top: 1px solid var(--border); }
+footer .wrap { padding-top: 16px; padding-bottom: 16px; display: flex; gap: 12px; font-size: 12px; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  .wrap { padding: 0 24px; }
+  header .wrap { min-height: 64px; }
+  .top-nav { display: flex; }
+  .account { margin-left: 0; padding-right: 12px; }
+  .account .name { display: inline; }
+  main.wrap { padding-top: 32px; padding-bottom: 48px; gap: 24px; }
+  .page-title { font-size: 32px; }
+  .top { gap: 10px; }
+  .clear { right: 6px; top: 6px; width: 36px; height: 36px; }
+  .cat { height: 36px; }
+  .hint { padding: 56px 16px; gap: 12px; border: 1.5px dashed var(--border); border-radius: 18px; }
+  .hint .icon { width: 52px; height: 52px; }
+  .hint p { max-width: none; font-size: 16px; }
+  .block { gap: 12px; }
+  .block h2 { font-size: 18px; }
+  .block h2 .n { font-size: 15px; }
+  .strip { margin: 0; padding: 0; overflow: visible; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 18px 16px; }
+  .strip li { width: auto; min-width: 0; }
+  .poster { padding: 10px; }
+  .poster-title { font-size: 15px; }
+  .title { font-size: 14px; }
+  .row { padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+  .row-poster { width: 48px; height: 72px; }
+  .row-poster span { display: none; }
+  .row-text { flex: 1 1 240px; }
+  .actions { margin-top: 0; flex-shrink: 0; gap: 8px; }
+  .btn { height: 36px; border-radius: 8px; }
+  .btn:not(.icon-btn) { width: 150px; }
+  .icon-btn { width: 36px; }
+  .none { margin-top: 0; font-size: 16px; }
+  .manual button { height: 32px; }
+  .manual button span { height: 32px; }
+  .toast { left: auto; right: 24px; bottom: 24px; max-width: 420px; padding-left: 16px; }
+  .toast button { width: 40px; height: 40px; }
+  .tabbar { display: none; }
+  footer { display: block; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<a class="brand" href="../saved/saved-a.html">TasteTrack</a>
+<nav class="top-nav" aria-label="Main">
+<a href="../saved/saved-a.html">Saved</a>
+<a href="#collections">Collections</a>
+<a href="#" aria-current="page">Search</a>
+</nav>
+<button class="account" type="button" aria-label="Account: Invites, Settings, Log out"><span class="avatar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="name">Yurii</span></button>
+</div>
+</header>
+
+<main class="wrap">
+<div class="top">
+<h1 class="page-title"><label for="q">Search</label></h1>
+<div class="field">
+<svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+<input id="q" type="search" placeholder="Title in English or Ukrainian" autocomplete="off">
+<button class="clear" id="clear" type="button" aria-label="Clear search" title="Clear search" hidden><span><svg class="i" width="14" height="14" viewBox="0 0 24 24" style="stroke-width: 2.25" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></span></button>
+</div>
+<div class="cats" role="group" aria-label="Category">
+<button class="cat" type="button" aria-pressed="true"><span><svg class="i" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 9l1.5-5h16L19 9M9 4l-1.5 5M14 4l-1.5 5M19 4l-1.5 5"/></svg>Films</span></button>
+<button class="cat" type="button" disabled aria-describedby="books-soon"><span><svg class="i" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Books<span id="books-soon" class="badge">Coming soon</span></span></button>
+</div>
+</div>
+
+<div class="hint" id="hint">
+<span class="icon"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
+<p>Type a title. Films in your Saved show first, then more from TMDB.</p>
+</div>
+
+<section class="block" id="saved" aria-labelledby="saved-h" hidden>
+<h2 id="saved-h">In your Saved <span class="n" id="saved-n"></span></h2>
+<ul class="strip" id="saved-list"></ul>
+</section>
+
+<section class="block" id="tmdb" aria-labelledby="tmdb-h" hidden>
+<h2 id="tmdb-h">From TMDB <span class="n" id="tmdb-n"></span></h2>
+<ul class="rows" id="tmdb-list" aria-label="Search results from TMDB"></ul>
+</section>
+
+<p class="none" id="none" hidden>No films found.</p>
+
+<div class="manual" id="manual" hidden>
+<span class="muted">Can't find it?</span>
+<button type="button"><span>Add manually</span></button>
+</div>
+</main>
+
+<div class="toast" id="toast" role="status" hidden><span></span><button type="button" aria-label="Dismiss"><svg class="i" width="16" height="16" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+
+<footer><div class="wrap"><span>Film data from TMDB</span><span>v0.6.0</span></div></footer>
+
+<nav class="tabbar" aria-label="Main">
+<a href="../saved/saved-a.html"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved</a>
+<a href="#collections"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Collections</a>
+<a href="#" aria-current="page"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</a>
+</nav>
+
+<script>
+const tone = (h) => `oklch(0.42 0.075 ${h})`;
+// r: Current Rating, onWatchlist: in the Backlog, collections: Collections holding it, oldest first.
+const SAVED = [
+  { t: "Parasite", y: 2019, h: 95, r: 5, onWatchlist: true, collections: ["Korean cinema", "Favourites", "Oscar winners"] },
+  { t: "Paris, 13th District", y: 2021, h: 280, onWatchlist: true, collections: ["Weekend picks"] },
+  { t: "Paris, Texas", y: 1984, h: 30, collections: ["Road movies"] },
+  { t: "Dune: Part Two", y: 2024, h: 60, r: 4.5, collections: [] },
+  { t: "Past Lives", y: 2023, h: 250, onWatchlist: true, collections: [] },
+  { t: "Perfect Days", y: 2023, h: 150, onWatchlist: true, collections: [] },
+  { t: "Spirited Away", y: 2001, h: 175, r: 4.5, collections: ["Favourites"] },
+];
+// TMDB results with the films already in Saved taken out.
+const TMDB = [
+  { t: "Paranormal Activity", y: 2007, h: 220 }, { t: "Paris Is Burning", y: 1990, h: 335 },
+  { t: "The Parallax View", y: 1974, h: 185 }, { t: "Paranoid Park", y: 2007, h: 140 },
+  { t: "Paris, je t’aime", y: 2006, h: 15 }, { t: "Jurassic Park", y: 1993, h: 120 },
+];
+const STATES = { results: "par", nomatch: "prasite" };
+const planned = {};
+const $ = (id) => document.getElementById(id);
+const icon = (d, size, extra = "") => `<svg class="i" width="${size}" height="${size}" viewBox="0 0 24 24" ${extra} aria-hidden="true">${d}</svg>`;
+const STAR = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Rating" style="flex-shrink: 0"><path d="M12 3l2.8 5.8 6.2.9-4.5 4.4 1.1 6.3L12 17.5l-5.6 3 1.1-6.3L3 9.7l6.2-.9z"/></svg>';
+const MARK = icon('<path d="M6 3h12v18l-6-4-6 4z"/>', 12, 'style="fill: currentColor; stroke-width: 2"');
+const COLLECTION = '<svg class="i" width="13" height="13" viewBox="0 0 24 24" style="stroke-width: 2" role="img" aria-label="Collection"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
+const BOOKMARK = icon('<path d="M6 3h12v18l-6-4-6 4z"/>', 18, 'style="stroke-width: 2"');
+const ADD = icon('<path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/>', 18, 'style="stroke-width: 2"');
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+function hit(f, term) {
+  const s = f.t.toLowerCase();
+  return term !== "" && (s.startsWith(term) || s.split(/[^a-z0-9]+/).some((w) => w && w.startsWith(term)) || (term.includes(" ") && s.includes(term)));
+}
+
+// One status line a cover: the Rating first, then the Watchlist, then the oldest Collection.
+function status(f) {
+  if (f.r) return `<span class="status rated">${STAR}<span>${f.r} · ${f.onWatchlist ? "On Watchlist" : "Watched"}</span></span>`;
+  if (f.onWatchlist) return `<span class="status">${MARK}<span>On Watchlist</span></span>`;
+  if (f.collections.length) return `<span class="status">${COLLECTION}<span>${esc(f.collections[0])}</span></span>`;
+  return "";
+}
+
+function render() {
+  const term = $("q").value.trim().toLowerCase();
+  $("clear").hidden = $("q").value === "";
+  const sv = SAVED.filter((f) => hit(f, term));
+  const tm = TMDB.filter((f) => hit(f, term));
+  $("hint").hidden = term !== "";
+  $("saved").hidden = sv.length === 0;
+  $("tmdb").hidden = tm.length === 0;
+  $("none").hidden = term === "" || sv.length + tm.length > 0;
+  $("manual").hidden = term === "";
+  $("saved-n").textContent = sv.length;
+  $("tmdb-n").textContent = tm.length;
+  $("saved-list").innerHTML = sv.map((f) => `<li><a href="#film">
+    <span class="poster" style="background: ${tone(f.h)}"><span class="poster-title" aria-hidden="true">${esc(f.t)}</span></span>
+    <span class="title">${esc(f.t)}</span>${status(f)}</a></li>`).join("");
+  $("tmdb-list").innerHTML = tm.map((f) => `<li class="row">
+    <span class="row-poster" aria-hidden="true" style="background: ${tone(f.h)}"><span>${esc(f.t)}</span></span>
+    <div class="row-text"><span class="row-title">${esc(f.t)}</span><span class="row-year">${f.y}</span></div>
+    <div class="actions">
+      <button type="button" class="btn" data-watched="${esc(f.t)}">Mark watched</button>
+      <button type="button" class="btn icon-btn" aria-label="Want to watch" title="Want to watch" aria-pressed="${!!planned[f.t]}" data-plan="${esc(f.t)}">${BOOKMARK}</button>
+      <button type="button" class="btn icon-btn" aria-label="Add to collection" title="Add to collection">${ADD}</button>
+    </div></li>`).join("");
+}
+
+function toast(message) {
+  $("toast").querySelector("span").textContent = message;
+  $("toast").hidden = false;
+}
+
+function fromHash() {
+  $("q").value = STATES[location.hash.slice(1)] ?? "";
+  $("toast").hidden = true;
+  render();
+}
+
+$("q").addEventListener("input", () => { $("toast").hidden = true; render(); });
+$("clear").addEventListener("click", () => { $("q").value = ""; render(); $("q").focus(); });
+$("toast").querySelector("button").addEventListener("click", () => { $("toast").hidden = true; });
+$("tmdb-list").addEventListener("click", (e) => {
+  const plan = e.target.closest("[data-plan]");
+  if (plan) {
+    const t = plan.dataset.plan;
+    planned[t] = !planned[t];
+    plan.setAttribute("aria-pressed", String(planned[t]));
+    toast(planned[t] ? `Put ${t} on your Watchlist.` : `Took ${t} off your Watchlist.`);
+  }
+  const watched = e.target.closest("[data-watched]");
+  if (watched) toast(`The Watched dialog opens for ${watched.dataset.watched}.`);
+});
+for (const a of document.querySelectorAll('a[aria-current="page"]')) a.addEventListener("click", (e) => { e.preventDefault(); history.replaceState(null, "", location.pathname); fromHash(); });
+window.addEventListener("hashchange", fromHash);
+fromHash();
+</script>
+</body>
+</html>
