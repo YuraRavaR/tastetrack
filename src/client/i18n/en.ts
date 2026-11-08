@@ -2,6 +2,7 @@
 // Film words belong here, not in domain code (ADR-0005).
 export const en = {
   "app.name": "TasteTrack",
+  "app.logIn": "Log in",
   "app.version": "v{version}",
   "auth.checking": "Loading…",
   "auth.logout": "Log out",
@@ -26,6 +27,7 @@ export const en = {
   "mediaType.film.find": "Find a film",
   "mediaType.film.backlogEmpty": "Nothing on your Watchlist yet.",
   "mediaType.film.experiencedEmpty": "Films you mark Watched show up here.",
+  "mediaType.film.collection": "Film collection",
   "account.menu": "Account menu",
   "login.title": "Log in",
   "login.username": "Username",
@@ -224,9 +226,14 @@ export const en = {
   "share.saving": "Saving…",
   "shared.loading": "Loading…",
   "shared.unavailable": "Couldn't load this page. Please try again.",
-  "shared.notFound":
-    "This link doesn't work. Its owner may have stopped sharing it or made a new one.",
+  "shared.notShared": "This Collection isn't shared any more",
+  "shared.notSharedHint":
+    "Its owner may have stopped sharing it or made a new link. Ask the person who sent it to you for the new one.",
+  "shared.invite": "Want your own? Ask someone on TasteTrack for an invite.",
   "shared.by": "Shared by {name}",
+  "shared.noteBy": "{name}'s note",
+  "shared.noteMore": "More",
+  "shared.noteLess": "Less",
   "shared.empty": "There are no films here yet.",
   "listForm.newTitle": "New collection",
   "listForm.newDescription": "Collect films around a theme, in the order you choose.",

@@ -80,10 +80,14 @@ async function expectAccountMenuPages(page: Page, ui: Ui) {
   await expect(page).toHaveURL(loginPage.path());
 }
 
-// Logged out, the frame is the app name alone, on a Share Link as on login and register.
+// Logged out, the frame is the app name alone on login and register. A Share Link's page adds a
+// way to log in.
 async function expectPlainFrame({ loginPage, registerPage, sharedPage }: Ui) {
-  async function expectPlainFrameOn(frame: Pick<BasePage, "header" | "navigations">) {
-    await expect(frame.header.links).toHaveText(["TasteTrack"]);
+  async function expectPlainFrameOn(
+    frame: Pick<BasePage, "header" | "navigations">,
+    links = ["TasteTrack"],
+  ) {
+    await expect(frame.header.links).toHaveText(links);
     await expect(frame.header.buttons).toHaveCount(0);
     await expect(frame.navigations).toHaveCount(0);
   }
@@ -93,7 +97,7 @@ async function expectPlainFrame({ loginPage, registerPage, sharedPage }: Ui) {
   await registerPage.goto();
   await expectPlainFrameOn(registerPage);
   await sharedPage.goto("no-such-link");
-  await expectPlainFrameOn(sharedPage);
+  await expectPlainFrameOn(sharedPage, ["TasteTrack", "Log in"]);
 }
 
 // Setting a new password is all such a User can do, so they get only a way out.
