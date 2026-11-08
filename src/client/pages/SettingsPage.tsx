@@ -1,23 +1,25 @@
 import { type FormEvent, type ReactNode, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { maxDisplayNameLength, passwordLength } from "../../shared/accounts";
 import type { User } from "../../shared/api";
 import * as api from "../api";
 import { useAuth } from "../auth";
+import { AuthField } from "../components/AuthCard";
+import { FormError } from "../components/FormError";
 import { t } from "../i18n/t";
 
 // The User's own settings: the Display Name others see on Share Links, their password, and
-// deleting their account.
+// deleting their account. Three cards stacked (`docs/mockups/account/`).
 export function SettingsPage() {
   const { state } = useAuth();
   if (state.status !== "authenticated") return null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="font-semibold text-2xl tracking-tight">{t("settings.title")}</h1>
+    <div className="flex flex-col gap-4 md:gap-5">
+      <h1 className="font-bold text-[1.75rem] leading-tight tracking-tight md:text-[2rem]">
+        {t("settings.title")}
+      </h1>
       <DisplayNameSection user={state.user} />
       <PasswordSection username={state.user.username} />
       <DeletionSection username={state.user.username} />
@@ -25,7 +27,7 @@ export function SettingsPage() {
   );
 }
 
-// A Card that is a landmark named by its title, so each form's messages stay apart from the
+// A card that is a landmark named by its title, so each form's messages stay apart from the
 // other's.
 function Section({
   title,
@@ -38,19 +40,25 @@ function Section({
 }) {
   const titleId = useId();
   return (
-    <Card aria-labelledby={titleId} role="region">
-      <CardHeader>
-        <CardTitle>
-          <h2 id={titleId} className="text-lg">
-            {title}
-          </h2>
-        </CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent>{children}</CardContent>
+    <Card
+      aria-labelledby={titleId}
+      role="region"
+      className="gap-3.5 rounded-xl p-4.5 shadow-none md:gap-4 md:p-6"
+    >
+      <div className="flex flex-col gap-1.5">
+        <h2 id={titleId} className="font-semibold text-lg leading-tight">
+          {title}
+        </h2>
+        {description && <p className="text-muted-foreground text-sm leading-snug">{description}</p>}
+      </div>
+      {children}
     </Card>
   );
 }
+
+// The 44px field of the sign-in card, on the page's ground so it stands out from the card.
+const fieldClasses = "bg-background md:max-w-md dark:bg-background";
+const buttonClasses = "h-11 px-4.5 font-semibold";
 
 function DisplayNameSection({ user }: { user: User }) {
   const auth = useAuth();
@@ -70,40 +78,31 @@ function DisplayNameSection({ user }: { user: User }) {
 
   return (
     <Section title={t("settings.displayNameTitle")}>
-      <form className="flex flex-col gap-4" onSubmit={submit}>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="displayName">{t("settings.displayName")}</Label>
-          <Input
-            id="displayName"
-            name="displayName"
-            value={displayName}
-            onChange={(event) => {
-              setDisplayName(event.target.value);
-              setOutcome(null);
-            }}
-            maxLength={maxDisplayNameLength}
-            aria-describedby="displayName-hint"
-            autoComplete="nickname"
-          />
-          <p id="displayName-hint" className="text-muted-foreground text-sm">
-            {t("settings.displayNameHint", {
-              max: maxDisplayNameLength,
-              username: user.username,
-            })}
-          </p>
-        </div>
+      <form className="flex flex-col gap-3.5 md:gap-4" onSubmit={submit}>
+        <AuthField
+          id="displayName"
+          label={t("settings.displayName")}
+          rules={t("settings.displayNameHint", {
+            max: maxDisplayNameLength,
+            username: user.username,
+          })}
+          className={fieldClasses}
+          value={displayName}
+          onChange={(event) => {
+            setDisplayName(event.target.value);
+            setOutcome(null);
+          }}
+          maxLength={maxDisplayNameLength}
+          autoComplete="nickname"
+        />
         {outcome === "saved" && (
           <p role="status" className="text-muted-foreground text-sm">
             {t("settings.displayNameSaved")}
           </p>
         )}
-        {outcome === "failed" && (
-          <p role="alert" className="text-destructive text-sm">
-            {t("settings.displayNameFailed")}
-          </p>
-        )}
+        {outcome === "failed" && <FormError>{t("settings.displayNameFailed")}</FormError>}
         <div>
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" className={buttonClasses} disabled={saving}>
             {t(saving ? "settings.saving" : "settings.saveDisplayName")}
           </Button>
         </div>
@@ -132,7 +131,7 @@ function PasswordSection({ username }: { username: string }) {
 
   return (
     <Section title={t("settings.passwordTitle")} description={t("settings.passwordDescription")}>
-      <form className="flex flex-col gap-4" onSubmit={submit}>
+      <form className="flex flex-col gap-3.5 md:gap-4" onSubmit={submit}>
         {/* Tells a password manager whose password this is. */}
         <input
           type="text"
@@ -142,44 +141,40 @@ function PasswordSection({ username }: { username: string }) {
           readOnly
           hidden
         />
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="currentPassword">{t("settings.currentPassword")}</Label>
-          <Input
-            id="currentPassword"
-            name="currentPassword"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="newPassword">{t("settings.newPassword")}</Label>
-          <Input
-            id="newPassword"
-            name="newPassword"
-            type="password"
-            minLength={passwordLength.min}
-            maxLength={passwordLength.max}
-            aria-describedby="newPassword-rules"
-            autoComplete="new-password"
-            required
-          />
-          <p id="newPassword-rules" className="text-muted-foreground text-sm">
-            {t("settings.newPasswordRules")}
-          </p>
-        </div>
+        <AuthField
+          id="currentPassword"
+          label={t("settings.currentPassword")}
+          className={fieldClasses}
+          type="password"
+          autoComplete="current-password"
+          required
+          invalid={outcome === "wrong_password"}
+          // Typing in the field at fault clears the error, as on the sign-in card.
+          onChange={() => outcome === "wrong_password" && setOutcome(null)}
+        />
+        <AuthField
+          id="newPassword"
+          label={t("settings.newPassword")}
+          rules={t("settings.newPasswordRules")}
+          className={fieldClasses}
+          type="password"
+          minLength={passwordLength.min}
+          maxLength={passwordLength.max}
+          autoComplete="new-password"
+          required
+        />
         {outcome === "changed" && (
           <p role="status" className="text-muted-foreground text-sm">
             {t("settings.passwordChanged")}
           </p>
         )}
         {outcome && outcome !== "changed" && (
-          <p role="alert" className="text-destructive text-sm">
+          <FormError>
             {t(outcome === "wrong_password" ? "settings.wrongPassword" : "settings.passwordFailed")}
-          </p>
+          </FormError>
         )}
         <div>
-          <Button type="submit" disabled={changing}>
+          <Button type="submit" className={buttonClasses} disabled={changing}>
             {t(changing ? "settings.changingPassword" : "settings.changePassword")}
           </Button>
         </div>
@@ -207,7 +202,7 @@ function DeletionSection({ username }: { username: string }) {
 
   return (
     <Section title={t("settings.deleteTitle")} description={t("settings.deleteDescription")}>
-      <form className="flex flex-col gap-4" onSubmit={submit}>
+      <form className="flex flex-col gap-3.5 md:gap-4" onSubmit={submit}>
         {/* Tells a password manager whose password this is. */}
         <input
           type="text"
@@ -217,25 +212,25 @@ function DeletionSection({ username }: { username: string }) {
           readOnly
           hidden
         />
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="deletionPassword">{t("settings.deletePassword")}</Label>
-          <Input
-            id="deletionPassword"
-            name="deletionPassword"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </div>
+        <AuthField
+          id="deletionPassword"
+          label={t("settings.deletePassword")}
+          className={fieldClasses}
+          type="password"
+          autoComplete="current-password"
+          required
+          invalid={error === "wrong_password"}
+          onChange={() => error === "wrong_password" && setError(null)}
+        />
         {error && (
-          <p role="alert" className="text-destructive text-sm">
+          <FormError>
             {t(
               error === "wrong_password" ? "settings.deleteWrongPassword" : "settings.deleteFailed",
             )}
-          </p>
+          </FormError>
         )}
         <div>
-          <Button type="submit" variant="destructive" disabled={deleting}>
+          <Button type="submit" variant="destructive" className={buttonClasses} disabled={deleting}>
             {t(deleting ? "settings.deletingAccount" : "settings.deleteAccount")}
           </Button>
         </div>
