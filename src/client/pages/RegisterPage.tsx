@@ -1,13 +1,11 @@
 import { type FormEvent, useState } from "react";
-import { Link, Navigate, useSearchParams } from "react-router";
+import { Navigate, useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { passwordLength, usernamePattern } from "../../shared/accounts";
 import type { RegisterError } from "../api";
 import { useAuth } from "../auth";
+import { AuthCard, AuthField, SwitchFormLink } from "../components/AuthCard";
+import { FormError } from "../components/FormError";
 import { type MessageId, t } from "../i18n/t";
 
 const errorMessages: Record<RegisterError, MessageId> = {
@@ -16,6 +14,17 @@ const errorMessages: Record<RegisterError, MessageId> = {
   invite_code_expired: "register.inviteCodeExpired",
   username_taken: "register.usernameTaken",
   unavailable: "register.unavailable",
+};
+
+type RegisterField = "inviteCode" | "username";
+
+// The field each error is about, which it marks until the User types there again.
+const errorFields: Record<RegisterError, RegisterField | null> = {
+  invite_code_unknown: "inviteCode",
+  invite_code_used: "inviteCode",
+  invite_code_expired: "inviteCode",
+  username_taken: "username",
+  unavailable: null,
 };
 
 export function RegisterPage() {
@@ -44,83 +53,64 @@ export function RegisterPage() {
     if (!result.ok) setError(result.error);
   }
 
+  const errorField = error ? errorFields[error] : null;
+
+  // Typing in the field an error is about clears that error.
+  function clearErrorAbout(field: RegisterField) {
+    if (errorField === field) setError(null);
+  }
+
   return (
-    <Card className="mx-auto w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>
-          <h1 className="text-xl">{t("register.title")}</h1>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <form className="flex flex-col gap-4" onSubmit={submit}>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="inviteCode">{t("register.inviteCode")}</Label>
-            <Input
-              id="inviteCode"
-              name="inviteCode"
-              defaultValue={searchParams.get("code") ?? ""}
-              autoComplete="off"
-              autoCapitalize="characters"
-              spellCheck={false}
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="username">{t("register.username")}</Label>
-            <Input
-              id="username"
-              name="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              aria-invalid={usernameInvalid}
-              aria-describedby="username-rules"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              required
-            />
-            <p
-              id="username-rules"
-              className={cn(
-                "text-sm",
-                usernameInvalid ? "text-destructive" : "text-muted-foreground",
-              )}
-            >
-              {t("register.usernameRules")}
-            </p>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">{t("register.password")}</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              minLength={passwordLength.min}
-              maxLength={passwordLength.max}
-              aria-describedby="password-rules"
-              autoComplete="new-password"
-              required
-            />
-            <p id="password-rules" className="text-muted-foreground text-sm">
-              {t("register.passwordRules")}
-            </p>
-          </div>
-          {error && (
-            <p role="alert" className="text-destructive text-sm">
-              {t(errorMessages[error])}
-            </p>
-          )}
-          <Button type="submit" className="w-full" disabled={submitting}>
-            {t(submitting ? "register.submitting" : "register.submit")}
-          </Button>
-        </form>
-        <p className="text-center text-muted-foreground text-sm">
-          {t("register.loginPrompt")}{" "}
-          <Link to="/login" className="text-primary-strong underline-offset-4 hover:underline">
-            {t("register.loginLink")}
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+    <AuthCard title={t("register.title")}>
+      <form className="flex flex-col gap-4" onSubmit={submit}>
+        <AuthField
+          id="inviteCode"
+          label={t("register.inviteCode")}
+          defaultValue={searchParams.get("code") ?? ""}
+          onChange={() => clearErrorAbout("inviteCode")}
+          invalid={errorField === "inviteCode"}
+          className="tracking-wider"
+          autoComplete="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          required
+        />
+        <AuthField
+          id="username"
+          label={t("register.username")}
+          rules={t("register.usernameRules")}
+          value={username}
+          onChange={(event) => {
+            setUsername(event.target.value);
+            clearErrorAbout("username");
+          }}
+          invalid={errorField === "username"}
+          rulesBroken={usernameInvalid}
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
+        />
+        <AuthField
+          id="password"
+          label={t("register.password")}
+          rules={t("register.passwordRules")}
+          type="password"
+          minLength={passwordLength.min}
+          maxLength={passwordLength.max}
+          autoComplete="new-password"
+          required
+        />
+        {error && <FormError>{t(errorMessages[error])}</FormError>}
+        <Button type="submit" className="h-11 w-full" disabled={submitting}>
+          {t(submitting ? "register.submitting" : "register.submit")}
+        </Button>
+      </form>
+      <SwitchFormLink
+        prompt={t("register.loginPrompt")}
+        to="/login"
+        link={t("register.loginLink")}
+      />
+    </AuthCard>
   );
 }

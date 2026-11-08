@@ -1,12 +1,11 @@
 import { type FormEvent, useState } from "react";
 import { Navigate, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { passwordLength } from "../../shared/accounts";
 import type { NewPasswordError } from "../api";
 import { type LoginLocationState, useAuth } from "../auth";
+import { AuthCard, AuthField } from "../components/AuthCard";
+import { FormError } from "../components/FormError";
 import { t } from "../i18n/t";
 
 // Where a User who logged in with a Temporary Password the Operator issued sets their own, before
@@ -36,55 +35,40 @@ export function NewPasswordPage() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>
-          <h1 className="text-xl">{t("newPassword.title")}</h1>
-        </CardTitle>
-        <CardDescription>{t("newPassword.description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="flex flex-col gap-4" onSubmit={submit}>
-          {/* Tells a password manager whose password this is, when the login just happened. */}
-          {state.username && (
-            <input
-              type="text"
-              name="username"
-              value={state.username}
-              autoComplete="username"
-              readOnly
-              hidden
-            />
-          )}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="newPassword">{t("newPassword.label")}</Label>
-            <Input
-              id="newPassword"
-              name="newPassword"
-              type="password"
-              minLength={passwordLength.min}
-              maxLength={passwordLength.max}
-              aria-describedby="newPassword-rules"
-              autoComplete="new-password"
-              required
-              onChange={() => setError(null)}
-            />
-            <p id="newPassword-rules" className="text-muted-foreground text-sm">
-              {t("newPassword.rules")}
-            </p>
-          </div>
-          {error && (
-            <p role="alert" className="text-destructive text-sm">
-              {t(
-                error === "temporary_password_reused" ? "newPassword.reused" : "newPassword.failed",
-              )}
-            </p>
-          )}
-          <Button type="submit" className="w-full" disabled={submitting}>
-            {t(submitting ? "newPassword.submitting" : "newPassword.submit")}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <AuthCard title={t("newPassword.title")} description={t("newPassword.description")}>
+      <form className="flex flex-col gap-4" onSubmit={submit}>
+        {/* Tells a password manager whose password this is, when the login just happened. */}
+        {state.username && (
+          <input
+            type="text"
+            name="username"
+            value={state.username}
+            autoComplete="username"
+            readOnly
+            hidden
+          />
+        )}
+        <AuthField
+          id="newPassword"
+          label={t("newPassword.label")}
+          rules={t("newPassword.rules")}
+          type="password"
+          minLength={passwordLength.min}
+          maxLength={passwordLength.max}
+          autoComplete="new-password"
+          required
+          invalid={error === "temporary_password_reused"}
+          onChange={() => setError(null)}
+        />
+        {error && (
+          <FormError>
+            {t(error === "temporary_password_reused" ? "newPassword.reused" : "newPassword.failed")}
+          </FormError>
+        )}
+        <Button type="submit" className="h-11 w-full" disabled={submitting}>
+          {t(submitting ? "newPassword.submitting" : "newPassword.submit")}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }
