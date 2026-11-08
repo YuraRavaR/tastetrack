@@ -5,6 +5,7 @@ import { BacklogPage } from "./pages/BacklogPage";
 import { HomePage } from "./pages/HomePage";
 import { InvitesPage } from "./pages/InvitesPage";
 import { ItemHistoryPage } from "./pages/ItemHistoryPage";
+import { LibraryPage } from "./pages/LibraryPage";
 import { ListPage } from "./pages/ListPage";
 import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -28,6 +29,7 @@ export function App() {
             <Route path="/s/:token" element={<SharedListPage />} />
             <Route element={<RequireAuth />}>
               <Route index element={<HomePage />} />
+              <Route path="/saved/:type/:tab?" element={<LibraryPage />} />
               <Route path="/log" element={<LogPage />} />
               <Route path="/watchlist" element={<BacklogPage />} />
               <Route path="/lists" element={<ListsPage />} />

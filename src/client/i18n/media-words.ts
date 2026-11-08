@@ -5,8 +5,9 @@ import { t } from "./t";
 // The UI words that differ per Media Type (ADR-0005): the Experienced verb, for the first time and
 // for a Revisit, the action of marking it, a Rating with how many Log Entries it follows, the
 // Planned action, the Backlog's name, the search label, the plural tab label, the row prefix, the
-// Item History's name, what it says while empty, and the labels of its first date and of a Log
-// Entry's date field.
+// Item History's name, what it says while empty, the labels of its first date and of a Log Entry's
+// date field, the mark of a planned Media Item already experienced, the action that opens search,
+// and what Saved's two tabs say while empty.
 type MediaWord =
   | "experienced"
   | "experiencedAgain"
@@ -21,7 +22,11 @@ type MediaWord =
   | "historyEmpty"
   | "historyEmptyHint"
   | "firstExperienced"
-  | "dateExperienced";
+  | "dateExperienced"
+  | "experiencedBefore"
+  | "find"
+  | "backlogEmpty"
+  | "experiencedEmpty";
 
 // What a page with no Media Item of its own reads its words by, and the only Media Type built.
 export const pageMediaType: MediaType = "film";

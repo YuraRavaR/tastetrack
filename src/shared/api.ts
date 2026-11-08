@@ -501,6 +501,45 @@ export const NewLogEntryResponse = LogEntryResponse.extend({
 
 export type NewLogEntryResponse = z.infer<typeof NewLogEntryResponse>;
 
+export const LibraryQuery = z.object({
+  mediaType: MediaType,
+});
+
+// One Media Item of a User's Library: in their Backlog, with when it was added there, or with at
+// least one of their Log Entries, with its Current Rating and the date and creation time of the
+// last Log Entry in Log Order, or both. That entry's date is null when no entry is dated.
+export const LibraryItem = z
+  .object({
+    mediaItem: MediaItem,
+    backlog: z
+      .object({
+        addedAt: z.iso.datetime().openapi({ example: "2026-10-19T19:30:00.000Z" }),
+      })
+      .nullable(),
+    log: z
+      .object({
+        currentRating: Rating,
+        lastLogEntry: z.object({
+          date: LogDate.nullable(),
+          createdAt: z.iso.datetime().openapi({ example: "2026-10-19T19:30:00.000Z" }),
+        }),
+      })
+      .nullable(),
+  })
+  .openapi("LibraryItem");
+
+export type LibraryItem = z.infer<typeof LibraryItem>;
+
+// The User's Library of one Media Type, each Media Item once, in no particular order: the client
+// sorts and filters it.
+export const LibraryResponse = z
+  .object({
+    items: z.array(LibraryItem),
+  })
+  .openapi("LibraryResponse");
+
+export type LibraryResponse = z.infer<typeof LibraryResponse>;
+
 export const LogResponse = z
   .object({
     logEntries: z.array(LogEntry),

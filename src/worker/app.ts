@@ -5,6 +5,7 @@ import { auth } from "./auth";
 import { catalogRoutes } from "./catalog";
 import { type AppEnv, withClock, withDatabase } from "./env";
 import { inviteCodeRoutes } from "./invite-codes";
+import { libraryRoutes } from "./library";
 import { listRoutes } from "./lists";
 import { logRoutes } from "./log";
 import { meRoutes } from "./me";
@@ -43,6 +44,7 @@ app.route("/", inviteCodeRoutes);
 app.route("/", catalogRoutes);
 app.route("/", logRoutes);
 app.route("/", listRoutes);
+app.route("/", libraryRoutes);
 app.route("/test", testHooks);
 
 app.doc31("/openapi.json", {

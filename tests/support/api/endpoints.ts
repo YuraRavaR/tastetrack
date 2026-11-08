@@ -19,6 +19,7 @@ export const endpoints = {
     mediaItemLists: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/lists`,
   },
   inviteCodes: "/api/invite-codes",
+  library: "/api/library",
   listItems: {
     byId: (listItemId: number) => `/api/list-items/${listItemId}`,
   },
