@@ -1,11 +1,23 @@
+import IntlMessageFormat from "intl-messageformat";
 import { describe, expect, it } from "vitest";
 import { en } from "./en";
 
-// A List is "Collection" in UI copy (GLOSSARY); the word "list" stays in code, routes and the API,
-// so an argument such as `{list}` is not copy and is left out.
+// The words a User reads in a message: its literal text, plural and select branches included,
+// but not argument names such as `{list}`.
+function copyOf(elements: ReturnType<IntlMessageFormat["getAst"]>): string[] {
+  return elements.flatMap((element) => {
+    if ("options" in element) {
+      return Object.values(element.options).flatMap((option) => copyOf(option.value));
+    }
+    if ("children" in element) return copyOf(element.children);
+    return element.type === 0 ? [element.value] : [];
+  });
+}
+
+// A List is "Collection" in UI copy (GLOSSARY); the word "list" stays in code, routes and the API.
 describe("the English catalogue", () => {
   it.each(Object.entries(en))("%s never calls a List a list", (_id, message) => {
-    const copy = message.replace(/\{\s*\w+/g, "{");
+    const copy = copyOf(new IntlMessageFormat(message, "en").getAst()).join(" ");
     expect(copy).not.toMatch(/\blists?\b/i);
   });
 });

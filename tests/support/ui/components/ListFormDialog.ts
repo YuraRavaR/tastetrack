@@ -1,6 +1,6 @@
 import { ScopedComponent } from "./ScopedComponent";
 
-// A List's name and description: "New List" makes one, "Edit List" changes one.
+// A List's name and description: "New collection" makes one, "Edit collection" changes one.
 export class ListFormDialog extends ScopedComponent {
   readonly nameInput = this.root.getByLabel("Name");
   readonly descriptionInput = this.root.getByLabel("Description");
