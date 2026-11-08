@@ -25,6 +25,7 @@ export const endpoints = {
   },
   lists: {
     collection: "/api/lists",
+    mediaItems: "/api/lists/media-items",
     byId: (listId: number) => `/api/lists/${listId}`,
     items: (listId: number) => `/api/lists/${listId}/items`,
     shareLink: (listId: number) => `/api/lists/${listId}/share-link`,

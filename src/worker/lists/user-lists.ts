@@ -3,11 +3,12 @@
 // domain core's (src/shared/lists.ts).
 import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
+import { listItems, lists, mediaItems, shareLinks, tmdbCache, users } from "../../db/schema";
 import type {
   HoldingList,
   List,
   ListEditRequest,
+  ListedMediaItem,
   ListItem,
   ListSummary,
   MediaItemList,
@@ -16,7 +17,7 @@ import type {
   NewListRequest,
 } from "../../shared/api";
 import { isReservedListName, listNameKey, maxLists } from "../../shared/lists";
-import { visibleTo } from "../catalog/media-items";
+import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
   listIndex,
@@ -245,6 +246,33 @@ export async function listsHolding(
     holding.set(mediaItemId, [...(holding.get(mediaItemId) ?? []), { id, name }]);
   }
   return holding;
+}
+
+// Every Media Item of the Media Type on the User's own Lists, each once with the Lists holding it,
+// oldest first, in one query however many there are. The Backlog isn't one of them.
+export async function listedMediaItems(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaType: MediaType,
+  now: Date,
+): Promise<ListedMediaItem[]> {
+  const rows = await db
+    .select({ ...mediaItemColumns, listId: lists.id, listName: lists.name })
+    .from(listItems)
+    .innerJoin(lists, eq(listItems.listId, lists.id))
+    .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
+    .leftJoin(tmdbCache, cacheOfMediaItem(now))
+    .where(and(eq(lists.userId, userId), eq(lists.kind, "list"), eq(lists.mediaType, mediaType)))
+    .orderBy(asc(lists.createdAt), asc(lists.id));
+  const listed = new Map<number, ListedMediaItem>();
+  for (const row of rows) {
+    if (row.listName === null) throw new Error(`List ${row.listId} has no name`);
+    const list = { id: row.listId, name: row.listName };
+    const known = listed.get(row.mediaItemId);
+    if (known) known.lists.push(list);
+    else listed.set(row.mediaItemId, { mediaItem: toMediaItem(row), lists: [list] });
+  }
+  return [...listed.values()];
 }
 
 // One of the User's own Lists, its Share Link at `origin` while it has one, and its items in

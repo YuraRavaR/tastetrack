@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
 import { t } from "../i18n/t";
 import { Poster } from "./Poster";
@@ -16,6 +17,8 @@ export function PosterGridItem({
   mark,
   place,
   unlinked = false,
+  className,
+  onOpened,
   children,
 }: {
   mediaItem: MediaItem;
@@ -29,6 +32,10 @@ export function PosterGridItem({
   place?: number;
   // True where the Media Item's page isn't for the viewer, as for a visitor to a Share Link.
   unlinked?: boolean;
+  // Classes for the item itself, such as a fixed width in a sideways strip.
+  className?: string;
+  // Called as the link opens the Media Item's page, such as to remember the place in the results.
+  onOpened?: () => void;
   // What goes under the title and meta line, outside the link, such as a Note.
   children?: ReactNode;
 }) {
@@ -65,11 +72,11 @@ export function PosterGridItem({
   );
   const bodyClass = "flex flex-col gap-1.5 rounded-lg";
   return (
-    <li className="flex min-w-0 flex-col gap-2">
+    <li className={cn("flex min-w-0 flex-col gap-2", className)}>
       {unlinked ? (
         <div className={bodyClass}>{body}</div>
       ) : (
-        <Link to={`/items/${mediaItem.id}`} className={bodyClass}>
+        <Link to={`/items/${mediaItem.id}`} onClick={onOpened} className={bodyClass}>
           {body}
         </Link>
       )}

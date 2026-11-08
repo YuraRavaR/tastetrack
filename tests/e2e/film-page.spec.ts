@@ -181,6 +181,20 @@ test("a first viewing from a film's page takes it off the Watchlist, with an und
   await expect(filmPage.toast.root).toHaveText(/Put Alien \(1979\) back on your Watchlist\./);
 });
 
+test("the Watched again dialog's hint leaves out the date of a Log Entry with none", async ({
+  ui,
+  loggedInApi: api,
+}) => {
+  const { id: mediaItemId } = await alien(api);
+  expect((await api.log.createLogEntry({ mediaItemId, rating: 3.5 })).status()).toBe(201);
+  const { filmPage } = ui;
+  await openFilm(filmPage, mediaItemId);
+
+  await filmPage.watchedAgainButton.click();
+
+  await expect(filmPage.logEntryDialog("Alien").lastTime).toHaveText("Last time 3.5");
+});
+
 test("a film's page shows its runtime and genres", async ({ ui, loggedInApi: api }) => {
   const { filmPage } = ui;
 

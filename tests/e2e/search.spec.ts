@@ -5,6 +5,13 @@ import { callsRealTmdb } from "../support/scenarios/tmdb";
 import { expect, test } from "../support/ui/fixtures";
 
 // Locally the Worker searches a TMDB fake; on staging, the real TMDB. Both know these films.
+//
+// A film in the User's Library or on their Lists shows in "In your Saved", never among TMDB's
+// results. So a test of what a TMDB result's row does with a film the User has logged or listed
+// sets that up from the row itself, not through `api`: the film stays in TMDB's results until the
+// query changes.
+
+const hint = "Type a title to search your Saved and TMDB.";
 
 async function createListHolding(api: ApiClient, name: string, mediaItemId: number) {
   const { list } = await expectBody(api.lists.createList({ name, mediaType: "film" }), 201);
@@ -42,6 +49,132 @@ test("a result without a poster is named No poster, and one with a poster isn't"
   await searchPage.search("alien");
   await expect(searchResults.filmLabel("Alien (1979)")).toBeVisible();
   await expect(searchResults.noPosterPlaceholders).toHaveCount(0);
+});
+
+test("Search finds the User's own films first, In your Saved, and TMDB's without them", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const { id: mediaItemId } = await alien(api);
+  await expectBody(api.log.createLogEntry({ mediaItemId, rating: 5 }), 201);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId }), 201);
+  const { searchPage, filmPage } = ui;
+  await searchPage.goto();
+
+  await searchPage.search("alien");
+
+  const saved = searchPage.userMediaItems.film("Alien");
+  await expect(searchPage.userMediaItemsHeading).toHaveText(/^In your Saved\s*1$/);
+  await expect(saved.root).toContainText("5 · Watchlist");
+  await expect(searchPage.tmdbHeading).toBeVisible();
+  await expect(searchPage.searchResults.rows.first()).toBeVisible();
+  await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toHaveCount(0);
+
+  // Its cover opens the film's page, and Back comes back to the same results.
+  await saved.link.click();
+  await expect(page).toHaveURL(filmPage.path(mediaItemId));
+  await page.goBack();
+  await expect(page).toHaveURL(searchPage.path("alien"));
+  await expect(searchPage.searchBox).toHaveValue("alien");
+  await expect(saved.root).toContainText("5 · Watchlist");
+});
+
+test("each saved film shows one status line: its Rating, the Watchlist, or its oldest Collection", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const planned = await aliens(api);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId: planned.id }), 201);
+  const logged = await amelie(api);
+  await expectBody(api.log.createLogEntry({ mediaItemId: logged.id, rating: 4.5 }), 201);
+  const listed = await alien(api);
+  await createListHolding(api, "Road movies", listed.id);
+  await createListHolding(api, "Horror nights", listed.id);
+  const { searchPage } = ui;
+  const { userMediaItems } = searchPage;
+  await page.setViewportSize({ width: 402, height: 874 });
+  await searchPage.goto();
+
+  await searchPage.search("a");
+
+  await expect(userMediaItems.film("Aliens").root).toContainText("Watchlist");
+  await expect(userMediaItems.film("Amélie").root).toContainText("4.5 · Watched");
+  await expect(userMediaItems.film("Alien").root).toContainText("Road movies");
+  await expect(userMediaItems.film("Alien").root).not.toContainText("Horror nights");
+  await expect(userMediaItems.ratingIcons).toHaveCount(1);
+  // A strip of covers 104px wide on a phone.
+  expect((await userMediaItems.film("Alien").root.boundingBox())?.width).toBe(104);
+});
+
+test("In your Saved follows each keystroke, without waiting for TMDB, which never repeats it", async ({
+  page,
+  loggedInUi: ui,
+  loggedInApi: api,
+}) => {
+  const { id: mediaItemId } = await alien(api);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId }), 201);
+  const { searchPage } = ui;
+  const { userMediaItems, searchResults } = searchPage;
+  await searchPage.goto();
+  await searchPage.search("alien");
+  await expect(searchResults.rows.first()).toBeVisible();
+  // From now on TMDB never answers, so its results for "alien" stay on the page.
+  await page.route("**/api/catalog/search?**", () => {});
+
+  await searchPage.search("alienx");
+  await expect(userMediaItems.films).toHaveCount(0);
+  await expect(searchResults.rows.first()).toBeVisible();
+  await expect(searchResults.filmLabel("Alien (1979)")).toHaveCount(0);
+
+  await searchPage.search("ali");
+  await expect(userMediaItems.film("Alien").root).toBeVisible();
+});
+
+test("a film planned from TMDB's results moves to In your Saved once the query changes", async ({
+  loggedInUi: ui,
+}) => {
+  const { searchPage } = ui;
+  await searchPage.goto("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
+
+  await result.wantToWatchButton.click();
+  await expect(result.onWatchlistButton).toBeVisible();
+  await expect(searchPage.userMediaItems.films).toHaveCount(0);
+
+  await searchPage.search("alie");
+  await expect(searchPage.userMediaItems.film("Alien").root).toContainText("Watchlist");
+  await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toHaveCount(0);
+});
+
+test("an empty field shows the hint and the Media Type chips, Books still to come", async ({
+  loggedInUi: ui,
+}) => {
+  const { searchPage } = ui;
+  await searchPage.goto();
+
+  await expect(searchPage.text(hint)).toBeVisible();
+  await expect(searchPage.filmsChip).toBeVisible();
+  await expect(searchPage.booksChip).toBeDisabled();
+  await expect(searchPage.booksChip).toHaveAccessibleDescription("Coming soon");
+
+  await searchPage.search("alien");
+  await expect(searchPage.text(hint)).toHaveCount(0);
+  await searchPage.clearSearchButton.click();
+  await expect(searchPage.text(hint)).toBeVisible();
+});
+
+test("a query nothing matches says so, quietly, with Add manually", async ({ loggedInUi: ui }) => {
+  const { searchPage } = ui;
+  await searchPage.goto();
+
+  await searchPage.search("zzqx no such film");
+
+  await expect(searchPage.text("No films found for “zzqx no such film”.")).toBeVisible();
+  await expect(searchPage.addManuallyButton).toBeVisible();
+  await expect(searchPage.userMediaItemsHeading).toHaveCount(0);
+  await expect(searchPage.tmdbHeading).toHaveCount(0);
 });
 
 test("a User clears the search with one click and can type again", async ({ loggedInUi: ui }) => {
@@ -221,16 +354,18 @@ test("a User marks a film watched, then logs a rewatch with a new Rating", async
 });
 
 test("a backdated rewatch leaves the row's Current Rating as it was", async ({
-  ui,
-  loggedInApi: api,
+  loggedInUi: ui,
 }) => {
-  const { id: mediaItemId } = await alien(api);
-  const logged = await api.log.createLogEntry({ mediaItemId, rating: 4, date: "2024-03-12" });
-  expect(logged.status()).toBe(201);
   const { searchPage } = ui;
   await searchPage.goto("alien");
   const result = searchPage.searchResults.result("Alien (1979)");
   const dialog = searchPage.logEntryDialog("Alien");
+  await result.markWatchedButton.click();
+  await dialog.rate("4 stars");
+  await dialog.dateChip("Other date").click();
+  await dialog.dateInput.fill("2024-03-12");
+  await dialog.save();
+  await expect(dialog.root).toBeHidden();
 
   await result.watchedAgainButton.click();
   await expect(dialog.lastTime).toHaveText("Last time 4 · Mar 12, 2024");
@@ -243,29 +378,27 @@ test("a backdated rewatch leaves the row's Current Rating as it was", async ({
   await expect(result.itemHistoryLink("4 · 2 viewings")).toBeVisible();
 });
 
-test("the hint leaves out the date of a Log Entry with none", async ({ ui, loggedInApi: api }) => {
-  const { id: mediaItemId } = await alien(api);
-  expect((await api.log.createLogEntry({ mediaItemId, rating: 3.5 })).status()).toBe(201);
-  const { searchPage } = ui;
-  await searchPage.goto("alien");
-
-  await searchPage.searchResults.result("Alien (1979)").watchedAgainButton.click();
-
-  await expect(searchPage.logEntryDialog("Alien").lastTime).toHaveText("Last time 3.5");
-});
-
 test("a result shows two of its Lists, then how many more, each linking to its List", async ({
   page,
   ui,
   loggedInApi: api,
 }) => {
-  const { id: mediaItemId } = await alien(api);
-  const first = await createListHolding(api, "First", mediaItemId);
-  await createListHolding(api, "Second", mediaItemId);
-  await createListHolding(api, "Third", mediaItemId);
+  const createList = async (name: string) => {
+    return (await expectBody(api.lists.createList({ name, mediaType: "film" }), 201)).list;
+  };
+  const first = await createList("First");
+  await createList("Second");
+  await createList("Third");
   const { searchPage, listPage } = ui;
   await searchPage.goto("alien");
   const result = searchPage.searchResults.result("Alien (1979)");
+  const dialog = searchPage.filmListsDialog("Alien (1979)");
+  await result.addToListButton.click();
+  for (const name of ["First", "Second", "Third"]) {
+    await dialog.checkbox(name).click();
+    await expect(dialog.checkbox(name)).toBeChecked();
+  }
+  await dialog.done();
 
   await expect(result.listsIcon).toBeVisible();
   await expect(result.listChip("First")).toBeVisible();
@@ -328,14 +461,16 @@ test("a result's List chips follow a change still saving when the dialog closes"
 
 test("a result's actions keep one order, and fit a 360px phone", async ({
   page,
-  ui,
-  loggedInApi: api,
+  loggedInUi: ui,
 }) => {
-  const { id: mediaItemId } = await alien(api);
-  expect((await api.log.createLogEntry({ mediaItemId, rating: 4 })).status()).toBe(201);
   const { searchPage } = ui;
   await searchPage.goto("alien");
   const result = searchPage.searchResults.result("Alien (1979)");
+  await result.markWatchedButton.click();
+  const dialog = searchPage.logEntryDialog("Alien");
+  await dialog.rate("4 stars");
+  await dialog.save();
+  await expect(dialog.root).toBeHidden();
   const { poster, watchedAgainButton: again, wantToWatchButton: bookmark } = result;
   const { addToListButton: addToList, watchedAgainIcon } = result;
 

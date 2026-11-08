@@ -8,6 +8,8 @@ import {
   BacklogResponse,
   ErrorResponse,
   ListEditRequest,
+  ListedMediaItemsQuery,
+  ListedMediaItemsResponse,
   ListItemEditRequest,
   ListItemParams,
   ListItemResponse,
@@ -42,6 +44,7 @@ import {
   createList,
   deleteList,
   editList,
+  listedMediaItems,
   mediaItemLists,
   userList,
   userLists,
@@ -196,6 +199,29 @@ const listsRoute = createRoute({
     200: {
       content: { "application/json": { schema: ListsResponse } },
       description: "The User's Lists",
+    },
+    401: unauthenticatedResponse,
+  },
+});
+
+const listedMediaItemsRoute = createRoute({
+  method: "get",
+  path: "/lists/media-items",
+  summary: "Show the Media Items of a Media Type on the logged-in User's own Lists",
+  description:
+    "Every Media Item of the type on at least one of the User's Lists, each once, with the " +
+    "Lists holding it, oldest first. The Backlog isn't one. In no particular order, and not paged.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { query: ListedMediaItemsQuery },
+  responses: {
+    200: {
+      content: { "application/json": { schema: ListedMediaItemsResponse } },
+      description: "The Media Items on the User's Lists",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Media Type is unknown (`invalid_request`)",
     },
     401: unauthenticatedResponse,
   },
@@ -565,6 +591,15 @@ listRoutes.openapi(createListRoute, async (c) => {
   const created = await createList(c.var.db, c.var.userId, c.req.valid("json"), c.var.now);
   if (!created.ok) return c.json({ error: created.error }, listErrorStatus[created.error]);
   return c.json({ list: created.list }, 201);
+});
+
+// Before the List by id, whose path would take "media-items" for an id.
+listRoutes.openapi(listedMediaItemsRoute, async (c) => {
+  const { mediaType } = c.req.valid("query");
+  const items = await listedMediaItems(c.var.db, c.var.userId, mediaType, c.var.now);
+  const mediaItems = items.map((item) => item.mediaItem);
+  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItems, c.var.now);
+  return c.json({ items }, 200);
 });
 
 listRoutes.openapi(listRoute, async (c) => {

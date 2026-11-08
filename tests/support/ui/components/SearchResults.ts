@@ -41,7 +41,7 @@ export class SearchResultRow extends ScopedComponent {
   }
 }
 
-// The results of a film search: a list named "Search results".
+// The TMDB results of a film search: a list named "From TMDB".
 export class SearchResults extends ScopedComponent {
   readonly rows = this.root.getByRole("listitem");
   readonly noPosterPlaceholders = this.root.getByRole("img", { name: "No poster" });
