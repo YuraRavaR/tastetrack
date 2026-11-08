@@ -10,11 +10,10 @@ import { expect, test } from "../support/ui/fixtures";
 import type { BasePage } from "../support/ui/pages/BasePage";
 import type { Ui } from "../support/ui/Ui";
 
-// Each section and where it leads. Saved leads to "/", which opens the films' Watchlist until
-// Saved has its tiles.
+// Each section and where it leads.
 function sectionsOf(ui: Ui) {
   return [
-    { name: "Saved", sectionPage: ui.libraryPage },
+    { name: "Saved", sectionPage: ui.savedPage },
     { name: "Collections", sectionPage: ui.listsPage },
     { name: "Search", sectionPage: ui.searchPage },
   ];
@@ -331,10 +330,10 @@ test.describe("from md", () => {
 });
 
 test.describe("old addresses", () => {
-  test("/ opens the films' Watchlist, titled TasteTrack", async ({ page, loggedInUi: ui }) => {
+  test("/ is Saved, titled TasteTrack", async ({ page, loggedInUi: ui }) => {
     await ui.goto("/");
 
-    await expect(page).toHaveURL(ui.libraryPage.path("Watchlist"));
+    await expect(ui.savedPage.heading).toHaveText("Saved");
     await expect(page).toHaveTitle("TasteTrack");
   });
 
@@ -374,13 +373,10 @@ test.describe("old addresses", () => {
     await expect(ui.searchPage.searchBox).toHaveValue("alien");
   });
 
-  test("an address the app doesn't know opens the films' Watchlist", async ({
-    page,
-    loggedInUi: ui,
-  }) => {
+  test("an address the app doesn't know opens Saved", async ({ page, loggedInUi: ui }) => {
     const response = await ui.goto("/some/client/route");
 
     expect(response?.status()).toBe(200);
-    await expect(page).toHaveURL(ui.libraryPage.path("Watchlist"));
+    await expect(page).toHaveURL(ui.savedPage.path());
   });
 });

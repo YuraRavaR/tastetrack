@@ -58,6 +58,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
 
   // Its page, reached from Watched, edits it.
   await searchPage.mainNav.link("Saved").click();
+  await ui.savedPage.tile("Films").link.click();
   await libraryPage.tab("Watched").click();
   await libraryPage.poster("Watched", wedding).link.click();
   await expect(filmPage.text("You added this film manually.")).toBeVisible();

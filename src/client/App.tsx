@@ -11,6 +11,7 @@ import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NewPasswordPage } from "./pages/NewPasswordPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SavedPage } from "./pages/SavedPage";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SharedListPage } from "./pages/SharedListPage";
@@ -28,7 +29,7 @@ export function App() {
             <Route path="/new-password" element={<NewPasswordPage />} />
             <Route path="/s/:token" element={<SharedListPage />} />
             <Route element={<RequireAuth />}>
-              <Route index element={<HomeRedirect />} />
+              <Route index element={<SavedHome />} />
               <Route path="/saved/:type/:tab?" element={<LibraryPage />} />
               <Route path={listsPath} element={<ListsPage />} />
               <Route path={listPath(":listId")} element={<ListPage />} />
@@ -56,12 +57,11 @@ export function App() {
   );
 }
 
-// Until Saved has its tiles, "/" opens the films' Watchlist. A link to the old home's search,
-// `/?q=`, opens Search on that query.
-function HomeRedirect() {
+// "/" is Saved's tiles. A link to the old home's search, `/?q=`, opens Search on that query.
+function SavedHome() {
   const query = useSearchParams()[0].get("q");
   if (query) return <Navigate to={`${searchPath}?${new URLSearchParams({ q: query })}`} replace />;
-  return <Navigate to={libraryPath("film", "backlog")} replace />;
+  return <SavedPage />;
 }
 
 // An old address of a List, /lists/:listId, opens it at its new one.

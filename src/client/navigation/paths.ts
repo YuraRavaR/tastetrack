@@ -2,7 +2,7 @@
 // library/library-tabs. Code says List, as GLOSSARY does; the UI calls one a "Collection", and so
 // do its addresses.
 
-// Saved's tiles. Until they ship, "/" opens the films' Watchlist.
+// Saved's tiles, one per Media Type.
 export const savedPath = "/";
 
 export const listsPath = "/collections";

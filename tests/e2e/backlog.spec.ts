@@ -6,7 +6,7 @@ import { expect, test } from "../support/ui/fixtures";
 test("a User plans a film in Search, finds it on the Watchlist, logs it and finds it in Watched", {
   tag: "@smoke",
 }, async ({ loggedInUi: ui }) => {
-  const { searchPage, libraryPage } = ui;
+  const { searchPage, savedPage, libraryPage } = ui;
   await searchPage.goto();
   await searchPage.search("alien");
   const alien = searchPage.searchResults.result("Alien (1979)");
@@ -14,6 +14,9 @@ test("a User plans a film in Search, finds it on the Watchlist, logs it and find
   await expect(alien.onWatchlistButton).toBeVisible();
 
   await searchPage.mainNav.link("Saved").click();
+  const films = savedPage.tile("Films");
+  await expect(films.link).toHaveAccessibleDescription("1 to watch · 0 watched");
+  await films.link.click();
   await expect(libraryPage.posters("Watchlist")).toHaveText([/Alien\s*1979$/]);
   await expect(libraryPage.tab("Watched")).toHaveAccessibleName("Watched 0");
 
@@ -62,6 +65,7 @@ test("the bookmark in search puts a film on the Watchlist and takes it off again
   await searchPage.search("alien");
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
   await searchPage.mainNav.link("Saved").click();
+  await ui.savedPage.tile("Films").link.click();
   await expect(libraryPage.text("Nothing on your Watchlist yet.")).toBeVisible();
 });
 
@@ -95,6 +99,7 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
   await expect(alien.watchedAgainButton).toBeVisible();
   await expect(alien.wantToWatchButton).toHaveAttribute("aria-pressed", "true");
   await searchPage.mainNav.link("Saved").click();
+  await ui.savedPage.tile("Films").link.click();
   await expect(libraryPage.posters("Watchlist")).toHaveCount(2);
   await expect(libraryPage.poster("Watchlist", "Alien").watchedBeforeMark).toBeVisible();
   await expect(libraryPage.poster("Watchlist", "Aliens").watchedBeforeMark).toHaveCount(0);

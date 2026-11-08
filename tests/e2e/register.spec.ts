@@ -7,9 +7,9 @@ test("a User generates an Invite Code and a friend registers with it", { tag: "@
   ui,
   loggedInUser: _inviter,
 }) => {
-  const { libraryPage, invitesPage, loginPage, registerPage } = ui;
-  await libraryPage.goto();
-  await libraryPage.header.accountMenu.choose("Invites");
+  const { savedPage, invitesPage, loginPage, registerPage } = ui;
+  await savedPage.goto();
+  await savedPage.header.accountMenu.choose("Invites");
   await invitesPage.generateButton.click();
   await expect(invitesPage.activeInviteCodes).toHaveCount(1);
   await expect(invitesPage.activeInviteCodes).toContainText(/Expires [A-Z][a-z]{2} \d{1,2}, \d{4}/);
@@ -28,8 +28,8 @@ test("a User generates an Invite Code and a friend registers with it", { tag: "@
   await registerPage.passwordInput.fill("a long enough password");
   await registerPage.registerButton.click();
 
-  await expect(page).toHaveURL(libraryPage.path());
-  await expect(libraryPage.header.banner).toContainText(friend);
+  await expect(page).toHaveURL(savedPage.path());
+  await expect(savedPage.header.banner).toContainText(friend);
 });
 
 test("a used Invite Code shows why registration failed", async ({ page, ui, loggedInApi: api }) => {
