@@ -71,7 +71,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   const renamed = `${wedding} (Olena and Taras's wedding, 2019)`;
   await expect(filmPage.heading).toContainText(renamed);
 
-  // Deleting it says what goes with it, then leads to Saved, where it is gone.
+  // Deleting it says what goes with it, then leads to Watched, where it is gone.
   await filmPage.deleteFilmButton.click();
   const confirm = filmPage.deleteFilmDialog(renamed);
   await expect(confirm.root).toContainText("Your Log Entry for it will be deleted.");
@@ -79,7 +79,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
     "It isn't on your Watchlist or in any of your Collections.",
   );
   await confirm.confirm("Delete");
-  await expect(page).toHaveURL(libraryPage.path("Watchlist"));
+  await expect(page).toHaveURL(libraryPage.path("Watched"));
   await expect(libraryPage.tab("Watched")).toHaveAccessibleName("Watched 0");
 });
 

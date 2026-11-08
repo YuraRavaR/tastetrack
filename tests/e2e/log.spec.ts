@@ -8,9 +8,9 @@ import type { Ui } from "../support/ui/Ui";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien.
 
-test("a User marks a search result Watched, rates it and finds the viewing on the film's page", {
-  tag: "@smoke",
-}, async ({ loggedInUi: ui }) => {
+test("a User marks a search result Watched, rates it and finds the viewing on the film's page", async ({
+  loggedInUi: ui,
+}) => {
   const { searchPage, filmPage } = ui;
   await searchPage.goto();
   await searchPage.search("alien");

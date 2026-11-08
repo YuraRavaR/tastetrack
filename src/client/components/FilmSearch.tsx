@@ -21,7 +21,7 @@ import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
-import { collectionPath } from "../navigation/paths";
+import { listPath } from "../navigation/paths";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
@@ -387,7 +387,7 @@ function ListChips({ lists, onOpened }: { lists: HoldingList[]; onOpened: () => 
           className="block min-w-0 max-w-1/2 shrink truncate text-muted-foreground"
           asChild
         >
-          <Link to={collectionPath(list.id)} onClick={onOpened}>
+          <Link to={listPath(list.id)} onClick={onOpened}>
             {list.name}
           </Link>
         </Badge>

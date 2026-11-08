@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useParams, useSearchParams } fr
 import { AuthProvider, RequireAuth } from "./auth";
 import { AppLayout } from "./components/AppLayout";
 import { libraryPath } from "./library/library-tabs";
-import { collectionPath, collectionsPath, searchPath } from "./navigation/paths";
+import { listPath, listsPath, searchPath } from "./navigation/paths";
 import { InvitesPage } from "./pages/InvitesPage";
 import { ItemHistoryPage } from "./pages/ItemHistoryPage";
 import { LibraryPage } from "./pages/LibraryPage";
@@ -30,18 +30,24 @@ export function App() {
             <Route element={<RequireAuth />}>
               <Route index element={<HomeRedirect />} />
               <Route path="/saved/:type/:tab?" element={<LibraryPage />} />
-              <Route path={collectionsPath} element={<ListsPage />} />
-              <Route path={collectionPath(":listId")} element={<ListPage />} />
+              <Route path={listsPath} element={<ListsPage />} />
+              <Route path={listPath(":listId")} element={<ListPage />} />
               <Route path={searchPath} element={<SearchPage />} />
               <Route path="/items/:mediaItemId" element={<ItemHistoryPage />} />
               <Route path="/invites" element={<InvitesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               {/* The addresses of the sections before Saved, Collections and Search. */}
-              <Route path="/watchlist" element={<Redirect to={libraryPath("film", "backlog")} />} />
-              <Route path="/log" element={<Redirect to={libraryPath("film", "experienced")} />} />
-              <Route path="/lists" element={<Redirect to={collectionsPath} />} />
+              <Route
+                path="/watchlist"
+                element={<Navigate to={libraryPath("film", "backlog")} replace />}
+              />
+              <Route
+                path="/log"
+                element={<Navigate to={libraryPath("film", "experienced")} replace />}
+              />
+              <Route path="/lists" element={<Navigate to={listsPath} replace />} />
               <Route path="/lists/:listId" element={<ListRedirect />} />
-              <Route path="*" element={<Redirect to="/" />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Route>
         </Routes>
@@ -50,18 +56,15 @@ export function App() {
   );
 }
 
-function Redirect({ to }: { to: string }) {
-  return <Navigate to={to} replace />;
-}
-
 // Until Saved has its tiles, "/" opens the films' Watchlist. A link to the old home's search,
 // `/?q=`, opens Search on that query.
 function HomeRedirect() {
   const query = useSearchParams()[0].get("q");
-  if (query) return <Redirect to={`${searchPath}?${new URLSearchParams({ q: query })}`} />;
-  return <Redirect to={libraryPath("film", "backlog")} />;
+  if (query) return <Navigate to={`${searchPath}?${new URLSearchParams({ q: query })}`} replace />;
+  return <Navigate to={libraryPath("film", "backlog")} replace />;
 }
 
+// An old address of a List, /lists/:listId, opens it at its new one.
 function ListRedirect() {
-  return <Redirect to={collectionPath(useParams().listId ?? "")} />;
+  return <Navigate to={listPath(useParams().listId ?? "")} replace />;
 }

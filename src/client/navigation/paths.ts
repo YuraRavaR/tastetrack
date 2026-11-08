@@ -1,14 +1,14 @@
-// The addresses of the sections, and of one Collection. A Media Type's tab in Saved is
-// `libraryPath` in library/library-tabs. The UI calls a List a "Collection", and so do its
-// addresses.
+// The addresses of the sections, and of one List. A Media Type's tab in Saved is `libraryPath` in
+// library/library-tabs. Code says List, as GLOSSARY does; the UI calls one a "Collection", and so
+// do its addresses.
 
 // Saved's tiles. Until they ship, "/" opens the films' Watchlist.
 export const savedPath = "/";
 
-export const collectionsPath = "/collections";
+export const listsPath = "/collections";
 
-export function collectionPath(listId: number | string): string {
-  return `${collectionsPath}/${listId}`;
+export function listPath(listId: number | string): string {
+  return `${listsPath}/${listId}`;
 }
 
 // The film search; with `?q=` it opens on that query's results.

@@ -15,7 +15,7 @@ import { ShareLinkPanel } from "../components/ShareLinkPanel";
 import { UndoLine } from "../components/UndoLine";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
-import { collectionsPath } from "../navigation/paths";
+import { listsPath } from "../navigation/paths";
 
 type ListState =
   | { status: "loading" }
@@ -69,7 +69,7 @@ export function ListPage() {
   return (
     <div className="flex flex-col gap-4">
       <Link
-        to={collectionsPath}
+        to={listsPath}
         className="flex items-center gap-1 self-start text-muted-foreground text-sm underline-offset-4 hover:underline"
       >
         <ArrowLeft aria-hidden className="size-4" />
@@ -166,7 +166,7 @@ export function ListPage() {
             list={state.list}
             open={deleting}
             onClose={() => setDeleting(false)}
-            onDeleted={() => navigate(collectionsPath)}
+            onDeleted={() => navigate(listsPath)}
           />
         </>
       )}

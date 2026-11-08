@@ -7,7 +7,7 @@ import type { ListSummary } from "../../shared/api";
 import * as api from "../api";
 import { ListFormDialog } from "../components/ListFormDialog";
 import { t } from "../i18n/t";
-import { collectionPath } from "../navigation/paths";
+import { listPath } from "../navigation/paths";
 
 type ListsState =
   | { status: "loading" }
@@ -64,7 +64,7 @@ export function ListsPage() {
           {state.lists.map((list) => (
             <li key={list.id} className="flex flex-col gap-1 px-3 py-3">
               <Link
-                to={collectionPath(list.id)}
+                to={listPath(list.id)}
                 className="break-words font-medium underline-offset-4 hover:underline focus-visible:underline"
               >
                 {list.name}
@@ -89,7 +89,7 @@ export function ListsPage() {
       <ListFormDialog
         open={creating}
         onClose={() => setCreating(false)}
-        onSaved={(list) => navigate(collectionPath(list.id))}
+        onSaved={(list) => navigate(listPath(list.id))}
       />
     </div>
   );

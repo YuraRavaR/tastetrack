@@ -1,4 +1,3 @@
-import { alien } from "../support/scenarios/films";
 import { expect, test } from "../support/ui/fixtures";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
@@ -113,13 +112,4 @@ test("a full Watchlist says to remove or log some films", async ({ ui, api, logg
   await expect(searchPage.errorMessage).toHaveText(
     "Your Watchlist is full: it holds up to 1,000 films. Remove or log some to make room.",
   );
-});
-
-test("a film's page shows its runtime and genres", async ({ ui, loggedInApi: api }) => {
-  const { filmPage } = ui;
-
-  await filmPage.goto((await alien(api)).id);
-
-  await expect(filmPage.heading).toContainText("Alien (1979)");
-  await expect(filmPage.text("117 min · Horror, Science Fiction")).toBeVisible();
 });

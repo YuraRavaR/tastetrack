@@ -1,7 +1,7 @@
 import { Bookmark, LayoutGrid, type LucideIcon, Search } from "lucide-react";
 import { Link, matchPath, useLocation } from "react-router";
 import { type MessageId, t } from "../i18n/t";
-import { collectionsPath, savedPath, searchPath } from "../navigation/paths";
+import { listsPath, savedPath, searchPath } from "../navigation/paths";
 
 interface Section {
   to: string;
@@ -16,7 +16,7 @@ interface Section {
 // a film's page or Settings, marks none.
 const sections: readonly Section[] = [
   { to: savedPath, icon: Bookmark, label: "saved.nav", within: [savedPath, "/saved/*"] },
-  { to: collectionsPath, icon: LayoutGrid, label: "lists.nav", within: [`${collectionsPath}/*`] },
+  { to: listsPath, icon: LayoutGrid, label: "lists.nav", within: [`${listsPath}/*`] },
   { to: searchPath, icon: Search, label: "search.nav", within: [searchPath] },
 ];
 

@@ -14,7 +14,7 @@ import { EditLogEntryDialog } from "../components/LogEntryDialog";
 import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
-import { savedPath } from "../navigation/paths";
+import { libraryPath } from "../library/library-tabs";
 
 type HistoryState =
   | { status: "loading" }
@@ -172,7 +172,9 @@ export function ItemHistoryPage() {
             mediaItem={mediaItem}
             open={deletingFilm}
             onClose={() => setDeletingFilm(false)}
-            onDeleted={() => navigate(savedPath, { replace: true })}
+            onDeleted={() =>
+              navigate(libraryPath(mediaItem.mediaType, "experienced"), { replace: true })
+            }
           />
         </>
       )}
