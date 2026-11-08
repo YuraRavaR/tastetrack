@@ -5,8 +5,8 @@ import { maxDisplayNameLength, passwordLength } from "../../shared/accounts";
 import type { User } from "../../shared/api";
 import * as api from "../api";
 import { useAuth } from "../auth";
-import { AuthField } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
+import { FormField } from "../components/FormField";
 import { t } from "../i18n/t";
 
 // The User's own settings: the Display Name others see on Share Links, their password, and
@@ -79,7 +79,7 @@ function DisplayNameSection({ user }: { user: User }) {
   return (
     <Section title={t("settings.displayNameTitle")}>
       <form className="flex flex-col gap-3.5 md:gap-4" onSubmit={submit}>
-        <AuthField
+        <FormField
           id="displayName"
           label={t("settings.displayName")}
           rules={t("settings.displayNameHint", {
@@ -141,7 +141,7 @@ function PasswordSection({ username }: { username: string }) {
           readOnly
           hidden
         />
-        <AuthField
+        <FormField
           id="currentPassword"
           label={t("settings.currentPassword")}
           className={fieldClasses}
@@ -152,7 +152,7 @@ function PasswordSection({ username }: { username: string }) {
           // Typing in the field at fault clears the error, as on the sign-in card.
           onChange={() => outcome === "wrong_password" && setOutcome(null)}
         />
-        <AuthField
+        <FormField
           id="newPassword"
           label={t("settings.newPassword")}
           rules={t("settings.newPasswordRules")}
@@ -212,7 +212,7 @@ function DeletionSection({ username }: { username: string }) {
           readOnly
           hidden
         />
-        <AuthField
+        <FormField
           id="deletionPassword"
           label={t("settings.deletePassword")}
           className={fieldClasses}

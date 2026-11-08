@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { passwordLength } from "../../shared/accounts";
 import type { NewPasswordError } from "../api";
 import { type LoginLocationState, useAuth } from "../auth";
-import { AuthCard, AuthField } from "../components/AuthCard";
+import { AuthCard } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
+import { FormField } from "../components/FormField";
 import { t } from "../i18n/t";
 
 // Where a User who logged in with a Temporary Password the Operator issued sets their own, before
@@ -48,7 +49,7 @@ export function NewPasswordPage() {
             hidden
           />
         )}
-        <AuthField
+        <FormField
           id="newPassword"
           label={t("newPassword.label")}
           rules={t("newPassword.rules")}
