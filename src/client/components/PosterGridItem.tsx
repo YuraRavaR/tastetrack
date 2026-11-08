@@ -18,6 +18,7 @@ export function PosterGridItem({
   place,
   unlinked = false,
   className,
+  onOpened,
   children,
 }: {
   mediaItem: MediaItem;
@@ -33,6 +34,8 @@ export function PosterGridItem({
   unlinked?: boolean;
   // Classes for the item itself, such as a fixed width in a sideways strip.
   className?: string;
+  // Called as the link opens the Media Item's page, such as to remember the place in the results.
+  onOpened?: () => void;
   // What goes under the title and meta line, outside the link, such as a Note.
   children?: ReactNode;
 }) {
@@ -73,7 +76,7 @@ export function PosterGridItem({
       {unlinked ? (
         <div className={bodyClass}>{body}</div>
       ) : (
-        <Link to={`/items/${mediaItem.id}`} className={bodyClass}>
+        <Link to={`/items/${mediaItem.id}`} onClick={onOpened} className={bodyClass}>
           {body}
         </Link>
       )}

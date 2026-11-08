@@ -8,8 +8,9 @@ import { SearchResults } from "../components/SearchResults";
 import { Toast } from "../components/Toast";
 import { BasePage } from "./BasePage";
 
-// "In your Saved": the User's own films that match, as covers, each with one status line.
-export class SavedMatches extends ScopedComponent {
+// "In your Saved": the User's Media Items that match, those in their Library or on their Lists,
+// as covers, each with one status line.
+export class UserMediaItemMatches extends ScopedComponent {
   readonly films = this.root.getByRole("listitem");
   readonly ratingIcons = this.root.getByRole("img", { name: "Rating" });
 
@@ -34,9 +35,13 @@ export class SearchPage extends BasePage<[query?: string]> {
   readonly searchButton = this.page.getByRole("button", { name: /^search/i });
   readonly filmsChip = this.page.getByRole("button", { name: "Films", pressed: true });
   readonly booksChip = this.page.getByRole("button", { name: "Books" });
-  readonly hint = this.page.getByText("Type a title to search your Saved and TMDB.");
-  readonly savedMatches = new SavedMatches(this.page.getByRole("list", { name: "In your Saved" }));
-  readonly savedHeading = this.page.getByRole("heading", { level: 2, name: /^In your Saved/ });
+  readonly userMediaItems = new UserMediaItemMatches(
+    this.page.getByRole("list", { name: "In your Saved" }),
+  );
+  readonly userMediaItemsHeading = this.page.getByRole("heading", {
+    level: 2,
+    name: /^In your Saved/,
+  });
   // TMDB's results, the User's own Manual Media Items not in Saved first.
   readonly searchResults = new SearchResults(this.page.getByRole("list", { name: "From TMDB" }));
   readonly tmdbHeading = this.page.getByRole("heading", { level: 2, name: /^From TMDB/ });

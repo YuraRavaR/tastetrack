@@ -23,7 +23,7 @@ test("a User plans a film in Search, finds it on the Watchlist, logs it and find
   // Now it is in Saved, so Search finds it there first, and it is logged from its page.
   await libraryPage.mainNav.link("Search").click();
   await searchPage.search("alien");
-  const savedAlien = searchPage.savedMatches.film("Alien");
+  const savedAlien = searchPage.userMediaItems.film("Alien");
   await expect(savedAlien.root).toContainText("Watchlist");
   await expect(alien.root).toHaveCount(0);
   await savedAlien.link.click();
@@ -86,7 +86,7 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
   await expect(aliens.onWatchlistButton).toBeVisible();
   // A film planned here stays in TMDB's results until the query changes.
   await searchPage.search("alien");
-  await expect(searchPage.savedMatches.film("Aliens").root).toBeVisible();
+  await expect(searchPage.userMediaItems.film("Aliens").root).toBeVisible();
   const alien = searchPage.searchResults.result("Alien (1979)");
   await alien.wantToWatchButton.click();
   await expect(alien.onWatchlistButton).toBeVisible();

@@ -5,7 +5,7 @@ import { type MediaTypeChoice, mediaTypeChoices, mediaTypeIcon } from "../catalo
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
-// The category chips under a section's heading or field: one per Media Type, in the order every
+// The Media Type chips under a section's heading or field: one per Media Type, in the order every
 // section offers them, the current one pressed. One still to come is dashed, disabled and
 // labelled "Coming soon". Each chip has a thumb-sized target on a phone.
 export function MediaTypeChips({ current }: { current: MediaType }) {

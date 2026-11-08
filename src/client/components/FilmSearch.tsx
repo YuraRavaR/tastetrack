@@ -17,10 +17,15 @@ import {
   foundMediaType,
   mediaItemOf,
 } from "../catalog/found";
-import { matchSaved, type SavedFilm, savedStatus, withoutSaved } from "../catalog/saved-search";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
-import { useSavedFilms } from "../catalog/use-saved-films";
 import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
+import { useUserMediaItems } from "../catalog/use-user-media-items";
+import {
+  matchUserMediaItems,
+  type UserMediaItem,
+  userMediaItemStatus,
+  withoutUserMediaItems,
+} from "../catalog/user-media-items";
 import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { listPath } from "../navigation/paths";
@@ -50,10 +55,11 @@ type RowLog = { currentRating: number | null; logEntryCount: number };
 // How many of a result's Lists its row names, before saying how many more hold it.
 const maxListChips = 2;
 
-// Search as you type, with no button, under category chips, with the query in the URL. The User's
-// own saved films that match come first, "In your Saved": a strip of covers matched against their
-// titles on every keystroke, each with one status line and linking to its film's page. TMDB's
-// results follow, "From TMDB", after a short pause in typing, without the User's saved films,
+// Search as you type, with no button, under Media Type chips, with the query in the URL. The
+// User's Media Items that match, those in their Library or on their Lists, come first, "In your
+// Saved": a strip of covers matched against their titles on every keystroke, each with one status
+// line and linking to its film's page. TMDB's results follow, "From TMDB", after a short pause in
+// typing, without the User's Media Items,
 // the User's own Manual Media Items first. A TMDB result with a Media Item links to its
 // film's page, and shows the User's Current Rating, how many viewings they have and the Lists that
 // hold it. Any result can be marked Watched, which records a Log Entry for it, as a Revisit by
@@ -66,9 +72,11 @@ export function FilmSearch() {
   const inputId = useId();
   const [query, setQuery] = useSearchQuery();
   const search = useCatalogSearch(query);
-  const saved = useSavedFilms(pageMediaType, query);
-  // Both blocks are in place once the saved films have loaded, or failed to, and TMDB answered.
-  const rememberScroll = useResultsScroll(search.status === "done" && saved.status !== "loading");
+  const userItems = useUserMediaItems(pageMediaType, query);
+  // The User's Media Items have loaded, or failed to.
+  const userItemsReady = userItems.status !== "loading";
+  // Both blocks are in place once the User's Media Items are ready and TMDB answered.
+  const rememberScroll = useResultsScroll(search.status === "done" && userItemsReady);
   const [logging, setLogging] = useState<Found | null>(null);
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const [addingManually, setAddingManually] = useState(false);
@@ -95,23 +103,23 @@ export function FilmSearch() {
 
   const trimmed = query.trim();
   const searched = new Set(search.results.map(foundKey));
-  const shown = matchSaved(saved.films, trimmed);
-  const results = withoutSaved(
+  const matches = matchUserMediaItems(userItems.items, trimmed);
+  const results = withoutUserMediaItems(
     [
       ...(added.query === trimmed
         ? added.found.filter((found) => !searched.has(foundKey(found)))
         : []),
       ...search.results,
     ],
-    saved.films,
+    userItems.items,
   );
-  // TMDB's results wait for the saved films, so a film never shows there before it moves up.
-  const showResults = saved.status !== "loading" && results.length > 0;
+  // TMDB's results wait for the User's Media Items, so one never shows there before it moves up.
+  const showResults = userItemsReady && results.length > 0;
   const noMatch =
     trimmed !== "" &&
     search.status === "done" &&
-    saved.status !== "loading" &&
-    shown.length === 0 &&
+    userItemsReady &&
+    matches.length === 0 &&
     results.length === 0;
 
   function markCataloged(found: Found, mediaItemId: number) {
@@ -154,7 +162,7 @@ export function FilmSearch() {
       return;
     }
     markPlanned(found, adding);
-    saved.changed();
+    userItems.changed();
     setLastAction({ kind: adding ? "planned" : "unplanned", found });
   }
 
@@ -173,7 +181,7 @@ export function FilmSearch() {
     });
     markCataloged(found, entry.logEntry.mediaItem.id);
     if (entry.removedFromBacklog) markPlanned(found, false);
-    saved.changed();
+    userItems.changed();
   }
 
   // Puts a logged film back on the Watchlist where it was, with its Note.
@@ -185,13 +193,13 @@ export function FilmSearch() {
       return;
     }
     markPlanned(found, true);
-    saved.changed();
+    userItems.changed();
     setLastAction({ kind: "putBack", found });
   }
 
   function markListed(found: Found, lists: HoldingList[]) {
     setListedNow((current) => new Map(current).set(foundKey(found), lists));
-    saved.changed();
+    userItems.changed();
   }
 
   function addedManually(found: Found) {
@@ -237,7 +245,7 @@ export function FilmSearch() {
             : t("backlog.updateFailed", { backlogName })}
         </p>
       )}
-      {trimmed !== "" && saved.status === "failed" && (
+      {trimmed !== "" && userItems.status === "failed" && (
         <p role="alert" className="text-destructive text-sm">
           {t("search.savedUnavailable")}
         </p>
@@ -247,7 +255,7 @@ export function FilmSearch() {
           {t("search.unavailable")}
         </p>
       )}
-      {shown.length > 0 && <SavedMatches films={shown} />}
+      {matches.length > 0 && <UserMediaItemMatches items={matches} onOpened={rememberScroll} />}
       {showResults && (
         <ResultsBlock heading={t("search.tmdb")} count={results.length}>
           {(headingId) => (
@@ -338,23 +346,30 @@ function ResultsBlock({
   );
 }
 
-// "In your Saved": the User's own films that match, as covers in a sideways strip on a phone,
+// "In your Saved": the User's Media Items that match, as covers in a sideways strip on a phone,
 // bleeding to the screen's edges, and in a grid from md. Each cover opens its film's page, where
-// the User acts on it.
-function SavedMatches({ films }: { films: readonly SavedFilm[] }) {
+// the User acts on it, and remembers the place in the results for coming Back.
+function UserMediaItemMatches({
+  items,
+  onOpened,
+}: {
+  items: readonly UserMediaItem[];
+  onOpened: () => void;
+}) {
   return (
-    <ResultsBlock heading={t("search.saved")} count={films.length}>
+    <ResultsBlock heading={t("search.saved")} count={items.length}>
       {(headingId) => (
         <ul
           aria-labelledby={headingId}
           className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-[repeat(auto-fill,minmax(120px,1fr))] md:gap-x-4 md:gap-y-4.5 md:overflow-visible md:px-0 md:pb-0"
         >
-          {films.map((film) => (
+          {items.map((item) => (
             <PosterGridItem
-              key={film.mediaItem.id}
-              mediaItem={film.mediaItem}
-              meta={<SavedStatusLine film={film} />}
+              key={item.mediaItem.id}
+              mediaItem={item.mediaItem}
+              meta={<UserMediaItemStatusLine item={item} />}
               className="w-26 shrink-0 md:w-auto"
+              onOpened={onOpened}
             />
           ))}
         </ul>
@@ -363,37 +378,52 @@ function SavedMatches({ films }: { films: readonly SavedFilm[] }) {
   );
 }
 
-// A saved film's one status line, cut with an ellipsis: "★ 5 · Watchlist", "★ 4.5 · Watched",
-// "Watchlist" with a bookmark, or the oldest of its Lists.
-function SavedStatusLine({ film }: { film: SavedFilm }) {
-  const status = savedStatus(film);
+// A User's Media Item's one status line, cut with an ellipsis: "★ 5 · Watchlist",
+// "★ 4.5 · Watched", "Watchlist" with a bookmark, or the oldest of its Lists.
+function UserMediaItemStatusLine({ item }: { item: UserMediaItem }) {
+  const status = userMediaItemStatus(item);
   if (!status) return null;
-  const mediaType = film.mediaItem.mediaType;
+  const mediaType = item.mediaItem.mediaType;
   if (status.kind === "rated") {
     return (
-      <span className="flex min-w-0 items-center gap-1 font-semibold text-primary-strong">
-        <Star role="img" aria-label={t("rating.label")} className="size-3 shrink-0 fill-current" />
-        <span className="truncate">
-          {t("search.savedRating", {
-            rating: status.rating,
-            status: mediaWord(mediaType, status.inBacklog ? "backlog" : "experienced"),
-          })}
-        </span>
-      </span>
+      <StatusLine
+        icon={<Star role="img" aria-label={t("rating.label")} className="size-3 fill-current" />}
+        className="font-semibold text-primary-strong"
+      >
+        {t("search.savedRating", {
+          rating: status.rating,
+          status: mediaWord(mediaType, status.inBacklog ? "backlog" : "experienced"),
+        })}
+      </StatusLine>
     );
   }
   if (status.kind === "backlog") {
     return (
-      <span className="flex min-w-0 items-center gap-1 font-medium">
-        <Bookmark aria-hidden className="size-3 shrink-0 fill-current" />
-        <span className="truncate">{mediaWord(mediaType, "backlog")}</span>
-      </span>
+      <StatusLine icon={<Bookmark aria-hidden className="size-3 fill-current" />}>
+        {mediaWord(mediaType, "backlog")}
+      </StatusLine>
     );
   }
   return (
-    <span className="flex min-w-0 items-center gap-1 font-medium">
-      <List role="img" aria-label={t("search.savedList")} className="size-3.5 shrink-0" />
-      <span className="truncate">{status.name}</span>
+    <StatusLine icon={<List role="img" aria-label={t("search.savedList")} className="size-3.5" />}>
+      {status.name}
+    </StatusLine>
+  );
+}
+
+function StatusLine({
+  icon,
+  className = "font-medium",
+  children,
+}: {
+  icon: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span className={cn("flex min-w-0 items-center gap-1 [&>svg]:shrink-0", className)}>
+      {icon}
+      <span className="truncate">{children}</span>
     </span>
   );
 }

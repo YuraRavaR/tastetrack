@@ -52,7 +52,7 @@ test("a User adds a film search doesn't find, logs it, edits it, and deletes it 
   // A later search finds it in Saved, and only there.
   await page.reload();
   await searchPage.search("олени");
-  await expect(searchPage.savedMatches.film(wedding).root).toContainText("5 · Watched");
+  await expect(searchPage.userMediaItems.film(wedding).root).toContainText("5 · Watched");
   // "Can't find it?" shows once the search is done.
   await expect(searchPage.addManuallyButton).toBeVisible();
   await expect(searchPage.searchResults.resultWithText(wedding).root).toHaveCount(0);
