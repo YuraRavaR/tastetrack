@@ -18,36 +18,41 @@ const test = base.extend<{ visitorPage: Page; visitorUi: Ui }>({
   },
 });
 
-test("a User shares a List, and someone logged out opens its Share Link", {
+test("a User makes a Collection, adds a film and shares it, and someone logged out opens its Share Link", {
   tag: "@smoke",
-}, async ({ ui, api, loggedInUser: owner, visitorPage, visitorUi }) => {
-  const created = api.lists.createList({
-    name: "Space horror",
-    description: "Lights off.",
-    mediaType: "film",
-  });
-  const { list } = await expectBody(created, 201);
-  const alienItem = await alien(api);
-  for (const [film, note] of [
-    [alienItem, "Start here."],
-    [await aliens(api), null],
-  ]) {
-    const added = await api.lists.addListItem(list.id, { mediaItemId: film.id, note });
-    expect(added.status()).toBe(201);
-  }
+}, async ({ page, ui, api, loggedInUser: owner, visitorPage, visitorUi }) => {
   // The owner's Rating, which a shared List never shows.
   const logged = api.log.createLogEntry({
-    mediaItemId: alienItem.id,
+    mediaItemId: (await alien(api)).id,
     rating: 4.5,
     review: "My secret.",
   });
   expect((await logged).status()).toBe(201);
 
-  const { shareLinkPanel } = ui.listPage;
-  await ui.listPage.goto(list.id);
-  await shareLinkPanel.share();
-  await expect(shareLinkPanel.linkField).toHaveValue(/\/s\/[A-Za-z0-9_-]{22,}$/);
-  const url = await shareLinkPanel.readLink();
+  const { listsPage, listPage } = ui;
+  await listsPage.goto();
+  await listsPage.newListButton.click();
+  const { newListDialog } = listsPage;
+  await newListDialog.nameInput.fill("Space horror");
+  await newListDialog.descriptionInput.fill("Lights off.");
+  await newListDialog.createButton.click();
+  await expect(listPage.heading("Space horror")).toBeVisible();
+  await listPage.search("alien");
+  await listPage.searchResults.result("Alien (1979)").addButton.click();
+  await expect(listPage.items("Space horror")).toHaveCount(1);
+
+  const { shareLinkDialog } = listPage;
+  await listPage.act("Share");
+  await expect(shareLinkDialog.root).toHaveAccessibleName("Share Space horror");
+  await shareLinkDialog.share();
+  // The link is on the app's own origin.
+  const origin = new URL(page.url()).origin;
+  await expect(shareLinkDialog.root).toHaveAccessibleName("Shared by link");
+  await expect(shareLinkDialog.linkField).toHaveValue(/\/s\/[A-Za-z0-9_-]{22,}$/);
+  const url = await shareLinkDialog.readLink();
+  expect(url.startsWith(`${origin}/s/`)).toBe(true);
+  await shareLinkDialog.closeButton.click();
+  await expect(listPage.text("Shared by link")).toBeVisible();
 
   // Someone with no session opens the link.
   const { sharedPage } = visitorUi;
@@ -56,14 +61,11 @@ test("a User shares a List, and someone logged out opens its Share Link", {
   await expect(sharedPage.text("Film collection")).toBeVisible();
   await expect(sharedPage.heading("Space horror")).toBeVisible();
   await expect(sharedPage.text("Lights off.")).toBeVisible();
-  await expect(sharedPage.text(`Shared by ${owner.username} · 2 films`)).toBeVisible();
+  await expect(sharedPage.text(`Shared by ${owner.username} · 1 film`)).toBeVisible();
   const items = sharedPage.items("Space horror");
-  await expect(items).toHaveCount(2);
+  await expect(items).toHaveCount(1);
   await expect(items.first()).toContainText("Alien");
   await expect(items.first()).toContainText("1979");
-  await expect(items.first()).toContainText("Start here.");
-  await expect(items.last()).toContainText("Aliens");
-  await expect(items.last()).toContainText("1986");
   await expect(sharedPage.list("Space horror").getByRole("link")).toHaveCount(0);
   await expect(sharedPage.text("My secret.")).toHaveCount(0);
   await expect(sharedPage.inviteLine).toBeVisible();
@@ -72,9 +74,10 @@ test("a User shares a List, and someone logged out opens its Share Link", {
   await expect(sharedPage.header.accountMenu.button).toHaveCount(0);
   await expect(sharedPage.navigations).toHaveCount(0);
 
-  // The owner stops sharing; the link stops working.
-  await shareLinkPanel.stopSharing();
-  await expect(shareLinkPanel.shareButton).toBeVisible();
+  // The owner stops sharing, once asked; the link stops working.
+  await listPage.act("Share Link");
+  await shareLinkDialog.stopSharing();
+  await expect(shareLinkDialog.shareButton).toBeVisible();
   await visitorPage.reload();
   await expect(sharedPage.notSharedHeading).toBeVisible();
   await expect(sharedPage.text("Space horror")).toHaveCount(0);
@@ -84,30 +87,66 @@ test("a User shares a List, and someone logged out opens its Share Link", {
   await expect(sharedPage.header.logInLink).toBeVisible();
 });
 
-test("a new Share Link replaces the old one", async ({ ui, loggedInApi: api, visitorUi }) => {
+test("a new Share Link replaces the old one, once asked", async ({
+  ui,
+  loggedInApi: api,
+  visitorUi,
+}) => {
   const { list } = await expectBody(
     api.lists.createList({ name: "Space horror", mediaType: "film" }),
     201,
   );
   const added = await api.lists.addListItem(list.id, { mediaItemId: (await alien(api)).id });
   expect(added.status()).toBe(201);
+  const { shareLink } = await expectBody(api.lists.createShareLink(list.id), 201);
 
   const { listPage } = ui;
-  const { shareLinkPanel } = listPage;
+  const { shareLinkDialog } = listPage;
   await listPage.goto(list.id);
-  await shareLinkPanel.share();
-  await expect(shareLinkPanel.linkField).toHaveValue(/\/s\//);
-  const oldUrl = await shareLinkPanel.readLink();
-  await shareLinkPanel.makeNewLink();
-  await expect(shareLinkPanel.linkField).not.toHaveValue(oldUrl);
-  const newUrl = await shareLinkPanel.readLink();
+  await listPage.act("Share Link");
+  await expect(shareLinkDialog.linkField).toHaveValue(shareLink.url);
+
+  // Cancel keeps the link.
+  await shareLinkDialog.newLinkButton.click();
+  const question = shareLinkDialog.confirmation("Make a new link?");
+  await expect(question).toContainText("Anyone you sent it to will need the new one.");
+  await expect(shareLinkDialog.linkField).toBeHidden();
+  await question.getByRole("button", { name: "Cancel" }).click();
+  await expect(shareLinkDialog.linkField).toHaveValue(shareLink.url);
+
+  await shareLinkDialog.makeNewLink();
+  await expect(shareLinkDialog.linkField).not.toHaveValue(shareLink.url);
+  const newUrl = await shareLinkDialog.readLink();
 
   const { sharedPage } = visitorUi;
   await visitorUi.goto(newUrl);
   await expect(sharedPage.heading("Space horror")).toBeVisible();
   await expect(sharedPage.list("Space horror")).toContainText("Alien");
-  await visitorUi.goto(oldUrl);
+  await visitorUi.goto(shareLink.url);
   await expect(sharedPage.notSharedHeading).toBeVisible();
+});
+
+test("Copy link puts the Share Link on the clipboard", async ({
+  page,
+  context,
+  ui,
+  loggedInApi: api,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const { list } = await expectBody(
+    api.lists.createList({ name: "Space horror", mediaType: "film" }),
+    201,
+  );
+  const { shareLink } = await expectBody(api.lists.createShareLink(list.id), 201);
+
+  const { listPage } = ui;
+  const { shareLinkDialog } = listPage;
+  await listPage.goto(list.id);
+  await listPage.act("Share Link");
+  await expect(shareLinkDialog.copyButton).toHaveText("Copy link");
+  await shareLinkDialog.copyButton.click();
+  await expect(shareLinkDialog.copyButton).toHaveText("Copied");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(shareLink.url);
 });
 
 test("an unknown Share Link says the Collection isn't shared any more", async ({ visitorUi }) => {

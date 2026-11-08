@@ -1,24 +1,22 @@
-import { X } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import type { ListSummary } from "../../shared/api";
 import { maxListDescriptionLength, maxListNameLength, maxLists } from "../../shared/lists";
 import * as api from "../api";
 import { t } from "../i18n/t";
 import { FormError } from "./FormError";
-import { sheetClasses } from "./sheet";
+import {
+  SheetFooter,
+  SheetHeader,
+  sheetBodyClasses,
+  sheetButtonClasses,
+  sheetClasses,
+} from "./sheet";
 
 // The fields of a List that the form edits.
 type ListFields = Pick<ListSummary, "id" | "name" | "description">;
@@ -82,29 +80,11 @@ function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSu
 
   return (
     <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-start gap-3 pt-4 pr-2.5 pb-1 pl-5 md:pt-5 md:pr-3 md:pl-6">
-        <DialogHeader className="min-w-0 flex-1 gap-1 pt-1 text-left">
-          <DialogTitle className="break-words text-xl leading-tight tracking-tight">
-            {t(list ? "listForm.editTitle" : "listForm.newTitle")}
-          </DialogTitle>
-          <DialogDescription>
-            {t(list ? "listForm.editDescription" : "listForm.newDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogClose asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-11 rounded-full text-muted-foreground md:size-10 md:rounded-md"
-            aria-label={t("dialog.close")}
-            title={t("dialog.close")}
-          >
-            <X aria-hidden className="size-5" />
-          </Button>
-        </DialogClose>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-3.5 pb-5 md:px-6 md:pt-4">
+      <SheetHeader
+        title={t(list ? "listForm.editTitle" : "listForm.newTitle")}
+        description={t(list ? "listForm.editDescription" : "listForm.newDescription")}
+      />
+      <div className={sheetBodyClasses}>
         <div className="flex flex-col gap-2">
           <Label htmlFor={ids.name}>{t("listForm.name")}</Label>
           <Input
@@ -143,22 +123,18 @@ function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSu
         </div>
         {error && !nameError && <FormError>{errorMessage(error)}</FormError>}
       </div>
-      <DialogFooter className="grid grid-cols-2 gap-3 border-t px-5 pt-3 pb-[calc(0.75rem+max(1.375rem,env(safe-area-inset-bottom)))] md:flex md:flex-row md:justify-end md:px-6 md:pt-4 md:pb-5">
+      <SheetFooter>
         <DialogClose asChild>
-          <Button type="button" variant="outline" className="h-12.5 text-base md:h-10 md:text-sm">
+          <Button type="button" variant="outline" className={sheetButtonClasses}>
             {t("listForm.cancel")}
           </Button>
         </DialogClose>
-        <Button
-          type="submit"
-          disabled={saving}
-          className="h-12.5 font-semibold text-base md:h-10 md:text-sm"
-        >
+        <Button type="submit" disabled={saving} className={cn(sheetButtonClasses, "font-semibold")}>
           {list
             ? t(saving ? "listForm.saving" : "listForm.save")
             : t(saving ? "listForm.creating" : "listForm.create")}
         </Button>
-      </DialogFooter>
+      </SheetFooter>
     </form>
   );
 }

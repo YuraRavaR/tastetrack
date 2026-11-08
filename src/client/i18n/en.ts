@@ -203,6 +203,9 @@ export const en = {
   "list.empty": "This Collection is empty.",
   "list.edit": "Edit collection",
   "list.delete": "Delete collection",
+  "list.actions": "Collection actions",
+  "list.share": "Share",
+  "list.shareLink": "Share Link",
   "list.updateFailed": "Couldn't update this Collection. Please try again.",
   "list.full":
     "This Collection is full: it holds up to {max, number} films. Remove some to make room.",
@@ -224,6 +227,7 @@ export const en = {
   "share.share": "Share",
   "share.sharing": "Sharing…",
   "share.title": "Shared by link",
+  "share.dialogTitle": "Share {list}",
   "share.explanation":
     "Anyone with this link can see these films, their Notes and your name without logging in. They never see your Ratings or your Log.",
   "share.linkLabel": "Share Link",

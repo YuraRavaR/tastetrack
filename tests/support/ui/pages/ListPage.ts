@@ -4,7 +4,7 @@ import { ListFormDialog } from "../components/ListFormDialog";
 import { NoteDialog } from "../components/NoteDialog";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { SearchResults } from "../components/SearchResults";
-import { ShareLinkPanel } from "../components/ShareLinkPanel";
+import { ShareLinkDialog } from "../components/ShareLinkDialog";
 import { BasePage } from "./BasePage";
 
 // What a poster's ⋯ menu offers: a bottom sheet on a phone, a dropdown from md. "Add a Note" and
@@ -16,6 +16,9 @@ export type ListPosterAction =
   | "Move earlier"
   | "Move later"
   | "Remove from collection";
+
+// What the ⋯ by the List's heading offers. "Share" becomes "Share Link" once the List is shared.
+export type ListAction = "Edit collection" | "Share" | "Share Link" | "Delete collection";
 
 // One film in a List's grid: its poster, title and year as one link to the film's page, its ⋯
 // button, and its Note under it, which opens the Note dialog.
@@ -30,12 +33,14 @@ export class ListPage extends BasePage<[listId: number]> {
     return `/collections/${listId}`;
   }
 
-  readonly shareLinkPanel = new ShareLinkPanel(this.page);
-  readonly editListButton = this.page.getByRole("button", { name: "Edit collection" });
+  // The ⋯ by the heading and its menu: a bottom sheet on a phone, a dropdown from md.
+  readonly actionsButton = this.main.getByRole("button", { name: "Collection actions" });
+  readonly actionsMenu = this.page.getByRole("menu");
+  // Titled "Share <name>" until the List is shared, then "Shared by link".
+  readonly shareLinkDialog = new ShareLinkDialog(this.page.getByRole("dialog", { name: /^Share/ }));
   readonly editListDialog = new ListFormDialog(
     this.page.getByRole("dialog", { name: "Edit collection" }),
   );
-  readonly deleteListButton = this.page.getByRole("button", { name: "Delete collection" });
 
   // Adding films: a search whose results each have an Add button.
   readonly searchBox = this.page.getByRole("searchbox", { name: "Search films" });
@@ -75,6 +80,13 @@ export class ListPage extends BasePage<[listId: number]> {
 
   deleteListDialog(listName: string) {
     return new ConfirmDialog(this.page.getByRole("alertdialog", { name: `Delete ${listName}?` }));
+  }
+
+  // Opens the ⋯ by the heading and picks one of its actions.
+  @step
+  async act(action: ListAction): Promise<void> {
+    await this.actionsButton.click();
+    await this.actionsMenu.getByRole("menuitem", { name: action, exact: true }).click();
   }
 
   @step

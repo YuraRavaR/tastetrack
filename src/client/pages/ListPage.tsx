@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Link2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,11 @@ import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { AddToListSearch } from "../components/AddToListSearch";
 import { DeleteListDialog } from "../components/DeleteListDialog";
 import { EmptyState } from "../components/EmptyState";
+import { ListActionsMenu } from "../components/ListActionsMenu";
 import { ListFormDialog } from "../components/ListFormDialog";
 import { ListPoster, listItemLabel } from "../components/ListPoster";
 import { NoteDialog } from "../components/NoteDialog";
-import { ShareLinkPanel } from "../components/ShareLinkPanel";
+import { ShareLinkDialog } from "../components/ShareLinkDialog";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
 import { listsPath } from "../navigation/paths";
@@ -35,13 +36,14 @@ async function loadList(listId: number): Promise<ListState> {
 
 // One of the User's Lists in their own order, as a grid of posters with their Notes
 // (`docs/mockups/collections/`), and a search to add films to it. Each poster's ⋯ menu notes,
-// moves or removes its film, and a removal can be undone; the List itself can be renamed or
-// deleted. After each change the page reloads, so the order is always the Worker's.
+// moves or removes its film, and a removal can be undone; the ⋯ by the heading edits, shares or
+// deletes the List itself. After each change the page reloads, so what it shows is the Worker's.
 export function ListPage() {
   const listId = Number(useParams().listId);
   const navigate = useNavigate();
   const [state, setState] = useState<ListState>({ status: "loading" });
   const [editingList, setEditingList] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   // Holds the search to add films, which the empty List's button takes the User to.
   const addFilms = useRef<HTMLDivElement>(null);
@@ -70,15 +72,19 @@ export function ListPage() {
     };
   }, [listId]);
 
+  const back = (
+    <Link
+      to={listsPath}
+      className="flex items-center gap-1 self-start text-muted-foreground text-sm underline-offset-4 hover:underline"
+    >
+      <ArrowLeft aria-hidden className="size-4" />
+      {t("list.back")}
+    </Link>
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <Link
-        to={listsPath}
-        className="flex items-center gap-1 self-start text-muted-foreground text-sm underline-offset-4 hover:underline"
-      >
-        <ArrowLeft aria-hidden className="size-4" />
-        {t("list.back")}
-      </Link>
+      {state.status !== "loaded" && back}
       {state.status === "loading" && (
         <p className="text-muted-foreground text-sm">{t("list.loading")}</p>
       )}
@@ -92,32 +98,39 @@ export function ListPage() {
       )}
       {state.status === "loaded" && (
         <>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
+          {/* On a phone the ⋯ sits across from the way back, from `md` beside the heading. */}
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 [grid-template-areas:'back_more'_'lead_lead'] md:items-start md:[grid-template-areas:'back_back'_'lead_more']">
+            <div className="[grid-area:back]">{back}</div>
+            <div className="flex flex-col gap-1 [grid-area:lead]">
               <h1 className="break-words font-semibold text-2xl tracking-tight">
                 {state.list.name}
               </h1>
               {state.list.description && (
                 <p className="whitespace-pre-line break-words">{state.list.description}</p>
               )}
-              {state.list.items.length > 0 && (
-                <p className="text-muted-foreground text-sm">
-                  {t("films.count", { count: state.list.items.length })}
+              {(state.list.items.length > 0 || state.list.shareLink) && (
+                <p className="flex flex-wrap items-center gap-x-1.5 text-muted-foreground text-sm">
+                  {state.list.items.length > 0 && (
+                    <span>{t("films.count", { count: state.list.items.length })}</span>
+                  )}
+                  {state.list.items.length > 0 && state.list.shareLink && (
+                    <span aria-hidden>·</span>
+                  )}
+                  {state.list.shareLink && (
+                    <span className="flex items-center gap-1">
+                      <Link2 aria-hidden className="size-3.5" />
+                      {t("lists.shared")}
+                    </span>
+                  )}
                 </p>
               )}
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => setEditingList(true)}>
-                {t("list.edit")}
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setDeleting(true)}>
-                {t("list.delete")}
-              </Button>
-            </div>
-            <ShareLinkPanel
-              listId={state.list.id}
-              shareLink={state.list.shareLink}
-              onChanged={reload}
+            <ListActionsMenu
+              className="[grid-area:more]"
+              shared={state.list.shareLink !== null}
+              onEdit={() => setEditingList(true)}
+              onShare={() => setSharing(true)}
+              onDelete={() => setDeleting(true)}
             />
           </div>
           <div ref={addFilms}>
@@ -184,6 +197,12 @@ export function ListPage() {
               setEditingList(false);
               await reload();
             }}
+          />
+          <ShareLinkDialog
+            open={sharing}
+            list={state.list}
+            onClose={() => setSharing(false)}
+            onChanged={reload}
           />
           <DeleteListDialog
             list={state.list}

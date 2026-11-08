@@ -4,6 +4,7 @@ import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { alien } from "../support/scenarios/films";
 import type { TestUser } from "../support/scenarios/users";
+import { settledBoxOf } from "../support/ui/boxes";
 import type { Footer } from "../support/ui/components/Footer";
 import type { MainNav } from "../support/ui/components/MainNav";
 import { expect, test } from "../support/ui/fixtures";
@@ -121,16 +122,6 @@ async function expectFooter(footer: Footer) {
 // offsetHeight, as the menu's opening animation scales what a bounding box would measure.
 function heightOf(control: Locator) {
   return control.evaluate((element: HTMLElement) => element.offsetHeight);
-}
-
-// Where an element sits once its opening animation has finished.
-async function settledBoxOf(element: Locator) {
-  await element.evaluate((node) =>
-    Promise.all(node.getAnimations().map(({ finished }) => finished)),
-  );
-  const box = await element.boundingBox();
-  if (!box) throw new Error("The element isn't rendered");
-  return box;
 }
 
 test.describe("on a phone", () => {
