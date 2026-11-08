@@ -31,6 +31,7 @@ export const en = {
   "mediaType.film.lastExperienced": "Last watched",
   "mediaType.film.noMatch": "No films match these filters.",
   "mediaType.film.tileCounts": "{backlog} to watch · {experienced} watched",
+  "mediaType.film.count": "{count, plural, one {# film} other {# films}}",
   // A Media Type still to come, shown as a stub where a section offers the Media Types.
   "mediaType.book.tab": "Books",
   "account.menu": "Account menu",

@@ -37,7 +37,7 @@ export function ListCard({ list }: { list: ListPreview }) {
             aria-label={mediaWord(list.mediaType, "tab")}
             className="size-3.5 shrink-0"
           />
-          <span>{t("films.count", { count: list.itemCount })}</span>
+          <span>{mediaWord(list.mediaType, "count", { count: list.itemCount })}</span>
           {list.shared && (
             <>
               <span aria-hidden>·</span>

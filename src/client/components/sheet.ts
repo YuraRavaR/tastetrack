@@ -1,4 +1,4 @@
-// The shell every dialog shares, as the Watched dialog drew it: a bottom sheet below `md`, with no
+// The shell of the redesign's dialogs, as the Watched dialog drew it: a bottom sheet below `md`, with no
 // swipe to close, and a centred dialog from `md`. Its form's body scrolls between a header and a
 // footer that stay put. For DialogContent, with its own close button off.
 export const sheetClasses =

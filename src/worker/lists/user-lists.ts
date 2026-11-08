@@ -18,7 +18,13 @@ import type {
   NewListItemRequest,
   NewListRequest,
 } from "../../shared/api";
-import { isReservedListName, listCoverCount, listNameKey, maxLists } from "../../shared/lists";
+import {
+  isReservedListName,
+  isShared,
+  listCoverCount,
+  listNameKey,
+  maxLists,
+} from "../../shared/lists";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
@@ -133,33 +139,20 @@ export async function listPreviews(
   userId: number,
   now: Date,
 ): Promise<ListPreview[]> {
-  const own = and(eq(lists.userId, userId), eq(lists.kind, "list"));
-  // Each List Item's place in its List, counted from 1, in the order listOrder gives.
+  // Each of the User's List Items with its place in its List, counted from 1.
   const places = db
     .select({
       id: listItems.id,
       place: sql<number>`row_number() over (
-        partition by ${listItems.listId} order by ${listItems.position}, ${listItems.id}
+        partition by ${listItems.listId} order by ${sql.join(listOrder, sql`, `)}
       )`.as("place"),
     })
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(own)
+    .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
     .as("places");
-  const [rows, coverRows] = await Promise.all([
-    db
-      .select({
-        ...summaryColumns,
-        itemCount: count(listItems.id),
-        shared: sql<number>`exists (
-          select 1 from ${shareLinks} where ${shareLinks.listId} = ${lists.id}
-        )`,
-      })
-      .from(lists)
-      .leftJoin(listItems, eq(listItems.listId, lists.id))
-      .where(own)
-      .groupBy(lists.id)
-      .orderBy(asc(lists.createdAt), asc(lists.id)),
+  const [summaries, coverRows] = await Promise.all([
+    userLists(db, userId),
     db
       .select({ listId: listItems.listId, ...mediaItemColumns })
       .from(listItems)
@@ -173,10 +166,10 @@ export async function listPreviews(
   for (const row of coverRows) {
     covers.set(row.listId, [...(covers.get(row.listId) ?? []), toMediaItem(row)]);
   }
-  return rows.map(({ shared, ...row }) => ({
-    ...toSummary(row),
-    covers: covers.get(row.id) ?? [],
-    shared: shared === 1,
+  return summaries.map((summary) => ({
+    ...summary,
+    covers: covers.get(summary.id) ?? [],
+    shared: isShared(summary.visibility),
   }));
 }
 

@@ -15,6 +15,11 @@ export const sharedVisibilities = visibilities.slice(visibilities.indexOf("link"
 
 export const unsharedVisibilities = visibilities.slice(0, visibilities.indexOf("link"));
 
+// Whether a List at this Visibility has a Share Link.
+export function isShared(visibility: Visibility): boolean {
+  return sharedVisibilities.includes(visibility);
+}
+
 // A List, the Backlog included, holds at most this many items.
 export const maxListItems = 1_000;
 

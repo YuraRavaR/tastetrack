@@ -37,7 +37,7 @@ export function ListsPage() {
     };
   }, []);
 
-  const none = state.status === "loaded" && state.lists.length === 0;
+  const noLists = state.status === "loaded" && state.lists.length === 0;
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
@@ -48,10 +48,10 @@ export function ListsPage() {
           </h1>
           {/* With no Collections the empty state's button leads, so this one steps back. */}
           <Button
-            variant={none ? "outline" : "default"}
+            variant={noLists ? "outline" : "default"}
             className={cn(
               "h-11 shrink-0 rounded-full px-4.5 font-semibold md:h-10",
-              none && "bg-card",
+              noLists && "bg-card",
             )}
             onClick={() => setCreating(true)}
           >
@@ -69,7 +69,7 @@ export function ListsPage() {
           {t("lists.unavailable")}
         </p>
       )}
-      {none && (
+      {noLists && (
         <EmptyState
           icon={LayoutGrid}
           message={t("lists.empty")}

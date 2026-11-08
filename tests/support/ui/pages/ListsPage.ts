@@ -24,6 +24,8 @@ export class ListsPage extends BasePage {
 
   readonly heading = this.main.getByRole("heading", { level: 1, name: "Collections" });
   readonly mediaTypeChips = this.main.getByRole("group", { name: "Category" });
+  readonly filmsChip = this.mediaTypeChips.getByRole("button", { name: "Films" });
+  readonly booksChip = this.mediaTypeChips.getByRole("button", { name: "Books" });
   readonly emptyMessage = this.main.getByText("No collections yet.");
   // The button in the heading. With no Lists the empty state has its own, after it.
   readonly newListButton = this.main.getByRole("button", { name: "New collection" }).first();

@@ -92,11 +92,8 @@ test("Collections shows each List as a card with its covers, its count and wheth
   await listsPage.goto();
 
   await expect(listsPage.heading).toBeVisible();
-  await expect(listsPage.mediaTypeChips.getByRole("button", { name: "Films" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(listsPage.mediaTypeChips.getByRole("button", { name: "Books" })).toBeDisabled();
+  await expect(listsPage.filmsChip).toHaveAttribute("aria-pressed", "true");
+  await expect(listsPage.booksChip).toBeDisabled();
   await expect(listsPage.lists).toHaveCount(2);
   await expect(listsPage.lists.first()).toContainText("Space");
   const spaceCard = listsPage.card("Space");
