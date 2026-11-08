@@ -3,12 +3,14 @@ import { BaseComponent } from "./BaseComponent";
 import { MainNav } from "./MainNav";
 
 // The header at the top of every page. What it holds depends on who is looking: logged out, it is
-// the app name alone.
+// the app name alone, and a "Log in" link on a Share Link's page.
 export class Header extends BaseComponent {
   readonly banner = this.page.getByRole("banner");
   readonly links = this.banner.getByRole("link");
   readonly buttons = this.banner.getByRole("button");
   readonly appNameLink = this.banner.getByRole("link", { name: "TasteTrack" });
+  // Logged out, on a Share Link's page.
+  readonly logInLink = this.banner.getByRole("link", { name: "Log in" });
   // The sections, when they sit in the header: from md.
   readonly mainNav = new MainNav(this.banner.getByRole("navigation", { name: "Main" }));
   readonly navigations = this.banner.getByRole("navigation");
