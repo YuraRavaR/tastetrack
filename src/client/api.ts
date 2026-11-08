@@ -1,7 +1,5 @@
 // Calls to the Worker's API. The session travels in an HttpOnly cookie, so nothing here holds it.
 import type {
-  Backlog,
-  BacklogResponse,
   CatalogSearchResponse,
   CatalogSearchResult,
   ErrorResponse,
@@ -20,11 +18,9 @@ import type {
   ListSummary,
   ListSummaryResponse,
   ListsResponse,
-  LogEntry,
   LogEntryEditRequest,
   LogEntryResponse,
   LoginResponse,
-  LogResponse,
   ManualMediaItemEditRequest,
   ManualMediaItemResponse,
   ManualSearchResult,
@@ -416,12 +412,6 @@ export async function deleteLogEntry(logEntryId: number): Promise<boolean> {
   }
 }
 
-export async function fetchLog(): Promise<LogEntry[]> {
-  const response = await fetch("/api/log-entries");
-  if (!response.ok) throw new Error(`Loading the Log failed: ${response.status}`);
-  return ((await response.json()) as LogResponse).logEntries;
-}
-
 // A Media Item's Item History, or null when there is no such Media Item.
 export async function fetchItemHistory(mediaItemId: number): Promise<ItemHistoryResponse | null> {
   const response = await fetch(`/api/catalog/items/${mediaItemId}/history`);
@@ -435,12 +425,6 @@ export async function fetchLibrary(mediaType: MediaType): Promise<LibraryItem[]>
   const response = await fetch(`/api/library?mediaType=${mediaType}`);
   if (!response.ok) throw new Error(`Loading the Library failed: ${response.status}`);
   return ((await response.json()) as LibraryResponse).items;
-}
-
-export async function fetchBacklog(): Promise<Backlog> {
-  const response = await fetch("/api/backlog?mediaType=film");
-  if (!response.ok) throw new Error(`Loading the Backlog failed: ${response.status}`);
-  return ((await response.json()) as BacklogResponse).backlog;
 }
 
 export type PlanResult =

@@ -17,9 +17,9 @@ async function listItemsOf(api: ApiClient, listId: number) {
 test("a User builds a List: names it, adds films, orders and notes them, then deletes it", {
   tag: "@smoke",
 }, async ({ page, loggedInUi: ui }) => {
-  const { homePage, listsPage, listPage } = ui;
-  await homePage.goto();
-  await homePage.mainNav.link("Collections").click();
+  const { searchPage, listsPage, listPage } = ui;
+  await searchPage.goto();
+  await searchPage.mainNav.link("Collections").click();
   await expect(listsPage.emptyMessage).toBeVisible();
 
   // A reserved name is refused, then a free one makes the List.
@@ -89,19 +89,19 @@ test("a name the User already has is refused", async ({ ui, loggedInApi: api }) 
   await expect(dialog.errorMessage).toHaveText("You already have a Collection with this name.");
 });
 
-test("a User puts a search result on Lists and takes it off again, from home", async ({
+test("a User puts a search result on Lists and takes it off again, from Search", async ({
   ui,
   loggedInApi: api,
 }) => {
   const horror = (await createList(api, "Horror")).id;
   const comfort = (await createList(api, "Comfort")).id;
-  const { homePage } = ui;
-  await homePage.goto();
+  const { searchPage } = ui;
+  await searchPage.goto();
 
-  await homePage.search("alien");
-  const result = homePage.searchResults.result("Alien (1979)");
+  await searchPage.search("alien");
+  const result = searchPage.searchResults.result("Alien (1979)");
   await result.addToListButton.click();
-  const dialog = homePage.filmListsDialog("Alien (1979)");
+  const dialog = searchPage.filmListsDialog("Alien (1979)");
   await dialog.checkbox("Horror").click();
   await dialog.checkbox("Comfort").click();
   await expect(dialog.checkbox("Comfort")).toBeChecked();

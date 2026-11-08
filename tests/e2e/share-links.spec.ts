@@ -72,18 +72,17 @@ test("a User shares a List, and someone logged out opens its Share Link", {
   await expect(sharedPage.text("Space horror")).toHaveCount(0);
 });
 
-test("a User shares their Watchlist, and a new link replaces the old one", async ({
-  ui,
-  api,
-  loggedInUser: owner,
-  visitorUi,
-}) => {
-  const planned = await api.backlog.addBacklogItem({ mediaItemId: (await alien(api)).id });
-  expect(planned.status()).toBe(201);
+test("a new Share Link replaces the old one", async ({ ui, loggedInApi: api, visitorUi }) => {
+  const { list } = await expectBody(
+    api.lists.createList({ name: "Space horror", mediaType: "film" }),
+    201,
+  );
+  const added = await api.lists.addListItem(list.id, { mediaItemId: (await alien(api)).id });
+  expect(added.status()).toBe(201);
 
-  const { watchlistPage } = ui;
-  const { shareLinkPanel } = watchlistPage;
-  await watchlistPage.goto();
+  const { listPage } = ui;
+  const { shareLinkPanel } = listPage;
+  await listPage.goto(list.id);
   await shareLinkPanel.share();
   await expect(shareLinkPanel.linkField).toHaveValue(/\/s\//);
   const oldUrl = await shareLinkPanel.readLink();
@@ -93,9 +92,8 @@ test("a User shares their Watchlist, and a new link replaces the old one", async
 
   const { sharedPage } = visitorUi;
   await visitorUi.goto(newUrl);
-  const title = `${owner.username}'s Watchlist`;
-  await expect(sharedPage.heading(title)).toBeVisible();
-  await expect(sharedPage.list(title)).toContainText("Alien (1979)");
+  await expect(sharedPage.heading("Space horror")).toBeVisible();
+  await expect(sharedPage.list("Space horror")).toContainText("Alien (1979)");
   await visitorUi.goto(oldUrl);
   await expect(sharedPage.notFoundMessage).toBeVisible();
 });

@@ -2,8 +2,10 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import type { RemovedListItem } from "../../shared/api";
+import type { MediaType, RemovedListItem } from "../../shared/api";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
+import { libraryPath } from "../library/library-tabs";
 import { UndoLine } from "./UndoLine";
 
 // A toast floats above the tab bar, so it shows from anywhere and never moves the page. It is empty
@@ -46,19 +48,20 @@ export type FilmAction =
   | { kind: "logged"; mediaItemId: number; removedFromBacklog: RemovedListItem | null }
   | { kind: keyof typeof actionMessages };
 
-// Reports a film's action: `film` is its label and `backlogName` the Backlog of its Media Type.
-// Logging takes a film off the Backlog, and `onUndo` puts it back where it was.
+// Reports a film's action: `film` is its label. Logging links to Saved's tab of what the User
+// experienced, and takes a film off the Backlog, which `onUndo` puts back where it was.
 export function FilmActionMessage({
   action,
   film,
-  backlogName,
+  mediaType,
   onUndo,
 }: {
   action: FilmAction;
   film: string;
-  backlogName: string;
+  mediaType: MediaType;
   onUndo: (mediaItemId: number, removed: RemovedListItem) => void;
 }) {
+  const backlogName = mediaWord(mediaType, "backlog");
   if (action.kind !== "logged") {
     return <p>{t(actionMessages[action.kind], { film, backlogName })}</p>;
   }
@@ -67,8 +70,11 @@ export function FilmActionMessage({
     <>
       <p>
         {t("logEntry.saved", { film })}{" "}
-        <Link to="/log" className="text-primary-strong underline-offset-4 hover:underline">
-          {t("log.view")}
+        <Link
+          to={libraryPath(mediaType, "experienced")}
+          className="text-primary-strong underline-offset-4 hover:underline"
+        >
+          {t("saved.goTo", { tab: mediaWord(mediaType, "experienced") })}
         </Link>
       </p>
       {removedFromBacklog && (

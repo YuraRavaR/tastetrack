@@ -22,6 +22,7 @@ import type {
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { t } from "../i18n/t";
+import { listsPath } from "../navigation/paths";
 
 // A film to put on Lists: its label, how to get its Media Item, which for a TMDB search result adds
 // it to the catalog first, and who to tell which Lists hold it, oldest first, as that changes. Kept
@@ -160,7 +161,7 @@ function FilmLists({ film }: { film: ListsFilm }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           <span className="text-muted-foreground">{t("filmLists.empty")}</span>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/lists">{t("filmLists.make")}</Link>
+            <Link to={listsPath}>{t("filmLists.make")}</Link>
           </Button>
         </div>
       )}

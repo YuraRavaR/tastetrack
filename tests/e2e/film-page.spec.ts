@@ -96,7 +96,7 @@ test("the Watchlist toggles from a film's page, and stays as it was left", async
 }) => {
   await holdImages(page);
   const { id } = await alien(api);
-  const { filmPage, watchlistPage } = ui;
+  const { filmPage, libraryPage } = ui;
   await openFilm(filmPage, id);
 
   await filmPage.wantToWatchButton.click();
@@ -111,8 +111,8 @@ test("the Watchlist toggles from a film's page, and stays as it was left", async
 
   await expect(filmPage.wantToWatchButton).toBeVisible();
   await expect(filmPage.toast.root).toHaveText(/Took Alien \(1979\) off your Watchlist\./);
-  await watchlistPage.goto();
-  await expect(watchlistPage.emptyMessage).toBeVisible();
+  await libraryPage.goto("Watchlist");
+  await expect(libraryPage.text("Nothing on your Watchlist yet.")).toBeVisible();
 });
 
 test("logging a Revisit from a film's page updates its tiles and Viewings at once", async ({
@@ -179,4 +179,13 @@ test("a first viewing from a film's page takes it off the Watchlist, with an und
 
   await expect(filmPage.onWatchlistButton).toBeVisible();
   await expect(filmPage.toast.root).toHaveText(/Put Alien \(1979\) back on your Watchlist\./);
+});
+
+test("a film's page shows its runtime and genres", async ({ ui, loggedInApi: api }) => {
+  const { filmPage } = ui;
+
+  await filmPage.goto((await alien(api)).id);
+
+  await expect(filmPage.heading).toContainText("Alien (1979)");
+  await expect(filmPage.text("117 min · Horror, Science Fiction")).toBeVisible();
 });

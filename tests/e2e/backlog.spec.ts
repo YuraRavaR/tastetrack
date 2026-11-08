@@ -3,58 +3,43 @@ import { expect, test } from "../support/ui/fixtures";
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
 // TMDB matches whole words, so Aliens is searched for as "aliens": "alien" doesn't find it there.
 
-test("a User plans films from search, then orders and notes their Watchlist", {
+test("a User plans a film in Search, finds it on the Watchlist, logs it and finds it in Watched", {
   tag: "@smoke",
-}, async ({ page, loggedInUi: ui }) => {
-  const { homePage, watchlistPage } = ui;
-  await homePage.goto();
-  await homePage.search("alien");
-  const alien = homePage.searchResults.result("Alien (1979)");
+}, async ({ loggedInUi: ui }) => {
+  const { searchPage, libraryPage } = ui;
+  await searchPage.goto();
+  await searchPage.search("alien");
+  const alien = searchPage.searchResults.result("Alien (1979)");
   await alien.wantToWatchButton.click();
   await expect(alien.onWatchlistButton).toBeVisible();
-  await expect(alien.wantToWatchButton).toHaveAttribute("aria-pressed", "true");
-  await homePage.search("aliens");
-  const aliens = homePage.searchResults.result("Aliens (1986)");
-  await aliens.wantToWatchButton.click();
-  await expect(aliens.onWatchlistButton).toBeVisible();
 
-  await homePage.mainNav.link("Watchlist").click();
-  const { items } = watchlistPage;
-  await expect(items).toHaveCount(2);
-  await expect(watchlistPage.text("2 films")).toBeVisible();
-  await expect(items.first()).toContainText("Alien (1979)");
+  await searchPage.mainNav.link("Saved").click();
+  await expect(libraryPage.posters("Watchlist")).toHaveText([/Alien\s*1979$/]);
+  await expect(libraryPage.tab("Watched")).toHaveAccessibleName("Watched 0");
 
-  // Moving Aliens up puts it first.
-  await watchlistPage.lastItem().moveEarlierButton.click();
-  await expect(items.first()).toContainText("Aliens (1986)");
-  await expect(watchlistPage.firstItem().moveEarlierButton).toBeDisabled();
+  await libraryPage.mainNav.link("Search").click();
+  await searchPage.search("alien");
+  await alien.markWatchedButton.click();
+  const dialog = searchPage.logEntryDialog("Alien");
+  await dialog.rate("4 stars");
+  await dialog.save();
+  await expect(dialog.root).toBeHidden();
 
-  // A Note, added and then changed.
-  await watchlistPage.lastItem().addNoteButton.click();
-  const noteDialog = watchlistPage.noteDialog("Alien (1979)");
-  await noteDialog.saveNote("Olena's favourite.");
-  await expect(noteDialog.root).toBeHidden();
-  await expect(items.last()).toContainText("Olena's favourite.");
-  await watchlistPage.lastItem().editNoteButton.click();
-  await expect(noteDialog.noteInput).toHaveValue("Olena's favourite.");
-  await noteDialog.saveNote("Watch with Olena.");
-  await expect(items.last()).toContainText("Watch with Olena.");
-
-  // The order and the Note are kept.
-  await page.reload();
-  await expect(items.first()).toContainText("Aliens (1986)");
-  await expect(items.last()).toContainText("Watch with Olena.");
+  await searchPage.toast.goToWatchedLink.click();
+  await expect(libraryPage.posters("Watched")).toHaveText([/Alien/]);
+  await expect(libraryPage.poster("Watched", "Alien").rating("4 stars")).toBeVisible();
+  await expect(libraryPage.tab("Watchlist")).toHaveAccessibleName("Watchlist 0");
 });
 
 test("the bookmark in search puts a film on the Watchlist and takes it off again", async ({
   page,
   loggedInUi: ui,
 }) => {
-  const { homePage, watchlistPage } = ui;
-  const { toast } = homePage;
-  await homePage.goto();
-  await homePage.search("alien");
-  const alien = homePage.searchResults.result("Alien (1979)");
+  const { searchPage, libraryPage } = ui;
+  const { toast } = searchPage;
+  await searchPage.goto();
+  await searchPage.search("alien");
+  const alien = searchPage.searchResults.result("Alien (1979)");
   const bookmark = alien.wantToWatchButton;
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
 
@@ -70,34 +55,34 @@ test("the bookmark in search puts a film on the Watchlist and takes it off again
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
   await expect(alien.onWatchlistButton).toHaveCount(0);
   await toast.dismiss();
-  await expect(homePage.text("Took Alien (1979) off your Watchlist.")).toHaveCount(0);
+  await expect(searchPage.text("Took Alien (1979) off your Watchlist.")).toHaveCount(0);
 
   // It is off for good, not only on this screen.
   await page.reload();
-  await homePage.search("alien");
+  await searchPage.search("alien");
   await expect(bookmark).toHaveAttribute("aria-pressed", "false");
-  await homePage.mainNav.link("Watchlist").click();
-  await expect(watchlistPage.emptyMessage).toBeVisible();
+  await searchPage.mainNav.link("Saved").click();
+  await expect(libraryPage.text("Nothing on your Watchlist yet.")).toBeVisible();
 });
 
 test("logging a planned film takes it off the Watchlist, and Undo puts it back", async ({
   loggedInUi: ui,
 }) => {
-  const { homePage, watchlistPage } = ui;
-  const { toast } = homePage;
-  await homePage.goto();
-  await homePage.search("alien");
-  const alien = homePage.searchResults.result("Alien (1979)");
+  const { searchPage, libraryPage } = ui;
+  const { toast } = searchPage;
+  await searchPage.goto();
+  await searchPage.search("alien");
+  const alien = searchPage.searchResults.result("Alien (1979)");
   await alien.wantToWatchButton.click();
   await expect(alien.onWatchlistButton).toBeVisible();
-  await homePage.search("aliens");
-  const aliens = homePage.searchResults.result("Aliens (1986)");
+  await searchPage.search("aliens");
+  const aliens = searchPage.searchResults.result("Aliens (1986)");
   await aliens.wantToWatchButton.click();
   await expect(aliens.onWatchlistButton).toBeVisible();
-  await homePage.search("alien");
+  await searchPage.search("alien");
 
   await alien.markWatchedButton.click();
-  const dialog = homePage.logEntryDialog("Alien");
+  const dialog = searchPage.logEntryDialog("Alien");
   await expect(dialog.watchlistNote).toBeVisible();
   await dialog.rate("4 stars");
   await dialog.save();
@@ -109,55 +94,22 @@ test("logging a planned film takes it off the Watchlist, and Undo puts it back",
   await expect(toast.message("Put Alien (1979) back on your Watchlist.")).toBeVisible();
   await expect(alien.watchedAgainButton).toBeVisible();
   await expect(alien.wantToWatchButton).toHaveAttribute("aria-pressed", "true");
-  await homePage.mainNav.link("Watchlist").click();
-  await expect(watchlistPage.items.first()).toContainText("Alien (1979)");
-  await expect(watchlistPage.items.last()).toContainText("Aliens (1986)");
-});
-
-test("removing a film from the Watchlist can be undone", async ({ loggedInUi: ui }) => {
-  const { homePage, watchlistPage } = ui;
-  await homePage.goto();
-  await homePage.search("alien");
-  const alien = homePage.searchResults.result("Alien (1979)");
-  await alien.wantToWatchButton.click();
-  await expect(alien.onWatchlistButton).toBeVisible();
-  await homePage.mainNav.link("Watchlist").click();
-  const { items } = watchlistPage;
-
-  await watchlistPage.firstItem().removeButton.click();
-
-  await expect(items).toHaveCount(0);
-  await expect(watchlistPage.text("Removed Alien (1979) from your Watchlist.")).toBeVisible();
-  await watchlistPage.undoButton.click();
-  await expect(items).toHaveCount(1);
-  await expect(items).toContainText("Alien (1979)");
+  await searchPage.mainNav.link("Saved").click();
+  await expect(libraryPage.posters("Watchlist")).toHaveCount(2);
+  await expect(libraryPage.poster("Watchlist", "Alien").watchedBeforeMark).toBeVisible();
+  await expect(libraryPage.poster("Watchlist", "Aliens").watchedBeforeMark).toHaveCount(0);
 });
 
 test("a full Watchlist says to remove or log some films", async ({ ui, api, loggedInUser }) => {
   const filled = await api.testHooks.fillBacklog(loggedInUser.username, 1000);
   expect(filled.status(), await filled.text()).toBe(204);
-  const { homePage } = ui;
-  await homePage.goto();
-  await homePage.search("alien");
+  const { searchPage } = ui;
+  await searchPage.goto();
+  await searchPage.search("alien");
 
-  await homePage.searchResults.result("Alien (1979)").wantToWatchButton.click();
+  await searchPage.searchResults.result("Alien (1979)").wantToWatchButton.click();
 
-  await expect(homePage.errorMessage).toHaveText(
+  await expect(searchPage.errorMessage).toHaveText(
     "Your Watchlist is full: it holds up to 1,000 films. Remove or log some to make room.",
   );
-});
-
-test("the Watchlist and a film's page show its runtime and genres", async ({ loggedInUi: ui }) => {
-  const { homePage, watchlistPage, filmPage } = ui;
-  await homePage.goto();
-  await homePage.search("alien");
-  const alien = homePage.searchResults.result("Alien (1979)");
-  await alien.wantToWatchButton.click();
-  await expect(alien.onWatchlistButton).toBeVisible();
-
-  await homePage.mainNav.link("Watchlist").click();
-  await expect(watchlistPage.items).toContainText("117 min · Horror, Science Fiction");
-  await watchlistPage.firstItem().filmLink("Alien (1979)").click();
-  await expect(filmPage.heading).toContainText("Alien (1979)");
-  await expect(filmPage.text("117 min · Horror, Science Fiction")).toBeVisible();
 });

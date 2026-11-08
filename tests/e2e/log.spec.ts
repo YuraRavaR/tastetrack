@@ -8,46 +8,48 @@ import type { Ui } from "../support/ui/Ui";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien.
 
-test("a User marks a search result Watched, rates it and finds it in their Log", {
-  tag: "@smoke",
-}, async ({ loggedInUi: ui }) => {
-  const { homePage, logPage } = ui;
-  await homePage.goto();
-  await homePage.search("alien");
-  const alien = homePage.searchResults.result("Alien (1979)");
+test("a User marks a search result Watched, rates it and finds the viewing on the film's page", async ({
+  loggedInUi: ui,
+}) => {
+  const { searchPage, filmPage } = ui;
+  await searchPage.goto();
+  await searchPage.search("alien");
+  const alien = searchPage.searchResults.result("Alien (1979)");
 
   await alien.markWatchedButton.click();
-  const dialog = homePage.logEntryDialog("Alien");
+  const dialog = searchPage.logEntryDialog("Alien");
   await dialog.rate("4.5 stars");
   await dialog.reviewInput.fill("Still terrifying.");
   await dialog.save();
 
   await expect(dialog.root).toBeHidden();
-  await expect(alien.itemHistoryLink("4.5 · 1 viewing")).toBeVisible();
-  await homePage.mainNav.link("Log").click();
-  await expect(logPage.entries).toHaveCount(1);
-  const entry = logPage.entry(0);
-  await expect(entry.text("Alien (1979)", { exact: true })).toBeVisible();
-  await expect(entry.text("Чужий", { exact: true })).toBeVisible();
-  await expect(entry.ratingStars("4.5 stars")).toBeVisible();
-  await expect(entry.text("Still terrifying.")).toBeVisible();
+  await alien.itemHistoryLink("4.5 · 1 viewing").click();
+  await expect(filmPage.heading).toHaveText(/^Alien \(1979\)/);
+  await expect(filmPage.heading).toContainText("Чужий");
+  await expect(filmPage.viewings).toHaveCount(1);
+  const viewing = filmPage.viewing(0);
+  await expect(viewing.ratingStars("4.5 stars")).toBeVisible();
+  await expect(viewing.text("Still terrifying.")).toBeVisible();
 });
 
 // Opens the dialog for Alien from search, with the browser's clock on a day the Worker accepts.
-async function openWatchedDialog(page: Page, { homePage }: Ui) {
+async function openWatchedDialog(page: Page, { searchPage }: Ui) {
   await page.clock.setFixedTime(new Date("2026-03-15T12:00:00"));
-  await homePage.goto();
-  await homePage.search("alien");
-  await homePage.searchResults.result("Alien (1979)").markWatchedButton.click();
-  return homePage.logEntryDialog("Alien");
+  await searchPage.goto();
+  await searchPage.search("alien");
+  await searchPage.searchResults.result("Alien (1979)").markWatchedButton.click();
+  return searchPage.logEntryDialog("Alien");
 }
 
-async function saveRatedEntry({ homePage, logPage }: Ui, dialog: LogEntryDialog) {
+// Saves the dialog with a Rating of 3, and opens the film's page, where the new entry is the only
+// one in Viewings.
+async function saveRatedEntry({ searchPage, filmPage }: Ui, dialog: LogEntryDialog) {
   await dialog.rate("3 stars");
   await dialog.save();
   await expect(dialog.root).toBeHidden();
-  await homePage.mainNav.link("Log").click();
-  return logPage.entry(0);
+  await searchPage.searchResults.result("Alien (1979)").itemHistoryLink("3 · 1 viewing").click();
+  await expect(filmPage.viewings).toHaveCount(1);
+  return filmPage.viewing(0);
 }
 
 test("a new Log Entry is dated today unless the User says otherwise", async ({
@@ -117,7 +119,7 @@ test("a Rating is required, and Rewatch is kept", async ({ page, loggedInUi: ui 
 
   const entry = await saveRatedEntry(ui, dialog);
   await expect(entry.ratingStars("3 stars")).toBeVisible();
-  await expect(entry.text("Rewatch", { exact: true })).toBeVisible();
+  await expect(entry.revisitBadge).toBeVisible();
 });
 
 test("the dialog shows the film, and its Rating as a number", async ({ page, loggedInUi: ui }) => {
@@ -132,7 +134,7 @@ test("the dialog shows the film, and its Rating as a number", async ({ page, log
 
 test("Close, Cancel and Esc close the dialog without saving", async ({ page, loggedInUi: ui }) => {
   const dialog = await openWatchedDialog(page, ui);
-  const alien = ui.homePage.searchResults.result("Alien (1979)");
+  const alien = ui.searchPage.searchResults.result("Alien (1979)");
 
   await dialog.rate("3 stars");
   await dialog.closeButton.click();
@@ -158,24 +160,21 @@ async function logAlien(api: ApiClient, entries: Omit<NewLogEntryRequest, "media
   return mediaItemId;
 }
 
-// Opens the Item History of the film logAlien logged, from the Log.
-async function openAlienFromLog({ logPage, filmPage }: Ui) {
-  await logPage.goto();
-  await logPage
-    .filmLink(/^Alien \(1979\)/)
-    .first()
-    .click();
+// Opens the Item History of the film logAlien logged, from its poster in Watched.
+async function openAlienFromWatched({ libraryPage, filmPage }: Ui) {
+  await libraryPage.goto("Watched");
+  await libraryPage.poster("Watched", "Alien").link.click();
   await expect(filmPage.heading).toHaveText(/^Alien \(1979\)/);
 }
 
-test("a User opens a film's Item History from the Log, edits an entry and deletes entries", {
+test("a User opens a film's Item History from Watched, edits an entry and deletes entries", {
   tag: "@smoke",
 }, async ({ ui, loggedInApi: api }) => {
   await logAlien(api, [
     { rating: 3, date: "2001-09-15", review: "First time." },
     { rating: 4.5, date: "2026-10-01" },
   ]);
-  await openAlienFromLog(ui);
+  await openAlienFromWatched(ui);
   const { filmPage } = ui;
   const { stats, viewings, deleteEntryDialog: confirm } = filmPage;
 
@@ -218,7 +217,7 @@ test("the tiles name a film watched once, and a dash stands in for a date none h
   loggedInApi: api,
 }) => {
   await logAlien(api, [{ rating: 3.5 }]);
-  await openAlienFromLog(ui);
+  await openAlienFromWatched(ui);
   const { filmPage } = ui;
 
   await expect(filmPage.statNames).toHaveText(["Watched", "Your rating", "First watched"]);
@@ -236,7 +235,7 @@ test("Viewings lists the newest first, with undated entries at the bottom", asyn
     { rating: 3 },
     { rating: 4, date: "2026-10-11", revisit: true },
   ]);
-  await openAlienFromLog(ui);
+  await openAlienFromWatched(ui);
   const { filmPage } = ui;
   const { viewings } = filmPage;
 
@@ -259,7 +258,7 @@ test('the "⋯" menu holds Edit, a separator and Delete, and the page works afte
   loggedInApi: api,
 }) => {
   await logAlien(api, [{ rating: 3, date: "2001-09-15" }]);
-  await openAlienFromLog(ui);
+  await openAlienFromWatched(ui);
   const { filmPage } = ui;
   const menu = filmPage.entryActionsMenu;
 
@@ -279,11 +278,11 @@ test('the "⋯" menu holds Edit, a separator and Delete, and the page works afte
 test("Rewatch is on when the film is already in the Log, and can be turned off", async ({
   loggedInUi: ui,
 }) => {
-  const { homePage, logPage } = ui;
-  await homePage.goto();
-  await homePage.search("alien");
-  const alien = homePage.searchResults.result("Alien (1979)");
-  const dialog = homePage.logEntryDialog("Alien");
+  const { searchPage, filmPage } = ui;
+  await searchPage.goto();
+  await searchPage.search("alien");
+  const alien = searchPage.searchResults.result("Alien (1979)");
+  const dialog = searchPage.logEntryDialog("Alien");
   const revisit = dialog.revisitSwitch;
 
   await alien.markWatchedButton.click();
@@ -299,9 +298,10 @@ test("Rewatch is on when the film is already in the Log, and can be turned off",
   await dialog.save();
   await expect(dialog.root).toBeHidden();
 
-  await homePage.mainNav.link("Log").click();
-  await expect(logPage.entries).toHaveCount(2);
-  await expect(logPage.revisitBadges).toHaveCount(0);
+  await alien.itemHistoryLink("5 · 2 viewings").click();
+  await expect(filmPage.viewings).toHaveCount(2);
+  await expect(filmPage.viewing(0).revisitBadge).toHaveCount(0);
+  await expect(filmPage.viewing(1).revisitBadge).toHaveCount(0);
 });
 
 test("editing opens on the chip that matches the entry's date", async ({

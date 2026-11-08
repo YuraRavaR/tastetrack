@@ -1,7 +1,7 @@
 import { expect, test } from "../support/ui/fixtures";
 
 test("a logged-out visitor is sent to the login page", async ({ page, ui }) => {
-  await ui.homePage.goto();
+  await ui.libraryPage.goto();
 
   await expect(page).toHaveURL(ui.loginPage.path());
   await expect(ui.loginPage.heading).toBeVisible();
@@ -28,7 +28,7 @@ test("a User logs in, lands where they were going, and logs out", { tag: "@smoke
   await expect(page).toHaveURL(ui.loginPage.path());
 });
 
-test("a User going to an unknown page lands on home after logging in", async ({
+test("a User going to an unknown page lands on Saved after logging in", async ({
   page,
   ui,
   registeredUser,
@@ -38,8 +38,8 @@ test("a User going to an unknown page lands on home after logging in", async ({
 
   await ui.loginPage.logIn(registeredUser);
 
-  await expect(page).toHaveURL(ui.homePage.path());
-  await expect(ui.homePage.header.banner).toContainText(registeredUser.username);
+  await expect(page).toHaveURL(ui.libraryPage.path());
+  await expect(ui.libraryPage.header.banner).toContainText(registeredUser.username);
 });
 
 test("a wrong password shows an error and stays on the login page", async ({
