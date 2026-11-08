@@ -41,7 +41,7 @@ The `@smoke` tests also run in the `mobile` project, on an iPhone in WebKit, so 
 ### Components
 
 - A part inside one element, such as a section, a row or a dialog, extends `ScopedComponent` and searches inside `root`. A part that reaches outside its element, as the account menu does, extends `BaseComponent`.
-- A component takes the client's name for it: `LogEntryDialog`, `ItemHistoryRow`, `ShareLinkPanel`. One a single page uses lives in that page's file; `components/` holds what several pages share.
+- A component takes the client's name for it: `LogEntryDialog`, `ItemHistoryRow`, `ShareLinkDialog`. One a single page uses lives in that page's file; `components/` holds what several pages share.
 - A dialog named after its film or List comes from a factory on the page that opens it: `filmPage.logEntryDialog("Alien")`. Two pages may each keep a one-line factory for the same component; extract it once it carries logic.
 
 ### Members

@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import { type ComponentProps, useRef } from "react";
 import { DropdownMenuContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -13,8 +13,14 @@ export const menuSheetIconClasses = "size-5.5 md:size-4.25";
 export function MenuSheetContent({
   open,
   className,
+  onPointerDownCapture,
+  onPointerUpCapture,
   ...props
 }: { open: boolean } & ComponentProps<typeof DropdownMenuContent>) {
+  // Whether the press now ending began inside the menu. The press on the trigger that opens the
+  // menu ends over it when the sheet rises under the finger, and Radix picks an item on a release
+  // it didn't see pressed, so that release is kept from the items.
+  const pressedInside = useRef(false);
   return (
     <>
       {/* The menu is modal, so a tap on the scrim lands outside it and closes it. In a portal, so
@@ -35,6 +41,15 @@ export function MenuSheetContent({
           className,
         )}
         {...props}
+        onPointerDownCapture={(event) => {
+          pressedInside.current = true;
+          onPointerDownCapture?.(event);
+        }}
+        onPointerUpCapture={(event) => {
+          if (!pressedInside.current) event.stopPropagation();
+          pressedInside.current = false;
+          onPointerUpCapture?.(event);
+        }}
       />
     </>
   );

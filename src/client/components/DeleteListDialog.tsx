@@ -1,20 +1,22 @@
 import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import type { List } from "../../shared/api";
 import * as api from "../api";
 import { t } from "../i18n/t";
+import { FormError } from "./FormError";
+import {
+  SheetFooter,
+  SheetHeader,
+  sheetButtonClasses,
+  sheetClasses,
+  sheetMainButtonClasses,
+} from "./sheet";
 
 // Asks before deleting a List, so a stray tap never removes one, and says the Log is safe. The
-// dialog is open while `open` is set, and stays open until the deletion succeeds.
+// dialog is open while `open` is set, and stays open until the deletion succeeds. A bottom sheet
+// on a phone, a centred dialog from `md`; an alert dialog, so a tap outside it doesn't answer it.
 export function DeleteListDialog({
   list,
   open,
@@ -38,7 +40,7 @@ export function DeleteListDialog({
   }
 
   return (
-    <AlertDialog
+    <Dialog
       open={open}
       onOpenChange={(isOpen) => {
         if (isOpen) return;
@@ -46,23 +48,37 @@ export function DeleteListDialog({
         onClose();
       }}
     >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("listDelete.title", { list: list.name })}</AlertDialogTitle>
-          <AlertDialogDescription>{t("listDelete.description")}</AlertDialogDescription>
-        </AlertDialogHeader>
+      <DialogContent
+        role="alertdialog"
+        showCloseButton={false}
+        className={sheetClasses}
+        onPointerDownOutside={(event) => event.preventDefault()}
+      >
+        <SheetHeader
+          title={t("listDelete.title", { list: list.name })}
+          description={t("listDelete.description")}
+        />
         {failed && (
-          <p role="alert" className="text-destructive text-sm">
-            {t("listDelete.failed")}
-          </p>
+          <div className="px-5 pt-2 pb-4 md:px-6">
+            <FormError>{t("listDelete.failed")}</FormError>
+          </div>
         )}
-        <AlertDialogFooter>
-          <AlertDialogCancel>{t("listDelete.cancel")}</AlertDialogCancel>
-          <Button variant="destructive" disabled={deleting} onClick={confirm}>
+        <SheetFooter className={cn(!failed && "mt-4")}>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" className={sheetButtonClasses}>
+              {t("listDelete.cancel")}
+            </Button>
+          </DialogClose>
+          <Button
+            variant="destructive"
+            disabled={deleting}
+            onClick={confirm}
+            className={sheetMainButtonClasses}
+          >
             {t(deleting ? "listDelete.deleting" : "listDelete.delete")}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </SheetFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

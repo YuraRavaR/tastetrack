@@ -1,6 +1,8 @@
+import type { Locator } from "@playwright/test";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { alien, aliens, manualFilm } from "../support/scenarios/films";
+import { settledBoxOf } from "../support/ui/boxes";
 import { expect, test } from "../support/ui/fixtures";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens, but
@@ -53,9 +55,11 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(items.first()).toContainText("The sequel is the scarier one.");
 
   // Renamed, and the Lists page shows it with its films.
-  await listPage.editListButton.click();
+  // Edit opens the New collection form, filled in.
+  await listPage.act("Edit collection");
   const editList = listPage.editListDialog;
   await expect(editList.nameInput).toHaveValue("Space horror");
+  await expect(editList.descriptionInput).toHaveValue("Films to watch with the lights off.");
   await editList.nameInput.fill("Horror in space");
   await editList.saveButton.click();
   await expect(listPage.heading("Horror in space")).toBeVisible();
@@ -69,10 +73,11 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
 
   // Deleting it asks first, and the Lists page is empty again.
   await listsPage.listLink("Horror in space").click();
-  await listPage.deleteListButton.click();
+  await listPage.act("Delete collection");
   const confirm = listPage.deleteListDialog("Horror in space");
   await expect(confirm.root).toContainText("Your Log stays as it is.");
   await confirm.confirm("Delete");
+  await expect(page).toHaveURL(listsPage.path());
   await expect(listsPage.emptyMessage).toBeVisible();
 });
 
@@ -111,6 +116,51 @@ test("Collections shows each List as a card with its covers, its count and wheth
   await spaceCard.link.click();
   await expect(page).toHaveURL(listPage.path(space.id));
 });
+
+test("the ⋯ by a List's heading holds its actions, as a sheet on a phone like their dialogs", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const list = await createList(api, "Space horror");
+  const { listPage } = ui;
+  await listPage.goto(list.id);
+  const dialogs = {
+    "Edit collection": listPage.editListDialog.root,
+    Share: listPage.shareLinkDialog("Space horror").root,
+    "Delete collection": listPage.deleteListDialog("Space horror").root,
+  } as const;
+
+  await listPage.actionsButton.click();
+  await expect(listPage.actionsMenu.getByRole("menuitem")).toHaveText(Object.keys(dialogs));
+  await page.keyboard.press("Escape");
+  // From md each dialog sits 72px from the top.
+  for (const [action, dialog] of Object.entries(dialogs)) {
+    await listPage.act(action as keyof typeof dialogs);
+    expect((await settledBoxOf(dialog)).y).toBe(72);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+  }
+
+  // On a phone the menu and each dialog sit on the bottom edge, full width.
+  const screen = { width: 402, height: 874 };
+  await page.setViewportSize(screen);
+  for (const [action, dialog] of Object.entries(dialogs)) {
+    await listPage.actionsButton.click();
+    await expectOnBottomEdge(listPage.actionsMenu, screen);
+    await listPage.actionItem(action as keyof typeof dialogs).click();
+    await expectOnBottomEdge(dialog, screen);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+  }
+});
+
+async function expectOnBottomEdge(sheet: Locator, screen: { width: number; height: number }) {
+  const box = await settledBoxOf(sheet);
+  expect(box.x).toBe(0);
+  expect(box.width).toBe(screen.width);
+  expect(box.y + box.height).toBeCloseTo(screen.height, 0);
+}
 
 test("a Collection is a grid of posters, each with its Note, which the User writes and clears", async ({
   page,
