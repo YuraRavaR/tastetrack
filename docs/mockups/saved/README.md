@@ -95,4 +95,11 @@ The film's page ([`film-page/`](../film-page/), with Viewings and the action blo
 
 ## Next
 
-Every screen of the redesign has a picked variant; see the table in [`../README.md`](../README.md). Next: a grilling over the open questions in each folder, then the spec.
+Every screen of the redesign has a picked variant; see the table in [`../README.md`](../README.md). The open questions in every folder were settled on 2026-11-08 (each README's "Settled" section). Next: the spec.
+
+## Later, as separate issues
+
+After the redesign's issues ship:
+
+- **A new logo** for the app name and its mark.
+- **Polish:** the page title in the browser tab per page, the favicon, and the page metadata (description, the preview a shared link shows).

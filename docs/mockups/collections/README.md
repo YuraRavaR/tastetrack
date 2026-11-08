@@ -68,12 +68,14 @@ All are a bottom sheet on a phone and a centred dialog (480 px, 520 px for Share
 - In running text the domain word keeps its capital, as `en.ts` does today: "This Collection is empty.", "Removed … from this Collection.".
 - The phone canvas showed Delete as a centred alert; the mockup makes it a bottom sheet, to follow the rule for every dialog.
 
-## Open questions
+## Settled
 
-1. **Description.** Today's form has a Description and the canvas keeps it (New, Edit, and under the heading). Keep it, or drop it to make the form shorter?
-2. **Adding films.** The search sits on the Collection's page, under the heading. Should it open results in place, or open a sheet ("Add films") with the results and an "In this Collection" mark, as the film page's "Add to collection" does?
-3. **Reorder wording.** The arrows are named "earlier/later" and point left and right, as the grid reads. Would "up/down" (today's `listItem.moveUp`/`moveDown`) be clearer, and do the arrows then point up and down?
-4. **Share Link domain.** The mockup uses `https://tastetrack.example/s/…`. Which domain do Share Links use in production?
-5. **Move to top in a List with no Log Order.** "Move to top" puts the film at position 1. Is that what it means for every Collection, and does a new film go to the end?
-6. **Card meta on a phone.** "Shared" on a phone, "Shared by link" from `md`, to fit two cards a row. Is the short form clear enough?
-7. **Films count chip.** The Films chip shows the number of Collections ("Films 6"). Is that the right number, or should it show nothing until Books ships?
+Settled in a grilling on 2026-11-08. Where the mockup differs, this section wins.
+
+- **Description.** Kept, optional, as today.
+- **Adding films.** "Add films" opens a sheet with the search and an "In this Collection" mark, like the film page's "Add to collection". There is no search field on the Collection's page.
+- **Reorder.** In the grid the arrows point left and right and are named "Move earlier" and "Move later"; the `en.ts` keys are renamed to match.
+- **Position.** "Move to top" puts the film at position 1. A new film goes to the end.
+- **Card meta.** "Shared" on a phone, "Shared by link" from `md`.
+- **Category chip.** No count on the Films chip; the cards carry the counts.
+- **Share Link URL.** Built from the app's own origin and `/s/:token`; `tastetrack.example` in the mockup is a stand-in.

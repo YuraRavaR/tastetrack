@@ -26,12 +26,13 @@ The page is drawn as a visitor sees it, logged out. A Share Link has the form `h
 - **Not shared any more** (`#notshared`). When the Share Link was turned off or replaced. In the middle of the page: an art of two dashed poster outlines behind a muted card with a broken-link icon; the heading "This Collection isn't shared any more"; the text "Its owner may have stopped sharing it or made a new link. Ask the person who sent it to you for the new one."; an outline button "Log in to TasteTrack".
 - **Words.** "Collection", never "list", in all copy, as in [`saved/`](../saved/).
 
-## Open questions
+## Settled
 
-1. **A call to action for visitors without an account.** Registration is invite-only, so "Sign up" cannot be offered. Show a line such as "Want your own? Ask someone on TasteTrack for an invite."? Where: under the grid, or in the heading block?
-2. **Films for logged-out visitors.** Should a poster link anywhere (the TMDB page, nothing), or stay plain? In the mockup they are not links.
-3. **A logged-in viewer.** Does a User who is logged in see anything different: the normal header with the avatar and tab bar, "Add to collection" or "Add to Watchlist" on each film, the "watched" mark on films they have seen?
-4. **The words.** "Film collection" as the label, the owner's initial in a circle (or no avatar at all), and how the Note is named for screen readers, e.g. "Yurii's note".
-5. **Not shared state, two log-in links.** The header now has "Log in", so the "Log in to TasteTrack" button repeats it. Keep it, drop it, or replace it with the invite line from question 1?
-6. **The real domain** of a Share Link. The mockup uses `https://tastetrack.example/s/…`.
-7. **Where "More" cuts.** The mockup cuts at three lines at the current width, so the same Note can have "More" on a phone and not on the web. Fine, or cut by length so it is the same everywhere?
+Settled in a grilling on 2026-11-08. Where the mockup differs, this section wins.
+
+- **Visitors without an account.** Under the grid: "Want your own? Ask someone on TasteTrack for an invite." On the not-shared page that line replaces the "Log in to TasteTrack" button, which repeated the header link.
+- **Posters** are not links for a logged-out visitor.
+- **A logged-in viewer** sees the same page with the normal header, avatar and tab bar. No actions on the films yet.
+- **Words** as drawn: "Film collection", the owner's initial in a circle, "Yurii's note" for screen readers.
+- **More** appears past three lines at the current width, so it may differ between a phone and the web.
+- **Share Link URL.** Built from the app's own origin and `/s/:token`; `tastetrack.example` is a stand-in.
