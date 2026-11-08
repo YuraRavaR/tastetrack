@@ -31,8 +31,9 @@ The page is drawn as a visitor sees it, logged out. A Share Link has the form `h
 Settled in a grilling on 2026-11-08. Where the mockup differs, this section wins.
 
 - **Visitors without an account.** Under the grid: "Want your own? Ask someone on TasteTrack for an invite." On the not-shared page that line replaces the "Log in to TasteTrack" button, which repeated the header link.
-- **Posters** are not links for a logged-out visitor.
+- **Posters** are not links for a logged-out visitor. For a logged-in viewer each opens its film's page (decided after #126).
 - **A logged-in viewer** sees the same page with the normal header, avatar and tab bar. No actions on the films yet.
 - **Words** as drawn: "Film collection", the owner's initial in a circle, "Yurii's note" for screen readers.
 - **More** appears past three lines at the current width, so it may differ between a phone and the web.
+- **Place badge.** A dark circle with light text in both themes, as drawn: `bg-overlay` with the `overlay-foreground` token, the one exception to "No new tokens for these screens" in [`saved/`](../saved/) (decided after #126).
 - **Share Link URL.** Built from the app's own origin and `/s/:token`; `tastetrack.example` is a stand-in.

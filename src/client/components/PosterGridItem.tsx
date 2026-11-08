@@ -27,7 +27,7 @@ export function PosterGridItem({
   // Its place in an ordered grid, 1 for the first, shown in the top left corner. The list's own
   // order says it to screen readers.
   place?: number;
-  // True where the Media Item's page isn't for the viewer, as on a Share Link's page.
+  // True where the Media Item's page isn't for the viewer, as for a visitor to a Share Link.
   unlinked?: boolean;
   // What goes under the title and meta line, outside the link, such as a Note.
   children?: ReactNode;
@@ -40,7 +40,7 @@ export function PosterGridItem({
         {place !== undefined && (
           <span
             aria-hidden
-            className="absolute top-2 left-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-foreground/75 px-1.5 font-bold text-background text-xs md:top-2.5 md:left-2.5 md:h-6.5 md:min-w-6.5"
+            className="absolute top-2 left-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-overlay px-1.5 font-bold text-overlay-foreground text-xs md:top-2.5 md:left-2.5 md:h-6.5 md:min-w-6.5"
           >
             {place}
           </span>
