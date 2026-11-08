@@ -38,8 +38,8 @@ test("a User going to an unknown page lands on Saved after logging in", async ({
 
   await ui.loginPage.logIn(registeredUser);
 
-  await expect(page).toHaveURL(ui.libraryPage.path());
-  await expect(ui.libraryPage.header.banner).toContainText(registeredUser.username);
+  await expect(page).toHaveURL(ui.savedPage.path());
+  await expect(ui.savedPage.header.banner).toContainText(registeredUser.username);
 });
 
 test("a wrong password shows an error and stays on the login page", async ({

@@ -30,6 +30,9 @@ export const en = {
   "mediaType.film.collection": "Film collection",
   "mediaType.film.lastExperienced": "Last watched",
   "mediaType.film.noMatch": "No films match these filters.",
+  "mediaType.film.tileCounts": "{backlog} to watch · {experienced} watched",
+  // A Media Type still to come, shown as a stub where a section offers the Media Types.
+  "mediaType.book.tab": "Books",
   "account.menu": "Account menu",
   "login.title": "Log in",
   "login.username": "Username",
@@ -366,6 +369,8 @@ export const en = {
   "saved.rating.atLeast": "{rating}★ and up",
   "saved.rating.top": "{rating}★ only",
   "saved.clearFilters": "Clear filters",
+  "saved.nothingYet": "Nothing saved yet.",
+  "saved.comingSoon": "Coming soon",
   "films.count": "{count, plural, one {# film} other {# films}}",
   "poster.none": "No poster",
   "poster.caption.popcorn": "Eaten with the popcorn.",

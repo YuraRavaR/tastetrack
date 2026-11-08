@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { LibraryItem } from "../../shared/api";
-import { backlogItems, experiencedItems, libraryPath, libraryTabOfSlug } from "./library-tabs";
+import {
+  backlogItems,
+  experiencedItems,
+  libraryPath,
+  libraryTabOfSlug,
+  libraryTile,
+} from "./library-tabs";
 
 let nextId = 1;
 
@@ -60,6 +66,47 @@ describe("the experienced tab", () => {
     const second = item({ last: { date: "2026-10-02", createdAt: "2026-10-02T21:00:00.000Z" } });
 
     expect(ids(experiencedItems([first, second]))).toEqual(ids([second, first]));
+  });
+});
+
+describe("a Media Type's tile in Saved", () => {
+  it("counts both tabs, a film planned again for a rewatch in each", () => {
+    const planned = item({ addedAt: "2026-10-01T10:00:00.000Z" });
+    const watched = item({ last: { date: "2026-09-01", createdAt: "2026-09-01T10:00:00.000Z" } });
+    const rewatch = item({
+      addedAt: "2026-10-02T10:00:00.000Z",
+      last: { date: "2026-08-01", createdAt: "2026-08-01T10:00:00.000Z" },
+    });
+
+    expect(libraryTile([planned, watched, rewatch]).counts).toEqual({ backlog: 2, experienced: 2 });
+  });
+
+  it("fans out the three films added to the Backlog last, the latest first", () => {
+    const added = (day: string) => item({ addedAt: `2026-10-${day}T10:00:00.000Z` });
+    const first = added("01");
+    const second = added("02");
+    const third = added("03");
+    const fourth = added("04");
+    const fifth = added("05");
+    const covers = (items: LibraryItem[]) => libraryTile(items).covers.map(({ id }) => id);
+
+    expect(covers([first, fourth, second, fifth, third])).toEqual(ids([fifth, fourth, third]));
+    expect(covers([first])).toEqual(ids([first]));
+  });
+
+  it("is empty only while both tabs are", () => {
+    const planned = item({ addedAt: "2026-10-01T10:00:00.000Z" });
+    const watched = item({ last: { date: "2026-09-01", createdAt: "2026-09-01T10:00:00.000Z" } });
+
+    expect(libraryTile([]).empty).toBe(true);
+    expect(libraryTile([planned]).empty).toBe(false);
+    expect(libraryTile([watched]).empty).toBe(false);
+  });
+
+  it("fans out no logged film, so a Library with nothing planned has no covers", () => {
+    const watched = item({ last: { date: "2026-09-01", createdAt: "2026-09-01T10:00:00.000Z" } });
+
+    expect(libraryTile([watched]).covers).toEqual([]);
   });
 });
 

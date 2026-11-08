@@ -10,16 +10,18 @@ import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 
 // The frame of every page: a header above a content column, and a footer with the app version and
 // the credit TMDB's terms require (ADR-0004). Header and footer stop at `max-w-6xl`, which Saved
-// and a Share Link's page use for their grids of posters; every other page keeps the narrower
-// column. Logged out, the header holds only the app name, and on a Share Link's page a "Log in"
-// link that comes back to it. A logged-in User gets the sections, in a bottom tab bar on a phone and
-// in the header from `md`, and the account menu. A User who must set a new password gets only the
-// account menu, to log out.
+// uses for its tiles and grids of posters, and a Share Link's page for its grid; every other page
+// keeps the narrower column. Logged out, the header holds only the app name, and on a Share Link's
+// page a "Log in" link that comes back to it. A logged-in User gets the sections, in a bottom tab
+// bar on a phone and in the header from `md`, and the account menu. A User who must set a new
+// password gets only the account menu, to log out.
 export function AppLayout() {
   const { state } = useAuth();
   const authenticated = state.status === "authenticated";
   const sharePage = useMatch("/s/:token") !== null;
-  const wide = useMatch("/saved/*") !== null || sharePage;
+  const savedTiles = useMatch(savedPath) !== null;
+  const savedTabs = useMatch("/saved/*") !== null;
+  const wide = savedTiles || savedTabs || sharePage;
   const location = useLocation();
 
   return (

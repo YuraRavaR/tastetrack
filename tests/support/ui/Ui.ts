@@ -8,6 +8,7 @@ import { ListsPage } from "./pages/ListsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NewPasswordPage } from "./pages/NewPasswordPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SavedPage } from "./pages/SavedPage";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SharedPage } from "./pages/SharedPage";
@@ -23,6 +24,7 @@ export class Ui {
   readonly loginPage: LoginPage;
   readonly newPasswordPage: NewPasswordPage;
   readonly registerPage: RegisterPage;
+  readonly savedPage: SavedPage;
   readonly searchPage: SearchPage;
   readonly settingsPage: SettingsPage;
   readonly sharedPage: SharedPage;
@@ -36,6 +38,7 @@ export class Ui {
     this.loginPage = new LoginPage(page);
     this.newPasswordPage = new NewPasswordPage(page);
     this.registerPage = new RegisterPage(page);
+    this.savedPage = new SavedPage(page);
     this.searchPage = new SearchPage(page);
     this.settingsPage = new SettingsPage(page);
     this.sharedPage = new SharedPage(page);

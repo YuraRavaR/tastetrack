@@ -118,6 +118,5 @@ test("on a phone the posters sit 3 a row under a link back to Saved", async ({
   await expect(libraryPage.breadcrumb).toBeVisible();
   await expect(libraryPage.breadcrumb).toHaveText(/Saved\s*Films/);
   await libraryPage.backToSavedLink.click();
-  // "/" is Saved's tiles, and until they ship it opens the Watchlist.
-  await expect(page).toHaveURL(libraryPage.path("Watchlist"));
+  await expect(page).toHaveURL(ui.savedPage.path());
 });

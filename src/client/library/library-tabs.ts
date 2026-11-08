@@ -1,7 +1,7 @@
 // A Library's two tabs, in their default orders: the Backlog by Date added, and every Media Item
 // the User experienced, once each, by Last watched. The UI calls a film's "Watchlist" and
 // "Watched", and so do their addresses.
-import type { LibraryItem, MediaType } from "../../shared/api";
+import type { LibraryItem, MediaItem, MediaType } from "../../shared/api";
 import { inLogOrder } from "../../shared/log";
 
 export type LibraryTab = "backlog" | "experienced";
@@ -32,6 +32,25 @@ export function experiencedItems(items: readonly LibraryItem[]): LibraryItem[] {
 // Both tabs' Media Items, in their orders.
 export function libraryTabItems(items: readonly LibraryItem[]): Record<LibraryTab, LibraryItem[]> {
   return { backlog: backlogItems(items), experienced: experiencedItems(items) };
+}
+
+// What a Media Type's tile in Saved shows: how many Media Items each tab holds, whether both are
+// empty, and the covers of the three added to the Backlog last, the latest first.
+export interface LibraryTile {
+  counts: Record<LibraryTab, number>;
+  empty: boolean;
+  covers: MediaItem[];
+}
+
+const tileCoverCount = 3;
+
+export function libraryTile(items: readonly LibraryItem[]): LibraryTile {
+  const { backlog, experienced } = libraryTabItems(items);
+  return {
+    counts: { backlog: backlog.length, experienced: experienced.length },
+    empty: backlog.length === 0 && experienced.length === 0,
+    covers: backlog.slice(0, tileCoverCount).map(({ mediaItem }) => mediaItem),
+  };
 }
 
 // Each tab's word in Saved's addresses, and each Media Type's.
