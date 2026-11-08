@@ -56,7 +56,7 @@ function Section({
   );
 }
 
-// The 44px field of the sign-in card, on the page's ground so it stands out from the card.
+// Fields sit on the page's ground so they stand out from the card, and stop at 28rem from `md`.
 const fieldClasses = "bg-background md:max-w-md dark:bg-background";
 const buttonClasses = "h-11 px-4.5 font-semibold";
 

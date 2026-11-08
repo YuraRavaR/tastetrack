@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -46,9 +47,15 @@ export function AccountMenu() {
           <ChevronDown aria-hidden className="hidden md:block" />
         </Button>
       </DropdownMenuTrigger>
-      {/* The menu is modal, so a tap on the scrim lands outside it and closes it. */}
+      {/* The menu is modal, so a tap on the scrim lands outside it and closes it. In a portal, so
+          nothing the header's styles do can confine it. */}
       {open && (
-        <div aria-hidden className="fade-in-0 fixed inset-0 z-40 animate-in bg-overlay md:hidden" />
+        <DropdownMenuPortal>
+          <div
+            aria-hidden
+            className="fade-in-0 fixed inset-0 z-40 animate-in bg-overlay md:hidden"
+          />
+        </DropdownMenuPortal>
       )}
       <DropdownMenuContent
         align="end"

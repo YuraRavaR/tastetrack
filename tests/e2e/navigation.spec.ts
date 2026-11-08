@@ -185,13 +185,15 @@ test.describe("on a phone", () => {
     const { accountMenu } = ui.libraryPage.header;
     await accountMenu.open();
 
+    const screen = page.viewportSize();
+    if (!screen) throw new Error("The page has no viewport");
     const sheet = await settledBoxOf(accountMenu.menu);
     expect(sheet.x).toBe(0);
-    expect(sheet.width).toBe(402);
-    expect(sheet.y + sheet.height).toBeCloseTo(874, 0);
+    expect(sheet.width).toBe(screen.width);
+    expect(sheet.y + sheet.height).toBeCloseTo(screen.height, 0);
 
-    // Above the sheet is the scrim, over the header too.
-    await page.mouse.click(201, 28);
+    // Above the sheet is the scrim, over the header too: a tap on the app name only closes it.
+    await page.mouse.click(screen.width / 2, 28);
     await expect(accountMenu.menu).toBeHidden();
     await expect(page).toHaveURL(ui.libraryPage.path());
   });
