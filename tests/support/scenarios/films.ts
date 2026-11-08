@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import type { NewManualMediaItemRequest } from "@shared/api";
 import type { ApiClient } from "../api/ApiClient";
 import { expectBody } from "../api/responses";
 
@@ -21,6 +22,16 @@ export async function film(client: ApiClient, query: string, id: string) {
   const response = await client.catalog.addCatalogItem(result);
   expect([200, 201]).toContain(response.status());
   return (await response.json()).mediaItem;
+}
+
+// A film Manual Media Item the User makes by hand: the Media Item, as the Worker answers. Its year
+// and genres are what the test gives, whatever TMDB says.
+export async function manualFilm(
+  client: ApiClient,
+  data: Omit<NewManualMediaItemRequest, "mediaType">,
+) {
+  const created = client.catalog.addManualMediaItem({ mediaType: "film", ...data });
+  return (await expectBody(created, 201)).mediaItem;
 }
 
 export const alien = (client: ApiClient) => film(client, "alien", "348");

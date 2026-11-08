@@ -9,14 +9,8 @@ import type { RequestOptions } from "../support/api/controllers/BaseController";
 import { expectBody } from "../support/api/responses";
 import { at } from "../support/clock";
 import { expect, test } from "../support/fixtures";
-import { alien } from "../support/scenarios/films";
+import { alien, manualFilm } from "../support/scenarios/films";
 import { createUser } from "../support/scenarios/users";
-
-// Makes a film Manual Media Item: the Media Item, as the Worker answers.
-async function createManual(api: ApiClient, data: Omit<NewManualMediaItemRequest, "mediaType">) {
-  const created = api.catalog.addManualMediaItem({ mediaType: "film", ...data });
-  return (await expectBody(created, 201)).mediaItem;
-}
 
 test("a User adds a film by hand, with its Original Title, year, runtime and genres", async ({
   loggedInApi,
@@ -56,7 +50,7 @@ test("a User adds a film by hand, with its Original Title, year, runtime and gen
 test("only a title is needed, and the Original Title is then the title", async ({
   loggedInApi,
 }) => {
-  const mediaItem = await createManual(loggedInApi, { title: "Home movie", originalTitle: "  " });
+  const mediaItem = await manualFilm(loggedInApi, { title: "Home movie", originalTitle: "  " });
 
   expect(mediaItem.metadata).toEqual({
     title: "Home movie",
@@ -115,7 +109,7 @@ test("the same title and year as another of the User's is refused as a possible 
   loggedInApi,
   otherUserClient,
 }) => {
-  const first = await createManual(loggedInApi, { title: "Тіні забутих предків", year: 1965 });
+  const first = await manualFilm(loggedInApi, { title: "Тіні забутих предків", year: 1965 });
   const post = (data: Omit<NewManualMediaItemRequest, "mediaType">) => {
     return loggedInApi.catalog.addManualMediaItem({ mediaType: "film", ...data });
   };
@@ -134,14 +128,14 @@ test("the same title and year as another of the User's is refused as a possible 
   expect((await post({ title: "Тіні забутих предків" })).status()).toBe(409);
   // Another User's films don't count.
   expect(
-    (await createManual(otherUserClient, { title: "Тіні забутих предків", year: 1965 })).id,
+    (await manualFilm(otherUserClient, { title: "Тіні забутих предків", year: 1965 })).id,
   ).toEqual(expect.any(Number));
 });
 
 test("at 1,000 Manual Media Items the User can add no more", async ({ api, loggedInUser }) => {
   const filled = await api.testHooks.fillManualMediaItems(loggedInUser.username, 999);
   expect(filled.status()).toBe(204);
-  const thousandth = await createManual(api, { title: "The thousandth" });
+  const thousandth = await manualFilm(api, { title: "The thousandth" });
 
   const refused = await expectBody(
     api.catalog.addManualMediaItem({ mediaType: "film", title: "One too many" }),
@@ -158,13 +152,13 @@ test("at 1,000 Manual Media Items the User can add no more", async ({ api, logge
   expect(await again.json()).toEqual({ error: "too_many_manual_media_items" });
   // Deleting one makes room.
   expect((await api.catalog.deleteManualMediaItem(thousandth.id)).status()).toBe(204);
-  expect((await createManual(api, { title: "One too many" })).id).toEqual(expect.any(Number));
+  expect((await manualFilm(api, { title: "One too many" })).id).toEqual(expect.any(Number));
 });
 
 test("a Manual Media Item is logged, planned and added to Lists like any film", async ({
   loggedInApi,
 }) => {
-  const mediaItem = await createManual(loggedInApi, { title: "Home movie", year: 2019 });
+  const mediaItem = await manualFilm(loggedInApi, { title: "Home movie", year: 2019 });
   const { list } = await expectBody(
     loggedInApi.lists.createList({ name: "Family", mediaType: "film" }),
     201,
@@ -201,7 +195,7 @@ test("another User's Manual Media Item is unknown: no Item History, and it can't
     loggedInApi.lists.createList({ name: "Mine", mediaType: "film" }),
     201,
   );
-  const theirs = await createManual(otherUserClient, { title: "Their home movie" });
+  const theirs = await manualFilm(otherUserClient, { title: "Their home movie" });
   const mediaItemId = theirs.id;
 
   const history = await expectBody(loggedInApi.catalog.getMediaItemHistory(mediaItemId), 404);
@@ -225,7 +219,7 @@ test("another User's Manual Media Item is unknown: no Item History, and it can't
 test("the User edits a Manual Media Item, by the same rules, and their Log shows the change", async ({
   loggedInApi,
 }) => {
-  const mediaItem = await createManual(loggedInApi, {
+  const mediaItem = await manualFilm(loggedInApi, {
     title: "Tini zabutykh predkiv",
     originalTitle: "Shadows",
     year: 1964,
@@ -282,7 +276,7 @@ test("only the owner's Manual Media Items can be edited: another User's, or a ca
   otherUserClient,
 }) => {
   const catalogBacked = await alien(loggedInApi);
-  const theirs = await createManual(otherUserClient, { title: "Their home movie" });
+  const theirs = await manualFilm(otherUserClient, { title: "Their home movie" });
 
   for (const id of [theirs.id, catalogBacked.id, 2_000_000_000]) {
     const response = await loggedInApi.catalog.updateManualMediaItem(id, { title: "Mine now" });
@@ -296,7 +290,7 @@ test("only the owner's Manual Media Items can be edited: another User's, or a ca
 test("deleting a Manual Media Item says first how many Log Entries and List Items go with it", async ({
   loggedInApi,
 }) => {
-  const mediaItem = await createManual(loggedInApi, { title: "Home movie" });
+  const mediaItem = await manualFilm(loggedInApi, { title: "Home movie" });
   const kept = await alien(loggedInApi);
   const { list } = await expectBody(
     loggedInApi.lists.createList({ name: "Family", mediaType: "film" }),
@@ -338,7 +332,7 @@ test("another User's Manual Media Item, or a catalog-backed one, can be neither 
   otherUserClient,
 }) => {
   const catalogBacked = await alien(loggedInApi);
-  const theirs = await createManual(otherUserClient, { title: "Their home movie" });
+  const theirs = await manualFilm(otherUserClient, { title: "Their home movie" });
 
   for (const id of [theirs.id, catalogBacked.id]) {
     for (const response of [
@@ -361,15 +355,15 @@ test("search lists the User's own matching Manual Media Items first, by either t
   loggedInApi,
   otherUserClient,
 }) => {
-  const homeVideo = await createManual(loggedInApi, {
+  const homeVideo = await manualFilm(loggedInApi, {
     title: "Чужий: домашнє відео",
     originalTitle: "Alien home video",
   });
-  const sequel = await createManual(loggedInApi, { title: "Чужий 2", year: 2020 });
-  await createManual(loggedInApi, { title: "Something else" });
+  const sequel = await manualFilm(loggedInApi, { title: "Чужий 2", year: 2020 });
+  await manualFilm(loggedInApi, { title: "Something else" });
   await expectBody(loggedInApi.log.createLogEntry({ mediaItemId: sequel.id, rating: 2 }), 201);
   await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: homeVideo.id }), 201);
-  await createManual(otherUserClient, { title: "Чужий у них" });
+  await manualFilm(otherUserClient, { title: "Чужий у них" });
 
   const byTitle = await search(loggedInApi, "ЧУЖИЙ");
   const byOriginalTitle = await search(loggedInApi, "home VIDEO");

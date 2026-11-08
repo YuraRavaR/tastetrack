@@ -7,7 +7,8 @@ import { t } from "./t";
 // Planned action, the Backlog's name, the search label, the plural tab label, the row prefix, the
 // Item History's name, what it says while empty, the labels of its first date and of a Log Entry's
 // date field, the mark of a planned Media Item already experienced, the action that opens search,
-// what Saved's two tabs say while empty, and the label over a shared Collection.
+// what Saved's two tabs say while empty, the label over a shared Collection, the sort by the last
+// Log Entry, and what Saved says when its filters match nothing.
 type MediaWord =
   | "experienced"
   | "experiencedAgain"
@@ -27,7 +28,9 @@ type MediaWord =
   | "find"
   | "backlogEmpty"
   | "experiencedEmpty"
-  | "collection";
+  | "collection"
+  | "lastExperienced"
+  | "noMatch";
 
 // What a page with no Media Item of its own reads its words by, and the only Media Type built.
 export const pageMediaType: MediaType = "film";

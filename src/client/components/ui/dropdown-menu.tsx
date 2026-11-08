@@ -122,6 +122,30 @@ function DropdownMenuRadioItem({
   );
 }
 
+// A radio item for a menu of single choices: a roomy row with a check at its end on the chosen
+// one, as Saved's sort and filter chips open.
+function DropdownMenuChoiceItem({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+  return (
+    <DropdownMenuPrimitive.RadioItem
+      data-slot="dropdown-menu-choice-item"
+      className={cn(
+        "flex h-11 cursor-default items-center justify-between gap-2.5 rounded-lg px-2.5 text-[15px] outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[state=checked]:bg-muted",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+      <DropdownMenuPrimitive.ItemIndicator>
+        <CheckIcon aria-hidden className="size-4 text-primary-strong" strokeWidth={2.25} />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </DropdownMenuPrimitive.RadioItem>
+  );
+}
+
 function DropdownMenuLabel({
   className,
   inset,
@@ -209,6 +233,7 @@ function DropdownMenuSubContent({
 export {
   DropdownMenu,
   DropdownMenuCheckboxItem,
+  DropdownMenuChoiceItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
