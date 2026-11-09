@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
 import { t } from "../i18n/t";
+import { itemPath } from "../navigation/paths";
 import { Poster } from "./Poster";
 
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title
@@ -87,7 +88,7 @@ export function PosterGridItem({
       {unlinked || overlay ? (
         <div className={bodyClass}>{body}</div>
       ) : (
-        <Link to={`/items/${mediaItem.id}`} onClick={onOpened} className={bodyClass}>
+        <Link to={itemPath(mediaItem.id)} onClick={onOpened} className={bodyClass}>
           {body}
         </Link>
       )}
