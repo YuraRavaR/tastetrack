@@ -9,17 +9,20 @@ import { t } from "../i18n/t";
 // The field a film search is typed into. Its own clear button stands in for the browser's, which
 // can't be themed, and leaves the cursor in the field, ready for the next search. A `prominent`
 // field, the Search section's own, is taller, with a search icon, and its clear button has a
-// thumb-sized target.
+// thumb-sized target. An `autoFocus` field takes the focus as it appears, as in a dialog that is
+// only a search.
 export function SearchField({
   id,
   value,
   onChange,
   prominent = false,
+  autoFocus = false,
 }: {
   id: string;
   value: string;
   onChange: (value: string) => void;
   prominent?: boolean;
+  autoFocus?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
 
@@ -35,6 +38,7 @@ export function SearchField({
         ref={input}
         id={id}
         type="search"
+        autoFocus={autoFocus}
         autoComplete="off"
         maxLength={maxSearchQueryLength}
         placeholder={t("search.placeholder")}

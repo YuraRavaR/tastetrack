@@ -37,8 +37,7 @@ test("a User makes a List, adds a film and shares it, and someone logged out ope
   await newListDialog.descriptionInput.fill("Lights off.");
   await newListDialog.createButton.click();
   await expect(listPage.heading("Space horror")).toBeVisible();
-  await listPage.search("alien");
-  await listPage.searchResults.result("Alien (1979)").addButton.click();
+  await listPage.addFilm("Space horror", "alien", "Alien (1979)");
   await expect(listPage.items("Space horror")).toHaveCount(1);
 
   const shareLinkDialog = listPage.shareLinkDialog("Space horror");

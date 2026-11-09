@@ -1,13 +1,14 @@
-import { ArrowLeft, Link2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft, Link2, Plus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { List, ListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { mediaTypeIcon } from "../catalog/media-types";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
-import { AddToListSearch } from "../components/AddToListSearch";
+import { AddFilmsDialog } from "../components/AddFilmsDialog";
 import { DeleteListDialog } from "../components/DeleteListDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ListActionsMenu } from "../components/ListActionsMenu";
@@ -52,11 +53,11 @@ function ListMeta({ films, shared }: { films: number; shared: boolean }) {
 }
 
 // One of the User's Lists in their own order, as a grid of posters with their Notes
-// (`docs/mockups/collections/`), and a search to add films to it. Each poster's ⋯ menu notes,
-// moves to the top or removes its film, and a removal can be undone; the ⋯ by the heading edits,
-// reorders, shares or deletes the List itself. Reorder films puts arrows on each poster in place
-// of the search and the posters' ⋯ until Done. After each change the page reloads, so what it
-// shows is the Worker's.
+// (`docs/mockups/collections/`). "Add films" by the heading, and in an empty List, opens a search
+// to add films with. Each poster's ⋯ menu notes, moves to the top or removes its film, and a
+// removal can be undone; the ⋯ by the heading edits, reorders, shares or deletes the List itself.
+// Reorder films puts arrows on each poster in place of "Add films" and the posters' ⋯ until Done.
+// After each change the page reloads, so what it shows is the Worker's.
 export function ListPage() {
   const listId = Number(useParams().listId);
   const navigate = useNavigate();
@@ -65,8 +66,7 @@ export function ListPage() {
   const [sharing, setSharing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [reordering, setReordering] = useState(false);
-  // Holds the search to add films, which the empty List's button takes the User to.
-  const addFilms = useRef<HTMLDivElement>(null);
+  const [addingFilms, setAddingFilms] = useState(false);
   const reload = useCallback(async () => setState(await loadList(listId)), [listId]);
 
   // Puts a removed film back where it was, with its Note.
@@ -91,6 +91,8 @@ export function ListPage() {
       cancelled = true;
     };
   }, [listId]);
+
+  const empty = state.status === "loaded" && state.list.items.length === 0;
 
   const back = (
     <Link
@@ -118,8 +120,16 @@ export function ListPage() {
       )}
       {state.status === "loaded" && (
         <>
-          {/* On a phone the ⋯ sits across from the way back, from `md` beside the heading. */}
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 [grid-template-areas:'back_more'_'lead_lead'] md:items-start md:[grid-template-areas:'back_back'_'lead_more']">
+          {/* On a phone the ⋯ sits across from the way back and "Add films" spans the width under
+          the heading; from `md` both sit beside the heading. */}
+          <div
+            className={cn(
+              "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-start",
+              reordering
+                ? "[grid-template-areas:'back_more'_'lead_lead'] md:[grid-template-areas:'back_back_back'_'lead_more_more']"
+                : "[grid-template-areas:'back_more'_'lead_lead'_'add_add'] md:[grid-template-areas:'back_back_back'_'lead_add_more']",
+            )}
+          >
             <div className="[grid-area:back]">{back}</div>
             <div className="flex flex-col gap-1 [grid-area:lead]">
               <h1 className="break-words font-semibold text-2xl tracking-tight">
@@ -130,6 +140,20 @@ export function ListPage() {
               )}
               <ListMeta films={state.list.items.length} shared={state.list.shareLink !== null} />
             </div>
+            {!reordering && (
+              // With no films the empty state's button leads, so this one steps back.
+              <Button
+                variant={empty ? "outline" : "default"}
+                className={cn(
+                  "h-11 rounded-full px-4.5 font-semibold [grid-area:add]",
+                  empty && "bg-card",
+                )}
+                onClick={() => setAddingFilms(true)}
+              >
+                <Plus aria-hidden />
+                {t("list.addLabel")}
+              </Button>
+            )}
             <ListActionsMenu
               className="[grid-area:more]"
               shared={state.list.shareLink !== null}
@@ -140,7 +164,7 @@ export function ListPage() {
               onDelete={() => setDeleting(true)}
             />
           </div>
-          {reordering ? (
+          {reordering && (
             <div
               role="status"
               className="sticky top-0 z-10 flex items-center justify-between gap-2.5 rounded-xl border border-primary-strong bg-primary-soft py-2 pr-2 pl-3.5 text-sm md:top-3 md:pl-4 md:text-[15px]"
@@ -152,10 +176,6 @@ export function ListPage() {
               >
                 {t("list.reorderDone")}
               </Button>
-            </div>
-          ) : (
-            <div ref={addFilms}>
-              <AddToListSearch list={state.list} onAdded={reload} />
             </div>
           )}
           <div role="status" className="empty:hidden md:self-start">
@@ -177,13 +197,13 @@ export function ListPage() {
               {error === "full" ? t("list.full", { max: maxListItems }) : t("list.updateFailed")}
             </p>
           )}
-          {state.list.items.length === 0 ? (
+          {empty ? (
             <EmptyState
               icon={mediaTypeIcon(state.list.mediaType)}
               message={t("list.empty")}
               action={{
                 label: t("list.addLabel"),
-                onClick: () => addFilms.current?.querySelector("input")?.focus(),
+                onClick: () => setAddingFilms(true),
               }}
             />
           ) : (
@@ -207,6 +227,12 @@ export function ListPage() {
               ))}
             </ol>
           )}
+          <AddFilmsDialog
+            open={addingFilms}
+            list={state.list}
+            onClose={() => setAddingFilms(false)}
+            onAdded={reload}
+          />
           <NoteDialog
             item={editing.noting}
             onClose={() => editing.setNoting(null)}
