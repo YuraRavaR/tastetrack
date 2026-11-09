@@ -30,9 +30,10 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly anyPath = /\/items\/\d+$/;
 
   readonly heading = this.main.getByRole("heading", { level: 1 });
-  readonly backdrop = this.main.locator("picture");
-  readonly backdropImage = this.backdrop.locator("img");
-  readonly backdropSource = this.backdrop.locator("source");
+  // The picture the banner opens with: the backdrop, or the poster blurred when there is none.
+  readonly picture = this.main.locator("picture");
+  readonly pictureImage = this.picture.locator("img");
+  readonly pictureSource = this.picture.locator("source");
   readonly noPosterPlaceholder = this.main.getByRole("img", { name: "No poster" });
 
   readonly watchedButton = this.main.getByRole("button", { name: "Watched", exact: true });
@@ -74,8 +75,9 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     return this.main.getByText(content);
   }
 
+  // The sharp poster, not the blurred copy of it a picture without a backdrop shows.
   posterImage(url: string) {
-    return this.main.locator(`img[src="${url}"]`);
+    return this.main.locator(`img[src="${url}"]:not(picture img)`);
   }
 
   // The Current Rating's stars, such as "5 stars".
