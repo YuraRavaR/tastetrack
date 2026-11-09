@@ -23,9 +23,17 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
 };
 
 // A film's poster, or a placeholder when it has none. Only the large and grid sizes have room for
-// the placeholder's caption; the large placeholder fills what it's put in. The rest show their
-// icon.
-export function Poster({ subject, size }: { subject: MediaItem | Found; size: PosterSize }) {
+// the placeholder's caption, and `caption={false}` leaves it out, as under controls laid over the
+// poster; the large placeholder fills what it's put in. The rest show their icon.
+export function Poster({
+  subject,
+  size,
+  caption = true,
+}: {
+  subject: MediaItem | Found;
+  size: PosterSize;
+  caption?: boolean;
+}) {
   const cover = coverOf(subject);
   const sizeClass = sizeClasses[coverShape(cover.mediaType)][size];
   if (cover.url) {
@@ -39,7 +47,8 @@ export function Poster({ subject, size }: { subject: MediaItem | Found; size: Po
     );
   }
 
-  const { icon: Icon, caption } = placeholderFor(cover.mediaItemId);
+  const placeholder = placeholderFor(cover.mediaItemId);
+  const Icon = placeholder.icon;
   const large = size === "large";
   const withCaption = large || size === "grid";
   return (
@@ -53,7 +62,7 @@ export function Poster({ subject, size }: { subject: MediaItem | Found; size: Po
       )}
     >
       <Icon aria-hidden className={withCaption ? "size-14" : "size-5"} />
-      {withCaption && <p className="text-xs">{t(caption)}</p>}
+      {withCaption && caption && <p className="text-xs">{t(placeholder.caption)}</p>}
     </div>
   );
 }

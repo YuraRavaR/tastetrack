@@ -47,9 +47,11 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
   await expect(items).toHaveCount(2);
   await expect(listPage.text("2 films")).toBeVisible();
 
-  // Moving Aliens up puts it first, and a Note says why it's there.
-  await listPage.choose("Space horror", "Aliens", "Move earlier");
+  // Moving Aliens earlier puts it first, and a Note says why it's there.
+  await listPage.act("Reorder films");
+  await listPage.poster("Space horror", "Aliens").moveEarlierButton.click();
   await expect(items.first()).toContainText("Aliens");
+  await listPage.doneButton.click();
   await listPage.choose("Space horror", "Aliens", "Add a Note");
   await listPage.noteDialog("Aliens (1986)").saveNote("The sequel is the scarier one.");
   await expect(items.first()).toContainText("The sequel is the scarier one.");
@@ -131,8 +133,16 @@ test("the ⋯ by a List's heading holds its actions, as a sheet on a phone like 
     "Delete collection": listPage.deleteListDialog("Space horror").root,
   } as const;
 
+  // Reordering needs two films at least.
   await listPage.actionsButton.click();
-  await expect(listPage.actionsMenu.getByRole("menuitem")).toHaveText(Object.keys(dialogs));
+  const items = listPage.actionsMenu.getByRole("menuitem");
+  await expect(items).toHaveText([
+    "Edit collection",
+    "Reorder films",
+    "Share",
+    "Delete collection",
+  ]);
+  await expect(listPage.actionItem("Reorder films")).toBeDisabled();
   await page.keyboard.press("Escape");
   // From md each dialog sits 72px from the top.
   for (const [action, dialog] of Object.entries(dialogs)) {
@@ -161,6 +171,74 @@ async function expectOnBottomEdge(sheet: Locator, screen: { width: number; heigh
   expect(box.width).toBe(screen.width);
   expect(box.y + box.height).toBeCloseTo(screen.height, 0);
 }
+
+test("Reorder films moves each poster earlier, later or to the top, and the order stays", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const list = await createList(api, "Trees");
+  for (const title of ["Ash", "Birch", "Cedar"]) {
+    const mediaItemId = (await manualFilm(api, { title })).id;
+    await expectBody(api.lists.addListItem(list.id, { mediaItemId }), 201);
+  }
+  const { listPage } = ui;
+  await listPage.goto(list.id);
+  const items = listPage.items("Trees");
+  const ash = listPage.poster("Trees", "Ash");
+  const birch = listPage.poster("Trees", "Birch");
+  const cedar = listPage.poster("Trees", "Cedar");
+  await expect(items).toContainText(["Ash", "Birch", "Cedar"]);
+
+  // The mode hides the search and each poster's ⋯ and link, and the placeholder's own caption.
+  await listPage.act("Reorder films");
+  await expect(listPage.reorderHint).toBeVisible();
+  await expect(listPage.searchBox).toHaveCount(0);
+  await expect(ash.moreButton).toHaveCount(0);
+  await expect(ash.link).toHaveCount(0);
+  await expect(ash.noPoster).toHaveText("");
+  // The arrows that would go past either end are off.
+  await expect(ash.moveToTopButton).toBeDisabled();
+  await expect(ash.moveEarlierButton).toBeDisabled();
+  await expect(cedar.moveLaterButton).toBeDisabled();
+
+  // Each move saves at once. The arrow keeps the keyboard's focus, and one that reaches an end
+  // hands it to the arrow that moves the other way.
+  await ash.moveLaterButton.focus();
+  await page.keyboard.press("Enter");
+  await expect(items).toContainText(["Birch", "Ash", "Cedar"]);
+  await expect(ash.moveLaterButton).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(items).toContainText(["Birch", "Cedar", "Ash"]);
+  await expect(ash.moveLaterButton).toBeDisabled();
+  await expect(ash.moveEarlierButton).toBeFocused();
+  await cedar.moveToTopButton.click();
+  await expect(items).toContainText(["Cedar", "Birch", "Ash"]);
+  await birch.moveEarlierButton.click();
+  await expect(items).toContainText(["Birch", "Cedar", "Ash"]);
+
+  // Done brings back the search and the ⋯; the order outlives a reload.
+  await listPage.doneButton.click();
+  await expect(listPage.reorderHint).toHaveCount(0);
+  await expect(listPage.searchBox).toBeVisible();
+  await expect(ash.moreButton).toBeVisible();
+  await page.reload();
+  await expect(items).toContainText(["Birch", "Cedar", "Ash"]);
+
+  // Move to top is in each poster's ⋯ too, off for the first film.
+  await birch.moreButton.click();
+  await expect(listPage.posterMenu.getByRole("menuitem", { name: "Move to top" })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await listPage.choose("Trees", "Ash", "Move to top");
+  await expect(items).toContainText(["Ash", "Birch", "Cedar"]);
+
+  // A newly added film goes to the end.
+  await listPage.search("alien");
+  await listPage.searchResults.result("Alien (1979)").addButton.click();
+  await expect(items).toHaveCount(4);
+  await page.reload();
+  await expect(items).toContainText(["Ash", "Birch", "Cedar", "Alien"]);
+});
 
 test("a Collection is a grid of posters, each with its Note, which the User writes and clears", async ({
   page,

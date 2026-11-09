@@ -10,7 +10,8 @@ import { Poster } from "./Poster";
 // in two lines at most, and a meta line, such as the year or the Current Rating. All of it opens
 // the Media Item's page, unless it is `unlinked`, as on a Share Link's page. `corner`, such as a
 // ⋯ menu, sits over the poster's top right corner, and `children`, such as a Note, go under it,
-// both outside the link.
+// both outside the link. `cover`, such as the arrows that reorder a List, lies over the whole
+// poster in place of the link.
 export function PosterGridItem({
   mediaItem,
   loading = false,
@@ -19,6 +20,7 @@ export function PosterGridItem({
   place,
   unlinked = false,
   corner,
+  cover,
   className,
   onOpened,
   children,
@@ -37,6 +39,9 @@ export function PosterGridItem({
   // A control over the poster's top right corner, outside the link, such as a ⋯ menu. Not with
   // a `mark`, which takes the same corner.
   corner?: ReactNode;
+  // Controls over the whole poster, such as arrows that move it. The Media Item is then no link,
+  // since a control can't sit inside one, and a placeholder poster shows no caption under them.
+  cover?: ReactNode;
   // Classes for the item itself, such as a fixed width in a sideways strip.
   className?: string;
   // Called as the link opens the Media Item's page, such as to remember the place in the results.
@@ -48,7 +53,7 @@ export function PosterGridItem({
   const body = (
     <>
       <span className="relative block">
-        <Poster subject={mediaItem} size="grid" />
+        <Poster subject={mediaItem} size="grid" caption={!cover} />
         {place !== undefined && (
           <span
             aria-hidden
@@ -66,6 +71,7 @@ export function PosterGridItem({
             <Check aria-hidden className="size-3.5" strokeWidth={2.75} />
           </span>
         )}
+        {cover}
       </span>
       <span className="line-clamp-2 font-semibold text-sm leading-tight">{title}</span>
       {meta && (
@@ -78,7 +84,7 @@ export function PosterGridItem({
   const bodyClass = "flex flex-col gap-1.5 rounded-lg";
   return (
     <li className={cn("relative flex min-w-0 flex-col gap-2", className)}>
-      {unlinked ? (
+      {unlinked || cover ? (
         <div className={bodyClass}>{body}</div>
       ) : (
         <Link to={`/items/${mediaItem.id}`} onClick={onOpened} className={bodyClass}>

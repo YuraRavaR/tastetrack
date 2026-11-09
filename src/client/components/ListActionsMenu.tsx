@@ -1,4 +1,4 @@
-import { Ellipsis, Link2, Pencil, Trash2 } from "lucide-react";
+import { ArrowDownUp, Ellipsis, Link2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,18 +12,23 @@ import { t } from "../i18n/t";
 import { MenuSheetContent, menuSheetIconClasses, menuSheetItemClasses } from "./MenuSheetContent";
 
 // The ⋯ by a List's heading (`docs/mockups/collections/`) and every action on the List itself:
-// edit it, share it ("Share Link" once it is shared) and, after a divider, delete it. A bottom
-// sheet on a phone, a dropdown from `md`.
+// edit it, reorder its films (off under two), share it ("Share Link" once it is shared) and,
+// after a divider, delete it. A bottom sheet on a phone, a dropdown from `md`.
 export function ListActionsMenu({
   shared,
+  reorderable,
   className,
   onEdit,
+  onReorder,
   onShare,
   onDelete,
 }: {
   shared: boolean;
+  // True when the List holds two films or more.
+  reorderable: boolean;
   className?: string;
   onEdit: () => void;
+  onReorder: () => void;
   onShare: () => void;
   onDelete: () => void;
 }) {
@@ -45,6 +50,14 @@ export function ListActionsMenu({
         <DropdownMenuItem className={menuSheetItemClasses} onSelect={onEdit}>
           <Pencil aria-hidden className={menuSheetIconClasses} />
           {t("list.edit")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className={menuSheetItemClasses}
+          disabled={!reorderable}
+          onSelect={onReorder}
+        >
+          <ArrowDownUp aria-hidden className={menuSheetIconClasses} />
+          {t("list.reorder")}
         </DropdownMenuItem>
         <DropdownMenuItem className={menuSheetItemClasses} onSelect={onShare}>
           <Link2 aria-hidden className={menuSheetIconClasses} />
