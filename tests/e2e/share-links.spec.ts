@@ -56,7 +56,7 @@ test("a User makes a List, adds a film and shares it, and someone logged out ope
   // Someone with no session opens the link.
   const { sharedPage } = visitorUi;
   await visitorUi.goto(url);
-  await expect(visitorPage).toHaveTitle("Space horror");
+  await expect(visitorPage).toHaveTitle("Space horror · TasteTrack");
   await expect(sharedPage.text("Film collection")).toBeVisible();
   await expect(sharedPage.heading("Space horror")).toBeVisible();
   await expect(sharedPage.text("Lights off.")).toBeVisible();
@@ -176,10 +176,22 @@ test("someone logs in from a Share Link and comes back to it, where posters open
   await sharedPage.goto(shareLink.token);
   await sharedPage.header.logInLink.click();
   await expect(page).toHaveURL(loginPage.path());
+  // Back without a page load, the tab drops "Log in" while the List loads, then names it.
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(`**/api/shared-lists/${shareLink.token}`, async (route) => {
+    await held;
+    await route.continue();
+  });
   await loginPage.logIn(registeredUser);
 
   await expect(page).toHaveURL(sharedPage.path(shareLink.token));
+  await expect(page).toHaveTitle("TasteTrack");
+  release();
   await expect(sharedPage.film("Space horror", "Alien").root).toBeVisible();
+  await expect(page).toHaveTitle("Space horror · TasteTrack");
   await expect(sharedPage.mainNav.links).toHaveText(["Saved", "Collections", "Search"]);
   await expect(sharedPage.header.accountMenu.button).toBeVisible();
   await expect(sharedPage.header.logInLink).toHaveCount(0);

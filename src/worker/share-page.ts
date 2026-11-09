@@ -91,7 +91,8 @@ sharePage.get("/s/:token", async (c) => {
   const [head, shell] = await Promise.all([sharedListHead(c.var.db, token), appHtml(c)]);
   if (!head) return page(shell, 404, noindex);
   const { url } = shareLinkOf(token, new URL(c.req.url).origin);
-  return page(shell, 200, headTags(head, url), head.title);
+  // The browser tab's title, as the app names the page once it loads (the client's `pageTitle`).
+  return page(shell, 200, headTags(head, url), `${head.title} · ${siteName}`);
 });
 
 sharePage.notFound(notFound);

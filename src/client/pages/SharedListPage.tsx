@@ -9,6 +9,7 @@ import { NoteBubble } from "../components/NoteBubble";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
+import { usePageTitle } from "../navigation/page-title";
 
 type SharedListState =
   | { status: "loading" }
@@ -25,6 +26,13 @@ async function loadSharedList(token: string): Promise<SharedListState> {
   }
 }
 
+// What names the browser tab: the List once it loads, and the app's name alone if it can't.
+// While it loads, nothing: the Worker named the List in the page's HTML already.
+function titleNames(state: SharedListState): string[] | null {
+  if (state.status === "loading") return null;
+  return state.status === "loaded" ? [state.list.title] : [];
+}
+
 // The List behind a Share Link, for anyone holding it, logged in or not: its title, description,
 // owner and films in order with their Notes, as a grid of posters, and nothing more. A poster
 // opens its film's page only for a logged-in viewer, the one who can see that page. A link that doesn't work says so the same way whether it was revoked, replaced or never
@@ -34,6 +42,7 @@ export function SharedListPage() {
   const authStatus = useAuth().state.status;
   const anonymous = authStatus === "anonymous";
   const [state, setState] = useState<SharedListState>({ status: "loading" });
+  usePageTitle(titleNames(state));
   const fill = useMetadataFill(
     state.status === "loaded" ? state.list.items.map((item) => item.mediaItem) : [],
   );

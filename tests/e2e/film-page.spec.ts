@@ -1,4 +1,4 @@
-import { alien, aliens, film, newFilm } from "../support/scenarios/films";
+import { alien, aliens, film, manualFilm, newFilm } from "../support/scenarios/films";
 import { callsRealTmdb, holdImages } from "../support/scenarios/tmdb";
 import { expect, test } from "../support/ui/fixtures";
 import type { FilmPage } from "../support/ui/pages/FilmPage";
@@ -211,4 +211,19 @@ test("a film's page shows its runtime and genres", async ({ ui, loggedInApi: api
 
   await expect(filmPage.heading).toContainText("Alien (1979)");
   await expect(filmPage.text("117 min · Horror, Science Fiction")).toBeVisible();
+});
+
+test("the browser tab names the film and its year, or its title as typed when it has none", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const { filmPage } = ui;
+
+  await openFilm(filmPage, (await alien(api)).id);
+  await expect(page).toHaveTitle("Alien (1979) · TasteTrack");
+
+  const title = `Tom & "Jerry" <home movie>`;
+  await openFilm(filmPage, (await manualFilm(api, { title })).id);
+  await expect(page).toHaveTitle(`${title} · TasteTrack`);
 });

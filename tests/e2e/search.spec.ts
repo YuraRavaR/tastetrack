@@ -295,6 +295,21 @@ test("typing keeps the query in the URL as one history entry, and clearing remov
   await expect(page).toHaveURL(listsPage.path());
 });
 
+test("the browser tab names Search, then the query as the User types it", async ({
+  page,
+  loggedInUi: ui,
+}) => {
+  const { searchPage } = ui;
+  await searchPage.goto();
+  await expect(page).toHaveTitle("Search · TasteTrack");
+
+  await searchPage.searchBox.pressSequentially("tom & <jerry>");
+  await expect(page).toHaveTitle("“tom & <jerry>” · Search · TasteTrack");
+
+  await searchPage.clearSearchButton.click();
+  await expect(page).toHaveTitle("Search · TasteTrack");
+});
+
 test("a URL with a query runs that search, and Search in the nav clears it", async ({
   page,
   loggedInUi: ui,

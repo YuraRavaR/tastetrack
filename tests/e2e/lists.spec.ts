@@ -121,6 +121,34 @@ test("Collections shows each List as a card with its covers, its count and wheth
   await expect(page).toHaveURL(listPage.path(space.id));
 });
 
+test("the browser tab names Collections, then a Collection once it loads, as typed", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const name = `Tom & Jerry's "best" <films>`;
+  const list = await createList(api, name);
+  const { listsPage } = ui;
+  await listsPage.goto();
+  await expect(page).toHaveTitle("Collections · TasteTrack");
+
+  // Until the Collection loads, its section names the tab.
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(`**/api/lists/${list.id}`, async (route) => {
+    await held;
+    await route.continue();
+  });
+  await listsPage.listLink(name).click();
+  await expect(page).toHaveURL(ui.listPage.path(list.id));
+  await expect(page).toHaveTitle("Collections · TasteTrack");
+
+  release();
+  await expect(page).toHaveTitle(`${name} · TasteTrack`);
+});
+
 test("the ⋯ by a List's heading holds its actions, as a sheet on a phone like their dialogs", async ({
   page,
   ui,

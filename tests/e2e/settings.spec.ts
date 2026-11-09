@@ -62,3 +62,16 @@ test("a User deletes their account in Settings with their password", async ({
   await loginPage.logIn(loggedInUser);
   await expect(loginPage.errorMessage).toHaveText("Wrong Username or password");
 });
+
+test("the browser tab names Settings and Invites as their headings do", async ({
+  page,
+  loggedInUi: ui,
+}) => {
+  const { settingsPage, invitesPage } = ui;
+  await settingsPage.goto();
+  await expect(page).toHaveTitle("Settings · TasteTrack");
+
+  await settingsPage.header.accountMenu.choose("Invites");
+  await expect(invitesPage.generateButton).toBeVisible();
+  await expect(page).toHaveTitle("Invite Codes · TasteTrack");
+});

@@ -339,7 +339,7 @@ test("a Share Link's page names the List in its <head>, for preview cards, and i
   expect(page.robots).toBe("noindex");
   const title = "Tom &amp; Jerry&#39;s &quot;best&quot; &lt;films&gt;";
   const description = "Cartoons &amp; &lt;chaos&gt;.";
-  expect(page.html).toContain(`<title>${title}</title>`);
+  expect(page.html).toContain(`<title>${title} · TasteTrack</title>`);
   for (const meta of [
     '<meta name="robots" content="noindex">',
     `<meta name="description" content="${description}">`,
@@ -364,7 +364,9 @@ test("a shared Backlog's page is titled \"<Display Name>'s Watchlist\", with no 
 
   const page = await sharePage(visitor, token);
 
-  expect(page.html).toContain(`<title>${loggedInUser.username}&#39;s Watchlist</title>`);
+  expect(page.html).toContain(
+    `<title>${loggedInUser.username}&#39;s Watchlist · TasteTrack</title>`,
+  );
   expect(page.html).toContain(
     `<meta property="og:title" content="${loggedInUser.username}&#39;s Watchlist">`,
   );

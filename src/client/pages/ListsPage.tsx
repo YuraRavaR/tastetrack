@@ -10,6 +10,7 @@ import { ListCard } from "../components/ListCard";
 import { ListFormDialog } from "../components/ListFormDialog";
 import { MediaTypeChips } from "../components/MediaTypeChips";
 import { t } from "../i18n/t";
+import { usePageTitle } from "../navigation/page-title";
 import { listPath } from "../navigation/paths";
 
 type ListsState =
@@ -25,6 +26,7 @@ export function ListsPage() {
   const [state, setState] = useState<ListsState>({ status: "loading" });
   const [creating, setCreating] = useState(false);
   const navigate = useNavigate();
+  usePageTitle([t("lists.title")]);
 
   useEffect(() => {
     let cancelled = false;

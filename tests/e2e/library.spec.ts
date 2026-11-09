@@ -60,6 +60,24 @@ test("Saved shows the Watchlist and Watched as posters, with their counts", asyn
   await expect(libraryPage.posters("Watchlist")).toHaveCount(2);
 });
 
+test("the browser tab names Saved, then each tab of it, as the User moves between them", async ({
+  page,
+  loggedInUi: ui,
+}) => {
+  const { savedPage, libraryPage } = ui;
+  await savedPage.goto();
+  await expect(page).toHaveTitle("TasteTrack");
+
+  await savedPage.tile("Films").link.click();
+  await expect(page).toHaveTitle("Watchlist · Films · TasteTrack");
+
+  await libraryPage.tab("Watched").click();
+  await expect(page).toHaveTitle("Watched · Films · TasteTrack");
+
+  await libraryPage.backToSavedLink.click();
+  await expect(page).toHaveTitle("TasteTrack");
+});
+
 test("the grid's posters load the large image", async ({ page, api, loggedInUi: ui }) => {
   await holdImages(page);
   const { alienItem } = await fillLibrary(api);

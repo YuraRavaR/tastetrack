@@ -7,9 +7,11 @@ import { AuthCard, SwitchFormLink } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
 import { FormField } from "../components/FormField";
 import { t } from "../i18n/t";
+import { usePageTitle } from "../navigation/page-title";
 
 export function LoginPage() {
   const { state, logIn } = useAuth();
+  usePageTitle([t("login.title")]);
   const location = useLocation();
   const [error, setError] = useState<Extract<LoginResult, { ok: false }> | null>(null);
   const [submitting, setSubmitting] = useState(false);

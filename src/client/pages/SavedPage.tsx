@@ -5,12 +5,14 @@ import { mediaTypeChoices } from "../catalog/media-types";
 import { ComingSoonTile, MediaTypeTile, type TileState } from "../components/MediaTypeTile";
 import { t } from "../i18n/t";
 import { libraryTile } from "../library/library-tabs";
+import { usePageTitle } from "../navigation/page-title";
 
 // Saved at "/": one tile per Media Type, in the order every section offers them. A built one opens
 // its Backlog and experienced tabs; one still to come is a disabled stub. The heading names the
-// list of tiles.
+// list of tiles. Being the home page, its title is the app's name alone.
 export function SavedPage() {
   const headingId = useId();
+  usePageTitle([]);
   return (
     <div className="flex flex-col gap-5 md:gap-6">
       <h1 id={headingId} className="font-bold text-3xl tracking-tight md:text-4xl">

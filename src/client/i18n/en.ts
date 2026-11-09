@@ -7,6 +7,8 @@ export const en = {
   "app.nameSecondLine": "Track",
   "app.logIn": "Log in",
   "app.version": "v{version}",
+  // The browser tab's title: the page, then what it belongs to, "Watchlist · Films · TasteTrack".
+  "app.pageTitle": "{page} · {rest}",
   "auth.checking": "Loading…",
   "auth.logout": "Log out",
   "nav.label": "Main",
@@ -118,6 +120,7 @@ export const en = {
   "newPassword.failed": "Couldn't set your password. Please try again.",
   "search.nav": "Search",
   "search.title": "Search",
+  "search.queryTitle": "“{query}”",
   "search.hint": "Type a title to search your Saved and TMDB.",
   "search.saved": "In your Saved",
   "search.savedUnavailable": "Couldn't load your Saved right now.",

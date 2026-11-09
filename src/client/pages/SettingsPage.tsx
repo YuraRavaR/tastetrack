@@ -8,11 +8,13 @@ import { useAuth } from "../auth";
 import { FormError } from "../components/FormError";
 import { FormField } from "../components/FormField";
 import { t } from "../i18n/t";
+import { usePageTitle } from "../navigation/page-title";
 
 // The User's own settings: the Display Name others see on Share Links, their password, and
 // deleting their account. Three cards stacked (`docs/mockups/account/`).
 export function SettingsPage() {
   const { state } = useAuth();
+  usePageTitle([t("settings.title")]);
   if (state.status !== "authenticated") return null;
 
   return (

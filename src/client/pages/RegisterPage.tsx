@@ -8,6 +8,7 @@ import { AuthCard, SwitchFormLink } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
 import { FormField } from "../components/FormField";
 import { type MessageId, t } from "../i18n/t";
+import { usePageTitle } from "../navigation/page-title";
 
 const errorMessages: Record<RegisterError, MessageId> = {
   invite_code_unknown: "register.inviteCodeUnknown",
@@ -30,6 +31,7 @@ const errorFields: Record<RegisterError, RegisterField | null> = {
 
 export function RegisterPage() {
   const { state, register } = useAuth();
+  usePageTitle([t("register.title")]);
   const [searchParams] = useSearchParams();
   const [username, setUsername] = useState("");
   const [error, setError] = useState<RegisterError | null>(null);

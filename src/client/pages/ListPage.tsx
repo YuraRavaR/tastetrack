@@ -18,6 +18,7 @@ import { NoteDialog } from "../components/NoteDialog";
 import { ShareLinkDialog } from "../components/ShareLinkDialog";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
+import { usePageTitle } from "../navigation/page-title";
 import { listsPath } from "../navigation/paths";
 
 type ListState =
@@ -68,6 +69,8 @@ export function ListPage() {
   const [reordering, setReordering] = useState(false);
   const [addingFilms, setAddingFilms] = useState(false);
   const reload = useCallback(async () => setState(await loadList(listId)), [listId]);
+  // The section names the tab until the List has loaded, and if it can't.
+  usePageTitle([state.status === "loaded" ? state.list.name : t("lists.title")]);
 
   // Puts a removed film back where it was, with its Note.
   async function putBack({ mediaItem, position, note }: ListItem) {
