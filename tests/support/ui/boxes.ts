@@ -1,5 +1,7 @@
 import type { Locator } from "@playwright/test";
 
+export type Box = Awaited<ReturnType<typeof settledBoxOf>>;
+
 // Where an element sits once its opening animation has finished.
 export async function settledBoxOf(element: Locator) {
   await element.evaluate((node) =>
