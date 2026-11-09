@@ -1,6 +1,6 @@
 import { Bookmark, List, ListPlus, RotateCw, SearchX, Star } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -62,12 +62,14 @@ const maxListChips = 2;
 // typing, without the User's Media Items,
 // the User's own Manual Media Items first. A TMDB result with a Media Item links to its
 // film's page, and shows the User's Current Rating, how many viewings they have and the Lists that
-// hold it. Any result can be marked Watched, which records a Log Entry for it, as a Revisit by
+// hold it, and one without a Media Item yet adds it to the catalog when the User opens it, then opens
+// its page. Any result can be marked Watched, which records a Log Entry for it, as a Revisit by
 // default if it is in the Log, and takes it off the Watchlist with an undo. Want to watch is a
 // toggle, which puts a result on the Watchlist or takes it off again, and any result can be added
 // to or taken off the User's Lists. Below the results, a film search doesn't find can be added by
 // hand, and then shows first.
 export function FilmSearch() {
+  const navigate = useNavigate();
   const backlogName = mediaWord(pageMediaType, "backlog");
   const inputId = useId();
   const [query, setQuery] = useSearchQuery();
@@ -84,6 +86,8 @@ export function FilmSearch() {
   const [added, setAdded] = useState<{ query: string; found: Found[] }>({ query: "", found: [] });
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const [planError, setPlanError] = useState<PlanError | null>(null);
+  // The result that couldn't join the catalog when the User opened it.
+  const [openFailed, setOpenFailed] = useState<Found | null>(null);
   // Results logged since the search ran, which the search's own marks don't know about yet.
   const [loggedNow, setLoggedNow] = useState<ReadonlyMap<string, RowLog>>(new Map());
   // The Lists holding results since the User last put them on or took them off one.
@@ -131,6 +135,18 @@ export function FilmSearch() {
     const mediaItem = await mediaItemOf(found);
     if (mediaItem) markCataloged(found, mediaItem.id);
     return mediaItem;
+  }
+
+  // Opens a result's page, adding it to the catalog first when it has no Media Item yet.
+  async function open(found: Found) {
+    setOpenFailed(null);
+    const mediaItem = await addToCatalog(found);
+    if (!mediaItem) {
+      setOpenFailed(found);
+      return;
+    }
+    rememberScroll();
+    navigate(`/items/${mediaItem.id}`);
   }
 
   function markPlanned(found: Found, planned: boolean) {
@@ -245,6 +261,11 @@ export function FilmSearch() {
             : t("backlog.updateFailed", { backlogName })}
         </p>
       )}
+      {openFailed && (
+        <p role="alert" className="text-destructive text-sm">
+          {t("search.openFailed", { film: foundLabel(openFailed) })}
+        </p>
+      )}
       {trimmed !== "" && userItems.status === "failed" && (
         <p role="alert" className="text-destructive text-sm">
           {t("search.savedUnavailable")}
@@ -269,6 +290,7 @@ export function FilmSearch() {
                   found={found}
                   mediaItemId={mediaItemIdOf(found)}
                   onOpened={rememberScroll}
+                  onOpen={() => open(found)}
                   log={logOf(found)}
                   lists={listedNow.get(foundKey(found)) ?? found.lists}
                   inBacklog={inBacklog(found)}
@@ -436,6 +458,7 @@ function SearchResult({
   found,
   mediaItemId,
   onOpened,
+  onOpen,
   log,
   lists,
   inBacklog,
@@ -447,6 +470,7 @@ function SearchResult({
   found: Found;
   mediaItemId: number | null;
   onOpened: () => void;
+  onOpen: () => Promise<void>;
   log: RowLog;
   lists: HoldingList[];
   inBacklog: boolean;
@@ -458,6 +482,13 @@ function SearchResult({
   const mediaType = foundMediaType(found);
   const { currentRating, logEntryCount } = log;
   const inLog = logEntryCount > 0;
+  const [opening, setOpening] = useState(false);
+
+  async function open() {
+    setOpening(true);
+    await onOpen();
+    setOpening(false);
+  }
 
   return (
     <li className="flex items-start gap-3 p-3 md:items-center">
@@ -473,7 +504,14 @@ function SearchResult({
               {foundLabel(found)}
             </Link>
           ) : (
-            <span className="break-words font-semibold">{foundLabel(found)}</span>
+            <button
+              type="button"
+              onClick={open}
+              disabled={opening}
+              className="cursor-pointer break-words text-left font-semibold underline-offset-4 hover:underline focus-visible:underline disabled:cursor-wait"
+            >
+              {foundLabel(found)}
+            </button>
           )}
           <span className="flex flex-wrap items-center gap-x-2 text-xs empty:hidden">
             {found.kind === "manual" && (

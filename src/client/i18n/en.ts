@@ -141,6 +141,7 @@ export const en = {
   "search.moreLists": "+{count, number}",
   "search.notFound": "Can't find it?",
   "search.addManually": "Add manually",
+  "search.openFailed": "Couldn't open {film}. Please try again.",
   "dialog.close": "Close",
   "rating.label": "Rating",
   "rating.stars": "{stars, plural, one {# star} other {# stars}}",

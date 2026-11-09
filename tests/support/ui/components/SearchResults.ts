@@ -25,6 +25,11 @@ export class SearchResultRow extends ScopedComponent {
     return this.root.getByRole("link", { name: label });
   }
 
+  // The title of a film not yet in the catalog, a button that adds it there, then opens its page.
+  filmButton(label: string) {
+    return this.root.getByRole("button", { name: label, exact: true });
+  }
+
   // The link to the film's Viewings, named by its Current Rating and count: "4 · 1 viewing".
   itemHistoryLink(label: string) {
     return this.root.getByRole("link", { name: label });
