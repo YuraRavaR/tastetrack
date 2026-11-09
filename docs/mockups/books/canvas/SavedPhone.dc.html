@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Saved with books · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:880px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic16{width:16px;height:16px}
+.ic22{width:22px;height:22px}
+.pc{padding:12px 16px 96px;display:flex;flex-direction:column;gap:14px}
+.h1{margin:4px 0 0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.tile{position:relative;border:1px solid var(--border);background:var(--card);border-radius:20px;padding:18px;height:170px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;text-decoration:none}
+.tic{width:40px;height:40px;border-radius:12px;background:var(--primary-soft);color:var(--primary-strong);display:grid;place-items:center}
+.tn{margin-top:auto;font-size:22px;font-weight:700}
+.tc{font-size:14px;color:var(--muted-foreground)}
+.fan{position:absolute;right:18px;top:24px;width:150px;height:130px}
+.fan img,.fan span{position:absolute;width:76px;height:114px;border-radius:8px;object-fit:cover;box-shadow:0 8px 18px oklch(0 0 0 / 35%);top:4px}
+.back{display:flex;align-items:center;gap:4px;font-size:15px;color:var(--muted-foreground);text-decoration:none;height:32px}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;background:var(--muted);border-radius:14px;padding:4px}
+.tab{height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:14px;font-weight:500;border:0;background:none;color:var(--foreground);font-family:inherit;white-space:nowrap}
+.tab span{color:var(--muted-foreground);font-weight:500}
+.tab.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px oklch(0 0 0 / 18%)}
+.chips{display:flex;gap:8px;margin:-4px -16px -4px 0;overflow:hidden}
+.chip{height:44px;display:flex;align-items:center;flex:none;background:none;border:0;padding:0;font:inherit;color:inherit}
+.chip>span{height:36px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:0 12px;font-size:14px;font-weight:500;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px}
+.gi{display:flex;flex-direction:column;gap:4px;min-width:0;text-decoration:none}
+.cv{width:100%;aspect-ratio:2/3;border-radius:10px;object-fit:cover;display:block;border:1px solid var(--border);box-sizing:border-box}
+.tp{width:100%;aspect-ratio:2/3;border-radius:10px;background:var(--primary-soft);border:1px solid var(--border);box-sizing:border-box;display:flex;flex-direction:column;padding:16px 12px 13px;position:relative;overflow:hidden}
+.tp::before{content:"";position:absolute;inset:6px;border:1px solid var(--primary-strong);opacity:0.45;border-radius:4px}
+.tpt{font-size:14px;font-weight:700;line-height:1.1}
+.tpa{font-size:11px;color:var(--muted-foreground);margin-top:auto}
+.gt{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gs{font-size:12px;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gr{font-size:12px;color:var(--primary-strong);font-weight:600;display:flex;gap:3px;align-items:center}
+.now{display:flex;gap:12px;align-items:center;border:1px solid var(--border);background:var(--card);border-radius:16px;padding:10px;text-decoration:none}
+.now img{width:44px;height:66px;border-radius:6px;object-fit:cover;border:1px solid var(--border)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1740px; display: flex; gap: 60px; align-items: flex-start">
+
+<!-- 1 · Saved home -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">Saved · the Books tile beside Films</div>
+<div class="tt ph" data-theme="dark">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<h1 class="h1">Saved</h1>
+<a href="#" class="tile"><span class="tic"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></span><span class="tn">Films</span><span class="tc">12 to watch · 14 watched</span>
+<span class="fan" aria-hidden="true"><span style="left: 0; transform: rotate(-9deg); background: oklch(0.42 0.08 250)"></span><span style="left: 74px; transform: rotate(9deg); background: oklch(0.45 0.1 30)"></span><span style="left: 37px; top: 0; background: oklch(0.42 0.09 150)"></span></span></a>
+<a href="#" class="tile"><span class="tic"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><span class="tn">Books</span><span class="tc">8 to read · 2 reading · 23 read</span>
+<span class="fan" aria-hidden="true"><img src="/_blob/adeb92e7ae86bf65a0b0ae92f2c22b79" alt="" style="left: 0; transform: rotate(-9deg)"><img src="/_blob/7e5aabe83665118efafb42f44efbaab5" alt="" style="left: 74px; transform: rotate(9deg)"><img src="/_blob/99ab4c37456e8a781b9238c3c517e76e" alt="" style="left: 37px; top: 0"></span></a>
+<div style="font-size: 16px; font-weight: 600; margin-top: 6px">Reading now</div>
+<a href="#" class="now"><img src="/_blob/125bb0a6295c483e75255706bc95cd81" alt=""><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Piranesi</span><span style="font-size: 13px; color: var(--muted-foreground)">Susanna Clarke · since 12 October</span></div><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="margin-left: auto; color: var(--muted-foreground)"><path d="m9 18 6-6-6-6"></path></svg></a>
+<a href="#" class="now"><img src="/_blob/c4a239feac4ab940bbd2dc5b76bc7221" alt=""><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Depeche Mode</span><span style="font-size: 13px; color: var(--muted-foreground)">Serhiy Zhadan · since 3 November</span></div><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="margin-left: auto; color: var(--muted-foreground)"><path d="m9 18 6-6-6-6"></path></svg></a>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+
+<sc-for list="{{tabs}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.label}}</div>
+<div class="tt ph" data-theme="{{v.theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<a href="#" class="back"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Saved</a>
+<h1 class="h1" style="margin-top: -6px">Books</h1>
+<div class="tabs" role="tablist" aria-label="Status">
+<sc-for list="{{v.tabs}}" as="t" hint-placeholder-count="3"><button class="tab {{t.cls}}" role="tab">{{t.name}}<span>{{t.n}}</span></button></sc-for>
+</div>
+<sc-if value="{{v.hasChips}}" hint-placeholder-val="{{true}}">
+<div class="chips">
+<sc-for list="{{v.chips}}" as="c" hint-placeholder-count="3"><button class="chip"><span>{{c}}<svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span></button></sc-for>
+</div>
+</sc-if>
+<div class="grid">
+<sc-for list="{{v.items}}" as="i" hint-placeholder-count="6">
+<a href="#" class="gi">
+<sc-if value="{{i.src}}" hint-placeholder-val="{{true}}"><img class="cv" src="{{i.src}}" alt="{{i.title}} cover"></sc-if>
+<sc-if value="{{i.noCover}}" hint-placeholder-val="{{false}}"><div class="tp" role="img" aria-label="No cover"><span class="tpt">{{i.title}}</span><span class="tpa">{{i.author}}</span></div></sc-if>
+<span class="gt">{{i.title}}</span>
+<sc-if value="{{i.rating}}" hint-placeholder-val="{{false}}"><span class="gr"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" style="fill: currentColor"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>{{i.rating}}</span></sc-if>
+<sc-if value="{{i.sub}}" hint-placeholder-val="{{true}}"><span class="gs">{{i.sub}}</span></sc-if>
+</a>
+</sc-for>
+</div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1740,"height":920}}'>
+class Component extends DCLogic {
+renderVals() {
+const tabs = (on) => [
+{ name: 'Reading list', n: '8', cls: on === 0 ? 'on' : '' },
+{ name: 'Reading', n: '2', cls: on === 1 ? 'on' : '' },
+{ name: 'Read', n: '23', cls: on === 2 ? 'on' : '' }
+];
+return {
+tabs: [
+{ label: 'Books · Reading list', theme: 'dark', tabs: tabs(0), hasChips: true, chips: ['Date added', 'Decade'], items: [
+{ src: '/_blob/99ab4c37456e8a781b9238c3c517e76e', title: 'The Curious Incident of the Dog in the Night-Time', sub: 'Mark Haddon' },
+{ src: '/_blob/7e04ee48c08c215bebdea8de46f5ccc2', title: 'Kafka on the Shore', sub: 'Haruki Murakami' },
+{ src: '/_blob/adeb92e7ae86bf65a0b0ae92f2c22b79', title: 'Dune', sub: 'Frank Herbert' },
+{ src: '/_blob/7e5aabe83665118efafb42f44efbaab5', title: 'The Left Hand of Darkness', sub: 'Ursula K. Le Guin' },
+{ src: '/_blob/e4057023b7a6da43a8d0eb1384cf2760', title: 'Тигролови', sub: 'Іван Багряний' },
+{ src: '', noCover: true, title: 'Felix Austria', author: 'Sofia Andrukhovych', sub: 'Sofia Andrukhovych' },
+{ src: '/_blob/cf2d7993f54c2263f9bfc1d1133603fd', title: 'Маруся Чурай', sub: 'Ліна Костенко' },
+{ src: '/_blob/0a7b10610295aed6e7a312575edd9be6', title: 'Internat', sub: 'Serhiy Zhadan' }
+] },
+{ label: 'Books · Read: each book once, with its Current Rating', theme: 'dark', tabs: tabs(2), hasChips: true, chips: ['Last read', 'Decade', 'Rating'], items: [
+{ src: '/_blob/b26c486b3ad6b77ea20aff6e22cae414', title: 'One Hundred Years of Solitude', rating: '5', sub: '' },
+{ src: '/_blob/3e315e6fa8a630abbd41ef620834a0a2', title: 'Voroshilovgrad', rating: '4.5', sub: '' },
+{ src: '/_blob/03a90f014cfb48ca352c899ed3ae04b6', title: 'The Night Circus', rating: '4', sub: '' },
+{ src: '/_blob/00f654f67e52d3f7d42fe0856e0df42e', title: 'Солодка Даруся', rating: '5', sub: '' },
+{ src: '/_blob/f9497ac2ddc6f3eaf860b97640197c3a', title: 'The Very Hungry Caterpillar', rating: '4', sub: '' },
+{ src: '/_blob/268513c376f3d0277d0f6ed95c071732', title: 'Where the Wild Things Are', rating: '3.5', sub: '' },
+{ src: '/_blob/e15af465cd7274f1a4fd8a0c50256b1d', title: 'A Midsummer Night’s Dream', rating: '3', sub: '' },
+{ src: '/_blob/4bbbf2d38da3f7c74204e252f9560851', title: 'Tender Is the Night', rating: '4', sub: '' },
+{ src: '/_blob/a6e2d6c2cce501729a54e92f1e34a22b', title: 'Night', rating: '5', sub: '' }
+] },
+{ label: 'Books · Reading (In Progress), light', theme: 'light', tabs: tabs(1), hasChips: false, chips: [], items: [
+{ src: '/_blob/125bb0a6295c483e75255706bc95cd81', title: 'Piranesi', sub: 'Since 12 October' },
+{ src: '/_blob/c4a239feac4ab940bbd2dc5b76bc7221', title: 'Depeche Mode', sub: 'Since 3 November' }
+] }
+]
+};
+}
+}
+</script>
+</body>
+</html>

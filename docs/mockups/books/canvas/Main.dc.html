@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Media Type chips · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--overlay:oklch(0 0 0 / 60%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--overlay:oklch(0.2 0.01 50 / 50%);--ink:oklch(0.22 0.02 60)}
+.cap{font-size:14px;font-weight:600;color:var(--muted-foreground);height:24px}
+.ph{width:390px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.pc{padding:12px 16px 0;display:flex;flex-direction:column;gap:12px}
+.h1{margin:4px 0 0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.field{height:48px;border:1px solid var(--border);border-radius:14px;background:var(--card);display:flex;align-items:center;gap:10px;padding:0 6px 0 14px;font-size:16px}
+.clr{margin-left:auto;width:32px;height:32px;border-radius:999px;background:var(--muted);display:grid;place-items:center;border:0;color:var(--muted-foreground)}
+.chips{display:flex;gap:8px;margin:-4px 0}
+.wrap{flex-wrap:wrap;row-gap:0}
+.tap{height:44px;display:flex;align-items:center;flex:none;background:none;border:0;padding:0;font:inherit;color:inherit}
+.chip{height:36px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:0 14px 0 12px;font-size:14px;font-weight:500;white-space:nowrap;box-sizing:border-box}
+.chip.on{background:var(--primary-soft);border-color:var(--primary-strong);font-weight:600}
+.chip.soon{border:1.5px dashed var(--border);color:var(--muted-foreground);padding-right:6px}
+.badge{background:var(--muted);color:var(--muted-foreground);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:600}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic18{width:18px;height:18px}
+.ic20{width:20px;height:20px}
+.h2{margin:6px 0 0;font-size:18px;font-weight:600;display:flex;gap:6px;align-items:baseline}
+.h2 span{color:var(--muted-foreground);font-weight:500;font-size:16px}
+.strip{display:flex;gap:12px;margin-right:-16px}
+.cv{width:104px;height:156px;border-radius:10px;object-fit:cover;display:block;flex:none;border:1px solid var(--border);box-sizing:border-box}
+.fade{-webkit-mask-image:linear-gradient(to right,#000 80%,transparent);mask-image:linear-gradient(to right,#000 80%,transparent);overflow:hidden;margin-right:-16px;padding-right:16px}
+.seg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;background:var(--muted);border-radius:14px;padding:4px}
+.sg{height:56px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:13px;font-weight:500;color:var(--foreground);border:0;background:none;font-family:inherit}
+.sg.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px oklch(0 0 0 / 18%)}
+.sg.on .ic{color:var(--primary-strong)}
+.sg.off{color:var(--muted-foreground)}
+.sn{font-size:11px;font-weight:600;line-height:1}
+.btn{height:44px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--foreground)}
+.btn.p{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.lc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.coll{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;height:120px;overflow:hidden}
+.coll img{width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;min-height:0}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:28px 28px 0 0;padding:8px 16px 24px;display:flex;flex-direction:column}
+.grab{width:40px;height:5px;border-radius:999px;background:var(--border);align-self:center;margin-bottom:12px}
+.row{height:52px;display:flex;align-items:center;gap:12px;font-size:16px;font-weight:500;padding:0 12px;border-radius:12px;background:none;border:0;color:inherit;font-family:inherit;text-align:left}
+.row.on{background:var(--primary-soft);font-weight:600}
+.row.off{color:var(--muted-foreground)}
+</style>
+</helmet>
+<div style="width: 2190px; height: 1600px; display: flex; flex-direction: column; gap: 60px">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="tt" data-theme="{{th.theme}}" style="display: flex; gap: 60px; padding: 20px; background: var(--background); border-radius: 24px">
+
+<!-- A · one scrolling row -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">A · One scrolling row · {{th.theme}}</div>
+<div class="ph" style="height: 380px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<h1 class="h1">Search</h1>
+<div class="field"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--muted-foreground)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>night<button class="clr" aria-label="Clear search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<div class="fade"><fieldset aria-label="Media type" class="chips" style="border: 0; padding: 0; margin: -4px 0; min-width: 0">
+<button class="tap" aria-pressed="false"><span class="chip"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</span></button>
+<button class="tap" aria-pressed="true"><span class="chip on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="badge">Coming soon</span></span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="badge">Coming soon</span></span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="badge">Coming soon</span></span></button>
+</fieldset></div>
+<h2 class="h2">In your Saved <span>2</span></h2>
+<div class="strip"><img class="cv" src="/_blob/99ab4c37456e8a781b9238c3c517e76e" alt="The Curious Incident of the Dog in the Night-Time cover"><img class="cv" src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt="The Night Circus cover"></div>
+</div>
+</div>
+<div class="ph" style="height: 300px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; justify-content: space-between"><h1 class="h1" style="margin: 0">Collections</h1><button class="btn p"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>New</button></div>
+<div class="fade"><fieldset aria-label="Media type" class="chips" style="border: 0; padding: 0; margin: -4px 0; min-width: 0">
+<button class="tap" aria-pressed="false"><span class="chip"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</span></button>
+<button class="tap" aria-pressed="true"><span class="chip on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="badge">Coming soon</span></span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="badge">Coming soon</span></span></button>
+</fieldset></div>
+<div class="lc"><div class="coll"><img src="/_blob/e4057023b7a6da43a8d0eb1384cf2760" alt=""><img src="/_blob/cf2d7993f54c2263f9bfc1d1133603fd" alt=""><img src="/_blob/00f654f67e52d3f7d42fe0856e0df42e" alt=""><img src="/_blob/3e315e6fa8a630abbd41ef620834a0a2" alt=""></div><div class="coll"><img src="/_blob/adeb92e7ae86bf65a0b0ae92f2c22b79" alt=""><img src="/_blob/7e5aabe83665118efafb42f44efbaab5" alt=""><img src="/_blob/125bb0a6295c483e75255706bc95cd81" alt=""><img src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt=""></div></div>
+</div>
+</div>
+</div>
+
+<!-- B · wrapping -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">B · Wrapping · {{th.theme}}</div>
+<div class="ph" style="height: 380px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<h1 class="h1">Search</h1>
+<div class="field"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--muted-foreground)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>night<button class="clr" aria-label="Clear search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset aria-label="Media type" class="chips wrap" style="border: 0; padding: 0; margin: -4px 0; min-width: 0">
+<button class="tap" aria-pressed="false"><span class="chip"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</span></button>
+<button class="tap" aria-pressed="true"><span class="chip on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="badge">Coming soon</span></span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="badge">Coming soon</span></span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="badge">Coming soon</span></span></button>
+</fieldset>
+<h2 class="h2">In your Saved <span>2</span></h2>
+<div class="strip"><img class="cv" src="/_blob/99ab4c37456e8a781b9238c3c517e76e" alt="The Curious Incident of the Dog in the Night-Time cover"><img class="cv" src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt="The Night Circus cover"></div>
+</div>
+</div>
+<div class="ph" style="height: 300px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; justify-content: space-between"><h1 class="h1" style="margin: 0">Collections</h1><button class="btn p"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>New</button></div>
+<fieldset aria-label="Media type" class="chips wrap" style="border: 0; padding: 0; margin: -4px 0; min-width: 0">
+<button class="tap" aria-pressed="false"><span class="chip"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</span></button>
+<button class="tap" aria-pressed="true"><span class="chip on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="badge">Coming soon</span></span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="badge">Coming soon</span></span></button>
+<button class="tap" disabled><span class="chip soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="badge">Coming soon</span></span></button>
+</fieldset>
+<div class="lc"><div class="coll"><img src="/_blob/e4057023b7a6da43a8d0eb1384cf2760" alt=""><img src="/_blob/cf2d7993f54c2263f9bfc1d1133603fd" alt=""><img src="/_blob/00f654f67e52d3f7d42fe0856e0df42e" alt=""><img src="/_blob/3e315e6fa8a630abbd41ef620834a0a2" alt=""></div><div class="coll"><img src="/_blob/adeb92e7ae86bf65a0b0ae92f2c22b79" alt=""><img src="/_blob/7e5aabe83665118efafb42f44efbaab5" alt=""><img src="/_blob/125bb0a6295c483e75255706bc95cd81" alt=""><img src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt=""></div></div>
+</div>
+</div>
+</div>
+
+<!-- C · segmented control -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">C · Segmented control · {{th.theme}}</div>
+<div class="ph" style="height: 380px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<h1 class="h1">Search</h1>
+<div class="field"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--muted-foreground)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>night<button class="clr" aria-label="Clear search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset aria-label="Media type" class="seg" style="border: 0; margin: 0">
+<button class="sg" aria-pressed="false"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</button>
+<button class="sg on" aria-pressed="true"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</button>
+<button class="sg off" disabled><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="sn">Soon</span></button>
+<button class="sg off" disabled><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="sn">Soon</span></button>
+<button class="sg off" disabled><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="sn">Soon</span></button>
+</fieldset>
+<h2 class="h2">In your Saved <span>2</span></h2>
+<div class="strip"><img class="cv" src="/_blob/99ab4c37456e8a781b9238c3c517e76e" alt="The Curious Incident of the Dog in the Night-Time cover"><img class="cv" src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt="The Night Circus cover"></div>
+</div>
+</div>
+<div class="ph" style="height: 300px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; justify-content: space-between"><h1 class="h1" style="margin: 0">Collections</h1><button class="btn p"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>New</button></div>
+<fieldset aria-label="Media type" class="seg" style="border: 0; margin: 0">
+<button class="sg" aria-pressed="false"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</button>
+<button class="sg on" aria-pressed="true"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</button>
+<button class="sg off" disabled><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="sn">Soon</span></button>
+<button class="sg off" disabled><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="sn">Soon</span></button>
+<button class="sg off" disabled><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="sn">Soon</span></button>
+</fieldset>
+<div class="lc"><div class="coll"><img src="/_blob/e4057023b7a6da43a8d0eb1384cf2760" alt=""><img src="/_blob/cf2d7993f54c2263f9bfc1d1133603fd" alt=""><img src="/_blob/00f654f67e52d3f7d42fe0856e0df42e" alt=""><img src="/_blob/3e315e6fa8a630abbd41ef620834a0a2" alt=""></div><div class="coll"><img src="/_blob/adeb92e7ae86bf65a0b0ae92f2c22b79" alt=""><img src="/_blob/7e5aabe83665118efafb42f44efbaab5" alt=""><img src="/_blob/125bb0a6295c483e75255706bc95cd81" alt=""><img src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt=""></div></div>
+</div>
+</div>
+</div>
+
+<!-- D · dropdown -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">D · Dropdown · {{th.theme}}</div>
+<div class="ph" style="height: 380px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; justify-content: space-between"><h1 class="h1" style="margin: 0">Search</h1>
+<button class="tap" aria-haspopup="menu" aria-label="Media type: Books"><span class="chip on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span></button></div>
+<div class="field"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--muted-foreground)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>night<button class="clr" aria-label="Clear search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<h2 class="h2">In your Saved <span>2</span></h2>
+<div class="strip"><img class="cv" src="/_blob/99ab4c37456e8a781b9238c3c517e76e" alt="The Curious Incident of the Dog in the Night-Time cover"><img class="cv" src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt="The Night Circus cover"></div>
+</div>
+</div>
+<div class="ph" style="height: 300px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; gap: 8px"><h1 class="h1" style="margin: 0">Collections</h1>
+<button class="tap" aria-haspopup="menu" aria-label="Media type: Books" style="margin-left: auto"><span class="chip on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span></button>
+<button class="btn p" aria-label="New collection" style="padding: 0; width: 44px; justify-content: center"><svg class="ic ic20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div>
+<div class="lc"><div class="coll"><img src="/_blob/e4057023b7a6da43a8d0eb1384cf2760" alt=""><img src="/_blob/cf2d7993f54c2263f9bfc1d1133603fd" alt=""><img src="/_blob/00f654f67e52d3f7d42fe0856e0df42e" alt=""><img src="/_blob/3e315e6fa8a630abbd41ef620834a0a2" alt=""></div><div class="coll"><img src="/_blob/adeb92e7ae86bf65a0b0ae92f2c22b79" alt=""><img src="/_blob/7e5aabe83665118efafb42f44efbaab5" alt=""><img src="/_blob/125bb0a6295c483e75255706bc95cd81" alt=""><img src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt=""></div></div>
+</div>
+</div>
+</div>
+
+<!-- D · dropdown open, a sheet on a phone -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">D · The menu open (a sheet on a phone) · {{th.theme}}</div>
+<div class="ph" style="height: 696px">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic ic18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; justify-content: space-between"><h1 class="h1" style="margin: 0">Search</h1>
+<span class="tap"><span class="chip on">Books</span></span></div>
+<div class="field">night</div>
+<h2 class="h2">In your Saved <span>2</span></h2>
+<div class="strip"><img class="cv" src="/_blob/99ab4c37456e8a781b9238c3c517e76e" alt=""><img class="cv" src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt=""></div>
+</div>
+<div style="position: absolute; inset: 0; background: var(--overlay)"></div>
+<div class="sheet" role="menu" aria-label="Media type">
+<div class="grab"></div>
+<button class="row" role="menuitemradio" aria-checked="false"><svg class="ic ic20" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</button>
+<button class="row on" role="menuitemradio" aria-checked="true"><svg class="ic ic20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books<svg class="ic ic20" viewBox="0 0 24 24" aria-hidden="true" style="margin-left: auto"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="row off" role="menuitemradio" aria-checked="false" aria-disabled="true"><svg class="ic ic20" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="badge" style="margin-left: auto">Coming soon</span></button>
+<button class="row off" role="menuitemradio" aria-checked="false" aria-disabled="true"><svg class="ic ic20" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="badge" style="margin-left: auto">Coming soon</span></button>
+<button class="row off" role="menuitemradio" aria-checked="false" aria-disabled="true"><svg class="ic ic20" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="badge" style="margin-left: auto">Coming soon</span></button>
+</div>
+</div>
+</div>
+
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2190,"height":1600}}'>
+class Component extends DCLogic {
+renderVals() {
+return { themes: [{ theme: 'dark' }, { theme: 'light' }] };
+}
+}
+</script>
+</body>
+</html>

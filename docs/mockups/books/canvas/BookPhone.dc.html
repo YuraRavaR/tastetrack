@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A book's page · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1240px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;position:relative;z-index:1}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic22{width:22px;height:22px}
+.pic{position:relative;width:390px;aspect-ratio:16/9;overflow:hidden}
+.pic img{position:absolute;inset:-15%;width:130%;height:130%;object-fit:cover;filter:blur(24px) saturate(1.3)}
+.pic::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,var(--background))}
+.prow{display:flex;align-items:flex-end;gap:14px;margin-top:-72px;position:relative;padding:0 16px}
+.cover{width:104px;height:156px;border-radius:10px;object-fit:cover;flex:none;border:1px solid var(--border);box-shadow:0 10px 24px oklch(0 0 0 / 40%);box-sizing:border-box}
+.h1{margin:0;font-size:21px;font-weight:700;line-height:1.2;letter-spacing:-0.01em}
+.uk{margin:0;font-size:14px;font-weight:600;color:var(--muted-foreground)}
+.facts{margin:0;font-size:13px;color:var(--muted-foreground)}
+.body{display:flex;flex-direction:column;gap:18px;padding:18px 16px 96px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tl{font-size:12px;color:var(--muted-foreground)}
+.tv{font-size:18px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.btn{height:44px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--foreground)}
+.btn.p{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.btn.on{background:var(--primary-soft);border-color:transparent}
+.btn.on .fillme{fill:currentColor}
+.h2{margin:6px 0 -6px;font-size:18px;font-weight:600}
+.vrow{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:10px;font-size:15px}
+.badge{background:var(--muted);color:var(--muted-foreground);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:600}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:20px 16px;font-size:14px;color:var(--muted-foreground);text-align:center}
+.more{width:44px;height:44px;border:0;border-radius:10px;background:none;color:var(--muted-foreground);display:grid;place-items:center;margin-left:auto}
+.ip{border:1px solid var(--primary-strong);background:var(--primary-soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.ipt{display:flex;gap:12px;align-items:center}
+.ipi{width:40px;height:40px;border-radius:12px;background:var(--card);display:grid;place-items:center;color:var(--primary-strong);flex:none}
+.review{font-size:14px;line-height:1.45;color:var(--muted-foreground);padding:0 16px 4px;margin:-4px 0 0}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div class="tt" data-theme="{{theme}}" style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{books}}" as="b" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{b.label}}</div>
+<div class="ph">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pic"><img src="{{b.cover}}" alt=""></div>
+<div class="prow">
+<img class="cover" src="{{b.cover}}" alt="{{b.coverAlt}}">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-bottom: 2px">
+<h1 class="h1">{{b.title}}</h1>
+<sc-if value="{{b.uk}}" hint-placeholder-val="{{true}}"><p class="uk">{{b.uk}}</p></sc-if>
+<p class="facts">{{b.authors}}</p>
+</div>
+</div>
+<div class="body">
+
+<sc-if value="{{b.reading}}" hint-placeholder-val="{{false}}">
+<section class="ip" aria-label="Reading">
+<div class="ipt"><span class="ipi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span>
+<div><div style="font-size: 16px; font-weight: 700">Reading</div><div style="font-size: 14px; color: var(--muted-foreground)">{{b.since}}</div></div>
+<button class="more" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div style="display: flex; gap: 8px"><button class="btn p" style="flex: 1; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn" style="flex: 1; justify-content: center; background: var(--card)">Stop reading</button></div>
+</section>
+</sc-if>
+
+<sc-if value="{{b.read}}" hint-placeholder-val="{{true}}">
+<div class="tiles">
+<div class="tile"><span class="tl">Read</span><span class="tv">{{b.count}}</span></div>
+<div class="tile"><span class="tl">Your rating</span><span class="tv"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill: var(--primary)"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>{{b.rating}}</span></div>
+<div class="tile"><span class="tl">First read</span><span class="tv">{{b.first}}</span></div>
+</div>
+</sc-if>
+
+<div class="acts">
+<sc-if value="{{b.notReading}}" hint-placeholder-val="{{true}}"><button class="btn p"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>{{b.readLabel}}</button></sc-if>
+<sc-if value="{{b.planned}}" hint-placeholder-val="{{true}}"><button class="btn on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fillme" d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Want to read</button></sc-if>
+<sc-if value="{{b.notPlanned}}" hint-placeholder-val="{{false}}"><button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Want to read</button></sc-if>
+<sc-if value="{{b.notReading}}" hint-placeholder-val="{{true}}"><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>{{b.startLabel}}</button></sc-if>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button>
+</div>
+
+<h2 class="h2">Readings</h2>
+<sc-if value="{{b.read}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{b.readings}}" as="r" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div class="vrow"><span style="font-weight: 500">{{r.date}}</span><span style="display: flex; align-items: center; gap: 4px; color: var(--muted-foreground)"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill: var(--primary)"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>{{r.rating}}</span><sc-if value="{{r.reread}}" hint-placeholder-val="{{true}}"><span class="badge">Reread</span></sc-if><button class="more" aria-label="Actions for {{r.date}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></button></div>
+<sc-if value="{{r.review}}" hint-placeholder-val="{{false}}"><p class="review">{{r.review}}</p></sc-if>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{b.unread}}" hint-placeholder-val="{{false}}"><div class="empty">Not read yet</div></sc-if>
+</div>
+<nav class="tabbar" aria-label="Sections">
+<a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a>
+<a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a>
+<a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a>
+</nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1280}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+theme: this.props.theme ?? 'dark',
+books: [
+{ label: 'Before a first Reading · on the Reading list', cover: '/_blob/7e04ee48c08c215bebdea8de46f5ccc2', coverAlt: 'Kafka on the Shore cover', title: 'Kafka on the Shore (海辺のカフカ, 2002)', uk: 'Кафка на пляжі', authors: 'Haruki Murakami', read: false, unread: true, reading: false, notReading: true, planned: true, notPlanned: false, readLabel: 'Read', startLabel: 'Start reading', readings: [] },
+{ label: 'Read twice · Rating 5 · a long English title', cover: '/_blob/b26c486b3ad6b77ea20aff6e22cae414', coverAlt: 'One Hundred Years of Solitude cover', title: 'One Hundred Years of Solitude (Cien años de soledad, 1967)', uk: 'Сто років самотності', authors: 'Gabriel García Márquez', read: true, unread: false, reading: false, notReading: true, planned: false, notPlanned: true, readLabel: 'Read again', startLabel: 'Start rereading', count: 'Twice', rating: '5', first: '2011', readings: [
+{ date: '2 March 2026', rating: '5', reread: true, review: 'Better the second time: I kept a family tree on the back cover and finally saw the circles close.' },
+{ date: 'No date', rating: '4.5', reread: false, review: '' }
+] },
+{ label: 'Reading (In Progress) · started 12 October', cover: '/_blob/125bb0a6295c483e75255706bc95cd81', coverAlt: 'Piranesi cover', title: 'Piranesi (2020)', uk: 'Піранезі', authors: 'Susanna Clarke', read: false, unread: true, reading: true, notReading: false, planned: false, notPlanned: false, since: 'Since 12 October 2026', readings: [] }
+]
+};
+}
+}
+</script>
+</body>
+</html>

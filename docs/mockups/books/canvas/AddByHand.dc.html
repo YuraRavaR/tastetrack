@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add a book by hand · credit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--overlay:oklch(0 0 0 / 60%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--overlay:oklch(0.2 0.01 50 / 50%);--ink:oklch(0.22 0.02 60)}
+.cap{font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:880px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:28px 28px 0 0;padding:8px 20px 24px;display:flex;flex-direction:column;gap:14px}
+.grab{width:40px;height:5px;border-radius:999px;background:var(--border);align-self:center}
+.st{margin:0;font-size:20px;font-weight:700}
+.sd{margin:-8px 0 0;font-size:14px;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column;gap:6px}
+.lb{font-size:14px;font-weight:600}
+.lb span{font-weight:400;color:var(--muted-foreground)}
+.in{height:44px;border:1px solid var(--input);border-radius:12px;background:var(--background);display:flex;align-items:center;padding:0 12px;font-size:16px;gap:8px;box-sizing:border-box}
+.ph2{color:var(--muted-foreground)}
+.hint{font-size:13px;color:var(--muted-foreground)}
+.btn{height:44px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--foreground)}
+.btn.p{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.x{width:44px;height:44px;border:0;background:none;color:var(--muted-foreground);display:grid;place-items:center;border-radius:10px;flex:none}
+.ft{border-top:1px solid var(--border);background:var(--background)}
+.fti{padding:16px;display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--muted-foreground);line-height:1.45}
+.tm{font-weight:800;font-size:11px;letter-spacing:0.02em;padding:1px 6px;border-radius:4px;background:var(--foreground);color:var(--background);align-self:flex-start}
+.ol{color:var(--foreground);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; gap: 60px; align-items: flex-start">
+
+<sc-for list="{{forms}}" as="f" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{f.label}}</div>
+<div class="tt ph" data-theme="dark">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span></header>
+<div style="position: absolute; inset: 0; background: var(--overlay)"></div>
+<div class="sheet" role="dialog" aria-label="Add a book manually">
+<div class="grab"></div>
+<h2 class="st">Add a book manually</h2>
+<p class="sd">For a book search doesn't find. Only you will see it.</p>
+<div class="fl"><label class="lb">Title</label><div class="in">Доця</div></div>
+<div class="fl"><label class="lb">Original Title <span>optional</span></label><div class="in ph2"></div><span class="hint">Its title in its original language, if that's different.</span></div>
+<div class="fl"><label class="lb">Year <span>optional</span></label><div class="in" style="width: 120px">2019</div></div>
+<sc-if value="{{f.comma}}" hint-placeholder-val="{{true}}">
+<div class="fl"><label class="lb">Authors <span>optional</span></label><div class="in">Тамара Горіха Зерня</div><span class="hint">Separate names with commas.</span></div>
+</sc-if>
+<sc-if value="{{f.rows}}" hint-placeholder-val="{{false}}">
+<div class="fl"><label class="lb">Authors <span>optional</span></label>
+<div style="display: flex; gap: 4px; align-items: center"><div class="in" style="flex: 1">Тамара Горіха Зерня</div><button class="x" aria-label="Remove Тамара Горіха Зерня"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<button class="btn" style="align-self: flex-start; border-style: dashed"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Add an author</button>
+</div>
+</sc-if>
+<div style="display: flex; gap: 10px; margin-top: 4px"><button class="btn" style="flex: 1">Cancel</button><button class="btn p" style="flex: 1">Add</button></div>
+</div>
+</div>
+</div>
+</sc-for>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">The credit on a phone, under the content</div>
+<div class="tt ph" data-theme="light" style="height: auto">
+<div style="height: 140px; padding: 16px; box-sizing: border-box; color: var(--muted-foreground); font-size: 14px">… the end of any page</div>
+<footer class="ft"><div class="fti">
+<span class="tm">TMDB</span>
+<span>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</span>
+<span>Book data and covers from <a href="https://openlibrary.org/" class="ol">Open Library</a>.</span>
+<span>v0.9.0</span>
+</div></footer>
+<div style="height: 72px; background: var(--card); border-top: 1px solid var(--border)"></div>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1290,"height":920}}'>
+class Component extends DCLogic {
+renderVals() {
+return { forms: [
+{ label: 'Authors · 1 · one field, names split by commas', comma: true, rows: false },
+{ label: 'Authors · 2 · one field per author', comma: false, rows: true }
+] };
+}
+}
+</script>
+</body>
+</html>
