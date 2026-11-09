@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4.25 24 24">
+  <!--
+    The cover fan of src/client/assets/logo-mark.svg in fixed colours, since a favicon can't read
+    the page's CSS variables. They are the tokens of src/client/styles.css as hex: the outline is
+    foreground, the front cover primary, the covers behind primary-soft and the star
+    primary-foreground, in light and in dark. (An XML comment can't hold two hyphens in a row, so
+    the names lose theirs.) After changing this file, run
+    `node scripts/icons.mjs` to redraw favicon.ico and apple-touch-icon.png. The viewBox is the
+    32 grid cropped to the fan and its outline, so the mark fills a 16 px tab icon.
+  -->
+  <title>TasteTrack</title>
+  <style>
+    .cover { stroke: #1a1512; stroke-width: 1.75; }
+    .front { fill: #efbd24; }
+    .behind { fill: #fdf1d6; }
+    .star { fill: #221811; }
+    @media (prefers-color-scheme: dark) {
+      .cover { stroke: #f3f1ef; }
+      .front { fill: #f3c530; }
+      .behind { fill: #382f1c; }
+      .star { fill: #120f0d; }
+    }
+  </style>
+  <rect class="cover behind" x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)"/>
+  <rect class="cover behind" x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)"/>
+  <rect class="cover front" x="9.5" y="6.5" width="13" height="19" rx="2.5"/>
+  <path class="star" d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z"/>
+</svg>
