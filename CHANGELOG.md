@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.7.0](https://github.com/YuraRavaR/tastetrack/compare/v0.6.0...v0.7.0) (2026-11-09)
+
+
+### Features
+
+* **account:** open the account menu as a sheet on a phone and restyle Settings and Invites ([#137](https://github.com/YuraRavaR/tastetrack/issues/137)) ([fb960c9](https://github.com/YuraRavaR/tastetrack/commit/fb960c9b3402f9982549fe5a455c0f79ada95140))
+* **auth:** log in, register and set a new password as one plain card ([#130](https://github.com/YuraRavaR/tastetrack/issues/130)) ([61c3b27](https://github.com/YuraRavaR/tastetrack/commit/61c3b273180bb0ec41023a665216daefc6289641))
+* **collections:** add films to a Collection from an Add films sheet ([#144](https://github.com/YuraRavaR/tastetrack/issues/144)) ([0fbb09c](https://github.com/YuraRavaR/tastetrack/commit/0fbb09ca7c73a39be356cbab2fe93761c78dfc3f))
+* **collections:** edit, share and delete a Collection from one ⋯ menu ([#142](https://github.com/YuraRavaR/tastetrack/issues/142)) ([1fd8d47](https://github.com/YuraRavaR/tastetrack/commit/1fd8d47340f2ad8fd83fd035766427471f2bcef3))
+* **collections:** reorder a Collection's films with arrows on each poster ([#143](https://github.com/YuraRavaR/tastetrack/issues/143)) ([dc4686c](https://github.com/YuraRavaR/tastetrack/commit/dc4686c224a6b909bce8eb96254f697fe2b9f53b))
+* **collections:** show one Collection as a poster grid with its Notes ([#141](https://github.com/YuraRavaR/tastetrack/issues/141)) ([9075a6c](https://github.com/YuraRavaR/tastetrack/commit/9075a6cdaefded48b6164a909a3bef7a316f3a5a))
+* **collections:** show the User's Collections as cards with a 2×2 collage ([#140](https://github.com/YuraRavaR/tastetrack/issues/140)) ([0c32a59](https://github.com/YuraRavaR/tastetrack/commit/0c32a598d0ab1b734c48781fcefe6f36c37546b6))
+* **i18n:** call Lists "Collections" in every piece of UI copy ([#129](https://github.com/YuraRavaR/tastetrack/issues/129)) ([0cb2c8d](https://github.com/YuraRavaR/tastetrack/commit/0cb2c8db471f373a26e03a4e5d222752f6fdf78c))
+* **nav:** split the app into Saved, Collections and Search ([#133](https://github.com/YuraRavaR/tastetrack/issues/133)) ([3f5869c](https://github.com/YuraRavaR/tastetrack/commit/3f5869ce2d50a257ee1d7684eeeedf3b6aa14ef0))
+* **saved:** open Saved on a tile per Media Type ([#138](https://github.com/YuraRavaR/tastetrack/issues/138)) ([10969aa](https://github.com/YuraRavaR/tastetrack/commit/10969aae24345eee0866dd7b44bd5fbb8073752c))
+* **saved:** show a Media Type's Watchlist and Watched as poster grids ([#131](https://github.com/YuraRavaR/tastetrack/issues/131)) ([279dd43](https://github.com/YuraRavaR/tastetrack/commit/279dd43dae2656c00ca0d049c2f6c2c15caab568))
+* **saved:** sort and filter a tab's posters with chips ([#136](https://github.com/YuraRavaR/tastetrack/issues/136)) ([1c2c428](https://github.com/YuraRavaR/tastetrack/commit/1c2c4288c59bdf3728833beff1ce31e30eb965c9))
+* **search:** show the User's Saved films first, then TMDB ([#139](https://github.com/YuraRavaR/tastetrack/issues/139)) ([5c0b48a](https://github.com/YuraRavaR/tastetrack/commit/5c0b48a4c670987a7f71b38f4963bd23f0e797e0))
+* **share:** show a shared Collection as a poster grid with its Notes ([#134](https://github.com/YuraRavaR/tastetrack/issues/134)) ([2326bc1](https://github.com/YuraRavaR/tastetrack/commit/2326bc1b48bdebfa27448d61e9ab083ae8c2e398))
+
+
+### Bug Fixes
+
+* **deps:** bump the production-dependencies group across 1 directory with 3 updates ([#106](https://github.com/YuraRavaR/tastetrack/issues/106)) ([78a2852](https://github.com/YuraRavaR/tastetrack/commit/78a2852733d33bf838a162836a9044ebc24a5e53))
+* require a secret for test hooks on staging ([#104](https://github.com/YuraRavaR/tastetrack/issues/104)) ([6d7d6bb](https://github.com/YuraRavaR/tastetrack/commit/6d7d6bb6979d4edec99387c171c8795c7cc6f12d)), closes [#102](https://github.com/YuraRavaR/tastetrack/issues/102)
+* **share:** open films from a shared Collection when logged in ([#135](https://github.com/YuraRavaR/tastetrack/issues/135)) ([3d843ff](https://github.com/YuraRavaR/tastetrack/commit/3d843ffc4c24992d889c1d4d49d664aed162873f))
+
 ## [0.6.0](https://github.com/YuraRavaR/tastetrack/compare/v0.5.0...v0.6.0) (2026-10-31)
 
 
