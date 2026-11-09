@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.0](https://github.com/YuraRavaR/tastetrack/compare/v0.7.0...v0.8.0) (2026-11-09)
+
+
+### Features
+
+* **catalog:** give poster grids and the banner a large poster image ([#145](https://github.com/YuraRavaR/tastetrack/issues/145)) ([d87fb67](https://github.com/YuraRavaR/tastetrack/commit/d87fb679af601d8cb56b39d1c58958fbdbbfd68f))
+* **client:** add a favicon and home-screen icon from the cover fan mark ([#152](https://github.com/YuraRavaR/tastetrack/issues/152)) ([a96c7c6](https://github.com/YuraRavaR/tastetrack/commit/a96c7c6b1861ab09adcc029b3e261b45341af4d0))
+* **client:** name each page in the browser tab ([#153](https://github.com/YuraRavaR/tastetrack/issues/153)) ([91970d7](https://github.com/YuraRavaR/tastetrack/commit/91970d7f9c86084bca8193076e453b6dfa901cc1)), closes [#148](https://github.com/YuraRavaR/tastetrack/issues/148)
+* **client:** show a link preview card for the app and for Share Links ([#156](https://github.com/YuraRavaR/tastetrack/issues/156)) ([693eb31](https://github.com/YuraRavaR/tastetrack/commit/693eb31380cae5f25836f8b460f728652356443a)), closes [#150](https://github.com/YuraRavaR/tastetrack/issues/150)
+* **header:** show the cover fan mark and a stacked Sora wordmark ([#151](https://github.com/YuraRavaR/tastetrack/issues/151)) ([818ed9f](https://github.com/YuraRavaR/tastetrack/commit/818ed9f40d6199fa5fba931458359c4c3d9409ae))
+
+
+### Bug Fixes
+
+* **deps:** bump the production-dependencies group with 2 updates ([#154](https://github.com/YuraRavaR/tastetrack/issues/154)) ([3656702](https://github.com/YuraRavaR/tastetrack/commit/3656702dfbdc8ef3c1ac1c0d4bf2a2e0e10b1d2d))
+
 ## [0.7.0](https://github.com/YuraRavaR/tastetrack/compare/v0.6.0...v0.7.0) (2026-11-09)
 
 
