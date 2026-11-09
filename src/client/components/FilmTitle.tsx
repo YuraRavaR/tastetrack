@@ -24,7 +24,10 @@ export function FilmTitle({
     <span className="flex min-w-0 flex-col">
       <span className="break-words">{filmLabel(metadata)}</span>
       {metadata.ukrainianTitle && (
-        <span lang="uk" className="break-words text-muted-foreground text-sm">
+        <span
+          lang="uk"
+          className="mt-0.5 break-words font-semibold text-muted-foreground text-sm tracking-normal sm:text-[15px]"
+        >
           {metadata.ukrainianTitle}
         </span>
       )}
@@ -36,5 +39,5 @@ export function FilmTitle({
 // while its metadata is missing or holds neither.
 export function FilmFacts({ metadata }: { metadata: FilmMetadata | null }) {
   const facts = metadata && filmFacts(metadata);
-  return facts ? <p className="text-muted-foreground text-sm">{facts}</p> : null;
+  return facts ? <p className="text-[13px] text-muted-foreground sm:text-[15px]">{facts}</p> : null;
 }

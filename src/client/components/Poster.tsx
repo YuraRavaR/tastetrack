@@ -21,7 +21,7 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
     dialog: "h-13.5 w-9 rounded-sm md:h-15 md:w-10",
     thumbnail: "h-18 w-12 rounded-sm",
     search: "h-27 w-18 rounded-sm md:h-18 md:w-12",
-    large: "h-42 w-28 rounded-md",
+    large: "h-39 w-26 rounded-md border shadow-lg sm:h-66 sm:w-44 sm:rounded-lg",
     grid: "aspect-2/3 w-full rounded-lg",
     fan: "size-full rounded-md",
     collage: "size-full",
@@ -40,9 +40,10 @@ const imageSizes: Record<PosterSize, CoverImageSize> = {
   collage: "large",
 };
 
-// A film's poster, or a placeholder when it has none. Only the large and grid sizes have room for
-// the placeholder's caption, and `showCaption={false}` leaves it out, as under controls laid over the
-// poster; the large placeholder fills what it's put in. The rest show their icon.
+// A film's poster, or a placeholder when it has none. Only the grid and large sizes have room for
+// the placeholder's caption, the large one (the film page's) only from `sm`, and
+// `showCaption={false}` leaves it out, as under controls laid over the poster. The rest show their
+// icon.
 export function Poster({
   subject,
   size,
@@ -75,12 +76,18 @@ export function Poster({
       aria-label={t("poster.none")}
       className={cn(
         "flex shrink-0 flex-col items-center justify-center gap-2 bg-muted text-center text-muted-foreground",
-        large ? "size-full" : sizeClass,
+        sizeClass,
+        large && "shadow-none",
         withCaption && "p-2.5",
       )}
     >
-      <Icon aria-hidden className={withCaption ? "size-14" : "size-5"} />
-      {withCaption && showCaption && <p className="text-xs">{t(placeholder.caption)}</p>}
+      <Icon
+        aria-hidden
+        className={cn(withCaption ? "size-14" : "size-5", large && "size-8.5 sm:size-14")}
+      />
+      {withCaption && showCaption && (
+        <p className={cn("text-xs", large && "hidden sm:block")}>{t(placeholder.caption)}</p>
+      )}
     </div>
   );
 }

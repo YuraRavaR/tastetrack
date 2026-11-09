@@ -1,5 +1,6 @@
-import { alien, aliens, film, manualFilm, newFilm } from "../support/scenarios/films";
+import { alien, aliens, film, manualFilm, newFilm, noPosterFilm } from "../support/scenarios/films";
 import { callsRealTmdb, holdImages } from "../support/scenarios/tmdb";
+import { settledBoxOf as box } from "../support/ui/boxes";
 import { expect, test } from "../support/ui/fixtures";
 import type { FilmPage } from "../support/ui/pages/FilmPage";
 
@@ -8,7 +9,7 @@ async function openFilm(filmPage: FilmPage, mediaItemId: number): Promise<void> 
   await expect(filmPage.heading).toBeVisible();
 }
 
-test("a film's page opens with its backdrop, sized for the screen", async ({
+test("a film's page opens with its whole backdrop, the poster over its bottom edge", async ({
   page,
   ui,
   loggedInApi: api,
@@ -16,20 +17,35 @@ test("a film's page opens with its backdrop, sized for the screen", async ({
   await holdImages(page);
   const { id, metadata } = await alien(api);
   const { filmPage } = ui;
+  const poster = filmPage.posterImage(metadata.posterUrls.large);
 
+  // On a phone the picture runs edge to edge at 16:9, and the poster climbs 72 px into it. Both
+  // take their space before the images load, so the page doesn't jump.
   await page.setViewportSize({ width: 402, height: 874 });
   await openFilm(filmPage, id);
 
   await expect(filmPage.backdropImage).toHaveAttribute("src", metadata.backdropUrls.small);
   await expect(filmPage.backdropSource).toHaveAttribute("srcset", metadata.backdropUrls.large);
-  // The space is taken before the image loads, so the page doesn't jump.
-  expect((await filmPage.backdrop.boundingBox())?.height).toBe(184);
+  const phoneBackdrop = await box(filmPage.backdrop);
+  expect(phoneBackdrop.x).toBe(0);
+  expect(phoneBackdrop.width).toBe(402);
+  expect(phoneBackdrop.height).toBeCloseTo((402 * 9) / 16, 0);
+  const phonePoster = await box(poster);
+  expect([phonePoster.width, phonePoster.height]).toEqual([104, 156]);
+  expect(phonePoster.y).toBeCloseTo(phoneBackdrop.y + phoneBackdrop.height - 72, 0);
 
+  // From sm the picture fills the film page's column, 960 px of content, and the poster grows
+  // and climbs 172 px.
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect.poll(async () => (await filmPage.backdrop.boundingBox())?.height).toBe(260);
+  await expect.poll(async () => (await box(filmPage.backdrop)).width).toBe(960);
+  const webBackdrop = await box(filmPage.backdrop);
+  expect(webBackdrop.height).toBe(540);
+  const webPoster = await box(poster);
+  expect([webPoster.width, webPoster.height]).toEqual([176, 264]);
+  expect(webPoster.y).toBeCloseTo(webBackdrop.y + webBackdrop.height - 172, 0);
 });
 
-test("a film without a backdrop shows its poster in the banner, larger than a thumbnail", async ({
+test("a film without a backdrop has no picture, its poster at the top of the page", async ({
   page,
   ui,
   loggedInApi: api,
@@ -39,12 +55,47 @@ test("a film without a backdrop shows its poster in the banner, larger than a th
   const { id, metadata } = await aliens(api);
   const { filmPage } = ui;
 
+  const poster = filmPage.posterImage(metadata.posterUrls.large);
+
+  // Not pulled up over a picture that isn't there: below the top of the page's column.
+  await page.setViewportSize({ width: 402, height: 874 });
+  await openFilm(filmPage, id);
+  await expect(filmPage.backdrop).toHaveCount(0);
+  const phonePoster = await box(poster);
+  expect([phonePoster.width, phonePoster.height]).toEqual([104, 156]);
+  expect(phonePoster.y).toBeGreaterThanOrEqual((await box(filmPage.main)).y);
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect.poll(async () => (await box(poster)).width).toBe(176);
+  const webPoster = await box(poster);
+  expect(webPoster.height).toBe(264);
+  expect(webPoster.y).toBeGreaterThanOrEqual((await box(filmPage.main)).y);
+});
+
+test("a film with a backdrop and no poster shows the placeholder over it", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  test.skip(callsRealTmdb(), "Only the TMDB fake has this film");
+  await holdImages(page);
+  const { id } = await noPosterFilm(api);
+  const { filmPage } = ui;
+
+  // On a phone it is the poster's size, too small for the caption, so only its icon shows.
+  await page.setViewportSize({ width: 402, height: 874 });
   await openFilm(filmPage, id);
 
-  await expect(filmPage.backdrop).toHaveCount(0);
-  const poster = filmPage.posterImage(metadata.posterUrls.large);
-  await expect(poster).toHaveCSS("width", "112px");
-  await expect(poster).toHaveCSS("height", "168px");
+  const backdrop = await box(filmPage.backdrop);
+  const phonePlaceholder = await box(filmPage.noPosterPlaceholder);
+  expect([phonePlaceholder.width, phonePlaceholder.height]).toEqual([104, 156]);
+  expect(phonePlaceholder.y).toBeCloseTo(backdrop.y + backdrop.height - 72, 0);
+  await expect(filmPage.noPosterPlaceholder).toHaveText("", { useInnerText: true });
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(filmPage.noPosterPlaceholder).toHaveText(/\S/, { useInnerText: true });
+  const webPlaceholder = await box(filmPage.noPosterPlaceholder);
+  expect([webPlaceholder.width, webPlaceholder.height]).toEqual([176, 264]);
 });
 
 test("the Log Entry dialog shows the film's small poster", async ({
@@ -63,7 +114,7 @@ test("the Log Entry dialog shows the film's small poster", async ({
   await expect(dialog.posterImage).toHaveAttribute("src", metadata.posterUrls.small);
 });
 
-test("a film with neither shows the placeholder with its caption", async ({
+test("a film with neither has no picture, the placeholder with its caption at the top", async ({
   page,
   ui,
   loggedInApi: api,
@@ -75,7 +126,11 @@ test("a film with neither shows the placeholder with its caption", async ({
 
   await openFilm(ui.filmPage, added.id);
 
-  await expect(ui.filmPage.noPosterPlaceholder).toHaveText(/\S/);
+  await expect(ui.filmPage.backdrop).toHaveCount(0);
+  await expect(ui.filmPage.noPosterPlaceholder).toHaveText(/\S/, { useInnerText: true });
+  const placeholder = await box(ui.filmPage.noPosterPlaceholder);
+  expect([placeholder.width, placeholder.height]).toEqual([176, 264]);
+  expect(placeholder.y).toBeGreaterThanOrEqual((await box(ui.filmPage.main)).y);
 });
 
 test("before a first viewing, a film's page offers the actions and explains its empty Viewings", async ({

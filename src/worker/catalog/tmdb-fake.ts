@@ -80,6 +80,18 @@ const films: FakeFilm[] = [
     runtime: 90,
     genres: ["Drama"],
   },
+  // Not a real film: a backdrop (Alien's picture) and no poster, for the film page's placeholder.
+  // The Matrix has the same gap, but only the TMDB cache tests may use it.
+  {
+    id: 999_000_002,
+    original_title: "TMDB Fake No Poster",
+    release_date: "2020-01-01",
+    poster_path: null,
+    backdrop_path: "/AmR3JG1VQVxU8TfAvljUhfSFUOx.jpg",
+    titles: { "en-US": "TMDB Fake No Poster" },
+    runtime: 90,
+    genres: ["Drama"],
+  },
 ];
 
 const detailsFailureId = 999_000_001;
