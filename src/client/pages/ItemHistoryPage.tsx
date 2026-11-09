@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { ItemHistoryResponse, LogEntry } from "../../shared/api";
 import * as api from "../api";
+import { filmTitleAndYear } from "../catalog/film-label";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { FilmActions } from "../components/FilmActions";
@@ -15,6 +16,7 @@ import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { libraryPath } from "../library/library-tabs";
+import { usePageTitle } from "../navigation/page-title";
 
 type HistoryState =
   | { status: "loading" }
@@ -47,6 +49,9 @@ export function ItemHistoryPage() {
   const [deleting, setDeleting] = useState<LogEntry | null>(null);
   const [editingFilm, setEditingFilm] = useState(false);
   const [deletingFilm, setDeletingFilm] = useState(false);
+  // The page belongs to no section, so until the film is known the tab shows the app's name alone.
+  const metadata = state.status === "loaded" ? state.history.mediaItem.metadata : null;
+  usePageTitle(metadata ? [filmTitleAndYear(metadata)] : []);
 
   useEffect(() => {
     let cancelled = false;

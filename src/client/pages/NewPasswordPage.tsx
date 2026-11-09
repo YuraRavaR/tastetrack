@@ -8,11 +8,13 @@ import { AuthCard } from "../components/AuthCard";
 import { FormError } from "../components/FormError";
 import { FormField } from "../components/FormField";
 import { t } from "../i18n/t";
+import { usePageTitle } from "../navigation/page-title";
 
 // Where a User who logged in with a Temporary Password the Operator issued sets their own, before
 // anything else; then they go where they were going.
 export function NewPasswordPage() {
   const { state, setNewPassword } = useAuth();
+  usePageTitle([t("newPassword.title")]);
   const location = useLocation();
   const [error, setError] = useState<NewPasswordError | null>(null);
   const [submitting, setSubmitting] = useState(false);

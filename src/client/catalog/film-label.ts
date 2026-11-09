@@ -18,6 +18,12 @@ export function filmLabel({ title, originalTitle, year }: Titled): string {
   return title;
 }
 
+// The title and, when known, the year, leaving out the Original Title: "Alien (1979)", "Чужий
+// (1979)". The browser tab names a film's page this way.
+export function filmTitleAndYear({ title, year }: Omit<Titled, "originalTitle">): string {
+  return year === null ? title : t("film.labelWithYear", { title, year: String(year) });
+}
+
 // The label without its year, for where the year shows apart: "Alien", "Чужий (Alien)".
 export function filmName({ title, originalTitle }: Omit<Titled, "year">): string {
   return filmLabel({ title, originalTitle, year: null });

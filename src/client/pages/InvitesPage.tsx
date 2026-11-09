@@ -5,6 +5,7 @@ import type { InviteCode } from "../../shared/api";
 import * as api from "../api";
 import { FormError } from "../components/FormError";
 import { formatDate, t } from "../i18n/t";
+import { usePageTitle } from "../navigation/page-title";
 
 type Codes =
   | { status: "loading" }
@@ -13,6 +14,7 @@ type Codes =
 
 export function InvitesPage() {
   const [codes, setCodes] = useState<Codes>({ status: "loading" });
+  usePageTitle([t("invites.title")]);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<"limit" | "unavailable" | null>(null);
 

@@ -43,6 +43,7 @@ import {
   rememberSort,
   showLibrary,
 } from "../library/library-view";
+import { usePageTitle } from "../navigation/page-title";
 import { savedPath, searchPath } from "../navigation/paths";
 
 // What differs between the two tabs: the tab's name, its empty state, and what each poster shows
@@ -120,6 +121,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
   const typeName = mediaWord(mediaType, "tab");
   const parts = tabParts(mediaType);
   const open = parts[tab];
+  usePageTitle([open.name, typeName]);
 
   useEffect(() => {
     let cancelled = false;

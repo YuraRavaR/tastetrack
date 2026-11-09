@@ -7,6 +7,19 @@ test("a logged-out visitor is sent to the login page", async ({ page, ui }) => {
   await expect(ui.loginPage.heading).toBeVisible();
 });
 
+test("the browser tab names the login and register pages as their headings do", async ({
+  page,
+  ui,
+}) => {
+  const { loginPage, registerPage } = ui;
+  await loginPage.goto();
+  await expect(page).toHaveTitle("Log in · TasteTrack");
+
+  await loginPage.registerLink.click();
+  await expect(registerPage.heading).toBeVisible();
+  await expect(page).toHaveTitle("Register · TasteTrack");
+});
+
 test("a User logs in, lands where they were going, and logs out", { tag: "@smoke" }, async ({
   page,
   ui,

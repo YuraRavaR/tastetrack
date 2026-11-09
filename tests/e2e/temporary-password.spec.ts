@@ -16,6 +16,7 @@ test("a User who logs in with a Temporary Password must set their own first", as
 
   await expect(page).toHaveURL(newPasswordPage.path());
   await expect(newPasswordPage.heading).toBeVisible();
+  await expect(page).toHaveTitle("Set a new password · TasteTrack");
   await expect(newPasswordPage.listsLink).toHaveCount(0);
 
   // Every other page, even after a reload, sends the User back here.
