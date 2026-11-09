@@ -1,0 +1,59 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AWeb.dc.html": { "expand": "fill", "h": 1000, "page": "r1", "title": "A · web", "w": 1280, "x": 470, "y": 0 },
+    "BPhone.dc.html": { "h": 844, "page": "r1", "title": "B · phone", "w": 390, "x": 0, "y": 1380 },
+    "BWeb.dc.html": { "expand": "fill", "h": 1000, "page": "r1", "title": "B · web", "w": 1280, "x": 470, "y": 1380 },
+    "CPhone.dc.html": { "h": 844, "page": "r1", "title": "C · phone", "w": 390, "x": 0, "y": 2760 },
+    "CWeb.dc.html": { "expand": "fill", "h": 1000, "page": "r1", "title": "C · web", "w": 1280, "x": 470, "y": 2760 },
+    "DPhone.dc.html": { "h": 844, "page": "r1", "title": "D · phone", "w": 390, "x": 0, "y": 4140 },
+    "DWeb.dc.html": { "expand": "fill", "h": 1000, "page": "r1", "title": "D · web", "w": 1280, "x": 470, "y": 4140 },
+    "Main.dc.html": { "h": 844, "page": "r1", "title": "A · phone", "w": 390, "x": 0, "y": 0 },
+    "R2BPhone.dc.html": { "h": 880, "page": "r2", "title": "B · phone · Spirit, Hello Kitty", "w": 820, "x": 0, "y": 0 },
+    "R2BWeb.dc.html": { "h": 1936, "page": "r2", "title": "B · web · stats and actions under the picture", "w": 1280, "x": 900, "y": 0 },
+    "R2CPhone.dc.html": { "h": 880, "page": "r2", "title": "C · phone · Spirit, Hello Kitty", "w": 820, "x": 0, "y": 2320 },
+    "R2CWeb.dc.html": { "h": 1936, "page": "r2", "title": "C · web · Spirit, Hello Kitty", "w": 1280, "x": 900, "y": 2320 },
+    "R3BWeb.dc.html": { "h": 2216, "page": "r2", "title": "B · web v3 · one column, like the phone", "w": 1280, "x": 2260, "y": 0 },
+    "EdgePhone.dc.html": { "h": 880, "page": "r3", "title": "B · phone · edge cases", "w": 2110, "x": 0, "y": 0 },
+    "EdgeWeb.dc.html": { "h": 3344, "page": "r3", "title": "B · web · edge cases", "w": 2600, "x": 0, "y": 1260 }
+  },
+  "createdOnFiles": { "at": "2026-11-09T16:40:00Z", "v": 1 },
+  "designSystems": [],
+  "launch": { "page": "r3", "view": "canvas" },
+  "noteOrder": ["ta", "tb", "tc", "td", "r2b", "r2c", "note-e2yiik", "r3a", "r3b"],
+  "notes": {
+    "note-e2yiik": { "page": "r2", "text": "", "w": 240, "x": 2649, "y": 272 },
+    "r2b": { "kind": "title1", "maxW": 3540, "page": "r2", "text": "B · Cinematic hero, revised web", "w": 240, "x": 0, "y": -260 },
+    "r2c": { "kind": "title1", "maxW": 2180, "page": "r2", "text": "C · Sharp poster on a blurred backdrop", "w": 240, "x": 0, "y": 2060 },
+    "ta": { "kind": "title1", "maxW": 1750, "page": "r1", "text": "A · Whole picture, 16:9", "w": 240, "x": 0, "y": -260 },
+    "tb": { "kind": "title1", "maxW": 1750, "page": "r1", "text": "B · Cinematic hero, picture fades into the page", "w": 240, "x": 0, "y": 1120 },
+    "tc": { "kind": "title1", "maxW": 1750, "page": "r1", "text": "C · Sharp poster on a blurred backdrop", "w": 240, "x": 0, "y": 2500 },
+    "td": { "kind": "title1", "maxW": 1750, "page": "r1", "text": "D · Same height, whole picture, blurred edges", "w": 240, "x": 0, "y": 3880 },
+    "r3a": { "kind": "title1", "maxW": 2600, "page": "r3", "text": "B · No backdrop, no poster, light theme · phone", "x": 0, "y": -260 },
+    "r3b": { "kind": "title1", "maxW": 2600, "page": "r3", "text": "B · No backdrop, no poster, light theme · web", "x": 0, "y": 1000 }
+  },
+  "order": [
+    "Main.dc.html",
+    "AWeb.dc.html",
+    "BPhone.dc.html",
+    "BWeb.dc.html",
+    "CPhone.dc.html",
+    "CWeb.dc.html",
+    "DPhone.dc.html",
+    "DWeb.dc.html",
+    "R2BPhone.dc.html",
+    "R2BWeb.dc.html",
+    "R2CPhone.dc.html",
+    "R2CWeb.dc.html",
+    "R3BWeb.dc.html",
+    "EdgePhone.dc.html",
+    "EdgeWeb.dc.html"
+  ],
+  "pages": [
+    { "id": "r1", "name": "Round 1 · Amélie" },
+    { "id": "r2", "name": "Round 2 · B and C" },
+    { "id": "r3", "name": "Round 3 · Edge cases" }
+  ],
+  "title": "TasteTrack film banner"
+}

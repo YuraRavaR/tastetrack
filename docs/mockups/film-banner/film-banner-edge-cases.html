@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Film banner · edge cases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60); --border: oklch(0.88 0.015 75);
+  --ink: oklch(0.22 0.02 60);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70); --border: oklch(1 0 0 / 11%);
+    --ink: #fff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+a { color: inherit; text-decoration: none; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* Header: logo and account; the section nav joins from md. */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo svg { width: 34px; height: 34px; color: var(--ink); }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.nav { display: none; gap: 4px; }
+.nav a { height: 36px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.account { margin-left: auto; width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); color: var(--foreground); display: grid; place-items: center; }
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border); }
+.tabs a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.tabs .ic { width: 24px; height: 24px; }
+
+/* The banner: phone first, the backdrop full bleed at 16:9, fading into the page at the bottom. */
+.page { max-width: 1008px; margin: 0 auto; }
+.hero { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+.hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 45%, var(--background) 100%); }
+.head { position: relative; display: flex; align-items: flex-end; gap: 14px; margin-top: -72px; padding: 0 16px; }
+.poster { width: 104px; height: 156px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 8px 24px oklch(0 0 0 / 35%); flex: none; }
+.titles { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-bottom: 2px; }
+h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+.uk { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted-foreground); }
+.facts { margin: 2px 0 0; font-size: 13px; color: var(--muted-foreground); }
+
+.body { display: flex; flex-direction: column; gap: 18px; padding: 18px 16px 0; }
+.tiles { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; }
+.tile { border: 1px solid var(--border); background: var(--card); border-radius: 14px; padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tl { font-size: 12px; color: var(--muted-foreground); }
+.tv { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.tv.date { font-size: 15px; min-width: 72px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { height: 44px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: 15px; font-weight: 600; border: 1px solid var(--border); background: transparent; color: var(--foreground); }
+.btn.p { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+h2 { margin: 4px 0 -6px; font-size: 18px; font-weight: 600; }
+.vrow { border: 1px solid var(--border); background: var(--card); border-radius: 14px; padding: 6px 6px 6px 16px; display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.vrow .r { display: flex; align-items: center; gap: 4px; color: var(--muted-foreground); }
+.more { margin-left: auto; width: 44px; height: 44px; border: 0; border-radius: 10px; background: none; color: var(--muted-foreground); display: grid; place-items: center; }
+
+/* From sm: one column, the backdrop inside it with every edge feathered, the poster and stats larger. */
+@media (min-width: 640px) {
+  .page { padding: 24px 24px 0; }
+  .hero::after { content: none; }
+  .hero {
+    --fade-x: linear-gradient(to right, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.08) 3%, rgb(0 0 0 / 0.25) 6%, rgb(0 0 0 / 0.5) 9%, rgb(0 0 0 / 0.75) 12%, rgb(0 0 0 / 0.92) 15%, #000 18%, #000 82%, rgb(0 0 0 / 0.92) 85%, rgb(0 0 0 / 0.75) 88%, rgb(0 0 0 / 0.5) 91%, rgb(0 0 0 / 0.25) 94%, rgb(0 0 0 / 0.08) 97%, rgb(0 0 0 / 0) 100%);
+    --fade-y: linear-gradient(to bottom, rgb(0 0 0 / 0.6) 0%, rgb(0 0 0 / 0.9) 4%, #000 8%, #000 45%, rgb(0 0 0 / 0.95) 54%, rgb(0 0 0 / 0.82) 63%, rgb(0 0 0 / 0.62) 72%, rgb(0 0 0 / 0.4) 81%, rgb(0 0 0 / 0.18) 90%, rgb(0 0 0 / 0.05) 96%, rgb(0 0 0 / 0) 100%);
+    -webkit-mask-image: var(--fade-x), var(--fade-y); -webkit-mask-composite: source-in;
+    mask-image: var(--fade-x), var(--fade-y); mask-composite: intersect;
+  }
+  .head { margin-top: -172px; gap: 28px; padding: 0 24px; }
+  .poster { width: 176px; height: 264px; border-radius: 14px; box-shadow: 0 12px 32px oklch(0 0 0 / 35%); }
+  .titles { gap: 4px; padding-bottom: 4px; }
+  h1 { font-size: 34px; letter-spacing: -0.02em; line-height: 1.12; }
+  .uk, .facts { font-size: 15px; }
+  .body { gap: 20px; padding: 22px 24px 0; }
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .tile { padding: 12px 16px; }
+  .tl { font-size: 13px; }
+  .tv, .tv.date { font-size: 20px; }
+  .actions { gap: 10px; }
+  .btn { padding: 0 16px; }
+  h2 { margin: 8px 0 -8px; font-size: 20px; }
+}
+@media (min-width: 768px) {
+  body { padding-bottom: 48px; }
+  .bar { height: 64px; padding: 0 24px; }
+  .logo { gap: 8px; } .logo svg { width: 36px; height: 36px; } .wm { font-size: 17px; }
+  .nav { display: flex; }
+  .tabs { display: none; }
+}
+
+/* Edge cases. */
+.case { padding-bottom: 40px; }
+.label { max-width: 1008px; margin: 0 auto; padding: 20px 16px 12px; font-size: 13px; font-weight: 600; color: var(--muted-foreground); border-top: 1px dashed var(--border); }
+.case:first-of-type .label { border-top: 0; }
+.hero.blurred img { filter: blur(24px) saturate(1.3); transform: scale(1.3); }
+.head.flat { margin-top: 0; padding-top: 16px; }
+.ph { width: 104px; height: 156px; border-radius: 10px; border: 1px solid var(--border); background: var(--muted); color: var(--muted-foreground); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; flex: none; text-align: center; padding: 0 16px; }
+.ph svg { width: 34px; height: 34px; stroke-width: 1.6; }
+.ph span { display: none; font-size: 12px; }
+@media (min-width: 640px) {
+  .label { padding: 28px 24px 12px; }
+  .hero.blurred img { filter: blur(36px) saturate(1.3); transform: scale(1.25); }
+  .ph { width: 176px; height: 264px; border-radius: 14px; }
+  .ph svg { width: 56px; height: 56px; stroke-width: 1.5; }
+  .ph span { display: block; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="bar">
+<a href="#" class="logo" aria-label="TasteTrack">
+<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"/><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"/><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"/><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"/></svg>
+<span class="wm">Taste<br>Track</span>
+</a>
+<nav class="nav" aria-label="Sections"><a href="#">Saved</a><a href="#">Collections</a><a href="#">Search</a></nav>
+<button class="account" aria-label="Account menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
+</div>
+</header>
+<main>
+<section class="case"><p class="label">No backdrop: the poster, blurred, takes the picture's place</p><div class="page"><div class="hero blurred"><img src="https://image.tmdb.org/t/p/w500/bBEkKDQFianNYwGWR7gJfPVakmG.jpg" alt=""></div><div class="head"><img class="poster" src="https://image.tmdb.org/t/p/w500/bBEkKDQFianNYwGWR7gJfPVakmG.jpg" alt="Spirit: Stallion of the Cimarron poster"><div class="titles"><h1>Spirit: Stallion of the Cimarron (2002)</h1><p class="uk">Спіріт – душа прерій</p><p class="facts">83 min · Adventure, Animation, Drama, Family, Western</p></div></div></div></section>
+<section class="case"><p class="label">No poster: a placeholder in the poster's place (icon only on a phone)</p><div class="page"><div class="hero"><picture><source media="(min-width: 40rem)" srcset="https://image.tmdb.org/t/p/w1280/b8hPBW0NJmiIVzvQjT3CwIpAdzl.jpg"><img src="https://image.tmdb.org/t/p/w780/b8hPBW0NJmiIVzvQjT3CwIpAdzl.jpg" alt=""></picture></div><div class="head"><div class="ph" role="img" aria-label="No poster"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a2 2 0 0 0 0-4 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0 0 4"/><path d="M10 22 9 8"/><path d="m14 22 1-14"/><path d="M20 8c.5 0 .9.4.8 1l-2.6 12c-.1.5-.7 1-1.2 1H7c-.6 0-1.1-.4-1.2-1L3.2 9c-.1-.6.3-1 .8-1Z"/></svg><span aria-hidden="true">Eaten with the popcorn.</span></div><div class="titles"><h1>Spirit: Stallion of the Cimarron (2002)</h1><p class="uk">Спіріт – душа прерій</p><p class="facts">83 min · Adventure, Animation, Drama, Family, Western</p></div></div></div></section>
+<section class="case"><p class="label">Neither: no picture area, the placeholder at the top</p><div class="page"><div class="head flat"><div class="ph" role="img" aria-label="No poster"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a2 2 0 0 0 0-4 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0 0 4"/><path d="M10 22 9 8"/><path d="m14 22 1-14"/><path d="M20 8c.5 0 .9.4.8 1l-2.6 12c-.1.5-.7 1-1.2 1H7c-.6 0-1.1-.4-1.2-1L3.2 9c-.1-.6.3-1 .8-1Z"/></svg><span aria-hidden="true">Eaten with the popcorn.</span></div><div class="titles"><h1>Spirit: Stallion of the Cimarron (2002)</h1><p class="uk">Спіріт – душа прерій</p><p class="facts">83 min · Adventure, Animation, Drama, Family, Western</p></div></div></div></section>
+</main>
+<nav class="tabs" aria-label="Sections">
+<a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>Saved</a>
+<a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>Collections</a>
+<a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Search</a>
+</nav>
+</body>
+</html>
