@@ -1,0 +1,229 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-09T21:00:00Z"
+  },
+  "title": "TasteTrack books",
+  "launch": {
+    "view": "canvas",
+    "page": "r3"
+  },
+  "pages": [
+    {
+      "id": "r1",
+      "name": "Round 1 · Chips and covers"
+    },
+    {
+      "id": "r2",
+      "name": "Round 2 · Segmented chips on the web"
+    },
+    {
+      "id": "r3",
+      "name": "Round 3 · Book screens"
+    }
+  ],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 2190,
+      "h": 1600,
+      "page": "r1",
+      "title": "Media Type chips · phone · A scroll · B wrap · C segmented · D dropdown"
+    },
+    "ChipsWeb.dc.html": {
+      "x": 0,
+      "y": 1943,
+      "w": 2640,
+      "h": 1520,
+      "page": "r1",
+      "title": "Media Type chips · web"
+    },
+    "Covers.dc.html": {
+      "x": 0,
+      "y": 3806,
+      "w": 1800,
+      "h": 2400,
+      "page": "r1",
+      "title": "Book covers · how odd shapes sit · A crop · B blurred fill · C on a shelf · D natural height"
+    },
+    "Placeholders.dc.html": {
+      "x": 0,
+      "y": 6549,
+      "w": 1500,
+      "h": 2120,
+      "page": "r1",
+      "title": "Book without a cover · placeholder options"
+    },
+    "CWeb.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 2640,
+      "h": 1380,
+      "page": "r2",
+      "title": "C on the web · C1 full width row · C2 phone control full width · C3 compact on the heading row"
+    },
+    "SearchPhone.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1290,
+      "h": 1560,
+      "page": "r3",
+      "title": "Search on Books · phone · dark (Tweaks: light)"
+    },
+    "SearchWeb.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 1280,
+      "h": 1500,
+      "page": "r3",
+      "title": "Search on Books · web · light"
+    },
+    "BookPhone.dc.html": {
+      "x": 0,
+      "y": 1903,
+      "w": 1290,
+      "h": 1280,
+      "page": "r3",
+      "title": "A book's page · phone · before a first Reading, Read, Reading"
+    },
+    "BookWeb.dc.html": {
+      "x": 1410,
+      "y": 1903,
+      "w": 1280,
+      "h": 1450,
+      "page": "r3",
+      "title": "A book's page · web · light"
+    },
+    "SavedPhone.dc.html": {
+      "x": 0,
+      "y": 3696,
+      "w": 1740,
+      "h": 920,
+      "page": "r3",
+      "title": "Saved · the Books tile, Reading list, Read, Reading"
+    },
+    "CollectionsPhone.dc.html": {
+      "x": 0,
+      "y": 4959,
+      "w": 1290,
+      "h": 1040,
+      "page": "r3",
+      "title": "Collections · a book Collection, its page, its Share Link page"
+    },
+    "AddByHand.dc.html": {
+      "x": 0,
+      "y": 6342,
+      "w": 1290,
+      "h": 920,
+      "page": "r3",
+      "title": "Adding a book by hand · the Open Library credit"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "ChipsWeb.dc.html",
+    "Covers.dc.html",
+    "Placeholders.dc.html",
+    "CWeb.dc.html",
+    "SearchPhone.dc.html",
+    "SearchWeb.dc.html",
+    "BookPhone.dc.html",
+    "BookWeb.dc.html",
+    "SavedPhone.dc.html",
+    "CollectionsPhone.dc.html",
+    "AddByHand.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "maxW": 2190,
+      "page": "r1",
+      "text": "Media Type chips, five types",
+      "x": 0,
+      "y": -260
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 2640,
+      "page": "r1",
+      "text": "The same chips on the web",
+      "x": 0,
+      "y": 1683
+    },
+    "t3": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "r1",
+      "text": "Book covers run from 2:3 to square",
+      "x": 0,
+      "y": 3546
+    },
+    "t4": {
+      "kind": "title1",
+      "maxW": 1500,
+      "page": "r1",
+      "text": "A book with no cover",
+      "x": 0,
+      "y": 6289
+    },
+    "r2t": {
+      "kind": "title1",
+      "maxW": 2640,
+      "page": "r2",
+      "text": "C, the segmented control, on the web",
+      "x": 0,
+      "y": -260
+    },
+    "picks": {
+      "page": "r1",
+      "x": 2300,
+      "y": 0,
+      "w": 320,
+      "fill": "green",
+      "text": "Picked 2026-11-09:\nChips C, on the web C2 (the phone's control, full width)\nCovers A (crop to 2:3)\nNo cover: 2 (typeset cover)"
+    },
+    "r3t0": {
+      "kind": "title1",
+      "maxW": 2690,
+      "page": "r3",
+      "text": "Search on Books",
+      "x": 0,
+      "y": -260
+    },
+    "r3t1": {
+      "kind": "title1",
+      "maxW": 2690,
+      "page": "r3",
+      "text": "A book's page",
+      "x": 0,
+      "y": 1643
+    },
+    "r3t2": {
+      "kind": "title1",
+      "maxW": 2690,
+      "page": "r3",
+      "text": "Saved",
+      "x": 0,
+      "y": 3436
+    },
+    "r3t3": {
+      "kind": "title1",
+      "maxW": 2690,
+      "page": "r3",
+      "text": "Collections",
+      "x": 0,
+      "y": 4699
+    },
+    "r3t4": {
+      "kind": "title1",
+      "maxW": 2690,
+      "page": "r3",
+      "text": "By hand, and the credit",
+      "x": 0,
+      "y": 6082
+    }
+  },
+  "designSystems": []
+}

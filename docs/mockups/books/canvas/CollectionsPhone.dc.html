@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Book Collections · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--overlay:oklch(0 0 0 / 60%);--overlay-foreground:oklch(0.97 0.01 80);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--overlay:oklch(0.2 0.01 50 / 50%);--overlay-foreground:oklch(0.97 0.01 80);--ink:oklch(0.22 0.02 60)}
+.cap{font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1000px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}
+.ic22{width:22px;height:22px}
+.pc{padding:12px 16px 96px;display:flex;flex-direction:column;gap:14px}
+.h1{margin:4px 0 0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.btn{height:44px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--foreground)}
+.btn.p{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.seg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;background:var(--muted);border-radius:14px;padding:4px;border:0;margin:0}
+.sg{height:56px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:13px;font-weight:500;color:var(--foreground);border:0;background:none;font-family:inherit}
+.sg.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px oklch(0 0 0 / 18%)}
+.sg.on .ic{color:var(--primary-strong)}
+.sg.off{color:var(--muted-foreground)}
+.sn{font-size:11px;font-weight:600;line-height:1}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.lc{display:flex;flex-direction:column;gap:6px;text-decoration:none;min-width:0}
+.coll{aspect-ratio:1;border:1px solid var(--border);background:var(--card);border-radius:16px;padding:6px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:4px;box-sizing:border-box}
+.coll img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;min-height:0}
+.coll span{border-radius:8px;border:1.5px dashed var(--border)}
+.ln{font-size:15px;font-weight:600;line-height:1.25}
+.lm{font-size:13px;color:var(--muted-foreground);display:flex;gap:6px;align-items:center}
+.back{display:flex;align-items:center;gap:4px;font-size:15px;color:var(--muted-foreground);text-decoration:none}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px}
+.gi{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pw{position:relative}
+.cv{width:100%;aspect-ratio:2/3;border-radius:10px;object-fit:cover;display:block;border:1px solid var(--border);box-sizing:border-box}
+.tp{width:100%;aspect-ratio:2/3;border-radius:10px;background:var(--primary-soft);border:1px solid var(--border);box-sizing:border-box;display:flex;flex-direction:column;padding:16px 12px 13px;position:relative;overflow:hidden}
+.tp::before{content:"";position:absolute;inset:6px;border:1px solid var(--primary-strong);opacity:0.45;border-radius:4px}
+.tpt{font-size:14px;font-weight:700;line-height:1.1}
+.tpa{font-size:11px;color:var(--muted-foreground);margin-top:auto}
+.place{position:absolute;left:6px;top:6px;width:24px;height:24px;border-radius:999px;background:var(--overlay);color:var(--overlay-foreground);font-size:12px;font-weight:700;display:grid;place-items:center}
+.dots{position:absolute;right:4px;top:4px;width:30px;height:30px;border-radius:999px;background:var(--overlay);color:var(--overlay-foreground);display:grid;place-items:center;border:0}
+.gt{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gs{font-size:12px;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note{display:flex;gap:5px;font-size:12px;font-style:italic;color:var(--muted-foreground);line-height:1.35;border-top:1px solid var(--border);padding-top:6px;margin-top:2px}
+.note span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+
+<!-- 1 · Collections on Books -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">Collections on Books</div>
+<div class="tt ph" data-theme="dark">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; justify-content: space-between"><h1 class="h1" style="margin: 0">Collections</h1><button class="btn p"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>New collection</button></div>
+<fieldset aria-label="Media type" class="seg">
+<button class="sg" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</button>
+<button class="sg on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</button>
+<button class="sg off" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="sn">Soon</span></button>
+<button class="sg off" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="sn">Soon</span></button>
+<button class="sg off" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="sn">Soon</span></button>
+</fieldset>
+<div class="cards">
+<a href="#" class="lc"><div class="coll"><img src="/_blob/e4057023b7a6da43a8d0eb1384cf2760" alt=""><img src="/_blob/cf2d7993f54c2263f9bfc1d1133603fd" alt=""><img src="/_blob/00f654f67e52d3f7d42fe0856e0df42e" alt=""><img src="/_blob/3e315e6fa8a630abbd41ef620834a0a2" alt=""></div><span class="ln">Ukrainian prose to start with</span><span class="lm"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>6 books · Shared</span></a>
+<a href="#" class="lc"><div class="coll"><img src="/_blob/03a90f014cfb48ca352c899ed3ae04b6" alt=""><img src="/_blob/45091fce10e19ed9a3852649afaef054" alt=""><img src="/_blob/a6e2d6c2cce501729a54e92f1e34a22b" alt=""><img src="/_blob/4bbbf2d38da3f7c74204e252f9560851" alt=""></div><span class="ln">Night reading</span><span class="lm"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>5 books</span></a>
+<a href="#" class="lc"><div class="coll"><img src="/_blob/f9497ac2ddc6f3eaf860b97640197c3a" alt=""><img src="/_blob/268513c376f3d0277d0f6ed95c071732" alt=""><img src="/_blob/99ab4c37456e8a781b9238c3c517e76e" alt=""><img src="/_blob/125bb0a6295c483e75255706bc95cd81" alt=""></div><span class="ln">Gifts for Marko</span><span class="lm"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>4 books</span></a>
+<a href="#" class="lc"><div class="coll"><img src="/_blob/adeb92e7ae86bf65a0b0ae92f2c22b79" alt=""><img src="/_blob/7e5aabe83665118efafb42f44efbaab5" alt=""><span></span><span></span></div><span class="ln">Science fiction classics</span><span class="lm"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>2 books</span></a>
+</div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+
+<!-- 2 · one book Collection -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">One book Collection</div>
+<div class="tt ph" data-theme="dark">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<div style="display: flex; align-items: center; justify-content: space-between"><a href="#" class="back"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Collections</a><button class="btn" aria-label="Collection actions" style="width: 44px; padding: 0; border-radius: 999px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></button></div>
+<div style="display: flex; flex-direction: column; gap: 6px; margin-top: -6px">
+<h1 class="h1" style="margin: 0">Ukrainian prose to start with</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.45">Six novels for a friend who has only read Shevchenko at school.</p>
+<span class="lm">6 books · Shared by link</span>
+</div>
+<button class="btn" style="width: 100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Add books</button>
+<div class="grid">
+<sc-for list="{{items}}" as="i" hint-placeholder-count="6">
+<div class="gi">
+<div class="pw">
+<sc-if value="{{i.src}}" hint-placeholder-val="{{true}}"><img class="cv" src="{{i.src}}" alt="{{i.title}} cover"></sc-if>
+<sc-if value="{{i.noCover}}" hint-placeholder-val="{{false}}"><div class="tp" role="img" aria-label="No cover"><span class="tpt">{{i.title}}</span><span class="tpa">{{i.author}}</span></div></sc-if>
+<span class="place">{{i.n}}</span><button class="dots" aria-label="Actions for {{i.title}}"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></button>
+</div>
+<span class="gt">{{i.title}}</span><span class="gs">{{i.author}}</span>
+<sc-if value="{{i.note}}" hint-placeholder-val="{{false}}"><div class="note"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 1px"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg><span>{{i.note}}</span></div></sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+
+<!-- 3 · Share Link page -->
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">The page its Share Link opens (logged out), light</div>
+<div class="tt ph" data-theme="light">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><a href="#" style="margin-left: auto; font-size: 15px; font-weight: 600; text-decoration: none; padding: 10px 4px">Log in</a></header>
+<div class="pc" style="padding-bottom: 24px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span class="lm">Shared by Olena</span>
+<h1 class="h1" style="margin: 0">Ukrainian prose to start with</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.45">Six novels for a friend who has only read Shevchenko at school.</p>
+<span class="lm">6 books</span>
+</div>
+<div class="grid">
+<sc-for list="{{items}}" as="i" hint-placeholder-count="6">
+<div class="gi">
+<div class="pw">
+<sc-if value="{{i.src}}" hint-placeholder-val="{{true}}"><img class="cv" src="{{i.src}}" alt="{{i.title}} cover"></sc-if>
+<sc-if value="{{i.noCover}}" hint-placeholder-val="{{false}}"><div class="tp" role="img" aria-label="No cover"><span class="tpt">{{i.title}}</span><span class="tpa">{{i.author}}</span></div></sc-if>
+<span class="place">{{i.n}}</span>
+</div>
+<span class="gt">{{i.title}}</span><span class="gs">{{i.author}} · {{i.year}}</span>
+<sc-if value="{{i.note}}" hint-placeholder-val="{{false}}"><div class="note"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 1px"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg><span>{{i.note}}</span></div></sc-if>
+</div>
+</sc-for>
+</div>
+<p style="margin: 8px 0 0; font-size: 14px; color: var(--muted-foreground); text-align: center">Want your own? Ask someone on TasteTrack for an invite.</p>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1290,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+items: [
+{ n: '1', src: '/_blob/e4057023b7a6da43a8d0eb1384cf2760', title: 'Тигролови', author: 'Іван Багряний', year: '1946', note: 'An adventure first, a prison escape second. Start here.' },
+{ n: '2', src: '/_blob/cf2d7993f54c2263f9bfc1d1133603fd', title: 'Маруся Чурай', author: 'Ліна Костенко', year: '1979', note: '' },
+{ n: '3', src: '/_blob/00f654f67e52d3f7d42fe0856e0df42e', title: 'Солодка Даруся', author: 'Марія Матіос', year: '2004', note: 'Short, and it will break your heart in the last part.' },
+{ n: '4', src: '/_blob/3e315e6fa8a630abbd41ef620834a0a2', title: 'Voroshilovgrad', author: 'Serhiy Zhadan', year: '2010', note: '' },
+{ n: '5', src: '', noCover: true, title: 'Felix Austria', author: 'Sofia Andrukhovych', year: '2014', note: '' },
+{ n: '6', src: '/_blob/0a7b10610295aed6e7a312575edd9be6', title: 'Internat', author: 'Serhiy Zhadan', year: '2017', note: 'Read it after Voroshilovgrad.' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

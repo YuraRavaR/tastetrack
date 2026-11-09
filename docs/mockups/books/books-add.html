@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Books · Add a book manually</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87); --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75); --input: oklch(0.85 0.015 75); --overlay: oklch(0.2 0.01 50 / 50%);
+  --overlay-foreground: oklch(0.97 0.01 80); --ink: oklch(0.22 0.02 60);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85); --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%); --input: oklch(1 0 0 / 15%); --overlay: oklch(0 0 0 / 60%);
+    --overlay-foreground: oklch(0.97 0.01 80); --ink: #fff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic16 { width: 16px; height: 16px; }
+.star { width: 13px; height: 13px; fill: currentColor; flex: none; }
+[data-for] { display: none; }
+[data-for].shown { display: block; }
+
+/* Header: logo and account; the section nav joins from md, the bottom tab bar leaves. */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo svg { width: 34px; height: 34px; color: var(--ink); }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.nav { display: none; gap: 4px; }
+.nav a { height: 36px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); }
+.account { margin-left: auto; width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); display: grid; place-items: center; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border); z-index: 5; }
+.tabbar a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.tabbar .ic { width: 24px; height: 24px; }
+
+/* Footer: the TMDB notice, then the Open Library credit. */
+footer { border-top: 1px solid var(--border); margin-top: 40px; }
+.foot { max-width: 1152px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; line-height: 1.45; color: var(--muted-foreground); }
+.foot .row { display: flex; flex-direction: column; gap: 6px; }
+.tmdb { align-self: flex-start; font-weight: 800; font-size: 11px; letter-spacing: 0.02em; padding: 1px 6px; border-radius: 4px; background: var(--foreground); color: var(--background); }
+.foot a { color: var(--foreground); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Buttons. */
+.btn { height: 44px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; font-weight: 600; border: 1px solid var(--border); background: transparent; cursor: pointer; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.btn.on { background: var(--primary-soft); border-color: transparent; }
+.btn.on .fill { fill: currentColor; }
+.btn.icon { width: 44px; padding: 0; }
+
+/* Media Type chips: variant C, a segmented control, the full width of the column at every width. */
+.types { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; background: var(--muted); border-radius: 14px; padding: 4px; border: 0; margin: 0; min-width: 0; }
+.types button { height: 56px; border-radius: 10px; border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.types button[aria-pressed="true"] { background: var(--card); font-weight: 600; box-shadow: 0 1px 3px oklch(0 0 0 / 18%); }
+.types button[aria-pressed="true"] .ic { color: var(--primary-strong); }
+.types button:disabled { color: var(--muted-foreground); cursor: default; }
+.soon { font-size: 11px; font-weight: 600; line-height: 1; }
+.soon .long { display: none; }
+
+/* Covers: always 2:3, cropped (object-fit: cover). A book with no cover gets a typeset cover. */
+.cover { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); background: var(--muted); }
+.typeset { position: relative; overflow: hidden; width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; border: 1px solid var(--border); background: var(--primary-soft); display: flex; flex-direction: column; padding: 16px 12px 13px; }
+.typeset::before { content: ""; position: absolute; inset: 6px; border: 1px solid var(--primary-strong); opacity: 0.45; border-radius: 4px; }
+.typeset b { font-size: 14px; line-height: 1.1; overflow-wrap: anywhere; }
+.typeset span { margin-top: auto; font-size: 11px; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  body { padding-bottom: 0; }
+  .bar { padding: 0 24px; height: 64px; }
+  .logo svg { width: 36px; height: 36px; }
+  .wm { font-size: 17px; }
+  .nav { display: flex; }
+  .tabbar { display: none; }
+  .foot { padding: 16px 24px; }
+  .foot .row { flex-direction: row; align-items: center; gap: 16px; }
+  .foot .version { margin-left: auto; }
+  .btn.small { height: 36px; font-size: 14px; }
+  .btn.icon.small { width: 36px; }
+  .soon .long { display: inline; }
+  .soon .short { display: none; }
+  .types button:disabled { font-size: 13px; font-weight: 500; }
+}
+
+
+/* Search: a 52rem column from md. */
+.col { max-width: 832px; margin: 0 auto; padding: 12px 16px 0; display: flex; flex-direction: column; gap: 14px; }
+h1 { margin: 4px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+h2 { margin: 6px 0 0; font-size: 18px; font-weight: 600; display: flex; gap: 6px; align-items: baseline; }
+h2 span { color: var(--muted-foreground); font-weight: 500; font-size: 16px; }
+.field { height: 48px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); display: flex; align-items: center; gap: 10px; padding: 0 6px 0 14px; font-size: 16px; }
+.field .ic { color: var(--muted-foreground); }
+.field input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; color: inherit; outline: none; }
+.clear { width: 32px; height: 32px; border-radius: 999px; background: var(--muted); border: 0; display: grid; place-items: center; color: var(--muted-foreground); }
+.strip { display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
+.saved { flex: none; width: 104px; display: flex; flex-direction: column; gap: 4px; }
+.saved .t { font-size: 13px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.status { font-size: 13px; display: flex; gap: 4px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted-foreground); }
+.status.rated { color: var(--primary-strong); font-weight: 600; }
+.card { border: 1px solid var(--border); background: var(--card); border-radius: 14px; overflow: hidden; }
+.result { display: flex; gap: 12px; padding: 12px; align-items: flex-start; border-top: 1px solid var(--border); }
+.result:first-child { border-top: 0; }
+.result .thumb { width: 72px; flex: none; }
+.result .thumb .cover, .result .thumb .typeset { border-radius: 8px; }
+.result .typeset { padding: 12px 9px 9px; }
+.result .typeset::before { inset: 5px; }
+.result .typeset b { font-size: 11px; }
+.result .typeset span { font-size: 9px; }
+.result .text { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1; }
+.result .t { font-size: 16px; font-weight: 600; line-height: 1.3; }
+.result .by { font-size: 14px; color: var(--muted-foreground); line-height: 1.35; }
+.actions { display: flex; gap: 8px; }
+.manual { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--muted-foreground); }
+.none { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 28px 12px; color: var(--muted-foreground); font-size: 15px; }
+.none .ic { width: 28px; height: 28px; }
+@media (min-width: 768px) {
+  .col { padding: 32px 24px 0; gap: 16px; }
+  h1 { font-size: 34px; margin: 0; letter-spacing: -0.02em; }
+  h2 { font-size: 20px; margin-top: 10px; }
+  .strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; overflow: visible; margin: 0; padding: 0; }
+  .saved { width: auto; }
+  .saved .t { font-size: 14px; }
+  .result { padding: 10px 14px; align-items: center; gap: 14px; }
+  .result .thumb { width: 48px; }
+  .result .thumb .cover { border-radius: 6px; }
+  .result .typeset { padding: 6px 5px; }
+  .result .typeset::before, .result .typeset span { display: none; }
+  .result .typeset b { font-size: 8px; }
+  .result .text { flex-direction: row; align-items: center; gap: 14px; }
+  .result .text > div:first-child { flex: 1; min-width: 0; }
+  .actions .btn:first-child { width: 150px; }
+}
+.col > [data-for].shown { display: flex; flex-direction: column; gap: inherit; }
+
+.scrim { position: fixed; inset: 0; background: var(--overlay); z-index: 10; }
+.dialog { position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; background: var(--card); border-radius: 28px 28px 0 0; padding: 8px 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.grab { width: 40px; height: 5px; border-radius: 999px; background: var(--border); align-self: center; }
+.dialog h2 { margin: 0; font-size: 20px; font-weight: 700; display: block; }
+.dialog .sub { margin: -8px 0 0; font-size: 14px; color: var(--muted-foreground); }
+.f { display: flex; flex-direction: column; gap: 6px; }
+.f label { font-size: 14px; font-weight: 600; }
+.f label span { font-weight: 400; color: var(--muted-foreground); }
+.f input { height: 44px; border: 1px solid var(--input); border-radius: 12px; background: var(--background); padding: 0 12px; font: inherit; font-size: 16px; color: inherit; }
+.f .hint { font-size: 13px; color: var(--muted-foreground); }
+.dialog .buttons { display: flex; gap: 10px; margin-top: 4px; }
+.dialog .buttons .btn { flex: 1; }
+@media (min-width: 768px) {
+  .dialog { left: 50%; top: 50%; bottom: auto; right: auto; transform: translate(-50%, -50%); width: 480px; border-radius: 18px; padding: 24px; }
+  .grab { display: none; }
+  .dialog .buttons { justify-content: flex-end; }
+  .dialog .buttons .btn { flex: none; }
+}
+.col > div { display: contents; }
+
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="logo" href="#" aria-label="TasteTrack"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span></a><nav class="nav" aria-label="Sections"><a href="#">Saved</a><a href="#">Collections</a><a href="#" aria-current="page">Search</a></nav><button class="account" aria-label="Account menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></button></div></header><main class="col"><h1>Search</h1><label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><input value="Доця" aria-label="Search" placeholder="Title or author"><button class="clear" aria-label="Clear search"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></label><fieldset class="types" aria-label="Media type"><button type="button" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</button><button type="button" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</button><button type="button" disabled aria-describedby="soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg>Series<span class="soon"><span class="short">Soon</span><span class="long">Coming soon</span></span></button><button type="button" disabled aria-describedby="soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Music<span class="soon"><span class="short">Soon</span><span class="long">Coming soon</span></span></button><button type="button" disabled aria-describedby="soon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg>Games<span class="soon"><span class="short">Soon</span><span class="long">Coming soon</span></span></button></fieldset><span id="soon" hidden>Coming soon</span><div class="none"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>No books found for “Доця”.</div><div class="manual">Can't find it?<button class="btn">Add manually</button></div></main><footer><div class="foot"><div class="row"><span class="tmdb">TMDB</span><span>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</span></div><div class="row"><span>Book data and covers from <a href="https://openlibrary.org/">Open Library</a>.</span><span class="version">v0.9.0</span></div></div></footer><nav class="tabbar" aria-label="Sections"><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav><div class="scrim"></div><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="add-title"><div class="grab"></div><h2 id="add-title">Add a book manually</h2><p class="sub">For a book search doesn't find. Only you will see it.</p><div class="f"><label for="t">Title</label><input id="t" value="Доця"></div><div class="f"><label for="o">Original Title <span>optional</span></label><input id="o"><span class="hint">Its title in its original language, if that's different.</span></div><div class="f"><label for="y">Year <span>optional</span></label><input id="y" value="2019" inputmode="numeric" style="width: 120px"></div><div class="f"><label for="a">Authors <span>optional</span></label><input id="a" value="Тамара Горіха Зерня"><span class="hint">Separate names with commas.</span></div><div class="buttons"><button class="btn">Cancel</button><button class="btn primary">Add</button></div></div>
+<script>function show(){const s=location.hash.slice(1)||"default";document.querySelectorAll("[data-for]").forEach(e=>e.classList.toggle("shown",e.dataset.for.split(" ").includes(s)));}addEventListener("hashchange",show);show();</script>
+</body>
+</html>
