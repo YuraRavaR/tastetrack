@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import type { NewManualMediaItemRequest } from "@shared/api";
+import type { ExternalReference, NewManualMediaItemRequest } from "@shared/api";
 import type { ApiClient } from "../api/ApiClient";
 import { expectBody } from "../api/responses";
 
@@ -53,10 +53,20 @@ export function newFilm() {
 // one file alone, which run one after another, so no other test meets it on a cold cache: Shadows
 // by the API tests and The Matrix by the end-to-end one.
 export const shadowsId = "26782";
+export const shadowsReference: ExternalReference = {
+  source: "tmdb",
+  mediaType: "film",
+  id: shadowsId,
+};
 export const shadows = (client: ApiClient) => {
   return film(client, "shadows of forgotten", shadowsId);
 };
 export const matrixId = "603";
+export const matrixReference: ExternalReference = {
+  source: "tmdb",
+  mediaType: "film",
+  id: matrixId,
+};
 export const matrix = (client: ApiClient) => film(client, "the matrix", matrixId);
 
 // The film titles of List Items, by the TMDB ids of the films above.

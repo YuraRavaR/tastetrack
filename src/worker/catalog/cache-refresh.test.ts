@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { listItems, lists, logEntries, mediaItems, tmdbCache, users } from "../../db/schema";
+import { catalogCache, listItems, lists, logEntries, mediaItems, users } from "../../db/schema";
 import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
@@ -29,7 +29,7 @@ afterAll(() => database.dispose());
 
 beforeEach(async () => {
   await db.batch([
-    db.delete(tmdbCache),
+    db.delete(catalogCache),
     db.delete(mediaItems),
     db.delete(lists),
     db.delete(users),
@@ -79,12 +79,13 @@ async function film(id: string, { in: where, cached }: Film = {}): Promise<void>
       .values({ listId, mediaItemId: item.id, position: item.id, createdAt: now });
   }
   if (cached) {
-    await db.insert(tmdbCache).values({
+    await db.insert(catalogCache).values({
+      externalSource: "tmdb",
       mediaType: "film",
       externalId: id,
       englishTitle: cached.english === false ? null : `Film ${id}`,
       originalTitle: `Film ${id}`,
-      backdropPath: cached.backdrop,
+      extra: { backdropPath: cached.backdrop ?? null, runtime: null, genres: null },
       updatedAt: cached.updated,
       detailedAt: cached.detailed === false ? null : cached.updated,
     });

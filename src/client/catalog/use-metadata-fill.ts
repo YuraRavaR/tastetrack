@@ -10,7 +10,7 @@ export interface MetadataFill {
   loading(mediaItem: MediaItem): boolean;
 }
 
-// A page fills only a few films missing from the TMDB cache and shows the rest as placeholders
+// A page fills only a few films missing from the catalog cache and shows the rest as placeholders
 // (ADR-0004). This loads those, `maxMetadataFills` at a time, one request after another, in page
 // order, and each film once per page view: one TMDB doesn't answer for stays unavailable.
 export function useMetadataFill(mediaItems: readonly MediaItem[]): MetadataFill {

@@ -6,7 +6,7 @@ import { tmdbConfig } from "./env";
 import { sharePage } from "./share-page";
 
 // The Worker runs only for the API and Share Link pages (wrangler.jsonc); the static assets
-// serve every other path. The Cron Trigger keeps the TMDB cache fresh and clears login failures
+// serve every other path. The Cron Trigger keeps the catalog cache fresh and clears login failures
 // that no longer count.
 export default {
   fetch(request, env, ctx) {
@@ -18,6 +18,6 @@ export default {
     const now = new Date(controller.scheduledTime);
     console.log("Login failures pruned", await pruneLoginFailures(db, now));
     const run = await refreshCache(db, tmdbConfig(env), now);
-    console.log("TMDB cache refresh", run);
+    console.log("Catalog cache refresh", run);
   },
 } satisfies ExportedHandler<Env>;

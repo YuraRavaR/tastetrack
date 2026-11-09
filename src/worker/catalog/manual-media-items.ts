@@ -3,7 +3,7 @@
 // domain core's (src/shared/catalog.ts).
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, logEntries, mediaItems, tmdbCache, users } from "../../db/schema";
+import { catalogCache, listItems, lists, logEntries, mediaItems, users } from "../../db/schema";
 import type {
   ManualMediaItemEditRequest,
   ManualMediaItemResponse,
@@ -122,7 +122,7 @@ function ownManual(userId: number, mediaItemId: number) {
 }
 
 // Not a db.batch with the statements that change it: D1 returns batched rows keyed by column name,
-// and media_items and tmdb_cache share some.
+// and media_items and catalog_cache share some.
 async function ownManualMediaItem(
   db: DrizzleD1Database,
   userId: number,
@@ -131,7 +131,7 @@ async function ownManualMediaItem(
   const [row] = await db
     .select(mediaItemColumns)
     .from(mediaItems)
-    .leftJoin(tmdbCache, noCacheEntry)
+    .leftJoin(catalogCache, noCacheEntry)
     .where(ownManual(userId, mediaItemId));
   return row ? toMediaItem(row) : null;
 }
@@ -178,7 +178,7 @@ export async function manualMediaItemUsage(
       )`,
     })
     .from(mediaItems)
-    .leftJoin(tmdbCache, noCacheEntry)
+    .leftJoin(catalogCache, noCacheEntry)
     .where(ownManual(userId, mediaItemId));
   if (!row) return null;
   return {
@@ -223,7 +223,7 @@ export async function manualSearch(
       )`,
     })
     .from(mediaItems)
-    .leftJoin(tmdbCache, noCacheEntry)
+    .leftJoin(catalogCache, noCacheEntry)
     .where(
       and(
         eq(mediaItems.ownerId, userId),

@@ -1,7 +1,7 @@
 import { MediaItemsResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
-import { shadows, shadowsId } from "../support/scenarios/films";
+import { shadows, shadowsReference } from "../support/scenarios/films";
 
 interface Item {
   mediaItem: { id: number; metadata: { title: string } | null };
@@ -18,7 +18,7 @@ test("a page fills a film missing from the cache with TMDB's details", async ({ 
   );
   const mediaItemId = (await shadows(loggedInApi)).id;
   await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId }), 201);
-  expect((await loggedInApi.testHooks.evictFromTmdbCache(shadowsId)).status()).toBe(204);
+  expect((await loggedInApi.testHooks.evictFromCatalogCache(shadowsReference)).status()).toBe(204);
 
   const page = await expectBody(loggedInApi.lists.getList(list.id));
 
@@ -40,7 +40,9 @@ test("a List with 1 film and one with 500 load in the same number of queries, on
     if (films > 1) {
       expect((await loggedInApi.testHooks.fillList(list.id, films - 1)).status()).toBe(204);
     }
-    expect((await loggedInApi.testHooks.evictFromTmdbCache(shadowsId)).status()).toBe(204);
+    expect((await loggedInApi.testHooks.evictFromCatalogCache(shadowsReference)).status()).toBe(
+      204,
+    );
     const response = await loggedInApi.lists.getList(list.id);
     const { items } = (await response.json()).list;
     expect(items).toHaveLength(films);
@@ -66,7 +68,7 @@ test("a page fills at most 10 missing films; the client loads the rest by id", a
   expect((await loggedInApi.testHooks.fillList(list.id, 10)).status()).toBe(204);
   const mediaItemId = (await shadows(loggedInApi)).id;
   await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId }), 201);
-  expect((await loggedInApi.testHooks.evictFromTmdbCache(shadowsId)).status()).toBe(204);
+  expect((await loggedInApi.testHooks.evictFromCatalogCache(shadowsReference)).status()).toBe(204);
 
   const page = await expectBody(loggedInApi.lists.getList(list.id));
   expect(titles(page.list.items).at(-1)).toBeNull();

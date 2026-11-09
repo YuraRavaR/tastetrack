@@ -140,14 +140,47 @@ export const mediaItems = sqliteTable(
   ],
 );
 
-// The disposable TMDB metadata cache (ADR-0004), keyed by External Reference; the External Source
-// is TMDB for every row. It can be wiped at any time without losing User data. A row filled from
-// a search result alone, when the details call failed, has no detailedAt, no backdrop and no
-// runtime or genres. A row filled before backdrops were kept has none until the cron refreshes it.
-// ukrainianTitle is null when TMDB has no Ukrainian title. englishTitle is TMDB's English title,
-// which TMDB itself falls back to the Original Title for; it is null only in a row filled from a
-// search result that didn't run in English. checkedAt is when the cron last tried to refresh the
-// row and TMDB didn't answer, if it has since the row was last filled; filling it clears it.
+// What only a film's cache entry has. A row filled from a search result alone has no backdrop and
+// no runtime or genres, and neither has a row filled before backdrops were kept until the cron
+// refreshes it.
+export interface FilmCacheExtra {
+  backdropPath: string | null;
+  runtime: number | null;
+  // Null when unknown, as an empty list is.
+  genres: string[] | null;
+}
+
+// The disposable metadata cache of every External Source (ADR-0004), keyed by External Reference.
+// It can be wiped at any time without losing User data. The columns every Media Type has are
+// shared; `extra` holds, as JSON, what only one Media Type has. coverRef is the source's own
+// reference to the cover image, such as TMDB's poster path. A row filled from a search result
+// alone, when the details call failed, has no detailedAt. ukrainianTitle is null when the source
+// has no Ukrainian title. englishTitle is null when it has no English one; TMDB falls back to the
+// Original Title for that itself, so for a film it is null only in a row filled from a search
+// result that didn't run in English. checkedAt is when the cron last tried to refresh the row and
+// the source didn't answer, if it has since the row was last filled; filling it clears it.
+export const catalogCache = sqliteTable(
+  "catalog_cache",
+  {
+    externalSource: text("external_source", { enum: ["tmdb"] }).notNull(),
+    mediaType: text("media_type", { enum: ["film"] }).notNull(),
+    externalId: text("external_id").notNull(),
+    englishTitle: text("english_title"),
+    ukrainianTitle: text("ukrainian_title"),
+    originalTitle: text("original_title").notNull(),
+    year: integer("year"),
+    coverRef: text("cover_ref"),
+    extra: text("extra", { mode: "json" }).$type<FilmCacheExtra>().notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    detailedAt: integer("detailed_at", { mode: "timestamp_ms" }),
+    checkedAt: integer("checked_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [primaryKey({ columns: [table.externalSource, table.mediaType, table.externalId] })],
+);
+
+// The TMDB cache that catalog_cache replaced, copied into it by migration 0013. Nothing reads or
+// writes it any more; it is kept for one release so that rolling back still finds it (ADR-0009),
+// and dropped in the next.
 export const tmdbCache = sqliteTable(
   "tmdb_cache",
   {

@@ -1,5 +1,5 @@
 import { expectBody } from "../support/api/responses";
-import { matrix, matrixId } from "../support/scenarios/films";
+import { matrix, matrixReference } from "../support/scenarios/films";
 import { expect, test } from "../support/ui/fixtures";
 
 test("a List shows films missing from the cache as placeholders, then fills them in", async ({
@@ -13,7 +13,7 @@ test("a List shows films missing from the cache as placeholders, then fills them
   expect((await api.testHooks.fillList(list.id, 10)).status()).toBe(204);
   const added = await api.lists.addListItem(list.id, { mediaItemId: (await matrix(api)).id });
   expect(added.status()).toBe(201);
-  expect((await api.testHooks.evictFromTmdbCache(matrixId)).status()).toBe(204);
+  expect((await api.testHooks.evictFromCatalogCache(matrixReference)).status()).toBe(204);
 
   await ui.listPage.goto(list.id);
 

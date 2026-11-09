@@ -2,7 +2,7 @@
 // calls; the rules themselves are the domain core's (src/shared/log.ts).
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { logEntries, mediaItems, tmdbCache } from "../../db/schema";
+import { catalogCache, logEntries, mediaItems } from "../../db/schema";
 import type {
   ItemHistoryResponse,
   LogEntry,
@@ -36,7 +36,7 @@ function selectLog(db: DrizzleD1Database, now: Date) {
     .select(logEntryColumns)
     .from(logEntries)
     .innerJoin(mediaItems, eq(logEntries.mediaItemId, mediaItems.id))
-    .leftJoin(tmdbCache, cacheOfMediaItem(now));
+    .leftJoin(catalogCache, cacheOfMediaItem(now));
 }
 
 type LogEntryRow = Awaited<ReturnType<typeof selectLog>>[number];
@@ -189,7 +189,7 @@ export async function itemHistory(
     db
       .select(mediaItemColumns)
       .from(mediaItems)
-      .leftJoin(tmdbCache, cacheOfMediaItem(now))
+      .leftJoin(catalogCache, cacheOfMediaItem(now))
       .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId))),
     selectLog(db, now)
       .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))

@@ -4,7 +4,7 @@
 // (src/shared/lists.ts).
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, mediaItems, shareLinks, tmdbCache, users } from "../../db/schema";
+import { catalogCache, listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
 import type { MediaType, SharedList, ShareLink } from "../../shared/api";
 import { sharedListTitle, sharedVisibilities, unsharedVisibilities } from "../../shared/lists";
 import { userColumns } from "../accounts/accounts";
@@ -130,10 +130,10 @@ function sharedBy(token: string) {
 // The poster path of the outer query's List's first item that has one, in List order.
 function firstPosterPath(now: Date) {
   return sql<string | null>`(
-    select ${tmdbCache.posterPath} from ${listItems}
+    select ${catalogCache.coverRef} from ${listItems}
     inner join ${mediaItems} on ${mediaItems.id} = ${listItems.mediaItemId}
-    inner join ${tmdbCache} on ${cacheOfMediaItem(now)}
-    where ${listItems.listId} = ${lists.id} and ${tmdbCache.posterPath} is not null
+    inner join ${catalogCache} on ${cacheOfMediaItem(now)}
+    where ${listItems.listId} = ${lists.id} and ${catalogCache.coverRef} is not null
     order by ${sql.join(listOrder, sql`, `)} limit 1
   )`;
 }

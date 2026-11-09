@@ -3,7 +3,7 @@
 // domain core's (src/shared/lists.ts).
 import { and, asc, count, eq, inArray, lte, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, mediaItems, shareLinks, tmdbCache, users } from "../../db/schema";
+import { catalogCache, listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
 import type {
   HoldingList,
   List,
@@ -158,7 +158,7 @@ export async function listPreviews(
       .from(listItems)
       .innerJoin(places, eq(places.id, listItems.id))
       .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
-      .leftJoin(tmdbCache, cacheOfMediaItem(now))
+      .leftJoin(catalogCache, cacheOfMediaItem(now))
       .where(lte(places.place, listCoverCount))
       .orderBy(asc(places.place)),
   ]);
@@ -311,7 +311,7 @@ export async function listedMediaItems(
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
-    .leftJoin(tmdbCache, cacheOfMediaItem(now))
+    .leftJoin(catalogCache, cacheOfMediaItem(now))
     .where(and(eq(lists.userId, userId), eq(lists.kind, "list"), eq(lists.mediaType, mediaType)))
     .orderBy(asc(lists.createdAt), asc(lists.id));
   const listed = new Map<number, ListedMediaItem>();
