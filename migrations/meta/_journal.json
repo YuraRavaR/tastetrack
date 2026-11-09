@@ -92,6 +92,13 @@
       "when": 1793373488709,
       "tag": "0012_tmdb_cache_backdrop_path",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1794257374928,
+      "tag": "0013_catalog_cache",
+      "breakpoints": true
     }
   ]
 }

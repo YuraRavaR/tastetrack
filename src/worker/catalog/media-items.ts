@@ -1,9 +1,9 @@
-// Media Items as Users see them: catalog-backed ones with their metadata in the disposable TMDB
+// Media Items as Users see them: catalog-backed ones with their metadata in the disposable catalog
 // cache (ADR-0004), where only the External Reference is User-facing data and everything read
 // from the cache may be missing, and Manual Media Items with their own.
 import { and, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { mediaItems, tmdbCache } from "../../db/schema";
+import { catalogCache, mediaItems } from "../../db/schema";
 import type {
   AddCatalogItemRequest,
   ExternalReference,
@@ -22,7 +22,7 @@ import {
   TmdbUnavailable,
 } from "./tmdb";
 
-type CacheEntry = typeof tmdbCache.$inferSelect;
+type CacheEntry = typeof catalogCache.$inferSelect;
 
 // TMDB allows caching for 6 months; we keep an entry 90 days from when it was last filled. Past
 // that no read shows it, whether or not the cron has deleted it yet.
@@ -34,14 +34,14 @@ export function oldestShown(now: Date): Date {
 }
 
 // Joins a Media Item to its cache entry, if any and not past the hard expiry:
-// `.leftJoin(tmdbCache, cacheOfMediaItem(now))`. An expired entry reads as a miss, which the page
-// fills like any other.
+// `.leftJoin(catalogCache, cacheOfMediaItem(now))`. An expired entry reads as a miss, which the
+// page fills like any other. A Manual Media Item has no External Reference, so it joins nothing.
 export function cacheOfMediaItem(now: Date) {
   return and(
-    eq(mediaItems.externalSource, "tmdb"),
-    eq(tmdbCache.mediaType, mediaItems.mediaType),
-    eq(tmdbCache.externalId, mediaItems.externalId),
-    gte(tmdbCache.updatedAt, oldestShown(now)),
+    eq(catalogCache.externalSource, mediaItems.externalSource),
+    eq(catalogCache.mediaType, mediaItems.mediaType),
+    eq(catalogCache.externalId, mediaItems.externalId),
+    gte(catalogCache.updatedAt, oldestShown(now)),
   );
 }
 
@@ -55,7 +55,7 @@ export function visibleTo(userId: number) {
   return or(isNull(mediaItems.ownerId), eq(mediaItems.ownerId, userId));
 }
 
-// The columns `toMediaItem` needs, from media_items left-joined with tmdb_cache.
+// The columns `toMediaItem` needs, from media_items left-joined with catalog_cache.
 export const mediaItemColumns = {
   mediaItemId: mediaItems.id,
   mediaType: mediaItems.mediaType,
@@ -71,14 +71,12 @@ export const mediaItemColumns = {
   // Drizzle reads a left join's columns as no entry when the first of them is null, so they lead
   // with one that never is.
   cache: {
-    originalTitle: tmdbCache.originalTitle,
-    englishTitle: tmdbCache.englishTitle,
-    ukrainianTitle: tmdbCache.ukrainianTitle,
-    year: tmdbCache.year,
-    posterPath: tmdbCache.posterPath,
-    backdropPath: tmdbCache.backdropPath,
-    runtime: tmdbCache.runtime,
-    genres: tmdbCache.genres,
+    originalTitle: catalogCache.originalTitle,
+    englishTitle: catalogCache.englishTitle,
+    ukrainianTitle: catalogCache.ukrainianTitle,
+    year: catalogCache.year,
+    coverRef: catalogCache.coverRef,
+    extra: catalogCache.extra,
   },
 };
 
@@ -110,11 +108,17 @@ function toMetadata(cached: CachedMetadata): FilmMetadata {
     ukrainianTitle:
       cached.ukrainianTitle && cached.ukrainianTitle !== title ? cached.ukrainianTitle : null,
     year: cached.year,
-    posterUrls: posterUrls(cached.posterPath),
-    backdropUrls: backdropUrls(cached.backdropPath),
-    runtime: cached.runtime,
-    genres: cached.genres ?? [],
+    posterUrls: posterUrls(cached.coverRef),
+    backdropUrls: backdropUrls(cached.extra.backdropPath),
+    runtime: cached.extra.runtime,
+    genres: cached.extra.genres ?? [],
   };
+}
+
+// A film's details as its cache entry holds them.
+function fromDetails(details: FilmDetails): CachedMetadata {
+  const { posterPath, backdropPath, runtime, genres, ...titlesAndYear } = details;
+  return { ...titlesAndYear, coverRef: posterPath, extra: { backdropPath, runtime, genres } };
 }
 
 // A Manual Media Item shows the title its User gave, in any language, unchanged, with the title
@@ -169,28 +173,28 @@ function fromSearchResult(result: AddCatalogItemRequest): CachedMetadata {
     ukrainianTitle: result.titleLanguage === "uk" ? translated : null,
     originalTitle: result.originalTitle,
     year: result.year,
-    posterPath: posterPathOf(result.posterUrl),
-    backdropPath: null,
-    runtime: null,
-    genres: null,
+    coverRef: posterPathOf(result.posterUrl),
+    extra: { backdropPath: null, runtime: null, genres: null },
   };
 }
 
-export interface FetchedDetails {
+// A cache entry's key: the External Reference it holds the metadata of.
+export interface CacheKey {
+  externalSource: "tmdb";
   mediaType: "film";
   externalId: string;
-  details: FilmDetails;
+}
+
+export interface FetchedDetails extends CacheKey {
+  entry: CachedMetadata;
 }
 
 // One TMDB details call for each film, all at once. A film TMDB doesn't answer for is left out.
-export async function fetchDetails(
-  tmdb: TmdbConfig,
-  films: { mediaType: "film"; externalId: string }[],
-): Promise<FetchedDetails[]> {
+export async function fetchDetails(tmdb: TmdbConfig, films: CacheKey[]): Promise<FetchedDetails[]> {
   const fetched = await Promise.all(
-    films.map(async ({ mediaType, externalId }) => {
+    films.map(async (key) => {
       try {
-        return { mediaType, externalId, details: await filmDetails(tmdb, externalId) };
+        return { ...key, entry: fromDetails(await filmDetails(tmdb, key.externalId)) };
       } catch (error) {
         if (!(error instanceof TmdbUnavailable)) throw error;
         console.error(error);
@@ -201,7 +205,7 @@ export async function fetchDetails(
   return fetched.filter((film) => film !== null);
 }
 
-// Writes the details fetched for any number of films into their cache entries, in one query:
+// Writes the details fetched for any number of entries into the cache, in one query:
 // the rows travel as one JSON parameter, since D1 allows only 100 bound parameters a query.
 export async function storeDetails(
   db: DrizzleD1Database,
@@ -209,25 +213,20 @@ export async function storeDetails(
   now: Date,
 ): Promise<void> {
   if (fetched.length === 0) return;
-  const rows = JSON.stringify(
-    fetched.map(({ mediaType, externalId, details }) => ({ mediaType, externalId, ...details })),
-  );
+  const rows = JSON.stringify(fetched.map(({ entry, ...key }) => ({ ...key, ...entry })));
   const at = now.getTime();
   // An upsert from a select needs a where clause, or SQLite reads "on" as a join's.
   await db.run(sql`
-    insert into ${tmdbCache} (media_type, external_id, english_title, ukrainian_title,
-      original_title, year, poster_path, backdrop_path, runtime, genres, updated_at, detailed_at,
-      checked_at)
-    select value ->> 'mediaType', value ->> 'externalId', value ->> 'englishTitle',
-      value ->> 'ukrainianTitle', value ->> 'originalTitle', value ->> 'year',
-      value ->> 'posterPath', value ->> 'backdropPath', value ->> 'runtime', value -> 'genres',
-      ${at}, ${at}, null
+    insert into ${catalogCache} (external_source, media_type, external_id, english_title,
+      ukrainian_title, original_title, year, cover_ref, extra, updated_at, detailed_at, checked_at)
+    select value ->> 'externalSource', value ->> 'mediaType', value ->> 'externalId',
+      value ->> 'englishTitle', value ->> 'ukrainianTitle', value ->> 'originalTitle',
+      value ->> 'year', value ->> 'coverRef', value -> 'extra', ${at}, ${at}, null
     from json_each(${rows}) where true
-    on conflict (media_type, external_id) do update set
+    on conflict (external_source, media_type, external_id) do update set
       english_title = excluded.english_title, ukrainian_title = excluded.ukrainian_title,
       original_title = excluded.original_title, year = excluded.year,
-      poster_path = excluded.poster_path, backdrop_path = excluded.backdrop_path,
-      runtime = excluded.runtime, genres = excluded.genres, updated_at = excluded.updated_at,
+      cover_ref = excluded.cover_ref, extra = excluded.extra, updated_at = excluded.updated_at,
       detailed_at = excluded.detailed_at, checked_at = excluded.checked_at`);
 }
 
@@ -249,10 +248,21 @@ export async function addFromSearch(
   now: Date,
 ): Promise<AddedMediaItem> {
   const reference = result.externalReference;
+  const key = {
+    externalSource: reference.source,
+    mediaType: reference.mediaType,
+    externalId: reference.id,
+  };
   const cacheKey = and(
-    eq(tmdbCache.mediaType, reference.mediaType),
-    eq(tmdbCache.externalId, reference.id),
+    eq(catalogCache.externalSource, key.externalSource),
+    eq(catalogCache.mediaType, key.mediaType),
+    eq(catalogCache.externalId, key.externalId),
   );
+  const cacheTarget = [
+    catalogCache.externalSource,
+    catalogCache.mediaType,
+    catalogCache.externalId,
+  ];
   const [inserted, [item], [cached]] = await db.batch([
     db
       .insert(mediaItems)
@@ -265,7 +275,7 @@ export async function addFromSearch(
       .onConflictDoNothing()
       .returning({ id: mediaItems.id }),
     db.select({ id: mediaItems.id }).from(mediaItems).where(byExternalReference(reference)),
-    db.select().from(tmdbCache).where(cacheKey),
+    db.select().from(catalogCache).where(cacheKey),
   ]);
   if (!item) throw new Error(`Media Item for TMDB ${reference.id} neither inserted nor found`);
 
@@ -273,12 +283,12 @@ export async function addFromSearch(
   let metadata: CachedMetadata | undefined = shown;
   if (!shown?.detailedAt) {
     try {
-      const details: CachedMetadata = await filmDetails(tmdb, reference.id);
+      const details = fromDetails(await filmDetails(tmdb, reference.id));
       const columns = { ...details, updatedAt: now, detailedAt: now, checkedAt: null };
       await db
-        .insert(tmdbCache)
-        .values({ mediaType: reference.mediaType, externalId: reference.id, ...columns })
-        .onConflictDoUpdate({ target: [tmdbCache.mediaType, tmdbCache.externalId], set: columns });
+        .insert(catalogCache)
+        .values({ ...key, ...columns })
+        .onConflictDoUpdate({ target: cacheTarget, set: columns });
       metadata = details;
     } catch (error) {
       if (!(error instanceof TmdbUnavailable)) throw error;
@@ -287,12 +297,12 @@ export async function addFromSearch(
         metadata = fromSearchResult(result);
         const columns = { ...metadata, updatedAt: now, detailedAt: null, checkedAt: null };
         await db
-          .insert(tmdbCache)
-          .values({ mediaType: reference.mediaType, externalId: reference.id, ...columns })
+          .insert(catalogCache)
+          .values({ ...key, ...columns })
           .onConflictDoUpdate({
-            target: [tmdbCache.mediaType, tmdbCache.externalId],
+            target: cacheTarget,
             set: columns,
-            setWhere: lt(tmdbCache.updatedAt, oldestShown(now)),
+            setWhere: lt(catalogCache.updatedAt, oldestShown(now)),
           });
       }
     }
@@ -309,6 +319,14 @@ export async function addFromSearch(
   };
 }
 
+function cacheKeyOf({ source, mediaType, id }: ExternalReference): CacheKey {
+  return { externalSource: source, mediaType, externalId: id };
+}
+
+export function keyString({ externalSource, mediaType, externalId }: CacheKey): string {
+  return `${externalSource}/${mediaType}/${externalId}`;
+}
+
 // Fills in place the metadata of the first `maxMetadataFills` catalog-backed Media Items, in the
 // order given, that came without it because the cache has no entry for them: one TMDB details call
 // each, all at once, and one query to write them all to the cache. The rest stay null for the
@@ -319,20 +337,21 @@ export async function fillMissingMetadata(
   items: MediaItem[],
   now: Date,
 ): Promise<void> {
-  const missing = new Map<string, ExternalReference>();
+  const missing = new Map<string, CacheKey>();
   for (const { externalReference, metadata } of items) {
     if (missing.size === maxMetadataFills) break;
-    if (externalReference && !metadata) missing.set(externalReference.id, externalReference);
+    if (externalReference && !metadata) {
+      const key = cacheKeyOf(externalReference);
+      missing.set(keyString(key), key);
+    }
   }
   if (missing.size === 0) return;
-  const fetched = await fetchDetails(
-    tmdb,
-    [...missing.values()].map(({ mediaType, id }) => ({ mediaType, externalId: id })),
-  );
+  const fetched = await fetchDetails(tmdb, [...missing.values()]);
   await storeDetails(db, fetched, now);
-  const details = new Map(fetched.map((film) => [film.externalId, film.details]));
+  const entries = new Map(fetched.map(({ entry, ...key }) => [keyString(key), entry]));
   for (const item of items) {
-    const filled = item.externalReference && details.get(item.externalReference.id);
+    const filled =
+      item.externalReference && entries.get(keyString(cacheKeyOf(item.externalReference)));
     if (filled) item.metadata = toMetadata(filled);
   }
 }
@@ -373,7 +392,7 @@ export async function catalogMediaItems(
   const rows = await db
     .select(mediaItemColumns)
     .from(mediaItems)
-    .leftJoin(tmdbCache, cacheOfMediaItem(now))
+    .leftJoin(catalogCache, cacheOfMediaItem(now))
     .where(and(inArray(mediaItems.id, ids), isNotNull(mediaItems.externalId)));
   const byId = new Map(rows.map((row) => [row.mediaItemId, toMediaItem(row)]));
   const items = [...new Set(ids)].flatMap((id) => byId.get(id) ?? []);

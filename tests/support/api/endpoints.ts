@@ -1,3 +1,4 @@
+import type { ExternalReference } from "@shared/api";
 export const endpoints = {
   auth: {
     register: "/api/auth/register",
@@ -52,7 +53,8 @@ export const endpoints = {
     listItems: (listId: number) => `/api/test/lists/${listId}/items`,
     manualItems: (username: string) => `/api/test/users/${username}/manual-items`,
     records: "/api/test/records",
-    tmdbCacheFilm: (tmdbId: string) => `/api/test/tmdb-cache/film/${tmdbId}`,
+    catalogCacheEntry: ({ source, mediaType, id }: ExternalReference) =>
+      `/api/test/catalog-cache/${source}/${mediaType}/${id}`,
     tmdbFakeSearch: "/api/test/tmdb/3/search/movie?query=alien",
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,

@@ -1,3 +1,4 @@
+import type { ExternalReference } from "@shared/api";
 import { testHooksHeaders } from "../../test-hooks-secret";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
@@ -48,10 +49,10 @@ export class TestHooksController extends BaseController {
     });
   }
 
-  // Takes a film out of the TMDB cache, as the cron does once an entry expires.
-  evictFromTmdbCache(tmdbId: string, options?: RequestOptions) {
+  // Takes a Media Item's entry out of the catalog cache, as the cron does once an entry expires.
+  evictFromCatalogCache(reference: ExternalReference, options?: RequestOptions) {
     return this.requestContext.delete(
-      endpoints.testHooks.tmdbCacheFilm(tmdbId),
+      endpoints.testHooks.catalogCacheEntry(reference),
       withSecret(options),
     );
   }

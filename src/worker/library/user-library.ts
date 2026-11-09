@@ -3,7 +3,7 @@
 // Rating are the domain core's (src/shared/log.ts).
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, logEntries, mediaItems, tmdbCache } from "../../db/schema";
+import { catalogCache, listItems, lists, logEntries, mediaItems } from "../../db/schema";
 import type { LibraryItem, MediaType } from "../../shared/api";
 import { inLogOrder, toStars } from "../../shared/log";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "../catalog/media-items";
@@ -33,7 +33,7 @@ export async function userLibrary(
     db
       .select({ ...mediaItemColumns, addedAt: listItems.createdAt })
       .from(mediaItems)
-      .leftJoin(tmdbCache, cacheOfMediaItem(now))
+      .leftJoin(catalogCache, cacheOfMediaItem(now))
       .leftJoin(
         listItems,
         and(eq(listItems.mediaItemId, mediaItems.id), inArray(listItems.listId, backlog)),

@@ -3,7 +3,7 @@
 import { z } from "@hono/zod-openapi";
 import { and, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
-import { listItems, lists, logEntries, mediaItems, tmdbCache } from "../db/schema";
+import { catalogCache, listItems, lists, logEntries, mediaItems } from "../db/schema";
 import { type ErrorResponse, Password, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
@@ -142,13 +142,19 @@ testHooks.post("/users/:username/manual-items", async (c) => {
   return c.body(null, 204);
 });
 
-// Takes one film out of the TMDB cache, as the cron does once an entry expires, so tests can
+// Takes one entry out of the catalog cache, as the cron does once an entry expires, so tests can
 // see a page on a cold cache.
-testHooks.delete("/tmdb-cache/:mediaType/:externalId", async (c) => {
-  const { mediaType, externalId } = c.req.param();
-  if (mediaType !== "film") return c.notFound();
+testHooks.delete("/catalog-cache/:source/:mediaType/:externalId", async (c) => {
+  const { source, mediaType, externalId } = c.req.param();
+  if (source !== "tmdb" || mediaType !== "film") return c.notFound();
   await c.var.db
-    .delete(tmdbCache)
-    .where(and(eq(tmdbCache.mediaType, mediaType), eq(tmdbCache.externalId, externalId)));
+    .delete(catalogCache)
+    .where(
+      and(
+        eq(catalogCache.externalSource, source),
+        eq(catalogCache.mediaType, mediaType),
+        eq(catalogCache.externalId, externalId),
+      ),
+    );
   return c.body(null, 204);
 });

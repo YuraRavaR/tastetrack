@@ -3,7 +3,7 @@
 // (src/shared/lists.ts).
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, mediaItems, tmdbCache } from "../../db/schema";
+import { catalogCache, listItems, lists, mediaItems } from "../../db/schema";
 import type { ListItem, ListItemEditRequest } from "../../shared/api";
 import { maxListItems, moved } from "../../shared/lists";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "../catalog/media-items";
@@ -22,7 +22,7 @@ export function selectListItems(db: DrizzleD1Database, now: Date) {
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
-    .leftJoin(tmdbCache, cacheOfMediaItem(now));
+    .leftJoin(catalogCache, cacheOfMediaItem(now));
 }
 
 type ListItemRow = Awaited<ReturnType<typeof selectListItems>>[number];
@@ -59,7 +59,7 @@ export async function ownListItem(
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
-    .leftJoin(tmdbCache, cacheOfMediaItem(now))
+    .leftJoin(catalogCache, cacheOfMediaItem(now))
     .where(and(eq(listItems.id, listItemId), eq(lists.userId, userId)));
   return row ? toListItem(row, row.index) : null;
 }

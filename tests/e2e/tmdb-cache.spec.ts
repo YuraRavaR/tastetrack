@@ -13,7 +13,11 @@ test("a List shows films missing from the cache as placeholders, then fills them
   expect((await api.testHooks.fillList(list.id, 10)).status()).toBe(204);
   const added = await api.lists.addListItem(list.id, { mediaItemId: (await matrix(api)).id });
   expect(added.status()).toBe(201);
-  expect((await api.testHooks.evictFromTmdbCache(matrixId)).status()).toBe(204);
+  expect(
+    (
+      await api.testHooks.evictFromCatalogCache({ source: "tmdb", mediaType: "film", id: matrixId })
+    ).status(),
+  ).toBe(204);
 
   await ui.listPage.goto(list.id);
 
