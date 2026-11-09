@@ -166,6 +166,10 @@ export const MediaType = z.enum(["film"]).openapi({ example: "film" });
 
 export type MediaType = z.infer<typeof MediaType>;
 
+export const ExternalSource = z.enum(["tmdb"]).openapi({ example: "tmdb" });
+
+export type ExternalSource = z.infer<typeof ExternalSource>;
+
 export const CatalogSearchQuery = z.object({
   mediaType: MediaType,
   query: z.string().trim().min(1).max(maxSearchQueryLength).openapi({ example: "alien" }),
@@ -173,7 +177,7 @@ export const CatalogSearchQuery = z.object({
 
 export const ExternalReference = z
   .object({
-    source: z.literal("tmdb"),
+    source: ExternalSource,
     mediaType: MediaType,
     id: z.string().openapi({ example: "348" }),
   })
@@ -293,18 +297,24 @@ export const FilmMetadata = z
 
 export type FilmMetadata = z.infer<typeof FilmMetadata>;
 
+// A cover in a size for a thumbnail and one for a grid or an item's page, whatever its Media Type.
+export type CoverUrls = NonNullable<FilmMetadata["posterUrls"]>;
+
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
 // metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
-// as its Original Title when it has none.
-export const MediaItem = z
+// as its Original Title when it has none. Its metadata's shape depends on its Media Type, so a
+// client doesn't compile until it handles every one.
+export const FilmMediaItem = z
   .object({
     id: z.int().openapi({ example: 42 }),
-    mediaType: MediaType,
+    mediaType: z.literal("film"),
     externalReference: ExternalReference.nullable(),
     metadata: FilmMetadata.nullable(),
   })
-  .openapi("MediaItem");
+  .openapi("FilmMediaItem");
+
+export const MediaItem = z.discriminatedUnion("mediaType", [FilmMediaItem]).openapi("MediaItem");
 
 export type MediaItem = z.infer<typeof MediaItem>;
 

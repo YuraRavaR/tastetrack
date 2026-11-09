@@ -1,4 +1,4 @@
-// Searching the catalog and adding to it: the External Source of the Media Type, TMDB for films.
+// Searching the catalog and adding to it, through the External Source of the Media Type.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   AddCatalogItemRequest,
@@ -29,8 +29,9 @@ import {
   manualSearch,
 } from "./catalog/manual-media-items";
 import { addFromSearch, catalogMediaItems, mediaItemIdsByExternalId } from "./catalog/media-items";
-import { searchFilms, TmdbUnavailable } from "./catalog/tmdb";
-import { type AppEnv, tmdbConfig } from "./env";
+import { sourceOf } from "./catalog/registry";
+import { type CatalogSearchMatch, SourceUnavailable } from "./catalog/source";
+import type { AppEnv } from "./env";
 import { plannedExternalIds } from "./lists/backlog";
 import { listsHolding } from "./lists/user-lists";
 import { loggedMediaItems } from "./log/log-entries";
@@ -249,21 +250,22 @@ export const catalogRoutes = new OpenAPIHono<AppEnv>();
 catalogRoutes.openapi(searchRoute, async (c) => {
   const { mediaType, query } = c.req.valid("query");
   const manual = manualSearch(c.var.db, c.var.userId, mediaType, query);
-  let matches: Awaited<ReturnType<typeof searchFilms>>;
+  const source = sourceOf(mediaType);
+  let matches: CatalogSearchMatch[];
   try {
-    matches = await searchFilms(tmdbConfig(c.env), query);
+    matches = await source.search(c.env, query);
   } catch (error) {
     // Settled, so its outcome isn't an unhandled rejection.
     await manual.catch(() => undefined);
-    if (!(error instanceof TmdbUnavailable)) throw error;
+    if (!(error instanceof SourceUnavailable)) throw error;
     console.error(error);
     return c.json({ error: "catalog_unavailable" }, 502);
   }
   const ids = matches.map((match) => match.externalReference.id);
   const [manualMatches, mediaItemIds, planned] = await Promise.all([
     manual,
-    mediaItemIdsByExternalId(c.var.db, "tmdb", mediaType, ids),
-    plannedExternalIds(c.var.db, c.var.userId, "tmdb", mediaType, ids),
+    mediaItemIdsByExternalId(c.var.db, source.externalSource, mediaType, ids),
+    plannedExternalIds(c.var.db, c.var.userId, source.externalSource, mediaType, ids),
   ]);
   const shownIds = [
     ...manualMatches.map(({ mediaItem }) => mediaItem.id),
@@ -301,13 +303,13 @@ catalogRoutes.openapi(searchRoute, async (c) => {
 });
 
 catalogRoutes.openapi(addRoute, async (c) => {
-  const added = await addFromSearch(c.var.db, tmdbConfig(c.env), c.req.valid("json"), c.var.now);
+  const added = await addFromSearch(c.var.db, c.env, c.req.valid("json"), c.var.now);
   return c.json({ mediaItem: added.mediaItem }, added.created ? 201 : 200);
 });
 
 catalogRoutes.openapi(itemsRoute, async (c) => {
   const { ids } = c.req.valid("query");
-  const mediaItems = await catalogMediaItems(c.var.db, tmdbConfig(c.env), ids, c.var.now);
+  const mediaItems = await catalogMediaItems(c.var.db, c.env, ids, c.var.now);
   return c.json({ mediaItems }, 200);
 });
 

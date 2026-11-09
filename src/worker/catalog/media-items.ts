@@ -1,39 +1,21 @@
 // Media Items as Users see them: catalog-backed ones with their metadata in the disposable catalog
 // cache (ADR-0004), where only the External Reference is User-facing data and everything read
 // from the cache may be missing, and Manual Media Items with their own.
-import { and, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { catalogCache, mediaItems } from "../../db/schema";
 import type {
   AddCatalogItemRequest,
   ExternalReference,
-  FilmMetadata,
+  ExternalSource,
   MediaItem,
   MediaType,
 } from "../../shared/api";
 import { maxMetadataFills } from "../../shared/catalog";
-import {
-  backdropUrls,
-  type FilmDetails,
-  filmDetails,
-  posterPathOf,
-  posterUrls,
-  type TmdbConfig,
-  TmdbUnavailable,
-} from "./tmdb";
+import { expiredEntries, isShown, shownEntries, sourceOf } from "./registry";
+import { type CatalogEntry, type CatalogEnv, SourceUnavailable } from "./source";
 
-type CacheEntry = typeof catalogCache.$inferSelect;
-
-// TMDB allows caching for 6 months; we keep an entry 90 days from when it was last filled. Past
-// that no read shows it, whether or not the cron has deleted it yet.
-const cacheLifetime = 90 * 24 * 60 * 60 * 1000;
-
-// The oldest an entry may be and still be shown; an older one has expired.
-export function oldestShown(now: Date): Date {
-  return new Date(now.getTime() - cacheLifetime);
-}
-
-// Joins a Media Item to its cache entry, if any and not past the hard expiry:
+// Joins a Media Item to its cache entry, if any and not past its source's maximum entry age:
 // `.leftJoin(catalogCache, cacheOfMediaItem(now))`. An expired entry reads as a miss, which the
 // page fills like any other. A Manual Media Item has no External Reference, so it joins nothing.
 export function cacheOfMediaItem(now: Date) {
@@ -41,7 +23,7 @@ export function cacheOfMediaItem(now: Date) {
     eq(catalogCache.externalSource, mediaItems.externalSource),
     eq(catalogCache.mediaType, mediaItems.mediaType),
     eq(catalogCache.externalId, mediaItems.externalId),
-    gte(catalogCache.updatedAt, oldestShown(now)),
+    shownEntries(now),
   );
 }
 
@@ -80,7 +62,7 @@ export const mediaItemColumns = {
   },
 };
 
-type CachedMetadata = Pick<CacheEntry, keyof (typeof mediaItemColumns)["cache"]>;
+type CachedMetadata = CatalogEntry;
 
 type ManualMetadata = Pick<
   typeof mediaItems.$inferSelect,
@@ -89,8 +71,8 @@ type ManualMetadata = Pick<
 
 interface MediaItemRow {
   mediaItemId: number;
-  mediaType: "film";
-  externalSource: "tmdb" | null;
+  mediaType: MediaType;
+  externalSource: ExternalSource | null;
   externalId: string | null;
   // All null for a catalog-backed item.
   manual: ManualMetadata;
@@ -98,32 +80,9 @@ interface MediaItemRow {
   cache: CachedMetadata | null;
 }
 
-// The English Localized Title leads, falling back to the Original Title; the Ukrainian one is
-// worth showing only when it differs from that.
-function toMetadata(cached: CachedMetadata): FilmMetadata {
-  const title = cached.englishTitle ?? cached.originalTitle;
-  return {
-    title,
-    originalTitle: cached.originalTitle,
-    ukrainianTitle:
-      cached.ukrainianTitle && cached.ukrainianTitle !== title ? cached.ukrainianTitle : null,
-    year: cached.year,
-    posterUrls: posterUrls(cached.coverRef),
-    backdropUrls: backdropUrls(cached.extra.backdropPath),
-    runtime: cached.extra.runtime,
-    genres: cached.extra.genres ?? [],
-  };
-}
-
-// A film's details as its cache entry holds them.
-function fromDetails(details: FilmDetails): CachedMetadata {
-  const { posterPath, backdropPath, runtime, genres, ...titlesAndYear } = details;
-  return { ...titlesAndYear, coverRef: posterPath, extra: { backdropPath, runtime, genres } };
-}
-
 // A Manual Media Item shows the title its User gave, in any language, unchanged, with the title
-// standing in for an Original Title it doesn't have, as TMDB's does.
-function fromManual(id: number, manual: ManualMetadata): FilmMetadata {
+// standing in for an Original Title it doesn't have, as an External Source's does.
+function fromManual(id: number, manual: ManualMetadata): MediaItem["metadata"] {
   if (manual.title === null) {
     throw new Error(`Media Item ${id} has neither an External Reference nor a title`);
   }
@@ -152,7 +111,7 @@ export function toMediaItem(row: MediaItemRow): MediaItem {
     id: row.mediaItemId,
     mediaType: row.mediaType,
     externalReference: { source: row.externalSource, mediaType: row.mediaType, id: row.externalId },
-    metadata: row.cache && toMetadata(row.cache),
+    metadata: row.cache && sourceOf(row.mediaType).metadataOf(row.cache),
   };
 }
 
@@ -164,25 +123,27 @@ function byExternalReference({ source, mediaType, id }: ExternalReference) {
   );
 }
 
-// What a search result alone says about a film: its title in the language the search ran in,
-// unless that is just TMDB falling back to the Original Title. No backdrop, runtime or genres.
+// What a search result alone says about a work: its title in the language the search ran in,
+// unless that is just the source falling back to the Original Title, and its cover. Nothing of
+// what only its Media Type has.
 function fromSearchResult(result: AddCatalogItemRequest): CachedMetadata {
+  const source = sourceOf(result.externalReference.mediaType);
   const translated = result.title !== result.originalTitle ? result.title : null;
   return {
     englishTitle: result.titleLanguage === "en" ? translated : null,
     ukrainianTitle: result.titleLanguage === "uk" ? translated : null,
     originalTitle: result.originalTitle,
     year: result.year,
-    coverRef: posterPathOf(result.posterUrl),
-    extra: { backdropPath: null, runtime: null, genres: null },
+    coverRef: source.coverRefOf(result.posterUrl),
+    extra: source.emptyExtra,
   };
 }
 
 // A cache entry's key: the External Reference it holds the metadata of, named as the cache's
 // columns are, so a list of keys travels as one JSON parameter that SQL reads field by field.
 export interface CacheKey {
-  externalSource: "tmdb";
-  mediaType: "film";
+  externalSource: ExternalSource;
+  mediaType: MediaType;
   externalId: string;
 }
 
@@ -208,20 +169,21 @@ export interface FetchedEntry extends CacheKey {
   entry: CachedMetadata;
 }
 
-// One TMDB details call for each film, all at once. A film TMDB doesn't answer for is left out.
-export async function fetchDetails(tmdb: TmdbConfig, films: CacheKey[]): Promise<FetchedEntry[]> {
+// One details fetch for each entry from its source, all at once. An entry its source doesn't
+// answer for is left out.
+export async function fetchDetails(env: CatalogEnv, keys: CacheKey[]): Promise<FetchedEntry[]> {
   const fetched = await Promise.all(
-    films.map(async (key) => {
+    keys.map(async (key) => {
       try {
-        return { ...key, entry: fromDetails(await filmDetails(tmdb, key.externalId)) };
+        return { ...key, entry: await sourceOf(key.mediaType).details(env, key.externalId) };
       } catch (error) {
-        if (!(error instanceof TmdbUnavailable)) throw error;
+        if (!(error instanceof SourceUnavailable)) throw error;
         console.error(error);
         return null;
       }
     }),
   );
-  return fetched.filter((film) => film !== null);
+  return fetched.filter((entry) => entry !== null);
 }
 
 // Writes the details fetched for any number of entries into the cache, in one query:
@@ -256,13 +218,13 @@ export interface AddedMediaItem {
 }
 
 // Creates the search result's catalog-backed Media Item, or finds it if it exists, and fills its
-// cache entry with one details call unless an earlier one already did. If that call fails, adding
+// cache entry with one details fetch unless an earlier one already did. If that fails, adding
 // still succeeds: the search result fills a missing entry instead, and a later add or the cron
 // fills in the rest. A search result never overwrites an entry, since it is only what the client
-// says TMDB said, unless the entry has expired: that counts as none.
+// says the source said, unless the entry has expired: that counts as none.
 export async function addFromSearch(
   db: DrizzleD1Database,
-  tmdb: TmdbConfig,
+  env: CatalogEnv,
   result: AddCatalogItemRequest,
   now: Date,
 ): Promise<AddedMediaItem> {
@@ -287,13 +249,16 @@ export async function addFromSearch(
     db.select({ id: mediaItems.id }).from(mediaItems).where(byExternalReference(reference)),
     db.select().from(catalogCache).where(byCacheKey(key)),
   ]);
-  if (!item) throw new Error(`Media Item for TMDB ${reference.id} neither inserted nor found`);
+  if (!item) {
+    throw new Error(`Media Item for ${cacheKeyId(key)} neither inserted nor found`);
+  }
 
-  const shown = cached && cached.updatedAt >= oldestShown(now) ? cached : undefined;
+  const source = sourceOf(reference.mediaType);
+  const shown = cached && isShown(cached, now) ? cached : undefined;
   let metadata: CachedMetadata | undefined = shown;
   if (!shown?.detailedAt) {
     try {
-      const details = fromDetails(await filmDetails(tmdb, reference.id));
+      const details = await source.details(env, reference.id);
       const columns = { ...details, updatedAt: now, detailedAt: now, checkedAt: null };
       await db
         .insert(catalogCache)
@@ -301,7 +266,7 @@ export async function addFromSearch(
         .onConflictDoUpdate({ target: cacheTarget, set: columns });
       metadata = details;
     } catch (error) {
-      if (!(error instanceof TmdbUnavailable)) throw error;
+      if (!(error instanceof SourceUnavailable)) throw error;
       console.error(error);
       if (!shown) {
         metadata = fromSearchResult(result);
@@ -312,7 +277,7 @@ export async function addFromSearch(
           .onConflictDoUpdate({
             target: cacheTarget,
             set: columns,
-            setWhere: lt(catalogCache.updatedAt, oldestShown(now)),
+            setWhere: expiredEntries(now),
           });
       }
     }
@@ -323,19 +288,20 @@ export async function addFromSearch(
       id: item.id,
       mediaType: reference.mediaType,
       externalReference: reference,
-      metadata: metadata ? toMetadata(metadata) : null,
+      metadata: metadata ? source.metadataOf(metadata) : null,
     },
     created: inserted.length > 0,
   };
 }
 
 // Fills in place the metadata of the first `maxMetadataFills` catalog-backed Media Items, in the
-// order given, that came without it because the cache has no entry for them: one TMDB details call
-// each, all at once, and one query to write them all to the cache. The rest stay null for the
-// client to load by id, so a page's time and queries don't grow with how much the cache misses.
+// order given, that came without it because the cache has no entry for them: one details fetch
+// each from their source, all at once, and one query to write them all to the cache. The rest stay
+// null for the client to load by id, so a page's time and queries don't grow with how much the
+// cache misses.
 export async function fillMissingMetadata(
   db: DrizzleD1Database,
-  tmdb: TmdbConfig,
+  env: CatalogEnv,
   items: MediaItem[],
   now: Date,
 ): Promise<void> {
@@ -348,13 +314,13 @@ export async function fillMissingMetadata(
     }
   }
   if (missing.size === 0) return;
-  const fetched = await fetchDetails(tmdb, [...missing.values()]);
+  const fetched = await fetchDetails(env, [...missing.values()]);
   await storeDetails(db, fetched, now);
   const entries = new Map(fetched.map(({ entry, ...key }) => [cacheKeyId(key), entry]));
   for (const item of items) {
     const filled =
       item.externalReference && entries.get(cacheKeyId(cacheKeyOf(item.externalReference)));
-    if (filled) item.metadata = toMetadata(filled);
+    if (filled) item.metadata = sourceOf(item.mediaType).metadataOf(filled);
   }
 }
 
@@ -362,7 +328,7 @@ export async function fillMissingMetadata(
 // External Source id. A work not in the catalog yet has no entry.
 export async function mediaItemIdsByExternalId(
   db: DrizzleD1Database,
-  source: "tmdb",
+  source: ExternalSource,
   mediaType: MediaType,
   externalIds: string[],
 ): Promise<Map<string, number>> {
@@ -387,7 +353,7 @@ export async function mediaItemIdsByExternalId(
 // that match nothing.
 export async function catalogMediaItems(
   db: DrizzleD1Database,
-  tmdb: TmdbConfig,
+  env: CatalogEnv,
   ids: number[],
   now: Date,
 ): Promise<MediaItem[]> {
@@ -398,6 +364,6 @@ export async function catalogMediaItems(
     .where(and(inArray(mediaItems.id, ids), isNotNull(mediaItems.externalId)));
   const byId = new Map(rows.map((row) => [row.mediaItemId, toMediaItem(row)]));
   const items = [...new Set(ids)].flatMap((id) => byId.get(id) ?? []);
-  await fillMissingMetadata(db, tmdb, items, now);
+  await fillMissingMetadata(db, env, items, now);
   return items;
 }

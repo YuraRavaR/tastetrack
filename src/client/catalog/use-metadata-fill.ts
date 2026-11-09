@@ -12,9 +12,9 @@ export interface MetadataFill {
 
 // A page fills only a few films missing from the catalog cache and shows the rest as placeholders
 // (ADR-0004). This loads those, `maxMetadataFills` at a time, one request after another, in page
-// order, and each film once per page view: one TMDB doesn't answer for stays unavailable.
+// order, and each film once per page view: one its source doesn't answer for stays unavailable.
 export function useMetadataFill(mediaItems: readonly MediaItem[]): MetadataFill {
-  // What follow-ups found, by Media Item id: null where TMDB didn't answer.
+  // What follow-ups found, by Media Item id: null where the source didn't answer.
   const [found, setFound] = useState<ReadonlyMap<number, FilmMetadata | null>>(new Map());
   const requested = useRef(new Set<number>());
   const missing = [
@@ -24,8 +24,8 @@ export function useMetadataFill(mediaItems: readonly MediaItem[]): MetadataFill 
   useEffect(() => {
     let cancelled = false;
     const all = missing.split(",").filter(Boolean).map(Number);
-    // The page already tried its first `maxMetadataFills` misses, in this order, and TMDB didn't
-    // answer for them, so asking again would only repeat those calls.
+    // The page already tried its first `maxMetadataFills` misses, in this order, and the source
+    // didn't answer for them, so asking again would only repeat those calls.
     const tried = all.slice(0, maxMetadataFills).filter((id) => !requested.current.has(id));
     for (const id of tried) requested.current.add(id);
     if (tried.length > 0) {

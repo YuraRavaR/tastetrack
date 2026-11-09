@@ -24,9 +24,9 @@ import * as api from "../api";
 import { t } from "../i18n/t";
 import { listsPath } from "../navigation/paths";
 
-// A film to put on Lists: its label, how to get its Media Item, which for a TMDB search result adds
-// it to the catalog first, and who to tell which Lists hold it, oldest first, as that changes. Kept
-// in state by the opener, so it loads once per opening.
+// A film to put on Lists: its label, how to get its Media Item, which for a source's search result
+// adds it to the catalog first, and who to tell which Lists hold it, oldest first, as that changes.
+// Kept in state by the opener, so it loads once per opening.
 export type ListsFilm = {
   label: string;
   mediaItem: () => Promise<MediaItem | null>;

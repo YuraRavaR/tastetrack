@@ -89,10 +89,10 @@ function LastTime({ entry }: { entry: LogEntry }) {
 }
 
 // Marks a film search found Experienced: asks for a Rating, and optionally a date, a Review and
-// whether it is a Revisit, then adds a TMDB result to the catalog and records the Log Entry, which
-// takes the film off the Backlog. `found` is the film to log; the dialog is open while it is set.
-// For a film in the Log, with its Media Item as `mediaItemId`, Revisit starts on and the form says
-// what the User gave it last time.
+// whether it is a Revisit, then adds a source's result to the catalog and records the Log Entry,
+// which takes the film off the Backlog. `found` is the film to log; the dialog is open while it is
+// set. For a film in the Log, with its Media Item as `mediaItemId`, Revisit starts on and the form
+// says what the User gave it last time.
 export function LogEntryDialog({
   found,
   mediaItemId,
@@ -274,8 +274,8 @@ function LogEntryForm<Saved>({
   onDelete?: () => void;
 }) {
   const ids = { review: useId(), revisit: useId(), revisitHint: useId() };
-  // Today where the User is, which is the latest date the Worker accepts from them. It is read once,
-  // so an entry opened before midnight doesn't change day when it is saved after.
+  // Today where the User is, which is the latest date the Worker accepts from them. It is read
+  // once, so an entry opened before midnight doesn't change day when it is saved after.
   const [today] = useState(userToday);
   const [rating, setRating] = useState(initial.rating);
   const [chip, setChip] = useState(() => dateChipFor(initial.date, today));

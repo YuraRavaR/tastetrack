@@ -150,6 +150,9 @@ export interface FilmCacheExtra {
   genres: string[] | null;
 }
 
+// What a cache entry's `extra` may hold: one shape for each Media Type.
+export type CacheExtra = FilmCacheExtra;
+
 // The disposable metadata cache of every External Source (ADR-0004), keyed by External Reference.
 // It can be wiped at any time without losing User data. The columns every Media Type has are
 // shared; `extra` holds, as JSON, what only one Media Type has. coverRef is the source's own
@@ -170,7 +173,7 @@ export const catalogCache = sqliteTable(
     originalTitle: text("original_title").notNull(),
     year: integer("year"),
     coverRef: text("cover_ref"),
-    extra: text("extra", { mode: "json" }).$type<FilmCacheExtra>().notNull(),
+    extra: text("extra", { mode: "json" }).$type<CacheExtra>().notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
     detailedAt: integer("detailed_at", { mode: "timestamp_ms" }),
     checkedAt: integer("checked_at", { mode: "timestamp_ms" }),

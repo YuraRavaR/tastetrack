@@ -55,19 +55,18 @@ type RowLog = { currentRating: number | null; logEntryCount: number };
 // How many of a result's Lists its row names, before saying how many more hold it.
 const maxListChips = 2;
 
-// Search as you type, with no button, under Media Type chips, with the query in the URL. The
-// User's Media Items that match, those in their Library or on their Lists, come first, "In your
-// Saved": a strip of covers matched against their titles on every keystroke, each with one status
-// line and linking to its film's page. TMDB's results follow, "From TMDB", after a short pause in
-// typing, without the User's Media Items,
-// the User's own Manual Media Items first. A TMDB result with a Media Item links to its
-// film's page, and shows the User's Current Rating, how many viewings they have and the Lists that
-// hold it, and one without a Media Item yet adds it to the catalog when the User opens it, then opens
-// its page. Any result can be marked Watched, which records a Log Entry for it, as a Revisit by
-// default if it is in the Log, and takes it off the Watchlist with an undo. Want to watch is a
-// toggle, which puts a result on the Watchlist or takes it off again, and any result can be added
-// to or taken off the User's Lists. Below the results, a film search doesn't find can be added by
-// hand, and then shows first.
+// Search as you type, with no button, under Media Type chips, with the query in the URL. The User's
+// Media Items that match, those in their Library or on their Lists, come first, "In your Saved": a
+// strip of covers matched against their titles on every keystroke, each with one status line and
+// linking to its film's page. The External Source's results follow, under its name, after a short
+// pause in typing, without the User's Media Items, the User's own Manual Media Items first. A
+// source's result with a Media Item links to its film's page, and shows the User's Current Rating,
+// how many viewings they have and the Lists that hold it, and one without a Media Item yet adds it
+// to the catalog when the User opens it, then opens its page. Any result can be marked Watched,
+// which records a Log Entry for it, as a Revisit by default if it is in the Log, and takes it off
+// the Watchlist with an undo. Want to watch is a toggle, which puts a result on the Watchlist or
+// takes it off again, and any result can be added to or taken off the User's Lists. Below the
+// results, a film search doesn't find can be added by hand, and then shows first.
 export function FilmSearch() {
   const navigate = useNavigate();
   const backlogName = mediaWord(pageMediaType, "backlog");
@@ -77,7 +76,7 @@ export function FilmSearch() {
   const userItems = useUserMediaItems(pageMediaType, query);
   // The User's Media Items have loaded, or failed to.
   const userItemsReady = userItems.status !== "loading";
-  // Both blocks are in place once the User's Media Items are ready and TMDB answered.
+  // Both blocks are in place once the User's Media Items are ready and the source answered.
   const rememberScroll = useResultsScroll(search.status === "done" && userItemsReady);
   const [logging, setLogging] = useState<Found | null>(null);
   const [listing, setListing] = useState<ListsFilm | null>(null);
@@ -119,7 +118,8 @@ export function FilmSearch() {
     ],
     userItems.items,
   );
-  // TMDB's results wait for the User's Media Items, so one never shows there before it moves up.
+  // The source's results wait for the User's Media Items, so one never shows there before it moves
+  // up.
   const showResults = userItemsReady && results.length > 0;
   const noMatch =
     trimmed !== "" &&
@@ -467,8 +467,9 @@ function StatusLine({
   );
 }
 
-// One of TMDB's results. Its title opens its film's page and stretches over the whole row, so on a
-// phone a tap on the poster or around the title opens it too; the row's other controls sit above.
+// One of the External Source's results. Its title opens its film's page and stretches over the
+// whole row, so on a phone a tap on the poster or around the title opens it too; the row's other
+// controls sit above.
 function SearchResult({
   found,
   mediaItemId,

@@ -124,6 +124,19 @@ describe("which cache entries the cron refreshes", () => {
     expect(await due(2)).toEqual(["45", "44"]);
   });
 
+  it("counts a batch in subrequests: 40, whatever each entry's source costs", async () => {
+    for (let id = 1; id <= 45; id++) {
+      await film(String(id), { in: "log", cached: { updated: daysAgo(10 + id) } });
+    }
+    // As if films cost two subrequests an entry, as books do.
+    const twoEach = () => 2;
+
+    const batch = (await dueForRefresh(db, now, undefined, twoEach)).map((key) => key.externalId);
+    expect(batch).toEqual(Array.from({ length: 20 }, (_, index) => String(45 - index)));
+    const odd = await dueForRefresh(db, now, 5, twoEach);
+    expect(odd.map((key) => key.externalId)).toEqual(["45", "44"]);
+  });
+
   it("leaves entries refreshed within the last week until they are a week old", async () => {
     await film("1", { in: "log", cached: { updated: daysAgo(6) } });
     await film("2", { in: "log", cached: { updated: daysAgo(8) } });
@@ -147,8 +160,8 @@ describe("which cache entries the cron refreshes", () => {
   });
 });
 
-// TMDB is the fake the `local` Worker searches, reached through fetch.
-const tmdb = { baseUrl: "http://tmdb.test/3", accessToken: "fake-tmdb-token" };
+// The sources' configuration: TMDB is the fake the `local` Worker searches, reached through fetch.
+const tmdb = { TMDB_BASE_URL: "http://tmdb.test/3", TMDB_ACCESS_TOKEN: "fake-tmdb-token" };
 
 // The metadata titles the User's Log shows, in Log Order.
 async function loggedTitles(): Promise<(string | null)[]> {

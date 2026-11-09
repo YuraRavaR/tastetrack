@@ -267,8 +267,8 @@ export async function addToCatalog(result: CatalogSearchResult): Promise<MediaIt
   }
 }
 
-// Catalog-backed Media Items by id, filled with the metadata the cache was missing where TMDB
-// answers; empty when they couldn't be loaded.
+// Catalog-backed Media Items by id, filled with the metadata the cache was missing where the
+// External Source answers; empty when they couldn't be loaded.
 export async function fetchMediaItems(ids: number[]): Promise<Map<number, MediaItem>> {
   try {
     const response = await fetch(

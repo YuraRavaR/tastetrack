@@ -30,7 +30,7 @@ import {
 import { maxListItems, maxLists } from "../shared/lists";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import { fillMissingMetadata } from "./catalog/media-items";
-import { type AppEnv, tmdbConfig } from "./env";
+import type { AppEnv } from "./env";
 import { plan, removeFromBacklog, userBacklog } from "./lists/backlog";
 import { editListItem, removeListItem } from "./lists/list-items";
 import {
@@ -528,7 +528,7 @@ listRoutes.openapi(backlogRoute, async (c) => {
     originOf(c.req.url),
     c.var.now,
   );
-  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItemsOf(backlog.items), c.var.now);
+  await fillMissingMetadata(c.var.db, c.env, mediaItemsOf(backlog.items), c.var.now);
   return c.json({ backlog }, 200);
 });
 
@@ -600,7 +600,7 @@ listRoutes.openapi(listedMediaItemsRoute, async (c) => {
   const { mediaType } = c.req.valid("query");
   const items = await listedMediaItems(c.var.db, c.var.userId, mediaType, c.var.now);
   const mediaItems = items.map((item) => item.mediaItem);
-  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItems, c.var.now);
+  await fillMissingMetadata(c.var.db, c.env, mediaItems, c.var.now);
   return c.json({ items }, 200);
 });
 
@@ -608,7 +608,7 @@ listRoutes.openapi(listRoute, async (c) => {
   const { listId } = c.req.valid("param");
   const list = await userList(c.var.db, c.var.userId, listId, originOf(c.req.url), c.var.now);
   if (!list) return c.json({ error: "unknown_list" }, 404);
-  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItemsOf(list.items), c.var.now);
+  await fillMissingMetadata(c.var.db, c.env, mediaItemsOf(list.items), c.var.now);
   return c.json({ list }, 200);
 });
 
@@ -662,6 +662,6 @@ listRoutes.openapi(sharedListRoute, async (c) => {
   c.header("X-Robots-Tag", "noindex");
   const list = await sharedList(c.var.db, c.req.valid("param").token, c.var.now);
   if (!list) return c.json({ error: "not_found" }, 404);
-  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItemsOf(list.items), c.var.now);
+  await fillMissingMetadata(c.var.db, c.env, mediaItemsOf(list.items), c.var.now);
   return c.json({ sharedList: list }, 200);
 });
