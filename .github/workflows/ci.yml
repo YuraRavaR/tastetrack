@@ -13,6 +13,10 @@ permissions:
 env:
   WRANGLER_SEND_METRICS: "false"
 
+# The tests run in three jobs side by side, each with the local Wrangler servers of its own, and
+# the `tests` job at the end carries the check the `Protect main` ruleset requires. A job that
+# runs takes about 2 minutes; a stalled download fails it at its timeout, not after GitHub's
+# 6 hours.
 jobs:
   commits:
     name: Conventional Commits
@@ -31,17 +35,13 @@ jobs:
         run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
 
   checks:
-    name: Lint, types and tests
+    name: Lint, types, unit, API and CLI tests
     runs-on: ubuntu-latest
-    # A run takes about 2 minutes; a stalled download fails it here, not after GitHub's 6 hours.
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
-        with:
-          playwright: "true"
-          webkit: "true"
 
       - name: Lint
         run: pnpm exec biome ci .
@@ -52,17 +52,96 @@ jobs:
       - name: Unit tests
         run: pnpm test:unit
 
-      - name: API and E2E tests against local Wrangler
-        run: pnpm exec playwright test
+      - name: API and smoke tests against local Wrangler
+        run: pnpm exec playwright test --project=api --project=smoke
+
+      # On its own and one test at a time: the CLI writes to the local D1 through
+      # `wrangler d1 execute`, which beside the dev server's other writes fails with SQLITE_BUSY.
+      # Its own output and report folders keep the API tests' traces.
+      - name: Operator CLI tests against local Wrangler
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-cli
+        run: pnpm exec playwright test --project=cli --workers=1 --output=test-results-cli
 
       # Keeps the traces of failed attempts, including tests that passed only on retry.
+      - name: Upload Playwright traces and reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-local-api
+          path: |
+            test-results/
+            playwright-report/
+            test-results-cli/
+            playwright-report-cli/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+        with:
+          playwright: "true"
+
+      - name: E2E tests in Chromium against local Wrangler
+        run: pnpm exec playwright test --project=e2e
+
       - name: Upload Playwright traces and report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-local
+          name: playwright-local-e2e
           path: |
             test-results/
             playwright-report/
           if-no-files-found: ignore
           retention-days: 14
+
+  # The only job that installs WebKit, whose system libraries take half a minute.
+  mobile:
+    name: Mobile tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+        with:
+          webkit: "true"
+
+      - name: Smoke tests on an iPhone in WebKit against local Wrangler
+        run: pnpm exec playwright test --project=mobile
+
+      - name: Upload Playwright traces and report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-local-mobile
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # A required check that is skipped counts as passed, so this job runs whatever the others did
+  # and passes only when all of them passed.
+  tests:
+    name: Lint, types and tests
+    needs: [checks, e2e, mobile]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check that every test job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "checks, e2e, mobile: $RESULTS"
+          for result in $RESULTS; do
+            [ "$result" = success ] || exit 1
+          done
