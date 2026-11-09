@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ListItem } from "../../shared/api";
 import * as api from "../api";
 
@@ -8,7 +8,8 @@ export type ListUpdateError = "full" | "unavailable";
 
 // Moving, noting and removing the List Items of a List page, and undoing a removal. `reload`
 // reads the List afresh after each change, so the order is always the Worker's; `putBack` adds a
-// removed item back where it was with its Note, and says why it couldn't.
+// removed item back where it was with its Note, and says why it couldn't. One move runs at a time:
+// a tap while one saves is dropped, since its position counts from an order about to change.
 export function useListItemEditing({
   reload,
   putBack,
@@ -19,11 +20,18 @@ export function useListItemEditing({
   const [noting, setNoting] = useState<ListItem | null>(null);
   const [removed, setRemoved] = useState<ListItem | null>(null);
   const [error, setError] = useState<ListUpdateError | null>(null);
+  const moving = useRef(false);
 
   async function move(item: ListItem, position: number) {
-    setError(null);
-    if (!(await api.editListItem(item.id, { position }))) setError("unavailable");
-    await reload();
+    if (moving.current) return;
+    moving.current = true;
+    try {
+      setError(null);
+      if (!(await api.editListItem(item.id, { position }))) setError("unavailable");
+      await reload();
+    } finally {
+      moving.current = false;
+    }
   }
 
   async function remove(item: ListItem) {

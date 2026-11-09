@@ -13,12 +13,15 @@ export type ListPosterAction =
   | "Add a Note"
   | "Edit Note"
   | "Move to top"
-  | "Move earlier"
-  | "Move later"
   | "Remove from collection";
 
 // What the ⋯ by the List's heading offers. "Share" becomes "Share Link" once the List is shared.
-export type ListAction = "Edit collection" | "Share" | "Share Link" | "Delete collection";
+export type ListAction =
+  | "Edit collection"
+  | "Reorder films"
+  | "Share"
+  | "Share Link"
+  | "Delete collection";
 
 // What the Share Link dialog asks before it replaces the link or stops sharing.
 export type ShareLinkQuestion = "Make a new link?" | "Stop sharing?";
@@ -63,10 +66,16 @@ class ShareLinkDialog extends ScopedComponent {
 }
 
 // One film in a List's grid: its poster, title and year as one link to the film's page, its ⋯
-// button, and its Note under it, which opens the Note dialog.
+// button, and its Note under it, which opens the Note dialog. While the User reorders the List,
+// three arrows over the poster take the place of the link and the ⋯.
 class ListPoster extends PosterGridItem {
   readonly moreButton = this.root.getByRole("button", { name: /^More for / });
   readonly noteButton = this.root.getByRole("button", { name: /^Note for / });
+  readonly moveToTopButton = this.root.getByRole("button", { name: /^Move .+ to top$/ });
+  readonly moveEarlierButton = this.root.getByRole("button", { name: /^Move .+ earlier$/ });
+  readonly moveLaterButton = this.root.getByRole("button", { name: /^Move .+ later$/ });
+  // The placeholder in place of a poster the film doesn't have.
+  readonly noPoster = this.root.getByRole("img", { name: "No poster" });
 }
 
 // One of the User's Lists, a grid of posters in the List's order.
@@ -91,6 +100,8 @@ export class ListPage extends BasePage<[listId: number]> {
   readonly addFilmsButton = this.main.getByRole("button", { name: "Add films" });
   // The open poster's ⋯ menu.
   readonly posterMenu = this.page.getByRole("menu");
+  // Ends Reorder films.
+  readonly doneButton = this.main.getByRole("button", { name: "Done", exact: true });
   // After a film is removed, the line that offers it back.
   readonly undoButton = this.main.getByRole("button", { name: "Undo" });
 
@@ -116,6 +127,11 @@ export class ListPage extends BasePage<[listId: number]> {
 
   noteDialog(filmLabel: string) {
     return new NoteDialog(this.page.getByRole("dialog", { name: `Note for ${filmLabel}` }));
+  }
+
+  // One of the open poster ⋯ menu's items.
+  posterMenuItem(action: ListPosterAction) {
+    return this.posterMenu.getByRole("menuitem", { name: action, exact: true });
   }
 
   // One of the ⋯ menu's items, once it is open.
@@ -149,6 +165,6 @@ export class ListPage extends BasePage<[listId: number]> {
   @step
   async choose(listName: string, title: string, action: ListPosterAction): Promise<void> {
     await this.poster(listName, title).moreButton.click();
-    await this.posterMenu.getByRole("menuitem", { name: action }).click();
+    await this.posterMenuItem(action).click();
   }
 }

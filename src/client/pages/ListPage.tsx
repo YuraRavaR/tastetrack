@@ -53,8 +53,10 @@ function ListMeta({ films, shared }: { films: number; shared: boolean }) {
 
 // One of the User's Lists in their own order, as a grid of posters with their Notes
 // (`docs/mockups/collections/`), and a search to add films to it. Each poster's ⋯ menu notes,
-// moves or removes its film, and a removal can be undone; the ⋯ by the heading edits, shares or
-// deletes the List itself. After each change the page reloads, so what it shows is the Worker's.
+// moves to the top or removes its film, and a removal can be undone; the ⋯ by the heading edits,
+// reorders, shares or deletes the List itself. Reorder films puts arrows on each poster in place
+// of the search and the posters' ⋯ until Done. After each change the page reloads, so what it
+// shows is the Worker's.
 export function ListPage() {
   const listId = Number(useParams().listId);
   const navigate = useNavigate();
@@ -62,6 +64,7 @@ export function ListPage() {
   const [editingList, setEditingList] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [reordering, setReordering] = useState(false);
   // Holds the search to add films, which the empty List's button takes the User to.
   const addFilms = useRef<HTMLDivElement>(null);
   const reload = useCallback(async () => setState(await loadList(listId)), [listId]);
@@ -130,14 +133,31 @@ export function ListPage() {
             <ListActionsMenu
               className="[grid-area:more]"
               shared={state.list.shareLink !== null}
+              reorderable={state.list.items.length >= 2}
               onEdit={() => setEditingList(true)}
+              onReorder={() => setReordering(true)}
               onShare={() => setSharing(true)}
               onDelete={() => setDeleting(true)}
             />
           </div>
-          <div ref={addFilms}>
-            <AddToListSearch list={state.list} onAdded={reload} />
-          </div>
+          {reordering ? (
+            <div
+              role="status"
+              className="sticky top-0 z-10 flex items-center justify-between gap-2.5 rounded-xl border border-primary-strong bg-primary-soft py-2 pr-2 pl-3.5 text-sm md:top-3 md:pl-4 md:text-[15px]"
+            >
+              {t("list.reorderHint")}
+              <Button
+                className="h-10 shrink-0 rounded-full px-4 font-semibold"
+                onClick={() => setReordering(false)}
+              >
+                {t("list.reorderDone")}
+              </Button>
+            </div>
+          ) : (
+            <div ref={addFilms}>
+              <AddToListSearch list={state.list} onAdded={reload} />
+            </div>
+          )}
           <div role="status" className="empty:hidden md:self-start">
             {removed && (
               <p className="flex items-center justify-between gap-2.5 rounded-xl bg-muted py-1 pr-1 pl-3.5 text-sm">
@@ -179,6 +199,7 @@ export function ListPage() {
                   place={index + 1}
                   listName={state.list.name}
                   last={index === items.length - 1}
+                  reordering={reordering}
                   onMove={(position) => editing.move(item, position)}
                   onNote={() => editing.setNoting(item)}
                   onRemove={() => editing.remove(item)}
