@@ -65,6 +65,30 @@ class ShareLinkDialog extends ScopedComponent {
   }
 }
 
+// Adding films to a List, from "Add films": a search whose results each have an Add button, or
+// say the film is in the List already. A bottom sheet on a phone, a dialog from md.
+class AddFilmsDialog extends ScopedComponent {
+  readonly searchBox = this.root.getByRole("searchbox", { name: "Search films" });
+  readonly searchResults = new SearchResults(
+    this.root.getByRole("list", { name: "Search results" }),
+  );
+  readonly doneButton = this.root.getByRole("button", { name: "Done", exact: true });
+
+  @step
+  async search(query: string): Promise<void> {
+    await this.searchBox.fill(query);
+  }
+
+  // Searches, adds the result with this label and waits until it says it's in the List.
+  @step
+  async add(query: string, label: string): Promise<void> {
+    await this.search(query);
+    const result = this.searchResults.result(label);
+    await result.addButton.click();
+    await result.inThisListLabel.waitFor();
+  }
+}
+
 // One film in a List's grid: its poster, title and year as one link to the film's page, its ⋯
 // button, and its Note under it, which opens the Note dialog. While the User reorders the List,
 // three arrows over the poster take the place of the link and the ⋯.
@@ -91,13 +115,11 @@ export class ListPage extends BasePage<[listId: number]> {
     this.page.getByRole("dialog", { name: "Edit collection" }),
   );
 
-  // Adding films: a search whose results each have an Add button.
-  readonly searchBox = this.page.getByRole("searchbox", { name: "Search films" });
-  readonly searchResults = new SearchResults(
-    this.page.getByRole("list", { name: "Search results" }),
-  );
-  // The empty List's one button.
-  readonly addFilmsButton = this.main.getByRole("button", { name: "Add films" });
+  // "Add films" by the heading. An empty List has its own, after it. Both open the dialog.
+  readonly addFilmsButton = this.main.getByRole("button", { name: "Add films" }).first();
+  readonly emptyStateAddFilmsButton = this.main.getByRole("button", { name: "Add films" }).last();
+  // A search on the page itself, which it no longer has: films are searched for in the dialog.
+  readonly searchBox = this.main.getByRole("searchbox");
   // The open poster's ⋯ menu.
   readonly posterMenu = this.page.getByRole("menu");
   // Ends Reorder films.
@@ -123,6 +145,10 @@ export class ListPage extends BasePage<[listId: number]> {
   poster(listName: string, title: string) {
     const titled = this.page.getByText(title, { exact: true });
     return new ListPoster(this.items(listName).filter({ has: titled }));
+  }
+
+  addFilmsDialog(listName: string) {
+    return new AddFilmsDialog(this.page.getByRole("dialog", { name: `Add films to ${listName}` }));
   }
 
   noteDialog(filmLabel: string) {
@@ -156,9 +182,13 @@ export class ListPage extends BasePage<[listId: number]> {
     await this.actionItem(action).click();
   }
 
+  // Opens "Add films", adds the search result with this label and closes the dialog.
   @step
-  async search(query: string): Promise<void> {
-    await this.searchBox.fill(query);
+  async addFilm(listName: string, query: string, label: string): Promise<void> {
+    await this.addFilmsButton.click();
+    const dialog = this.addFilmsDialog(listName);
+    await dialog.add(query, label);
+    await dialog.doneButton.click();
   }
 
   // Opens a poster's ⋯ menu and picks one of its actions.

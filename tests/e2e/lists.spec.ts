@@ -36,13 +36,15 @@ test("a User builds a List: names it, adds films, orders and notes them, then de
 
   await expect(listPage.heading("Space horror")).toBeVisible();
   await expect(listPage.text("Films to watch with the lights off.")).toBeVisible();
-  await listPage.search("alien");
-  const alien = listPage.searchResults.result("Alien (1979)");
+  await listPage.addFilmsButton.click();
+  const addFilms = listPage.addFilmsDialog("Space horror");
+  await addFilms.search("alien");
+  const alien = addFilms.searchResults.result("Alien (1979)");
   await alien.addButton.click();
   await expect(alien.inThisListLabel).toBeVisible();
   await expect(alien.addButton).toHaveCount(0);
-  await listPage.search("aliens");
-  await listPage.searchResults.result("Aliens (1986)").addButton.click();
+  await addFilms.add("aliens", "Aliens (1986)");
+  await addFilms.doneButton.click();
   const items = listPage.items("Space horror");
   await expect(items).toHaveCount(2);
   await expect(listPage.text("2 films")).toBeVisible();
@@ -190,13 +192,13 @@ test("Reorder films moves each poster earlier, later or to the top, and the orde
   const cedar = listPage.poster("Trees", "Cedar");
   await expect(items).toContainText(["Ash", "Birch", "Cedar"]);
 
-  // The mode hides the search and each poster's ⋯ and link, and the placeholder's own caption.
+  // The mode hides Add films and each poster's ⋯ and link, and the placeholder's own caption.
   await listPage.act("Reorder films");
   const reorderHint = listPage.text(
     "Use the arrows on each poster to move it earlier or later, or to the top.",
   );
   await expect(reorderHint).toBeVisible();
-  await expect(listPage.searchBox).toHaveCount(0);
+  await expect(listPage.addFilmsButton).toHaveCount(0);
   await expect(ash.moreButton).toHaveCount(0);
   await expect(ash.link).toHaveCount(0);
   await expect(ash.noPoster).toHaveText("");
@@ -220,10 +222,10 @@ test("Reorder films moves each poster earlier, later or to the top, and the orde
   await birch.moveEarlierButton.click();
   await expect(items).toContainText(["Birch", "Cedar", "Ash"]);
 
-  // Done brings back the search and the ⋯; the order outlives a reload.
+  // Done brings back Add films and the ⋯; the order outlives a reload.
   await listPage.doneButton.click();
   await expect(reorderHint).toHaveCount(0);
-  await expect(listPage.searchBox).toBeVisible();
+  await expect(listPage.addFilmsButton).toBeVisible();
   await expect(ash.moreButton).toBeVisible();
   await page.reload();
   await expect(items).toContainText(["Birch", "Cedar", "Ash"]);
@@ -234,13 +236,6 @@ test("Reorder films moves each poster earlier, later or to the top, and the orde
   await page.keyboard.press("Escape");
   await listPage.choose("Trees", "Ash", "Move to top");
   await expect(items).toContainText(["Ash", "Birch", "Cedar"]);
-
-  // A newly added film goes to the end.
-  await listPage.search("alien");
-  await listPage.searchResults.result("Alien (1979)").addButton.click();
-  await expect(items).toHaveCount(4);
-  await page.reload();
-  await expect(items).toContainText(["Ash", "Birch", "Cedar", "Alien"]);
 });
 
 test("a Collection is a grid of posters, each with its Note, which the User writes and clears", async ({
@@ -310,7 +305,7 @@ test("a film removed from a Collection comes back where it was, with its Note, o
   await expect(listPage.undoButton).toHaveCount(0);
 });
 
-test("an empty Collection says so, with a button to add films", async ({
+test("an empty Collection says so, with a button that opens Add films", async ({
   ui,
   loggedInApi: api,
 }) => {
@@ -320,8 +315,65 @@ test("an empty Collection says so, with a button to add films", async ({
 
   await expect(listPage.text("This Collection is empty.")).toBeVisible();
   await expect(listPage.items("Space horror")).toHaveCount(0);
+  // Films are searched for in the dialog, not on the page.
+  await expect(listPage.searchBox).toHaveCount(0);
+  await listPage.emptyStateAddFilmsButton.click();
+  await expect(listPage.addFilmsDialog("Space horror").searchBox).toBeFocused();
+});
+
+test("Add films marks the films already in the Collection, and a film added goes to the end", async ({
+  ui,
+  loggedInApi: api,
+}) => {
+  const list = await createList(api, "Space horror");
+  for (const film of [alien, aliens]) {
+    const mediaItemId = (await film(api)).id;
+    await expectBody(api.lists.addListItem(list.id, { mediaItemId }), 201);
+  }
+  await manualFilm(api, { title: "Alien at home", year: 2024 });
+  const { listPage } = ui;
+  await listPage.goto(list.id);
+  const items = listPage.items("Space horror");
+  await expect(items).toHaveCount(2);
+
   await listPage.addFilmsButton.click();
-  await expect(listPage.searchBox).toBeFocused();
+  const addFilms = listPage.addFilmsDialog("Space horror");
+  await expect(addFilms.searchBox).toBeFocused();
+  await addFilms.search("alien");
+  // The User's own film comes first, and the one already in the Collection says so.
+  const results = addFilms.searchResults;
+  await expect(results.rows.first()).toContainText("Alien at home (2024)");
+  const alienResult = results.result("Alien (1979)");
+  await expect(alienResult.inThisListLabel).toBeVisible();
+  await expect(alienResult.addButton).toHaveCount(0);
+  const homeMovieResult = results.result("Alien at home (2024)");
+  await homeMovieResult.addButton.click();
+  await expect(homeMovieResult.inThisListLabel).toBeVisible();
+
+  await addFilms.doneButton.click();
+  await expect(addFilms.root).toBeHidden();
+  await expect(items).toContainText(["Alien", "Aliens", "Alien at home"]);
+});
+
+test("Add films is a dialog from md and a full-width sheet on a phone", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  const list = await createList(api, "Space horror");
+  const { listPage } = ui;
+  await listPage.goto(list.id);
+  const addFilms = listPage.addFilmsDialog("Space horror");
+
+  await listPage.addFilmsButton.click();
+  expect((await settledBoxOf(addFilms.root)).y).toBe(72);
+  await page.keyboard.press("Escape");
+  await expect(addFilms.root).toBeHidden();
+
+  const screen = { width: 402, height: 874 };
+  await page.setViewportSize(screen);
+  await listPage.addFilmsButton.click();
+  await expectOnBottomEdge(addFilms.root, screen);
 });
 
 test("a name the User already has is refused", async ({ ui, loggedInApi: api }) => {
