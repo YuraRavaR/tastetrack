@@ -77,6 +77,7 @@ export function Poster({
       className={cn(
         "flex shrink-0 flex-col items-center justify-center gap-2 bg-muted text-center text-muted-foreground",
         sizeClass,
+        large && "shadow-none",
         withCaption && "p-2.5",
       )}
     >

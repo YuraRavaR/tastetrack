@@ -1,19 +1,12 @@
-import type { Locator } from "@playwright/test";
 import { alien, aliens, film, manualFilm, newFilm, noPosterFilm } from "../support/scenarios/films";
 import { callsRealTmdb, holdImages } from "../support/scenarios/tmdb";
+import { settledBoxOf as box } from "../support/ui/boxes";
 import { expect, test } from "../support/ui/fixtures";
 import type { FilmPage } from "../support/ui/pages/FilmPage";
 
 async function openFilm(filmPage: FilmPage, mediaItemId: number): Promise<void> {
   await filmPage.goto(mediaItemId);
   await expect(filmPage.heading).toBeVisible();
-}
-
-// Where an element sits on the page, to the pixel's fraction the layout gives it.
-async function box(locator: Locator) {
-  const found = await locator.boundingBox();
-  expect(found, "an element with a layout box").not.toBeNull();
-  return found as NonNullable<typeof found>;
 }
 
 test("a film's page opens with its whole backdrop, the poster over its bottom edge", async ({
@@ -62,13 +55,21 @@ test("a film without a backdrop has no picture, its poster at the top of the pag
   const { id, metadata } = await aliens(api);
   const { filmPage } = ui;
 
-  await openFilm(filmPage, id);
+  const poster = filmPage.posterImage(metadata.posterUrls.large);
 
-  await expect(filmPage.backdrop).toHaveCount(0);
-  const poster = await box(filmPage.posterImage(metadata.posterUrls.large));
-  expect([poster.width, poster.height]).toEqual([176, 264]);
   // Not pulled up over a picture that isn't there: below the top of the page's column.
-  expect(poster.y).toBeGreaterThanOrEqual((await box(filmPage.main)).y);
+  await page.setViewportSize({ width: 402, height: 874 });
+  await openFilm(filmPage, id);
+  await expect(filmPage.backdrop).toHaveCount(0);
+  const phonePoster = await box(poster);
+  expect([phonePoster.width, phonePoster.height]).toEqual([104, 156]);
+  expect(phonePoster.y).toBeGreaterThanOrEqual((await box(filmPage.main)).y);
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect.poll(async () => (await box(poster)).width).toBe(176);
+  const webPoster = await box(poster);
+  expect(webPoster.height).toBe(264);
+  expect(webPoster.y).toBeGreaterThanOrEqual((await box(filmPage.main)).y);
 });
 
 test("a film with a backdrop and no poster shows the placeholder over it", async ({

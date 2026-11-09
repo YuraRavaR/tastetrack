@@ -33,12 +33,13 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
   }
 }
 
-// One film's Item History: a banner with its title, then, indented with it from `sm`, tiles for how the User watched and rated it, the actions they
-// can take on it, and every Log Entry, newest first, each of which can be edited or deleted. A film
-// with no Log Entries has no tiles, and says what will show where its entries go. The Worker sends
-// them in Log Order, and the page only reverses that for display. After a new entry, an edit or a
-// delete it reloads, so the order and the Current Rating are always the Worker's. A film the User
-// added manually can be edited too, or deleted with everything that goes with it.
+// One film's Item History: a banner with its title, then, indented with it from `sm`, tiles for
+// how the User watched and rated it, the actions they can take on it, and every Log Entry, newest
+// first, each of which can be edited or deleted. A film with no Log Entries has no tiles, and says
+// what will show where its entries go. The Worker sends them in Log Order, and the page only
+// reverses that for display. After a new entry, an edit or a delete it reloads, so the order and
+// the Current Rating are always the Worker's. A film the User added manually can be edited too, or
+// deleted with everything that goes with it.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();

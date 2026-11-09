@@ -22,12 +22,13 @@ export function FilmBanner({ mediaItem }: { mediaItem: MediaItem }) {
       <div
         className={cn(
           "relative flex items-end gap-3.5 sm:gap-7 sm:px-6",
-          backdrop && "-mt-18 sm:-mt-43",
+          // Without a picture the row sits 16 px under the header on a phone, 40 px from sm.
+          backdrop ? "-mt-18 sm:-mt-43" : "-mt-2 sm:mt-4",
         )}
       >
         <Poster subject={mediaItem} size="large" />
-        <div className="flex min-w-0 flex-col gap-0.5 pb-0.5 sm:gap-1 sm:pb-1">
-          <h1 className="font-bold text-[21px] leading-[1.15] tracking-tight sm:text-[34px] sm:leading-[1.12]">
+        <div className="flex min-w-0 flex-col gap-0.75 pb-0.5 sm:gap-1 sm:pb-1">
+          <h1 className="font-bold text-[21px] leading-[1.15] tracking-[-0.01em] sm:text-[34px] sm:leading-[1.12] sm:tracking-[-0.02em]">
             <FilmTitle metadata={mediaItem.metadata} />
           </h1>
           <FilmFacts metadata={mediaItem.metadata} />
