@@ -135,8 +135,8 @@ test("the ⋯ by a List's heading holds its actions, as a sheet on a phone like 
 
   // Reordering needs two films at least.
   await listPage.actionsButton.click();
-  const items = listPage.actionsMenu.getByRole("menuitem");
-  await expect(items).toHaveText([
+  const menuItems = listPage.actionsMenu.getByRole("menuitem");
+  await expect(menuItems).toHaveText([
     "Edit collection",
     "Reorder films",
     "Share",
@@ -192,7 +192,10 @@ test("Reorder films moves each poster earlier, later or to the top, and the orde
 
   // The mode hides the search and each poster's ⋯ and link, and the placeholder's own caption.
   await listPage.act("Reorder films");
-  await expect(listPage.reorderHint).toBeVisible();
+  const reorderHint = listPage.text(
+    "Use the arrows on each poster to move it earlier or later, or to the top.",
+  );
+  await expect(reorderHint).toBeVisible();
   await expect(listPage.searchBox).toHaveCount(0);
   await expect(ash.moreButton).toHaveCount(0);
   await expect(ash.link).toHaveCount(0);
@@ -219,7 +222,7 @@ test("Reorder films moves each poster earlier, later or to the top, and the orde
 
   // Done brings back the search and the ⋯; the order outlives a reload.
   await listPage.doneButton.click();
-  await expect(listPage.reorderHint).toHaveCount(0);
+  await expect(reorderHint).toHaveCount(0);
   await expect(listPage.searchBox).toBeVisible();
   await expect(ash.moreButton).toBeVisible();
   await page.reload();
@@ -227,7 +230,7 @@ test("Reorder films moves each poster earlier, later or to the top, and the orde
 
   // Move to top is in each poster's ⋯ too, off for the first film.
   await birch.moreButton.click();
-  await expect(listPage.posterMenu.getByRole("menuitem", { name: "Move to top" })).toBeDisabled();
+  await expect(listPage.posterMenuItem("Move to top")).toBeDisabled();
   await page.keyboard.press("Escape");
   await listPage.choose("Trees", "Ash", "Move to top");
   await expect(items).toContainText(["Ash", "Birch", "Cedar"]);

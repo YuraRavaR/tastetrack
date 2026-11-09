@@ -100,10 +100,7 @@ export class ListPage extends BasePage<[listId: number]> {
   readonly addFilmsButton = this.main.getByRole("button", { name: "Add films" });
   // The open poster's ⋯ menu.
   readonly posterMenu = this.page.getByRole("menu");
-  // Reorder films: a bar that says how, with a button that ends it.
-  readonly reorderHint = this.main.getByText(
-    "Use the arrows on each poster to move it earlier or later, or to the top.",
-  );
+  // Ends Reorder films.
   readonly doneButton = this.main.getByRole("button", { name: "Done", exact: true });
   // After a film is removed, the line that offers it back.
   readonly undoButton = this.main.getByRole("button", { name: "Undo" });
@@ -130,6 +127,11 @@ export class ListPage extends BasePage<[listId: number]> {
 
   noteDialog(filmLabel: string) {
     return new NoteDialog(this.page.getByRole("dialog", { name: `Note for ${filmLabel}` }));
+  }
+
+  // One of the open poster ⋯ menu's items.
+  posterMenuItem(action: ListPosterAction) {
+    return this.posterMenu.getByRole("menuitem", { name: action, exact: true });
   }
 
   // One of the ⋯ menu's items, once it is open.
@@ -163,6 +165,6 @@ export class ListPage extends BasePage<[listId: number]> {
   @step
   async choose(listName: string, title: string, action: ListPosterAction): Promise<void> {
     await this.poster(listName, title).moreButton.click();
-    await this.posterMenu.getByRole("menuitem", { name: action }).click();
+    await this.posterMenuItem(action).click();
   }
 }

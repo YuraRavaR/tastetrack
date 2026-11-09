@@ -57,7 +57,7 @@ export function ListPoster(props: ListPosterProps) {
       meta={year !== null ? String(year) : undefined}
       place={place}
       corner={reordering ? undefined : <PosterMenu {...props} />}
-      cover={reordering ? <MoveArrows {...props} /> : undefined}
+      overlay={reordering ? <MoveArrows {...props} /> : undefined}
     >
       {item.note && (
         <Button
@@ -77,6 +77,13 @@ export function ListPoster(props: ListPosterProps) {
 }
 
 type Arrow = "top" | "earlier" | "later";
+
+// Each arrow's name, which says which film it moves, and its tooltip.
+const arrowLabels = {
+  top: ["listItem.moveFilmToTop", "listItem.moveToTop"],
+  earlier: ["listItem.moveFilmEarlier", "listItem.moveEarlier"],
+  later: ["listItem.moveFilmLater", "listItem.moveLater"],
+} as const;
 
 // The three arrows over a poster while the User reorders the List: Move to top in the top right
 // corner, Move earlier and Move later at the bottom, each off where it would go past an end. A
@@ -100,12 +107,7 @@ function MoveArrows({ item, place, last, onMove }: ListPosterProps) {
   }, [refocus]);
 
   const arrow = (name: Arrow, Icon: LucideIcon, disabled: boolean, position: number) => {
-    const labels = {
-      top: ["listItem.moveFilmToTop", "listItem.moveToTop"],
-      earlier: ["listItem.moveFilmEarlier", "listItem.moveEarlier"],
-      later: ["listItem.moveFilmLater", "listItem.moveLater"],
-    } as const;
-    const [label, title] = labels[name];
+    const [label, title] = arrowLabels[name];
     return (
       <Button
         ref={(button) => {
