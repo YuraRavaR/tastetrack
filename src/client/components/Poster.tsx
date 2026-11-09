@@ -28,8 +28,8 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
   },
 };
 
-// The thumbnails take the small image. The rest are drawn some 80 to 220 CSS pixels wide, which
-// would blur the small one.
+// The small sizes, in dialogs and search results, take the small image. The rest, the film page's
+// banner among them, are drawn some 80 to 220 CSS pixels wide, which would blur the small one.
 const imageSizes: Record<PosterSize, CoverImageSize> = {
   dialog: "small",
   thumbnail: "small",

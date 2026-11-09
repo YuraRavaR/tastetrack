@@ -1,14 +1,7 @@
-import type { Page } from "@playwright/test";
 import { alien, aliens, film, newFilm } from "../support/scenarios/films";
-import { callsRealTmdb } from "../support/scenarios/tmdb";
+import { callsRealTmdb, holdImages } from "../support/scenarios/tmdb";
 import { expect, test } from "../support/ui/fixtures";
 import type { FilmPage } from "../support/ui/pages/FilmPage";
-
-// Leaves every TMDB image loading for good, so the tests see the page before any image arrives
-// and depend on neither TMDB nor the network.
-async function holdImages(page: Page): Promise<void> {
-  await page.route("https://image.tmdb.org/**", () => {});
-}
 
 async function openFilm(filmPage: FilmPage, mediaItemId: number): Promise<void> {
   await filmPage.goto(mediaItemId);

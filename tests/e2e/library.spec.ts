@@ -2,6 +2,7 @@ import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
 import { alien, aliens, amelie } from "../support/scenarios/films";
+import { holdImages } from "../support/scenarios/tmdb";
 import { expect, test } from "../support/ui/fixtures";
 
 async function plan(api: ApiClient, mediaItemId: number, time: string) {
@@ -60,8 +61,7 @@ test("Saved shows the Watchlist and Watched as posters, with their counts", asyn
 });
 
 test("the grid's posters load the large image", async ({ page, api, loggedInUi: ui }) => {
-  // Every TMDB image keeps loading, so the test needs neither TMDB nor the network.
-  await page.route("https://image.tmdb.org/**", () => {});
+  await holdImages(page);
   const { alienItem } = await fillLibrary(api);
   const { libraryPage } = ui;
 

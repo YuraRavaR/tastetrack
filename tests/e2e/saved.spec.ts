@@ -45,9 +45,11 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   await expect(films.root).toContainText("4 to watch · 1 watched");
   await expect(films.link).toHaveAccessibleDescription("4 to watch · 1 watched");
   // The three added last, the latest in front; the film made by hand, planned first, is left out.
-  const posters = [amelieItem, aliensItem, alienItem].map((item) => item.metadata.posterUrls.large);
+  const largePosterUrls = [amelieItem, aliensItem, alienItem].map(
+    (item) => item.metadata.posterUrls.large,
+  );
   await expect(films.coverImages).toHaveCount(3);
-  for (const [index, url] of posters.entries()) {
+  for (const [index, url] of largePosterUrls.entries()) {
     await expect(films.coverImages.nth(index)).toHaveAttribute("src", url);
   }
   await expect(films.coverPlaceholders).toHaveCount(0);
