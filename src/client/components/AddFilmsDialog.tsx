@@ -14,7 +14,13 @@ import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { Poster } from "./Poster";
 import { SearchField } from "./SearchField";
-import { SheetFooter, SheetHeader, sheetClasses, sheetMainButtonClasses } from "./sheet";
+import {
+  SheetFooter,
+  SheetHeader,
+  sheetBodyClasses,
+  sheetClasses,
+  sheetMainButtonClasses,
+} from "./sheet";
 
 // "Add films" on a List (`docs/mockups/collections/`, Settled): a search as you type, as on the
 // Search page, the User's own Manual Media Items first, where each film not yet in the List can be
@@ -87,7 +93,7 @@ function AddFilms({ list, onAdded }: { list: List; onAdded: () => Promise<void> 
         </Label>
         <SearchField id={inputId} value={query} onChange={setQuery} prominent autoFocus />
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 pt-3 pb-5 md:px-6">
+      <div className={cn(sheetBodyClasses, "gap-3 pt-3 md:pt-3")}>
         <p aria-live="polite" className="text-muted-foreground text-sm empty:hidden">
           {search.status === "searching" && t("search.searching")}
           {search.status === "done" && search.results.length === 0 && t("search.none")}

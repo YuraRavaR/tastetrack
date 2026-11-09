@@ -73,6 +73,7 @@ class AddFilmsDialog extends ScopedComponent {
     this.root.getByRole("list", { name: "Search results" }),
   );
   readonly doneButton = this.root.getByRole("button", { name: "Done", exact: true });
+  readonly closeButton = this.root.getByRole("button", { name: "Close" });
 
   @step
   async search(query: string): Promise<void> {
@@ -118,7 +119,7 @@ export class ListPage extends BasePage<[listId: number]> {
   // "Add films" by the heading. An empty List has its own, after it. Both open the dialog.
   readonly addFilmsButton = this.main.getByRole("button", { name: "Add films" }).first();
   readonly emptyStateAddFilmsButton = this.main.getByRole("button", { name: "Add films" }).last();
-  // A search on the page itself, which it no longer has: films are searched for in the dialog.
+  // Any search on the page itself, outside the Add films dialog.
   readonly searchBox = this.main.getByRole("searchbox");
   // The open poster's ⋯ menu.
   readonly posterMenu = this.page.getByRole("menu");

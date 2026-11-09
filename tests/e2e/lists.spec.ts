@@ -236,6 +236,12 @@ test("Reorder films moves each poster earlier, later or to the top, and the orde
   await page.keyboard.press("Escape");
   await listPage.choose("Trees", "Ash", "Move to top");
   await expect(items).toContainText(["Ash", "Birch", "Cedar"]);
+
+  // A newly added film goes to the end of the order the User set.
+  await listPage.addFilm("Trees", "alien", "Alien (1979)");
+  await expect(items).toHaveCount(4);
+  await page.reload();
+  await expect(items).toContainText(["Ash", "Birch", "Cedar", "Alien"]);
 });
 
 test("a Collection is a grid of posters, each with its Note, which the User writes and clears", async ({
@@ -374,6 +380,8 @@ test("Add films is a dialog from md and a full-width sheet on a phone", async ({
   await page.setViewportSize(screen);
   await listPage.addFilmsButton.click();
   await expectOnBottomEdge(addFilms.root, screen);
+  await addFilms.closeButton.click();
+  await expect(addFilms.root).toBeHidden();
 });
 
 test("a name the User already has is refused", async ({ ui, loggedInApi: api }) => {

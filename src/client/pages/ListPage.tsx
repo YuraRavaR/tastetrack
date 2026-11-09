@@ -92,6 +92,8 @@ export function ListPage() {
     };
   }, [listId]);
 
+  const empty = state.status === "loaded" && state.list.items.length === 0;
+
   const back = (
     <Link
       to={listsPath}
@@ -141,10 +143,10 @@ export function ListPage() {
             {!reordering && (
               // With no films the empty state's button leads, so this one steps back.
               <Button
-                variant={state.list.items.length === 0 ? "outline" : "default"}
+                variant={empty ? "outline" : "default"}
                 className={cn(
                   "h-11 rounded-full px-4.5 font-semibold [grid-area:add]",
-                  state.list.items.length === 0 && "bg-card",
+                  empty && "bg-card",
                 )}
                 onClick={() => setAddingFilms(true)}
               >
@@ -195,7 +197,7 @@ export function ListPage() {
               {error === "full" ? t("list.full", { max: maxListItems }) : t("list.updateFailed")}
             </p>
           )}
-          {state.list.items.length === 0 ? (
+          {empty ? (
             <EmptyState
               icon={mediaTypeIcon(state.list.mediaType)}
               message={t("list.empty")}
