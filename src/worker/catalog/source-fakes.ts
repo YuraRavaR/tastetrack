@@ -4,7 +4,7 @@
 // for a Worker that searches it: staging, which searches the real sources, has none.
 import { Hono } from "hono";
 import type { AppEnv } from "../env";
-import { tmdbFake } from "./tmdb-fake";
+import { tmdbFake } from "./sources/tmdb-fake";
 
 export const sourceFakes = new Hono<AppEnv>();
 

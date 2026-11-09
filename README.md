@@ -68,7 +68,7 @@ pnpm exec wrangler secret put TMDB_ACCESS_TOKEN --env staging
 pnpm exec wrangler secret put TMDB_ACCESS_TOKEN               # production
 ```
 
-The `local` env searches a TMDB fake with fixed data (`src/worker/catalog/tmdb-fake.ts`), mounted among the test hooks at `/api/test/tmdb`, with a placeholder token, so local development, the tests and CI need no TMDB account. To search the real TMDB locally, set `TMDB_BASE_URL` and `TMDB_ACCESS_TOKEN` in `.dev.vars` (see `.dev.vars.example`). The API tests pass against both: they look only for well-known films that the fake mirrors.
+The `local` env searches a TMDB fake with fixed data (`src/worker/catalog/sources/tmdb-fake.ts`), mounted among the test hooks at `/api/test/tmdb`, with a placeholder token, so local development, the tests and CI need no TMDB account. To search the real TMDB locally, set `TMDB_BASE_URL` and `TMDB_ACCESS_TOKEN` in `.dev.vars` (see `.dev.vars.example`). The API tests pass against both: they look only for well-known films that the fake mirrors.
 
 ## Test hooks
 

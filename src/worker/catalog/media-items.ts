@@ -62,8 +62,6 @@ export const mediaItemColumns = {
   },
 };
 
-type CachedMetadata = CatalogEntry;
-
 type ManualMetadata = Pick<
   typeof mediaItems.$inferSelect,
   keyof (typeof mediaItemColumns)["manual"]
@@ -77,7 +75,7 @@ interface MediaItemRow {
   // All null for a catalog-backed item.
   manual: ManualMetadata;
   // Null when the cache has no entry for the item.
-  cache: CachedMetadata | null;
+  cache: CatalogEntry | null;
 }
 
 // A Manual Media Item shows the title its User gave, in any language, unchanged, with the title
@@ -126,7 +124,7 @@ function byExternalReference({ source, mediaType, id }: ExternalReference) {
 // What a search result alone says about a work: its title in the language the search ran in,
 // unless that is just the source falling back to the Original Title, and its cover. Nothing of
 // what only its Media Type has.
-function fromSearchResult(result: AddCatalogItemRequest): CachedMetadata {
+function fromSearchResult(result: AddCatalogItemRequest): CatalogEntry {
   const source = sourceOf(result.externalReference.mediaType);
   const translated = result.title !== result.originalTitle ? result.title : null;
   return {
@@ -166,7 +164,7 @@ export function cacheKeyId({ externalSource, mediaType, externalId }: CacheKey):
 }
 
 export interface FetchedEntry extends CacheKey {
-  entry: CachedMetadata;
+  entry: CatalogEntry;
 }
 
 // One details fetch for each entry from its source, all at once. An entry its source doesn't
@@ -255,7 +253,7 @@ export async function addFromSearch(
 
   const source = sourceOf(reference.mediaType);
   const shown = cached && isShown(cached, now) ? cached : undefined;
-  let metadata: CachedMetadata | undefined = shown;
+  let metadata: CatalogEntry | undefined = shown;
   if (!shown?.detailedAt) {
     try {
       const details = await source.details(env, reference.id);

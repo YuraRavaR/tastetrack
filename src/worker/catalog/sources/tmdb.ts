@@ -1,9 +1,8 @@
 // The TMDB catalog source (ADR-0004): turns a search or a film's details into one TMDB call each,
 // and TMDB's responses into catalog values. Everything TMDB-shaped stays in this file.
 import { z } from "zod";
-import type { FilmCacheExtra } from "../../db/schema";
-import type { CoverUrls, FilmMetadata } from "../../shared/api";
-import { searchLanguage } from "./search-language";
+import type { FilmCacheExtra } from "../../../db/schema";
+import type { CoverUrls, FilmMetadata } from "../../../shared/api";
 import {
   type CatalogEntry,
   type CatalogEnv,
@@ -12,7 +11,8 @@ import {
   type SourceFailure,
   SourceUnavailable,
   shownTitles,
-} from "./source";
+} from "../source";
+import { searchLanguage } from "./search-language";
 
 const imageBaseUrl = "https://image.tmdb.org/t/p";
 

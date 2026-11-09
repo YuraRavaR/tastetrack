@@ -6,7 +6,7 @@ import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
 import { addFromSearch, catalogMediaItems } from "./media-items";
-import { tmdbFake } from "./tmdb-fake";
+import { tmdbFake } from "./sources/tmdb-fake";
 
 const day = 24 * 60 * 60 * 1000;
 const now = new Date("2026-10-20T12:00:00Z");

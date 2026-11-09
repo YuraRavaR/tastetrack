@@ -1,5 +1,6 @@
-// What every catalog source module gives (ADR-0005): one module per External Source, and the only
-// code that knows that source's API. Shared code reaches a source through the registry alone.
+// What every catalog source module gives (ADR-0005): one module per External Source in
+// ./sources/, and the only code that knows that source's API. Shared code reaches a source
+// through the registry alone.
 import type { CacheExtra } from "../../db/schema";
 import type {
   CatalogSearchResult,
@@ -50,10 +51,13 @@ export class SourceUnavailable extends Error {
   }
 }
 
+// The metadata a Media Item of this Media Type has.
 type MetadataOf<M extends MediaType> = NonNullable<
   Extract<MediaItem, { mediaType: M }>["metadata"]
 >;
 
+// One External Source's catalog of one Media Type: how to search it, fetch an entry's details and
+// show its covers, and the rules its cache entries keep.
 export interface CatalogSource<M extends MediaType = MediaType> {
   externalSource: ExternalSource;
   mediaType: M;

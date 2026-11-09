@@ -4,16 +4,18 @@ import { and, eq, gte, lt, or, type SQL, sql } from "drizzle-orm";
 import { catalogCache } from "../../db/schema";
 import type { MediaType } from "../../shared/api";
 import type { CatalogSource } from "./source";
-import { tmdbFilms } from "./tmdb";
+import { tmdbFilms } from "./sources/tmdb";
 
 // A new Media Type doesn't compile until it has a source.
 const sources: { [M in MediaType]: CatalogSource<M> } = { film: tmdbFilms };
 
+// The source of a Media Type's catalog-backed Media Items.
 export function sourceOf<M extends MediaType>(mediaType: M): CatalogSource<M> {
   return sources[mediaType];
 }
 
-export const catalogSources: readonly CatalogSource[] = Object.values(sources);
+// Every source, for what applies to each of them in turn.
+const catalogSources: readonly CatalogSource[] = Object.values(sources);
 
 // The source of a cache entry or External Reference, if it names one the registry has.
 export function sourceNamed(externalSource: string, mediaType: string): CatalogSource | undefined {
@@ -37,6 +39,7 @@ export function isShown(
   return !oldest || entry.updatedAt >= oldest;
 }
 
+// The cache entries of one source.
 function ofSource(source: CatalogSource): SQL | undefined {
   return and(
     eq(catalogCache.externalSource, source.externalSource),
