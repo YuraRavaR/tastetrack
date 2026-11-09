@@ -2,10 +2,10 @@
 // link pasted into a messenger such as Telegram or Viber shows a preview card (ADR-0008). The
 // page itself is the client-rendered app, which loads the List from the API. Every share page is
 // noindex; one for a token that is unknown, revoked or replaced is the same plain 404 whichever
-// it is.
+// it is, and keeps the app's own card.
 import type { Context } from "hono";
 import { Hono } from "hono";
-import { type AppEnv, withDatabase } from "./env";
+import { type AppEnv, withClock, withDatabase } from "./env";
 import { type SharedListHead, sharedListHead, shareLinkOf } from "./lists/share-links";
 
 const siteName = "TasteTrack";
@@ -29,9 +29,25 @@ function meta(attribute: "name" | "property", key: string, content: string): str
 
 const noindex = meta("name", "robots", "noindex");
 
+// The app's own card, which index.html gives every page; a Share Link's page puts the List's in
+// its place.
+const appCardTags = 'meta[name="description"], meta[property^="og:"]';
+
+// The image on the List's card: its first poster, or else the app's card image, as index.html
+// names it but at this origin, since a static file can't know where it is served.
+function imageTags(head: SharedListHead, origin: string): string[] {
+  if (head.posterUrl) return [meta("property", "og:image", head.posterUrl)];
+  return [
+    meta("property", "og:image", new URL("/og-image.png", origin).href),
+    meta("property", "og:image:width", "1200"),
+    meta("property", "og:image:height", "630"),
+    meta("property", "og:image:alt", `${siteName}: Your taste, on the record`),
+  ];
+}
+
 // The tags that name the List for search engines, which are told to stay away, and for preview
 // cards, which follow Open Graph.
-function headTags(head: SharedListHead, url: string): string {
+function headTags(head: SharedListHead, url: string, origin: string): string {
   const description = head.description
     ? [
         meta("name", "description", head.description),
@@ -45,6 +61,7 @@ function headTags(head: SharedListHead, url: string): string {
     meta("property", "og:type", "website"),
     meta("property", "og:site_name", siteName),
     meta("property", "og:url", url),
+    ...imageTags(head, origin),
   ].join("");
 }
 
@@ -53,8 +70,9 @@ function appHtml(c: Context<AppEnv>): Promise<Response> {
   return c.env.ASSETS.fetch(new URL("/", c.req.url));
 }
 
-// The app's HTML with `title` and `tags` in place, under `status`. Not cached anywhere, since a
-// link can be revoked at any time.
+// The app's HTML with `tags` added to its <head>, under `status`; with a `title`, that replaces
+// the page's title and the tags replace the app's own card. Not cached anywhere, since a link can
+// be revoked at any time.
 function page(shell: Response, status: number, tags: string, title?: string): Response {
   let rewriter = new HTMLRewriter().on("head", {
     element(head) {
@@ -62,11 +80,17 @@ function page(shell: Response, status: number, tags: string, title?: string): Re
     },
   });
   if (title !== undefined) {
-    rewriter = rewriter.on("title", {
-      element(element) {
-        element.setInnerContent(escapeHtml(title), { html: true });
-      },
-    });
+    rewriter = rewriter
+      .on("title", {
+        element(element) {
+          element.setInnerContent(escapeHtml(title), { html: true });
+        },
+      })
+      .on(appCardTags, {
+        element(element) {
+          element.remove();
+        },
+      });
   }
   return new Response(rewriter.transform(shell).body, {
     status,
@@ -84,15 +108,16 @@ async function notFound(c: Context<AppEnv>): Promise<Response> {
 
 export const sharePage = new Hono<AppEnv>();
 
-sharePage.use(withDatabase);
+sharePage.use(withDatabase, withClock);
 
 sharePage.get("/s/:token", async (c) => {
   const token = c.req.param("token");
-  const [head, shell] = await Promise.all([sharedListHead(c.var.db, token), appHtml(c)]);
+  const [head, shell] = await Promise.all([sharedListHead(c.var.db, token, c.var.now), appHtml(c)]);
   if (!head) return page(shell, 404, noindex);
-  const { url } = shareLinkOf(token, new URL(c.req.url).origin);
+  const { origin } = new URL(c.req.url);
+  const { url } = shareLinkOf(token, origin);
   // The browser tab's title, as the app names the page once it loads (the client's `pageTitle`).
-  return page(shell, 200, headTags(head, url), `${head.title} · ${siteName}`);
+  return page(shell, 200, headTags(head, url, origin), `${head.title} · ${siteName}`);
 });
 
 sharePage.notFound(notFound);

@@ -2,7 +2,7 @@ import { SharedListResponse, ShareLinkResponse } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { test as base, expect } from "../support/fixtures";
-import { alien, aliens } from "../support/scenarios/films";
+import { alien, aliens, manualFilm } from "../support/scenarios/films";
 
 // `visitor` is a client with no session, holding nothing but the link.
 const test = base.extend<{ visitor: ApiClient }>({
@@ -348,11 +348,47 @@ test("a Share Link's page names the List in its <head>, for preview cards, and i
     '<meta property="og:type" content="website">',
     '<meta property="og:site_name" content="TasteTrack">',
     `<meta property="og:url" content="${url}">`,
+    `<meta property="og:image" content="${new URL("/og-image.png", url).href}">`,
+    '<meta property="og:image:width" content="1200">',
+    '<meta property="og:image:height" content="630">',
+    '<meta property="og:image:alt" content="TasteTrack: Your taste, on the record">',
   ]) {
     expect(page.html).toContain(meta);
   }
   expect(page.html).not.toContain("<films>");
   expect(page.html).toContain('<div id="root"></div>');
+});
+
+// The tags of one kind in a page's <head>, such as og:image or description, whoever wrote them.
+function metaTags(html: string, key: string): string[] {
+  return html.match(new RegExp(`<meta (?:name|property)="${key}"[^>]*>`, "g")) ?? [];
+}
+
+test("a Share Link's card shows the List's first poster, in place of the app's own card", async ({
+  loggedInApi,
+  visitor,
+}) => {
+  const list = await createList(loggedInApi, { name: "Space horror" });
+  const noPoster = await manualFilm(loggedInApi, { title: "Home movie", year: 2020 });
+  const [first, second] = [await alien(loggedInApi), await aliens(loggedInApi)];
+  for (const film of [noPoster, first, second]) {
+    await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId: film.id }), 201);
+  }
+  const { token } = await share(loggedInApi, list.id);
+  const poster = first.metadata.posterUrls.large;
+  expect(poster).toMatch(/^https:\/\//);
+
+  const page = await sharePage(visitor, token);
+
+  expect(metaTags(page.html, "og:image")).toEqual([
+    `<meta property="og:image" content="${poster}">`,
+  ]);
+  expect(metaTags(page.html, "og:image:[a-z]+")).toEqual([]);
+  expect(metaTags(page.html, "og:title")).toEqual([
+    '<meta property="og:title" content="Space horror">',
+  ]);
+  expect(metaTags(page.html, "(?:og:)?description")).toEqual([]);
+  expect(metaTags(page.html, "twitter:card")).toHaveLength(1);
 });
 
 test("a shared Backlog's page is titled \"<Display Name>'s Watchlist\", with no description", async ({
