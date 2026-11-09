@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>TasteTrack</title>
+    <!-- The icons are in public/, drawn from favicon.svg by scripts/icons.ts. Share Link pages get them too, since the Worker fills in this file's <head>. -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- The browser bar takes the header's colour: --card of styles.css, which this file can't read, so keep the two in step. -->
+    <meta name="theme-color" content="#fffdf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1f1915" media="(prefers-color-scheme: dark)" />
   </head>
   <body>
     <div id="root"></div>
