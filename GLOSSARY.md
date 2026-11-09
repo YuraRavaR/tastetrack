@@ -9,15 +9,15 @@ Terms marked _(planned)_ are not in the MVP but are part of the model's language
 ### Catalog
 
 **Media Item**:
-A single work (a film, and later a series, book or album) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item.
+A single work (a film or a book, and later a series, album or game) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item.
 _Avoid_: Movie, title, film (as a generic term), content, item
 
 **Media Type**:
-The kind of work a Media Item is: film first; series, book and album are planned.
+The kind of work a Media Item is: film and book; series, album and game are planned.
 _Avoid_: Category, kind, format
 
 **External Source**:
-The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films.
+The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films and Open Library for books.
 _Avoid_: Provider, database, API
 
 **External Reference**:
@@ -55,8 +55,12 @@ One record of a User having experienced a Media Item, with a required Rating and
 _Avoid_: Watch, view, diary entry, log (for a single record)
 
 **Experienced**:
-The User action that creates a Log Entry ("Watched" for films in the UI).
+The User action that creates a Log Entry ("Watched" for films and "Read" for books in the UI).
 _Avoid_: Watched (as a domain term), seen, consumed
+
+**In Progress** _(planned)_:
+The state of a Media Item that a User has started and not yet finished, separate from their Log Entries and Backlog ("Reading" for books in the UI).
+_Avoid_: Reading (as a domain term), currently reading, started, ongoing
 
 **Revisit**:
 A Log Entry the User has marked as a repeat experience of a Media Item.
@@ -79,7 +83,7 @@ Optional free text a User writes in one Log Entry.
 _Avoid_: Note (that is for List Items), comment, notes
 
 **Item History**:
-All of one User's Log Entries for one Media Item, in time order ("Viewings" for films in the UI).
+All of one User's Log Entries for one Media Item, in time order ("Viewings" for films and "Readings" for books in the UI).
 _Avoid_: Timeline, item log
 
 **Tag** _(planned)_:
@@ -97,7 +101,7 @@ A named, ordered collection of Media Items of one Media Type, owned by a User; i
 _Avoid_: Collection (as a domain term), playlist, custom list
 
 **Library**:
-All of one User's Media Items of one Media Type that are in their Backlog or have at least one of their Log Entries ("Saved" in the UI).
+All of one User's Media Items of one Media Type that are in their Backlog, are In Progress _(planned)_ or have at least one of their Log Entries ("Saved" in the UI).
 _Avoid_: Saved (as a domain term), shelf, collection
 
 **List Item**:
@@ -109,11 +113,11 @@ Optional free text attached to a List Item.
 _Avoid_: Review (that is for Log Entries), comment, annotation
 
 **Backlog**:
-A system List of the Media Items a User plans to experience; one per User per Media Type, which cannot be deleted or renamed ("Watchlist" for films in the UI).
+A system List of the Media Items a User plans to experience; one per User per Media Type, which cannot be deleted or renamed ("Watchlist" for films and "Reading list" for books in the UI).
 _Avoid_: Watchlist (as a domain term), queue, to-do list
 
 **Planned**:
-The User action that adds a Media Item to their Backlog without creating a Log Entry ("Want to watch" for films in the UI).
+The User action that adds a Media Item to their Backlog without creating a Log Entry ("Want to watch" for films and "Want to read" for books in the UI).
 _Avoid_: Want to watch (as a domain term), bookmarked, saved
 
 ### Sharing and social
