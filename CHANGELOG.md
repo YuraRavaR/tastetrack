@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0](https://github.com/YuraRavaR/tastetrack/compare/v0.8.0...v0.9.0) (2026-11-09)
+
+
+### Features
+
+* **client:** a Search result opens its film's page from its poster and the row around its title ([#169](https://github.com/YuraRavaR/tastetrack/issues/169)) ([c9cd5ec](https://github.com/YuraRavaR/tastetrack/commit/c9cd5ec96e94c2ea96fed88a48864f9bcaa6264b))
+* **client:** open a film's page with its whole backdrop, the poster over it ([#160](https://github.com/YuraRavaR/tastetrack/issues/160)) ([21568fc](https://github.com/YuraRavaR/tastetrack/commit/21568fcefb01aaf6430de78c4860258d9d720a09))
+* **client:** show a film's poster, blurred, where it has no backdrop ([#162](https://github.com/YuraRavaR/tastetrack/issues/162)) ([7abe404](https://github.com/YuraRavaR/tastetrack/commit/7abe40452b8603c394991804c7057fd886c044fc)), closes [#159](https://github.com/YuraRavaR/tastetrack/issues/159)
+
+
+### Bug Fixes
+
+* **client:** open every Search result's film page, adding it to the catalog first ([#166](https://github.com/YuraRavaR/tastetrack/issues/166)) ([b137f40](https://github.com/YuraRavaR/tastetrack/commit/b137f408e150581a47b85fb040fc093e1c5439ee))
+
 ## [0.8.0](https://github.com/YuraRavaR/tastetrack/compare/v0.7.0...v0.8.0) (2026-11-09)
 
 
