@@ -1,6 +1,12 @@
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
-import { type CoverShape, coverOf, coverShape, placeholderFor } from "../catalog/cover";
+import {
+  type CoverImageSize,
+  type CoverShape,
+  coverOf,
+  coverShape,
+  placeholderFor,
+} from "../catalog/cover";
 import type { Found } from "../catalog/found";
 import { t } from "../i18n/t";
 
@@ -22,6 +28,18 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
   },
 };
 
+// The thumbnails take the small image. The rest are drawn some 80 to 220 CSS pixels wide, which
+// would blur the small one.
+const imageSizes: Record<PosterSize, CoverImageSize> = {
+  dialog: "small",
+  thumbnail: "small",
+  search: "small",
+  large: "large",
+  grid: "large",
+  fan: "large",
+  collage: "large",
+};
+
 // A film's poster, or a placeholder when it has none. Only the large and grid sizes have room for
 // the placeholder's caption, and `showCaption={false}` leaves it out, as under controls laid over the
 // poster; the large placeholder fills what it's put in. The rest show their icon.
@@ -34,7 +52,7 @@ export function Poster({
   size: PosterSize;
   showCaption?: boolean;
 }) {
-  const cover = coverOf(subject);
+  const cover = coverOf(subject, imageSizes[size]);
   const sizeClass = sizeClasses[coverShape(cover.mediaType)][size];
   if (cover.url) {
     return (

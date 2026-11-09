@@ -17,7 +17,7 @@ import {
   type FilmDetails,
   filmDetails,
   posterPathOf,
-  posterUrl,
+  posterUrls,
   type TmdbConfig,
   TmdbUnavailable,
 } from "./tmdb";
@@ -110,7 +110,7 @@ function toMetadata(cached: CachedMetadata): FilmMetadata {
     ukrainianTitle:
       cached.ukrainianTitle && cached.ukrainianTitle !== title ? cached.ukrainianTitle : null,
     year: cached.year,
-    posterUrl: posterUrl(cached.posterPath),
+    posterUrls: posterUrls(cached.posterPath),
     backdropUrls: backdropUrls(cached.backdropPath),
     runtime: cached.runtime,
     genres: cached.genres ?? [],
@@ -128,7 +128,7 @@ function fromManual(id: number, manual: ManualMetadata): FilmMetadata {
     originalTitle: manual.originalTitle ?? manual.title,
     ukrainianTitle: null,
     year: manual.year,
-    posterUrl: null,
+    posterUrls: null,
     backdropUrls: null,
     runtime: manual.runtime,
     genres: manual.genres ?? [],

@@ -49,9 +49,25 @@ test("a film without a backdrop shows its poster in the banner, larger than a th
   await openFilm(filmPage, id);
 
   await expect(filmPage.backdrop).toHaveCount(0);
-  const poster = filmPage.posterImage(metadata.posterUrl);
+  const poster = filmPage.posterImage(metadata.posterUrls.large);
   await expect(poster).toHaveCSS("width", "112px");
   await expect(poster).toHaveCSS("height", "168px");
+});
+
+test("the Log Entry dialog shows the film's small poster", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  await holdImages(page);
+  const { id, metadata } = await alien(api);
+  const { filmPage } = ui;
+  await openFilm(filmPage, id);
+
+  await filmPage.watchedButton.click();
+
+  const dialog = filmPage.logEntryDialog("Alien");
+  await expect(dialog.posterImage).toHaveAttribute("src", metadata.posterUrls.small);
 });
 
 test("a film with neither shows the placeholder with its caption", async ({

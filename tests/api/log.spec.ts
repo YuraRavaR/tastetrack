@@ -37,7 +37,10 @@ test("adding a search result makes a Media Item with both titles, runtime and ge
       originalTitle: "Alien",
       ukrainianTitle: "Чужий",
       year: 1979,
-      posterUrl: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w92\/\w+\.jpg$/),
+      posterUrls: {
+        small: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w92\/\w+\.jpg$/),
+        large: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w500\/\w+\.jpg$/),
+      },
       backdropUrls: {
         small: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w780\/\w+\.jpg$/),
         large: expect.stringMatching(/^https:\/\/image\.tmdb\.org\/t\/p\/w1280\/\w+\.jpg$/),
@@ -53,7 +56,7 @@ test("a film TMDB has no backdrop for has none, whatever its poster", async ({ l
 
   const { metadata } = await aliens(loggedInApi);
 
-  expect(metadata.posterUrl).not.toBeNull();
+  expect(metadata.posterUrls).toEqual({ small: expect.any(String), large: expect.any(String) });
   expect(metadata.backdropUrls).toBeNull();
 });
 
@@ -86,7 +89,7 @@ test("when the details call fails, adding still succeeds, from the search result
     originalTitle: "TMDB Fake Details Failure",
     ukrainianTitle: null,
     year: 2020,
-    posterUrl: null,
+    posterUrls: null,
     backdropUrls: null,
     runtime: null,
     genres: [],

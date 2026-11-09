@@ -17,13 +17,14 @@ import { coverOf, placeholderFor } from "./cover";
 import type { Found } from "./found";
 
 const posterUrl = "https://image.tmdb.org/t/p/w92/alien.jpg";
+const posterUrls = { small: posterUrl, large: "https://image.tmdb.org/t/p/w500/alien.jpg" };
 
 const metadata = {
   title: "Alien",
   originalTitle: "Alien",
   ukrainianTitle: null,
   year: 1979,
-  posterUrl,
+  posterUrls,
   backdropUrls: null,
   runtime: 117,
   genres: [],
@@ -38,11 +39,15 @@ const mediaItem: MediaItem = {
 
 describe("a cover", () => {
   it("shows a Media Item's poster", () => {
-    expect(coverOf(mediaItem)).toEqual({ url: posterUrl, mediaItemId: 42, mediaType: "film" });
+    expect(coverOf(mediaItem, "small")).toEqual({
+      url: posterUrl,
+      mediaItemId: 42,
+      mediaType: "film",
+    });
   });
 
   it("has no image while a Media Item has no metadata", () => {
-    expect(coverOf({ ...mediaItem, metadata: null }).url).toBeNull();
+    expect(coverOf({ ...mediaItem, metadata: null }, "small").url).toBeNull();
   });
 
   it("names the Media Item of a Manual Media Item that search found", () => {
@@ -51,7 +56,7 @@ describe("a cover", () => {
       mediaItem: {
         ...mediaItem,
         externalReference: null,
-        metadata: { ...metadata, posterUrl: null },
+        metadata: { ...metadata, posterUrls: null },
       },
       inLog: false,
       inBacklog: false,
@@ -60,7 +65,7 @@ describe("a cover", () => {
       lists: [],
     };
 
-    expect(coverOf(found)).toEqual({ url: null, mediaItemId: 42, mediaType: "film" });
+    expect(coverOf(found, "small")).toEqual({ url: null, mediaItemId: 42, mediaType: "film" });
   });
 
   const tmdbResult: Found = {
@@ -80,13 +85,17 @@ describe("a cover", () => {
   };
 
   it("names no Media Item for a TMDB result not in the catalog", () => {
-    expect(coverOf(tmdbResult)).toEqual({ url: posterUrl, mediaItemId: null, mediaType: "film" });
+    expect(coverOf(tmdbResult, "small")).toEqual({
+      url: posterUrl,
+      mediaItemId: null,
+      mediaType: "film",
+    });
   });
 
   it("names the Media Item of a TMDB result in the catalog", () => {
     const found: Found = { ...tmdbResult, mediaItemId: 42 };
 
-    expect(coverOf(found)).toEqual({ url: posterUrl, mediaItemId: 42, mediaType: "film" });
+    expect(coverOf(found, "small")).toEqual({ url: posterUrl, mediaItemId: 42, mediaType: "film" });
   });
 });
 

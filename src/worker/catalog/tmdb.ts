@@ -16,11 +16,18 @@ export class TmdbUnavailable extends Error {}
 const imageBaseUrl = "https://image.tmdb.org/t/p";
 
 // Poster thumbnails, at the smallest size TMDB serves: about two device pixels per CSS pixel at a
-// thumbnail's size. A film's banner shows one larger, and softer, when the film has no backdrop.
+// thumbnail's size. Search results come in this size only.
 const posterBaseUrl = `${imageBaseUrl}/w92`;
 
 export function posterUrl(posterPath: string | null): string | null {
   return posterPath ? `${posterBaseUrl}${posterPath}` : null;
+}
+
+// Posters as a thumbnail and as large as a poster grid draws them: the widest cell, two columns on
+// a phone, is about 160 CSS pixels, some 480 device pixels on a 3x screen.
+export function posterUrls(posterPath: string | null): FilmMetadata["posterUrls"] {
+  if (!posterPath) return null;
+  return { small: `${posterBaseUrl}${posterPath}`, large: `${imageBaseUrl}/w500${posterPath}` };
 }
 
 // The poster path back out of a poster URL this adapter made, or null for any other URL, so a

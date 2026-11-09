@@ -59,6 +59,20 @@ test("Saved shows the Watchlist and Watched as posters, with their counts", asyn
   await expect(libraryPage.posters("Watchlist")).toHaveCount(2);
 });
 
+test("the grid's posters load the large image", async ({ page, api, loggedInUi: ui }) => {
+  // Every TMDB image keeps loading, so the test needs neither TMDB nor the network.
+  await page.route("https://image.tmdb.org/**", () => {});
+  const { alienItem } = await fillLibrary(api);
+  const { libraryPage } = ui;
+
+  await libraryPage.goto();
+
+  await expect(libraryPage.poster("Watchlist", "Alien").posterImage).toHaveAttribute(
+    "src",
+    alienItem.metadata.posterUrls.large,
+  );
+});
+
 test("tapping a poster opens the film's page", async ({ page, api, loggedInUi: ui }) => {
   const { amelieItem } = await fillLibrary(api);
   const { libraryPage, filmPage } = ui;

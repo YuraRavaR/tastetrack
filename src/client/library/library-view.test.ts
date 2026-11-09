@@ -31,7 +31,7 @@ function film({
     originalTitle: title,
     ukrainianTitle: null,
     year,
-    posterUrl: null,
+    posterUrls: null,
     backdropUrls: null,
     runtime: null,
     genres,

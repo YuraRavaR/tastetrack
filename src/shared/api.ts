@@ -257,7 +257,8 @@ export type AddCatalogItemRequest = z.infer<typeof AddCatalogItemRequest>;
 
 // A film's metadata from the External Source. The title is the English Localized Title, or the
 // Original Title when there is none; ukrainianTitle is the Ukrainian one when it differs from the
-// title. Runtime (minutes) and genres are unknown until the details call succeeds, and so is the
+// title. The poster comes in a size for a thumbnail and one for a poster grid or a film's banner.
+// Runtime (minutes) and genres are unknown until the details call succeeds, and so is the
 // backdrop, which comes in a size for a phone's screen and one for a larger screen's.
 export const FilmMetadata = z
   .object({
@@ -265,9 +266,16 @@ export const FilmMetadata = z
     originalTitle: z.string().openapi({ example: "Le Fabuleux Destin d'Amélie Poulain" }),
     ukrainianTitle: z.string().nullable().openapi({ example: "Амелі" }),
     year: z.int().nullable().openapi({ example: 2001 }),
-    posterUrl: z.url().nullable().openapi({
-      example: "https://image.tmdb.org/t/p/w92/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
-    }),
+    posterUrls: z
+      .object({
+        small: z.url().openapi({
+          example: "https://image.tmdb.org/t/p/w92/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
+        }),
+        large: z.url().openapi({
+          example: "https://image.tmdb.org/t/p/w500/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
+        }),
+      })
+      .nullable(),
     backdropUrls: z
       .object({
         small: z.url().openapi({

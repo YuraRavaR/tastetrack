@@ -24,6 +24,9 @@ export function coverShape(mediaType: MediaType): CoverShape {
   return coverShapes[mediaType];
 }
 
+// A thumbnail takes the small image; anything larger, such as a poster grid's cell, the large one.
+export type CoverImageSize = "small" | "large";
+
 export interface Cover {
   url: string | null;
   // Null for a TMDB search result not in the catalog yet, which has no Media Item.
@@ -31,15 +34,16 @@ export interface Cover {
   mediaType: MediaType;
 }
 
-export function coverOf(subject: MediaItem | Found): Cover {
+// A search result comes with a small image only, whatever size is asked for.
+export function coverOf(subject: MediaItem | Found, imageSize: CoverImageSize): Cover {
   if (!("kind" in subject)) {
     return {
-      url: subject.metadata?.posterUrl ?? null,
+      url: subject.metadata?.posterUrls?.[imageSize] ?? null,
       mediaItemId: subject.id,
       mediaType: subject.mediaType,
     };
   }
-  if (subject.kind === "manual") return coverOf(subject.mediaItem);
+  if (subject.kind === "manual") return coverOf(subject.mediaItem, imageSize);
   return {
     url: subject.posterUrl,
     mediaItemId: subject.mediaItemId,
