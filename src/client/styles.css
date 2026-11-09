@@ -127,3 +127,48 @@
     transform: none !important;
   }
 }
+
+/*
+ * A film's backdrop fades into the page. A mask, not an overlay, so it fades to whatever is behind,
+ * in either theme; masks read only alpha, so these are opacities, not colours. On a phone only the
+ * bottom fades. From sm every edge does: the sides over 18% of the width, the bottom from 45%
+ * down, the top barely. Eased stops, so no line shows where a fade starts.
+ */
+@utility backdrop-fade {
+  mask-image: linear-gradient(to bottom, rgb(0 0 0) 45%, rgb(0 0 0 / 0) 100%);
+  @variant sm {
+    --fade-x: linear-gradient(
+      to right,
+      rgb(0 0 0 / 0) 0%,
+      rgb(0 0 0 / 0.08) 3%,
+      rgb(0 0 0 / 0.25) 6%,
+      rgb(0 0 0 / 0.5) 9%,
+      rgb(0 0 0 / 0.75) 12%,
+      rgb(0 0 0 / 0.92) 15%,
+      rgb(0 0 0) 18%,
+      rgb(0 0 0) 82%,
+      rgb(0 0 0 / 0.92) 85%,
+      rgb(0 0 0 / 0.75) 88%,
+      rgb(0 0 0 / 0.5) 91%,
+      rgb(0 0 0 / 0.25) 94%,
+      rgb(0 0 0 / 0.08) 97%,
+      rgb(0 0 0 / 0) 100%
+    );
+    --fade-y: linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.6) 0%,
+      rgb(0 0 0 / 0.9) 4%,
+      rgb(0 0 0) 8%,
+      rgb(0 0 0) 45%,
+      rgb(0 0 0 / 0.95) 54%,
+      rgb(0 0 0 / 0.82) 63%,
+      rgb(0 0 0 / 0.62) 72%,
+      rgb(0 0 0 / 0.4) 81%,
+      rgb(0 0 0 / 0.18) 90%,
+      rgb(0 0 0 / 0.05) 96%,
+      rgb(0 0 0 / 0) 100%
+    );
+    mask-image: var(--fade-x), var(--fade-y);
+    mask-composite: intersect;
+  }
+}

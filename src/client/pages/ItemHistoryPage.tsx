@@ -8,7 +8,6 @@ import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { FilmActions } from "../components/FilmActions";
 import { FilmBanner } from "../components/FilmBanner";
-import { FilmFacts, FilmTitle } from "../components/FilmTitle";
 import { ItemHistoryRow } from "../components/ItemHistoryRow";
 import { ItemHistoryStats } from "../components/ItemHistoryStats";
 import { EditLogEntryDialog } from "../components/LogEntryDialog";
@@ -34,7 +33,7 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
   }
 }
 
-// One film's Item History: a banner, tiles for how the User watched and rated it, the actions they
+// One film's Item History: a banner with its title, then, indented with it from `sm`, tiles for how the User watched and rated it, the actions they
 // can take on it, and every Log Entry, newest first, each of which can be edited or deleted. A film
 // with no Log Entries has no tiles, and says what will show where its entries go. The Worker sends
 // them in Log Order, and the page only reverses that for display. After a new entry, an edit or a
@@ -82,65 +81,61 @@ export function ItemHistoryPage() {
   const { mediaItem, logEntries } = state.history;
   const manual = mediaItem.externalReference === null;
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4.5 sm:gap-5.5">
       <FilmBanner mediaItem={mediaItem} />
-      <div className="flex flex-col gap-2">
-        <h1 className="font-semibold text-2xl tracking-tight">
-          <FilmTitle metadata={mediaItem.metadata} />
-        </h1>
-        <FilmFacts metadata={mediaItem.metadata} />
-      </div>
-      {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
-      <FilmActions
-        history={state.history}
-        onLogged={reload}
-        onPlanned={(inBacklog) =>
-          setState((current) =>
-            current.status === "loaded"
-              ? { ...current, history: { ...current.history, inBacklog } }
-              : current,
-          )
-        }
-      />
-      {manual && (
-        <div className="flex flex-col gap-3">
-          <p className="text-muted-foreground text-sm">{t("manualItem.addedByYou")}</p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => setEditingFilm(true)}>
-              {t("manualItem.edit")}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeletingFilm(true)}>
-              {t("manualItem.delete")}
-            </Button>
-          </div>
-        </div>
-      )}
-      <div className="flex flex-col gap-2.5">
-        <h2 id={historyHeadingId} className="font-semibold text-lg tracking-tight">
-          {mediaWord(mediaItem.mediaType, "history")}
-        </h2>
-        {logEntries.length > 0 ? (
-          <ul
-            aria-labelledby={historyHeadingId}
-            className="flex flex-col divide-y rounded-lg border bg-card"
-          >
-            {logEntries.toReversed().map((entry) => (
-              <ItemHistoryRow
-                key={entry.id}
-                entry={entry}
-                onEdit={() => setEditing(entry)}
-                onDelete={() => setDeleting(entry)}
-              />
-            ))}
-          </ul>
-        ) : (
-          <div className="flex flex-col gap-1 rounded-lg border border-input border-dashed px-4 py-5 text-center">
-            <p className="font-medium">{mediaWord(mediaItem.mediaType, "historyEmpty")}</p>
-            <p className="text-muted-foreground text-sm">
-              {mediaWord(mediaItem.mediaType, "historyEmptyHint")}
-            </p>
+      <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
+        {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
+        <FilmActions
+          history={state.history}
+          onLogged={reload}
+          onPlanned={(inBacklog) =>
+            setState((current) =>
+              current.status === "loaded"
+                ? { ...current, history: { ...current.history, inBacklog } }
+                : current,
+            )
+          }
+        />
+        {manual && (
+          <div className="flex flex-col gap-3">
+            <p className="text-muted-foreground text-sm">{t("manualItem.addedByYou")}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setEditingFilm(true)}>
+                {t("manualItem.edit")}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeletingFilm(true)}>
+                {t("manualItem.delete")}
+              </Button>
+            </div>
           </div>
         )}
+        <div className="flex flex-col gap-2.5">
+          <h2 id={historyHeadingId} className="font-semibold text-lg tracking-tight">
+            {mediaWord(mediaItem.mediaType, "history")}
+          </h2>
+          {logEntries.length > 0 ? (
+            <ul
+              aria-labelledby={historyHeadingId}
+              className="flex flex-col divide-y rounded-lg border bg-card"
+            >
+              {logEntries.toReversed().map((entry) => (
+                <ItemHistoryRow
+                  key={entry.id}
+                  entry={entry}
+                  onEdit={() => setEditing(entry)}
+                  onDelete={() => setDeleting(entry)}
+                />
+              ))}
+            </ul>
+          ) : (
+            <div className="flex flex-col gap-1 rounded-lg border border-input border-dashed px-4 py-5 text-center">
+              <p className="font-medium">{mediaWord(mediaItem.mediaType, "historyEmpty")}</p>
+              <p className="text-muted-foreground text-sm">
+                {mediaWord(mediaItem.mediaType, "historyEmptyHint")}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
       <EditLogEntryDialog
         entry={editing}

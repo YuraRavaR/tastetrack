@@ -37,6 +37,10 @@ export async function manualFilm(
 export const alien = (client: ApiClient) => film(client, "alien", "348");
 export const aliens = (client: ApiClient) => film(client, "aliens", "679");
 export const amelie = (client: ApiClient) => film(client, "amelie", "194");
+// A film with a backdrop and no poster. Only the TMDB fake has it, so skip the test on real TMDB.
+export const noPosterFilm = (client: ApiClient) => {
+  return film(client, "tmdb fake no poster", "999000002");
+};
 
 // A query the TMDB fake answers with one film no one has added yet, whatever earlier test runs left
 // in local D1, and that film's label. Only the fake knows it, so skip the test on real TMDB.
