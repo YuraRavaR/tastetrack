@@ -28,7 +28,7 @@ import {
 } from "../catalog/user-media-items";
 import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
-import { listPath } from "../navigation/paths";
+import { itemPath, listPath } from "../navigation/paths";
 import { EmptyState } from "./EmptyState";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
@@ -86,8 +86,10 @@ export function FilmSearch() {
   const [added, setAdded] = useState<{ query: string; found: Found[] }>({ query: "", found: [] });
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const [planError, setPlanError] = useState<PlanError | null>(null);
-  // The result that couldn't join the catalog when the User opened it.
-  const [openFailed, setOpenFailed] = useState<Found | null>(null);
+  // The result joining the catalog so its page can open, and one that couldn't, by the query it
+  // was opened from.
+  const [opening, setOpening] = useState<string | null>(null);
+  const [openFailure, setOpenFailure] = useState<{ query: string; found: Found } | null>(null);
   // Results logged since the search ran, which the search's own marks don't know about yet.
   const [loggedNow, setLoggedNow] = useState<ReadonlyMap<string, RowLog>>(new Map());
   // The Lists holding results since the User last put them on or took them off one.
@@ -137,16 +139,26 @@ export function FilmSearch() {
     return mediaItem;
   }
 
-  // Opens a result's page, adding it to the catalog first when it has no Media Item yet.
-  async function open(found: Found) {
-    setOpenFailed(null);
+  // The errors from the User's last action, which their next one clears.
+  function clearErrors() {
+    setPlanError(null);
+    setOpenFailure(null);
+  }
+
+  // Opens the page of a result with no Media Item yet, adding it to the catalog first. One at a
+  // time, and the place in the results is remembered at the click, with the query of the moment.
+  async function openThroughCatalog(found: Found) {
+    if (opening !== null) return;
+    clearErrors();
+    rememberScroll();
+    setOpening(foundKey(found));
     const mediaItem = await addToCatalog(found);
+    setOpening(null);
     if (!mediaItem) {
-      setOpenFailed(found);
+      setOpenFailure({ query: trimmed, found });
       return;
     }
-    rememberScroll();
-    navigate(`/items/${mediaItem.id}`);
+    navigate(itemPath(mediaItem.id));
   }
 
   function markPlanned(found: Found, planned: boolean) {
@@ -164,7 +176,7 @@ export function FilmSearch() {
 
   async function togglePlanned(found: Found) {
     const adding = !inBacklog(found);
-    setPlanError(null);
+    clearErrors();
     setPlanningOf(found, true);
     const mediaItem = await addToCatalog(found);
     const outcome = !mediaItem
@@ -184,7 +196,7 @@ export function FilmSearch() {
 
   function logged(found: Found, entry: api.SavedLogEntry) {
     setLogging(null);
-    setPlanError(null);
+    clearErrors();
     setLastAction({
       kind: "logged",
       found,
@@ -202,7 +214,7 @@ export function FilmSearch() {
 
   // Puts a logged film back on the Watchlist where it was, with its Note.
   async function undo(found: Found, mediaItemId: number, removed: RemovedListItem) {
-    setPlanError(null);
+    clearErrors();
     const outcome = await api.plan({ mediaItemId, ...removed });
     if (!outcome.ok) {
       setPlanError(outcome.error);
@@ -220,7 +232,7 @@ export function FilmSearch() {
 
   function addedManually(found: Found) {
     setAddingManually(false);
-    setPlanError(null);
+    clearErrors();
     setAdded((current) => ({
       query: trimmed,
       found: [found, ...(current.query === trimmed ? current.found : [])],
@@ -261,9 +273,9 @@ export function FilmSearch() {
             : t("backlog.updateFailed", { backlogName })}
         </p>
       )}
-      {openFailed && (
+      {openFailure?.query === trimmed && (
         <p role="alert" className="text-destructive text-sm">
-          {t("search.openFailed", { film: foundLabel(openFailed) })}
+          {t("search.openFailed", { film: foundLabel(openFailure.found) })}
         </p>
       )}
       {trimmed !== "" && userItems.status === "failed" && (
@@ -290,7 +302,8 @@ export function FilmSearch() {
                   found={found}
                   mediaItemId={mediaItemIdOf(found)}
                   onOpened={rememberScroll}
-                  onOpen={() => open(found)}
+                  pageOpening={opening !== null}
+                  onOpenThroughCatalog={() => openThroughCatalog(found)}
                   log={logOf(found)}
                   lists={listedNow.get(foundKey(found)) ?? found.lists}
                   inBacklog={inBacklog(found)}
@@ -458,7 +471,8 @@ function SearchResult({
   found,
   mediaItemId,
   onOpened,
-  onOpen,
+  pageOpening,
+  onOpenThroughCatalog,
   log,
   lists,
   inBacklog,
@@ -470,7 +484,8 @@ function SearchResult({
   found: Found;
   mediaItemId: number | null;
   onOpened: () => void;
-  onOpen: () => Promise<void>;
+  pageOpening: boolean;
+  onOpenThroughCatalog: () => void;
   log: RowLog;
   lists: HoldingList[];
   inBacklog: boolean;
@@ -482,13 +497,6 @@ function SearchResult({
   const mediaType = foundMediaType(found);
   const { currentRating, logEntryCount } = log;
   const inLog = logEntryCount > 0;
-  const [opening, setOpening] = useState(false);
-
-  async function open() {
-    setOpening(true);
-    await onOpen();
-    setOpening(false);
-  }
 
   return (
     <li className="flex items-start gap-3 p-3 md:items-center">
@@ -497,7 +505,7 @@ function SearchResult({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           {mediaItemId !== null ? (
             <Link
-              to={`/items/${mediaItemId}`}
+              to={itemPath(mediaItemId)}
               onClick={onOpened}
               className="break-words font-semibold underline-offset-4 hover:underline focus-visible:underline"
             >
@@ -506,8 +514,8 @@ function SearchResult({
           ) : (
             <button
               type="button"
-              onClick={open}
-              disabled={opening}
+              onClick={onOpenThroughCatalog}
+              disabled={pageOpening}
               className="cursor-pointer break-words text-left font-semibold underline-offset-4 hover:underline focus-visible:underline disabled:cursor-wait"
             >
               {foundLabel(found)}
@@ -519,7 +527,7 @@ function SearchResult({
             )}
             {currentRating !== null && mediaItemId !== null && (
               <Link
-                to={`/items/${mediaItemId}`}
+                to={itemPath(mediaItemId)}
                 onClick={onOpened}
                 className="flex items-center gap-1 font-semibold text-primary-strong underline-offset-4 hover:underline focus-visible:underline"
               >

@@ -282,17 +282,23 @@ test("a film that can't join the catalog stays on Search, which says so", async 
   test.skip(callsRealTmdb(), "Only the TMDB fake has a film no one has added");
   const film = newFilm();
   const { searchPage } = ui;
+  const { searchResults } = searchPage;
   await page.route("**/api/catalog/items", (route) => route.fulfill({ status: 500 }));
   await searchPage.goto();
   await searchPage.search(film.query);
 
-  await searchPage.searchResults.result(film.label).filmButton(film.label).click();
+  await searchResults.result(film.label).filmButton(film.label).click();
 
   await expect(searchPage.errorMessage).toHaveText(
     `Couldn't open ${film.label}. Please try again.`,
   );
-  await expect(page).toHaveURL(/\/search\?q=/);
-  await expect(searchPage.searchResults.result(film.label).filmButton(film.label)).toBeEnabled();
+  await expect(page).toHaveURL(searchPage.path(film.query));
+  await expect(searchResults.result(film.label).filmButton(film.label)).toBeEnabled();
+
+  // The message is about that search, so a new one goes without it.
+  await searchPage.search("alien");
+
+  await expect(searchPage.errorMessage).toHaveCount(0);
 });
 
 test("typing keeps the query in the URL as one history entry, and clearing removes it", async ({

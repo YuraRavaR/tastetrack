@@ -25,7 +25,8 @@ export class UserMediaItemMatches extends ScopedComponent {
 export class SearchPage extends BasePage<[query?: string]> {
   // With a query, Search opens on its results.
   path(query?: string) {
-    return query ? `/search?q=${encodeURIComponent(query)}` : "/search";
+    // Encoded as the app's URL has it, a space as "+".
+    return query ? `/search?${new URLSearchParams({ q: query })}` : "/search";
   }
 
   readonly searchHeading = this.page.getByRole("heading", { level: 1, name: "Search" });

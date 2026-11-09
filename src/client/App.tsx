@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useParams, useSearchParams } fr
 import { AuthProvider, RequireAuth } from "./auth";
 import { AppLayout } from "./components/AppLayout";
 import { libraryPath } from "./library/library-tabs";
-import { listPath, listsPath, searchPath } from "./navigation/paths";
+import { itemPath, listPath, listsPath, searchPath } from "./navigation/paths";
 import { InvitesPage } from "./pages/InvitesPage";
 import { ItemHistoryPage } from "./pages/ItemHistoryPage";
 import { LibraryPage } from "./pages/LibraryPage";
@@ -34,7 +34,7 @@ export function App() {
               <Route path={listsPath} element={<ListsPage />} />
               <Route path={listPath(":listId")} element={<ListPage />} />
               <Route path={searchPath} element={<SearchPage />} />
-              <Route path="/items/:mediaItemId" element={<ItemHistoryPage />} />
+              <Route path={itemPath(":mediaItemId")} element={<ItemHistoryPage />} />
               <Route path="/invites" element={<InvitesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               {/* The addresses of the sections before Saved, Collections and Search. */}

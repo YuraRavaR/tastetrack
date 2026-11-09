@@ -5,7 +5,7 @@ import logoMark from "../assets/logo-mark.svg?raw";
 import tmdbLogo from "../assets/tmdb-logo.svg";
 import { type LoginLocationState, useAuth } from "../auth";
 import { t } from "../i18n/t";
-import { listPath, listsPath, savedPath, searchPath } from "../navigation/paths";
+import { itemPath, listPath, listsPath, savedPath, searchPath } from "../navigation/paths";
 import { AccountMenu } from "./AccountMenu";
 import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 
@@ -28,7 +28,7 @@ export function AppLayout() {
   const collectionPage = useMatch(listPath(":listId")) !== null;
   const wide = savedTiles || savedTabs || collectionsPage || collectionPage || sharePage;
   const searchPage = useMatch(searchPath) !== null;
-  const filmPage = useMatch("/items/:mediaItemId") !== null;
+  const filmPage = useMatch(itemPath(":mediaItemId")) !== null;
   const location = useLocation();
 
   return (
