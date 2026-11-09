@@ -275,6 +275,31 @@ test("a film not in the catalog opens its page from its title, and links there f
   await expect(searchResults.link(film.label)).toBeVisible();
 });
 
+test("a result's poster opens its film's page, as its title does, in the catalog or not yet", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  test.skip(callsRealTmdb(), "Only the TMDB fake has a film no one has added");
+  const catalogued = await alien(api);
+  const film = newFilm();
+  const { searchPage, filmPage } = ui;
+  const { searchResults } = searchPage;
+  await searchPage.goto("alien");
+
+  await searchResults.result("Alien (1979)").clickPoster();
+
+  await expect(page).toHaveURL(filmPage.path(catalogued.id));
+
+  await searchPage.goto(film.query);
+  await expect(searchResults.result(film.label).filmButton(film.label)).toBeVisible();
+
+  await searchResults.result(film.label).clickPoster();
+
+  await expect(page).toHaveURL(filmPage.anyPath);
+  await expect(filmPage.heading).toContainText(`New film ${film.id}`);
+});
+
 test("a film that can't join the catalog stays on Search, which says so", async ({
   page,
   loggedInUi: ui,

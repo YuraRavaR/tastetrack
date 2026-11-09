@@ -1,3 +1,4 @@
+import { step } from "../../step";
 import { ScopedComponent } from "./ScopedComponent";
 
 // One film among the search results, with its actions and the Lists it is on.
@@ -19,6 +20,18 @@ export class SearchResultRow extends ScopedComponent {
   readonly inThisListLabel = this.root.getByText("In this Collection");
   readonly listsIcon = this.root.getByRole("img", { name: "Collections" });
   readonly addedByYouLabel = this.root.getByText("Added by you");
+
+  // Clicks the middle of the poster, or of its placeholder. The title's link or button stretches
+  // over it, so the click goes to the row there, as a User's does, not to the image.
+  @step
+  async clickPoster(): Promise<void> {
+    const poster = this.poster.or(this.noPosterPlaceholder);
+    const [row, cover] = await Promise.all([this.root.boundingBox(), poster.boundingBox()]);
+    if (!row || !cover) throw new Error("The result's row or poster isn't on screen");
+    const x = cover.x - row.x + cover.width / 2;
+    const y = cover.y - row.y + cover.height / 2;
+    await this.root.click({ position: { x, y } });
+  }
 
   // The link to the film's page, by its label.
   filmLink(label: string) {

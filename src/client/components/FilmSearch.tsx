@@ -467,6 +467,8 @@ function StatusLine({
   );
 }
 
+// One of TMDB's results. Its title opens its film's page and stretches over the whole row, so on a
+// phone a tap on the poster or around the title opens it too; the row's other controls sit above.
 function SearchResult({
   found,
   mediaItemId,
@@ -499,7 +501,7 @@ function SearchResult({
   const inLog = logEntryCount > 0;
 
   return (
-    <li className="flex items-start gap-3 p-3 md:items-center">
+    <li className="relative flex items-start gap-3 p-3 md:items-center">
       <Poster subject={found} size="search" />
       <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -507,7 +509,7 @@ function SearchResult({
             <Link
               to={itemPath(mediaItemId)}
               onClick={onOpened}
-              className="break-words font-semibold underline-offset-4 hover:underline focus-visible:underline"
+              className="break-words font-semibold underline-offset-4 after:absolute after:inset-0 hover:underline focus-visible:underline"
             >
               {foundLabel(found)}
             </Link>
@@ -516,12 +518,12 @@ function SearchResult({
               type="button"
               onClick={onOpenThroughCatalog}
               disabled={pageOpening}
-              className="cursor-pointer break-words text-left font-semibold underline-offset-4 hover:underline focus-visible:underline disabled:cursor-wait"
+              className="cursor-pointer break-words text-left font-semibold underline-offset-4 after:absolute after:inset-0 hover:underline focus-visible:underline disabled:cursor-wait"
             >
               {foundLabel(found)}
             </button>
           )}
-          <span className="flex flex-wrap items-center gap-x-2 text-xs empty:hidden">
+          <span className="relative flex flex-wrap items-center gap-x-2 text-xs empty:hidden">
             {found.kind === "manual" && (
               <span className="font-medium text-muted-foreground">{t("search.addedByYou")}</span>
             )}
@@ -541,7 +543,7 @@ function SearchResult({
           </span>
           <ListChips lists={lists} onOpened={onOpened} />
         </div>
-        <div className="flex shrink-0 gap-1.5 md:gap-2">
+        <div className="relative flex shrink-0 gap-1.5 md:gap-2">
           <Button
             variant={inLog ? "pressed" : "outline"}
             className="h-11 gap-1.5 px-2 font-semibold has-[>svg]:px-2 md:h-9 md:w-37.5"
@@ -583,7 +585,7 @@ function ListChips({ lists, onOpened }: { lists: HoldingList[]; onOpened: () => 
   if (lists.length === 0) return null;
   const more = lists.length - maxListChips;
   return (
-    <div className="flex min-w-0 items-center gap-1 text-muted-foreground">
+    <div className="relative flex min-w-0 items-center gap-1 text-muted-foreground">
       <List role="img" aria-label={t("search.lists")} className="mr-0.5 size-3.5 shrink-0" />
       {lists.slice(0, maxListChips).map((list) => (
         <Badge
