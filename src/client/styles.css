@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@fontsource-variable/fraunces/wght-italic.css";
+@import "@fontsource/sora/700.css";
 
 /*
  * Theme tokens: the one place the app's colours, radius and fonts are set. Components use the
@@ -14,8 +14,8 @@
 :root {
   --font:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  /* The app name only. Everything else is in the sans, which has Cyrillic. */
-  --font-brand: "Fraunces Variable", Georgia, serif;
+  /* The wordmark only, in weight 700. Everything else is in the sans, which has Cyrillic. */
+  --font-brand: "Sora", ui-sans-serif, system-ui, sans-serif;
   --radius: 0.875rem;
 
   --background: oklch(0.97 0.012 80);

@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useMatch } from "react-router";
 import { cn } from "@/lib/utils";
 import { version } from "../../../package.json";
+import logoMark from "../assets/logo-mark.svg?raw";
 import tmdbLogo from "../assets/tmdb-logo.svg";
 import { type LoginLocationState, useAuth } from "../auth";
 import { t } from "../i18n/t";
@@ -12,7 +13,7 @@ import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 // the credit TMDB's terms require (ADR-0004). Header and footer stop at `max-w-6xl`, which Saved
 // uses for its tiles and grids of posters, Collections for its cards, one Collection and a Share
 // Link's page for their grids; every other page keeps the narrower column, Search one a little
-// wider for its grid of covers. Logged out, the header holds only the app name, and on a Share
+// wider for its grid of covers. Logged out, the header holds only the logo, and on a Share
 // Link's page a "Log in" link that comes back to it. A logged-in User gets the sections, in a bottom tab bar on a phone
 // and in the header from `md`, and the account menu. A User who must set a new password gets
 // only the account menu, to log out.
@@ -34,9 +35,22 @@ export function AppLayout() {
         <div className="mx-auto flex min-h-14 w-full max-w-6xl items-center gap-7 px-4 md:min-h-15 md:px-6">
           <Link
             to={savedPath}
-            className="flex min-h-11 items-center font-brand font-semibold text-lg italic tracking-tight"
+            aria-label={t("app.name")}
+            className="flex min-h-11 shrink-0 items-center gap-1.75 md:gap-2"
           >
-            {t("app.name")}
+            <span
+              aria-hidden="true"
+              className="size-8.5 md:size-9 [&>svg]:size-full"
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: our own SVG file, inlined so its parts take the theme's colours
+              dangerouslySetInnerHTML={{ __html: logoMark }}
+            />
+            <span
+              aria-hidden="true"
+              className="flex flex-col font-bold font-brand text-base leading-[0.95] tracking-[-0.035em] md:text-[17px]"
+            >
+              <span>{t("app.nameFirstLine")}</span>
+              <span>{t("app.nameSecondLine")}</span>
+            </span>
           </Link>
           {authenticated && <SectionHeaderLinks />}
           {(authenticated || state.status === "passwordChangeRequired") && <AccountMenu />}

@@ -2,6 +2,9 @@
 // Film words belong here, not in domain code (ADR-0005).
 export const en = {
   "app.name": "TasteTrack",
+  // The wordmark in the header shows the name on two lines.
+  "app.nameFirstLine": "Taste",
+  "app.nameSecondLine": "Track",
   "app.logIn": "Log in",
   "app.version": "v{version}",
   "auth.checking": "Loading…",
