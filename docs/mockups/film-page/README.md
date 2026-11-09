@@ -21,7 +21,7 @@ The page exists to answer "how did I rate this film, and how often have I watche
 
 ## Layout, top to bottom (phone first)
 
-1. **Banner.** Full column width, `h-46` (184px) on a phone and taller from `sm:`, `rounded-lg`. The space is reserved before the image loads, so nothing shifts. It shows, in order of preference:
+1. **Banner.** Replaced by [`film-banner/`](../film-banner/README.md) (2026-11-09): the whole backdrop fading into the page, the poster over its bottom. What follows is the first design. Full column width, `h-46` (184px) on a phone and taller from `sm:`, `rounded-lg`. The space is reserved before the image loads, so nothing shifts. It shows, in order of preference:
    - the film's TMDB backdrop, `w780` on a phone and `w1280` from `sm:`, cropped to cover;
    - with no backdrop, the poster centred on `bg-muted`;
    - with neither, a no-poster placeholder.

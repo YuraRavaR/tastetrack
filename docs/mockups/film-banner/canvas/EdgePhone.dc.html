@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>B · phone · edge cases</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{height:28px;font-size:13px;font-weight:600;color:oklch(0.6 0.02 70)}
+.tile{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:9px 11px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tl{font-size:12px;color:var(--muted-foreground)}
+.tv{font-size:17px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn{height:44px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--foreground)}
+.btn.p{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tab{min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:18px;font-size:12px;font-weight:500;color:var(--muted-foreground);text-decoration:none}
+.tab .ic{width:24px;height:24px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.vrow{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:12px;font-size:15px}
+.ph{width:104px;height:156px;border-radius:10px;border:1px solid var(--border);background:var(--muted);color:var(--muted-foreground);display:grid;place-items:center;flex:none;box-shadow:0 8px 24px oklch(0 0 0 / 25%)}
+</style>
+</helmet>
+<div class="tt" data-theme="dark" style="width: 2110px; height: 880px; display: flex; gap: 40px">
+<sc-for list="{{cases}}" as="c" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column">
+<div class="cap">{{c.label}}</div>
+<div class="tt" data-theme="{{c.theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--background)">
+<header style="height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--card); border-bottom: 1px solid var(--border); position: relative; z-index: 1">
+<a href="#" aria-label="TasteTrack" style="display: flex; align-items: center; gap: 8px; text-decoration: none">
+<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg>
+<span class="wm">Taste<br>Track</span>
+</a>
+<button aria-label="Account menu" style="width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); color: var(--foreground); display: grid; place-items: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></button>
+</header>
+
+<sc-if value="{{c.heroImg}}" hint-placeholder-val="{{true}}">
+<div style="position: relative; aspect-ratio: 16 / 9; overflow: hidden">
+<img src="{{c.heroSrc}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block; {{c.heroExtra}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 45%, var(--background) 100%)"></div>
+</div>
+</sc-if>
+
+<main style="padding: 0 16px 16px; display: flex; flex-direction: column; gap: 18px; position: relative">
+<div style="display: flex; align-items: flex-end; gap: 14px; margin-top: {{c.rowMargin}}">
+<sc-if value="{{c.hasPoster}}" hint-placeholder-val="{{true}}">
+<img src="/_blob/e0e99a22a9e1031304e9477fd260f70b" alt="Spirit: Stallion of the Cimarron poster" style="width: 104px; height: 156px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 8px 24px oklch(0 0 0 / 35%); flex: none">
+</sc-if>
+<sc-if value="{{c.noPoster}}" hint-placeholder-val="{{false}}">
+<div class="ph" role="img" aria-label="No poster"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 34px; height: 34px; stroke-width: 1.6"><path d="M18 8a2 2 0 0 0 0-4 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0 0 4"></path><path d="M10 22 9 8"></path><path d="m14 22 1-14"></path><path d="M20 8c.5 0 .9.4.8 1l-2.6 12c-.1.5-.7 1-1.2 1H7c-.6 0-1.1-.4-1.2-1L3.2 9c-.1-.6.3-1 .8-1Z"></path></svg></div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-bottom: 2px">
+<h1 style="margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15">Spirit: Stallion of the Cimarron (2002)</h1>
+<p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--muted-foreground)">Спіріт – душа прерій</p>
+<p style="margin: 2px 0 0; font-size: 13px; color: var(--muted-foreground)">83 min · Adventure, Animation, Drama, Family, Western</p>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px">
+<div class="tile"><span class="tl">Watched</span><span class="tv">Once</span></div>
+<div class="tile"><span class="tl">Your rating</span><span class="tv"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill: var(--primary)"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>3.5</span></div>
+<div class="tile"><span class="tl">First watched</span><span class="tv" style="font-size: 15px; min-width: 72px">–</span></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button class="btn p"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Watched again</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Want to watch</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button>
+</div>
+
+<h2 style="margin: 4px 0 -6px; font-size: 18px; font-weight: 600">Viewings</h2>
+<div class="vrow"><span style="font-weight: 500">No date</span><span style="display: flex; align-items: center; gap: 4px; color: var(--muted-foreground)"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill: var(--primary)"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>3.5</span><button aria-label="Actions for No date" style="margin-left: auto; width: 44px; height: 44px; border: 0; border-radius: 10px; background: none; color: var(--muted-foreground); display: grid; place-items: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></button></div>
+</main>
+
+<nav aria-label="Sections" style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border)">
+<a href="#" class="tab"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a>
+<a href="#" class="tab"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"></path><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"></path></svg>Collections</a>
+<a href="#" class="tab"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a>
+</nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2110,"height":880}}'>
+class Component extends DCLogic {
+renderVals() {
+const backdrop = '/_blob/ba66c1e0f0011df063ce2f712a157ff0';
+const poster = '/_blob/e0e99a22a9e1031304e9477fd260f70b';
+const blur = 'filter: blur(24px) saturate(1.3); transform: scale(1.3);';
+return {
+cases: [
+{ label: 'Light theme', theme: 'light', heroImg: true, heroSrc: backdrop, heroExtra: '', rowMargin: '-72px', hasPoster: true, noPoster: false },
+{ label: 'No backdrop · a: poster only', theme: 'dark', heroImg: false, heroSrc: '', heroExtra: '', rowMargin: '20px', hasPoster: true, noPoster: false },
+{ label: 'No backdrop · b: blurred poster in its place', theme: 'dark', heroImg: true, heroSrc: poster, heroExtra: blur, rowMargin: '-72px', hasPoster: true, noPoster: false },
+{ label: 'No poster · placeholder (icon only at this size)', theme: 'dark', heroImg: true, heroSrc: backdrop, heroExtra: '', rowMargin: '-72px', hasPoster: false, noPoster: true },
+{ label: 'No backdrop, no poster', theme: 'dark', heroImg: false, heroSrc: '', heroExtra: '', rowMargin: '20px', hasPoster: false, noPoster: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>

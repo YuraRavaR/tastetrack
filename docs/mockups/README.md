@@ -46,3 +46,4 @@ Shoots every `.html` in the folder at 390 and 1440 px, in light and dark, with t
 | [`sign-in/`](sign-in/) | Log in, Register, set a new password | none yet | Variant A, plain card |
 | [`account/`](account/) | The account menu, Settings and Invites | none yet | Variant A, stacked cards |
 | [`logo/`](logo/) | The mark, the header wordmark and the link card | #147 | Cover fan mark, Sora stacked wordmark |
+| [`film-banner/`](film-banner/) | The top of the film's page: the whole backdrop, the poster over it | none yet | Variant B, cinematic hero (web v3) |
