@@ -20,7 +20,7 @@ function film(title: string, more: { originalTitle?: string; ukrainianTitle?: st
       originalTitle: more.originalTitle ?? title,
       ukrainianTitle: more.ukrainianTitle ?? null,
       year: 2001,
-      posterUrl: null,
+      posterUrls: null,
       backdropUrls: null,
       runtime: null,
       genres: [],

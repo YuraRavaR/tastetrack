@@ -2,6 +2,7 @@ import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
 import { alien, aliens, amelie } from "../support/scenarios/films";
+import { holdImages } from "../support/scenarios/tmdb";
 import { expect, test } from "../support/ui/fixtures";
 
 async function plan(api: ApiClient, mediaItemId: number, time: string) {
@@ -57,6 +58,19 @@ test("Saved shows the Watchlist and Watched as posters, with their counts", asyn
 
   await page.goBack();
   await expect(libraryPage.posters("Watchlist")).toHaveCount(2);
+});
+
+test("the grid's posters load the large image", async ({ page, api, loggedInUi: ui }) => {
+  await holdImages(page);
+  const { alienItem } = await fillLibrary(api);
+  const { libraryPage } = ui;
+
+  await libraryPage.goto();
+
+  await expect(libraryPage.poster("Watchlist", "Alien").posterImage).toHaveAttribute(
+    "src",
+    alienItem.metadata.posterUrls.large,
+  );
 });
 
 test("tapping a poster opens the film's page", async ({ page, api, loggedInUi: ui }) => {

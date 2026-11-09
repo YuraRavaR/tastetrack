@@ -4,6 +4,8 @@ import { ScopedComponent } from "./ScopedComponent";
 // The dialog that logs a film as watched, named after the film, or edits one of its Log Entries.
 export class LogEntryDialog extends ScopedComponent {
   readonly closeButton = this.root.getByRole("button", { name: "Close" });
+  // The film's poster has no name, so it is found by tag.
+  readonly posterImage = this.root.locator("img");
   readonly cancelButton = this.root.getByRole("button", { name: "Cancel" });
   readonly deleteButton = this.root.getByRole("button", { name: "Delete" });
   readonly revisitSwitch = this.root.getByRole("switch", { name: "Rewatch" });

@@ -1,14 +1,7 @@
-import type { Page } from "@playwright/test";
 import { alien, aliens, film, newFilm } from "../support/scenarios/films";
-import { callsRealTmdb } from "../support/scenarios/tmdb";
+import { callsRealTmdb, holdImages } from "../support/scenarios/tmdb";
 import { expect, test } from "../support/ui/fixtures";
 import type { FilmPage } from "../support/ui/pages/FilmPage";
-
-// Leaves every TMDB image loading for good, so the tests see the page before any image arrives
-// and depend on neither TMDB nor the network.
-async function holdImages(page: Page): Promise<void> {
-  await page.route("https://image.tmdb.org/**", () => {});
-}
 
 async function openFilm(filmPage: FilmPage, mediaItemId: number): Promise<void> {
   await filmPage.goto(mediaItemId);
@@ -49,9 +42,25 @@ test("a film without a backdrop shows its poster in the banner, larger than a th
   await openFilm(filmPage, id);
 
   await expect(filmPage.backdrop).toHaveCount(0);
-  const poster = filmPage.posterImage(metadata.posterUrl);
+  const poster = filmPage.posterImage(metadata.posterUrls.large);
   await expect(poster).toHaveCSS("width", "112px");
   await expect(poster).toHaveCSS("height", "168px");
+});
+
+test("the Log Entry dialog shows the film's small poster", async ({
+  page,
+  ui,
+  loggedInApi: api,
+}) => {
+  await holdImages(page);
+  const { id, metadata } = await alien(api);
+  const { filmPage } = ui;
+  await openFilm(filmPage, id);
+
+  await filmPage.watchedButton.click();
+
+  const dialog = filmPage.logEntryDialog("Alien");
+  await expect(dialog.posterImage).toHaveAttribute("src", metadata.posterUrls.small);
 });
 
 test("a film with neither shows the placeholder with its caption", async ({
