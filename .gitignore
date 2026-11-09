@@ -6,4 +6,7 @@ dist/
 !.dev.vars.example
 test-results/
 playwright-report/
+# CI's Operator CLI run
+test-results-cli/
+playwright-report-cli/
 playwright-staging.enc
