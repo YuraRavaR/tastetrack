@@ -4,9 +4,9 @@
     the page's CSS variables. They are the tokens of src/client/styles.css as hex: the outline is
     foreground, the front cover primary, the covers behind primary-soft and the star
     primary-foreground, in light and in dark. (An XML comment can't hold two hyphens in a row, so
-    the names lose theirs.) After changing this file, run
-    `node scripts/icons.mjs` to redraw favicon.ico and apple-touch-icon.png. The viewBox is the
-    32 grid cropped to the fan and its outline, so the mark fills a 16 px tab icon.
+    the names lose theirs.) After changing this file, run `pnpm exec tsx scripts/icons.ts` to
+    redraw favicon.ico and apple-touch-icon.png. The viewBox is the 32 grid cropped to the fan and
+    its outline, so the mark fills a 16 px tab icon.
   -->
   <title>TasteTrack</title>
   <style>

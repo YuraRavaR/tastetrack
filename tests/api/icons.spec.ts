@@ -27,7 +27,7 @@ function iconTags(html: string): string[] {
   );
 }
 
-test("the app's pages link the icons and give the browser bar the header's colour, light and dark", async ({
+test("the app's page links the icons and give the browser bar the header's colour, light and dark", async ({
   request,
 }) => {
   const html = await (await request.get("/saved/films/watchlist")).text();
