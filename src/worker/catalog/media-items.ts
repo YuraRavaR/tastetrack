@@ -178,19 +178,38 @@ function fromSearchResult(result: AddCatalogItemRequest): CachedMetadata {
   };
 }
 
-// A cache entry's key: the External Reference it holds the metadata of.
+// A cache entry's key: the External Reference it holds the metadata of, named as the cache's
+// columns are, so a list of keys travels as one JSON parameter that SQL reads field by field.
 export interface CacheKey {
   externalSource: "tmdb";
   mediaType: "film";
   externalId: string;
 }
 
-export interface FetchedDetails extends CacheKey {
+function cacheKeyOf({ source, mediaType, id }: ExternalReference): CacheKey {
+  return { externalSource: source, mediaType, externalId: id };
+}
+
+// The one cache entry with this key.
+export function byCacheKey({ externalSource, mediaType, externalId }: CacheKey) {
+  return and(
+    eq(catalogCache.externalSource, externalSource),
+    eq(catalogCache.mediaType, mediaType),
+    eq(catalogCache.externalId, externalId),
+  );
+}
+
+// A key as one string, for finding entries by key in a Map or Set.
+export function cacheKeyId({ externalSource, mediaType, externalId }: CacheKey): string {
+  return `${externalSource}/${mediaType}/${externalId}`;
+}
+
+export interface FetchedEntry extends CacheKey {
   entry: CachedMetadata;
 }
 
 // One TMDB details call for each film, all at once. A film TMDB doesn't answer for is left out.
-export async function fetchDetails(tmdb: TmdbConfig, films: CacheKey[]): Promise<FetchedDetails[]> {
+export async function fetchDetails(tmdb: TmdbConfig, films: CacheKey[]): Promise<FetchedEntry[]> {
   const fetched = await Promise.all(
     films.map(async (key) => {
       try {
@@ -209,7 +228,7 @@ export async function fetchDetails(tmdb: TmdbConfig, films: CacheKey[]): Promise
 // the rows travel as one JSON parameter, since D1 allows only 100 bound parameters a query.
 export async function storeDetails(
   db: DrizzleD1Database,
-  fetched: FetchedDetails[],
+  fetched: FetchedEntry[],
   now: Date,
 ): Promise<void> {
   if (fetched.length === 0) return;
@@ -248,16 +267,7 @@ export async function addFromSearch(
   now: Date,
 ): Promise<AddedMediaItem> {
   const reference = result.externalReference;
-  const key = {
-    externalSource: reference.source,
-    mediaType: reference.mediaType,
-    externalId: reference.id,
-  };
-  const cacheKey = and(
-    eq(catalogCache.externalSource, key.externalSource),
-    eq(catalogCache.mediaType, key.mediaType),
-    eq(catalogCache.externalId, key.externalId),
-  );
+  const key = cacheKeyOf(reference);
   const cacheTarget = [
     catalogCache.externalSource,
     catalogCache.mediaType,
@@ -275,7 +285,7 @@ export async function addFromSearch(
       .onConflictDoNothing()
       .returning({ id: mediaItems.id }),
     db.select({ id: mediaItems.id }).from(mediaItems).where(byExternalReference(reference)),
-    db.select().from(catalogCache).where(cacheKey),
+    db.select().from(catalogCache).where(byCacheKey(key)),
   ]);
   if (!item) throw new Error(`Media Item for TMDB ${reference.id} neither inserted nor found`);
 
@@ -319,14 +329,6 @@ export async function addFromSearch(
   };
 }
 
-function cacheKeyOf({ source, mediaType, id }: ExternalReference): CacheKey {
-  return { externalSource: source, mediaType, externalId: id };
-}
-
-export function keyString({ externalSource, mediaType, externalId }: CacheKey): string {
-  return `${externalSource}/${mediaType}/${externalId}`;
-}
-
 // Fills in place the metadata of the first `maxMetadataFills` catalog-backed Media Items, in the
 // order given, that came without it because the cache has no entry for them: one TMDB details call
 // each, all at once, and one query to write them all to the cache. The rest stay null for the
@@ -342,16 +344,16 @@ export async function fillMissingMetadata(
     if (missing.size === maxMetadataFills) break;
     if (externalReference && !metadata) {
       const key = cacheKeyOf(externalReference);
-      missing.set(keyString(key), key);
+      missing.set(cacheKeyId(key), key);
     }
   }
   if (missing.size === 0) return;
   const fetched = await fetchDetails(tmdb, [...missing.values()]);
   await storeDetails(db, fetched, now);
-  const entries = new Map(fetched.map(({ entry, ...key }) => [keyString(key), entry]));
+  const entries = new Map(fetched.map(({ entry, ...key }) => [cacheKeyId(key), entry]));
   for (const item of items) {
     const filled =
-      item.externalReference && entries.get(keyString(cacheKeyOf(item.externalReference)));
+      item.externalReference && entries.get(cacheKeyId(cacheKeyOf(item.externalReference)));
     if (filled) item.metadata = toMetadata(filled);
   }
 }

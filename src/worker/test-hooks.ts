@@ -1,7 +1,7 @@
 // Test-only routes, mounted under /api/test. They stay out of the OpenAPI spec, and with test
 // hooks off or without their secret the whole prefix falls through to the JSON 404.
 import { z } from "@hono/zod-openapi";
-import { and, eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { catalogCache, listItems, lists, logEntries, mediaItems } from "../db/schema";
 import { type ErrorResponse, Password, Username } from "../shared/api";
@@ -9,6 +9,7 @@ import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
 import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
+import { byCacheKey } from "./catalog/media-items";
 import { tmdbFake } from "./catalog/tmdb-fake";
 import { type AppEnv, requestHasTestHooksAccess, testHooksOn } from "./env";
 import { fillBacklog } from "./lists/backlog";
@@ -149,12 +150,6 @@ testHooks.delete("/catalog-cache/:source/:mediaType/:externalId", async (c) => {
   if (source !== "tmdb" || mediaType !== "film") return c.notFound();
   await c.var.db
     .delete(catalogCache)
-    .where(
-      and(
-        eq(catalogCache.externalSource, source),
-        eq(catalogCache.mediaType, mediaType),
-        eq(catalogCache.externalId, externalId),
-      ),
-    );
+    .where(byCacheKey({ externalSource: source, mediaType, externalId }));
   return c.body(null, 204);
 });

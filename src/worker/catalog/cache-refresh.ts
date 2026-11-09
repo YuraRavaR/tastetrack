@@ -5,7 +5,7 @@
 import { and, asc, eq, exists, isNull, lt, not, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { catalogCache, listItems, logEntries, mediaItems } from "../../db/schema";
-import { type CacheKey, fetchDetails, keyString, oldestShown, storeDetails } from "./media-items";
+import { type CacheKey, cacheKeyId, fetchDetails, oldestShown, storeDetails } from "./media-items";
 import type { TmdbConfig } from "./tmdb";
 
 // Workers Free allows 50 external subrequests per invocation, cron runs included (ADR-0004), so
@@ -115,9 +115,9 @@ export async function refreshCache(
 ): Promise<CacheRefresh> {
   const due = await dueForRefresh(db, now);
   const fetched = await fetchDetails(tmdb, due);
-  const answered = new Set(fetched.map(keyString));
+  const answered = new Set(fetched.map(cacheKeyId));
   await storeDetails(db, fetched, now);
-  const failed = due.filter((key) => !answered.has(keyString(key)));
+  const failed = due.filter((key) => !answered.has(cacheKeyId(key)));
   await markFailed(db, failed, now);
   const deleted = await db
     .delete(catalogCache)
