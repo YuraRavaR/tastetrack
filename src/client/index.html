@@ -11,6 +11,17 @@
     <!-- The browser bar takes the header's colour: --card of styles.css, which this file can't read, so keep the two in step. -->
     <meta name="theme-color" content="#fffdf9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1f1915" media="(prefers-color-scheme: dark)" />
+    <!-- The card a link to any page shows in a messenger. A crawler wants an absolute og:image, and this static file can't know its origin, so it names production's; a Share Link's page gets the List's card in place of these, at its own origin (src/worker/share-page.ts). og-image.png is drawn by scripts/icons.ts. -->
+    <meta name="description" content="Keep track of the films you want to watch and the ones you've seen." />
+    <meta property="og:title" content="TasteTrack" />
+    <meta property="og:description" content="Keep track of the films you want to watch and the ones you've seen." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TasteTrack" />
+    <meta property="og:image" content="https://tastetrack.tastetrackravar.workers.dev/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TasteTrack: Your taste, on the record" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>

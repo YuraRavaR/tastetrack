@@ -4,11 +4,12 @@
 // (src/shared/lists.ts).
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { lists, shareLinks, users } from "../../db/schema";
+import { listItems, lists, mediaItems, shareLinks, tmdbCache, users } from "../../db/schema";
 import type { MediaType, SharedList, ShareLink } from "../../shared/api";
 import { sharedListTitle, sharedVisibilities, unsharedVisibilities } from "../../shared/lists";
 import { userColumns } from "../accounts/accounts";
-import { toMediaItem } from "../catalog/media-items";
+import { cacheOfMediaItem, toMediaItem } from "../catalog/media-items";
+import { posterUrls } from "../catalog/tmdb";
 import { randomToken } from "../random-token";
 import { listOrder, selectListItems } from "./list-items";
 
@@ -118,20 +119,34 @@ export interface SharedListHead {
   description: string | null;
   mediaType: MediaType;
   ownerDisplayName: string;
+  // The large poster of the List's first item that has one, in List order; null when none has.
+  posterUrl: string | null;
 }
 
 function sharedBy(token: string) {
   return eq(shareLinks.token, token);
 }
 
+// The poster path of the outer query's List's first item that has one, in List order.
+function firstPosterPath(now: Date) {
+  return sql<string | null>`(
+    select ${tmdbCache.posterPath} from ${listItems}
+    inner join ${mediaItems} on ${mediaItems.id} = ${listItems.mediaItemId}
+    inner join ${tmdbCache} on ${cacheOfMediaItem(now)}
+    where ${listItems.listId} = ${lists.id} and ${tmdbCache.posterPath} is not null
+    order by ${sql.join(listOrder, sql`, `)} limit 1
+  )`;
+}
+
 // The List behind a Share Link and its owner.
-function selectHead(db: DrizzleD1Database, token: string) {
+function selectHead(db: DrizzleD1Database, token: string, now: Date) {
   return db
     .select({
       name: lists.name,
       description: lists.description,
       mediaType: lists.mediaType,
       ownerDisplayName: userColumns.displayName,
+      posterPath: firstPosterPath(now),
     })
     .from(shareLinks)
     .innerJoin(lists, eq(shareLinks.listId, lists.id))
@@ -141,10 +156,11 @@ function selectHead(db: DrizzleD1Database, token: string) {
 
 type HeadRow = Awaited<ReturnType<typeof selectHead>>[number];
 
-function toHead({ name, ownerDisplayName, ...rest }: HeadRow): SharedListHead {
+function toHead({ name, ownerDisplayName, posterPath, ...rest }: HeadRow): SharedListHead {
   return {
     title: sharedListTitle(name, rest.mediaType, ownerDisplayName),
     ownerDisplayName,
+    posterUrl: posterUrls(posterPath)?.large ?? null,
     ...rest,
   };
 }
@@ -154,8 +170,9 @@ function toHead({ name, ownerDisplayName, ...rest }: HeadRow): SharedListHead {
 export async function sharedListHead(
   db: DrizzleD1Database,
   token: string,
+  now: Date,
 ): Promise<SharedListHead | null> {
-  const [row] = await selectHead(db, token);
+  const [row] = await selectHead(db, token, now);
   return row ? toHead(row) : null;
 }
 
@@ -168,7 +185,7 @@ export async function sharedList(
   now: Date,
 ): Promise<SharedList | null> {
   const [[row], rows] = await Promise.all([
-    selectHead(db, token),
+    selectHead(db, token, now),
     selectListItems(db, now)
       .where(
         inArray(
