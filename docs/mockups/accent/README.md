@@ -31,6 +31,8 @@ The specimen screen has:
 5. **The ground is paper.** The background, cards and muted surfaces are slightly warmer cream.
 6. **Only the app name is a serif.** A new font token, `--font-brand`, set to Fraunces, is used for "TasteTrack" in the header, in italic at weight 600, as in Gold · Cinema. Everything else stays in the system sans, including headings, dialog titles and Media Item titles.
 
+   Replaced by [`logo/`](../logo/) (#147): `--font-brand` is now Sora 700, upright, and the app name is no longer a serif. It is still the only text in `font-brand`.
+
    The specimen page and `GoldPaper.dc.html` still show Fraunces on headings and titles, as first picked. This rule replaces them.
 7. **The focus ring is neutral grey.**
 8. **Radius grows from 10px to 14px.** Buttons and fields stay at `rounded-md` (10px).

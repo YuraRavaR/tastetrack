@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Logo: cover fan and Sora stacked</title>
+<!--
+  Static mockup of the picked logo: the cover fan mark with the stacked Sora wordmark.
+  Colours copy the tokens in src/client/styles.css (Gold · Paper); dark mode follows the system
+  setting. The header is the logged-in frame from saved/, reduced to the logo, the account
+  button and (from md) the section nav. Below it: the mark alone at 16 (in a browser tab),
+  32, 180 (on a home-screen tile) and 512 px, then the 1200×630 link card, scaled to the width.
+  The mark's outline is currentColor (the foreground), so it is dark on paper and white in dark.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --background: oklch(0.97 0.012 80);
+  --foreground: oklch(0.2 0.01 50);
+  --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-soft: oklch(0.96 0.037 87);
+  --muted: oklch(0.935 0.016 75);
+  --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75);
+  --font-brand: "Sora", ui-sans-serif, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60);
+    --foreground: oklch(0.96 0.004 75);
+    --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90);
+    --primary-foreground: oklch(0.17 0.006 50);
+    --primary-soft: oklch(0.31 0.034 85);
+    --muted: oklch(0.28 0.014 60);
+    --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+/* The mark (the #mark symbol) takes theme colours through variables; its outline is the text colour. */
+
+/* The wordmark: two lines, Sora 700. */
+.wordmark {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-brand);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.logo { min-height: 44px; display: flex; align-items: center; gap: 7px; }
+.logo .mark { width: 34px; height: 34px; }
+.logo .wordmark { font-size: 16px; }
+nav { display: none; flex: 1; gap: 4px; }
+nav a { padding: 8px 14px; border-radius: 10px; font-size: 15px; font-weight: 500; color: var(--muted-foreground); }
+nav a[aria-current="page"] { background: var(--primary-soft); color: var(--foreground); font-weight: 600; }
+.account { margin-left: auto; width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center; }
+.account span { width: 34px; height: 34px; border-radius: 999px; background: var(--muted); display: flex; align-items: center; justify-content: center; }
+@media (min-width: 768px) {
+  .bar { height: 64px; padding: 0 24px; }
+  .logo { gap: 8px; }
+  .logo .mark { width: 36px; height: 36px; }
+  .logo .wordmark { font-size: 17px; }
+  nav { display: flex; }
+  .account { margin-left: 0; }
+}
+
+main { max-width: 72rem; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 40px; }
+h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+h2 { margin: 0 0 16px; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
+@media (min-width: 768px) { main { padding: 32px 24px 64px; } h1 { font-size: 32px; } }
+
+.sizes { padding: 24px; border: 1px solid var(--border); border-radius: 24px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 32px 48px; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; max-width: 100%; }
+figcaption { font-size: 13px; color: var(--muted-foreground); }
+.tab { width: 220px; height: 36px; padding: 0 12px; border: 1px solid var(--border); border-bottom: 0; border-radius: 10px 10px 0 0; background: var(--card); display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.tile { width: 180px; height: 180px; border: 1px solid var(--border); border-radius: 40px; background: var(--card); display: flex; align-items: center; justify-content: center; }
+.big { width: 512px; max-width: 100%; height: auto; aspect-ratio: 1; }
+
+/* The link card is 1200×630; here it scales to the column, so its sizes are in cqw. */
+.card-frame { container-type: inline-size; max-width: 1200px; }
+.card {
+  --primary: oklch(0.82 0.16 88);
+  --primary-foreground: oklch(0.22 0.02 60);
+  --primary-soft: oklch(0.96 0.037 87);
+  aspect-ratio: 1200 / 630; padding: 7.33cqw 8cqw; border: 1px solid var(--border); background: oklch(0.97 0.012 80); color: oklch(0.2 0.01 50); display: flex; flex-direction: column; justify-content: center; gap: 3.67cqw;
+}
+.card .lockup { display: flex; align-items: center; gap: 2.33cqw; }
+.card .mark { width: 19.33cqw; height: 19.33cqw; }
+.card .wordmark { font-size: 9.33cqw; letter-spacing: -0.045em; line-height: 0.92; }
+.card p { margin: 0; font-size: 3.17cqw; line-height: 1.3; color: oklch(0.47 0.02 60); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 32 32">
+    <rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"/>
+    <rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"/>
+    <rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"/>
+    <path style="fill: var(--primary-foreground)" d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z"/>
+  </symbol>
+</svg>
+
+<header>
+  <div class="bar">
+    <a class="logo" href="#" aria-label="TasteTrack">
+      <svg class="mark" aria-hidden="true"><use href="#mark"/></svg>
+      <span class="wordmark" aria-hidden="true"><span>Taste</span><span>Track</span></span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#" aria-current="page">Saved</a>
+      <a href="#">Collections</a>
+      <a href="#">Search</a>
+    </nav>
+    <button class="account" type="button" aria-label="Account menu"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span></button>
+  </div>
+</header>
+
+<main>
+  <h1>Saved</h1>
+
+  <section>
+    <h2>The mark alone · 16, 32, 180 and 512 px</h2>
+    <div class="sizes">
+      <figure><div class="tab"><svg class="mark" width="16" height="16" aria-hidden="true"><use href="#mark"/></svg><span>Saved · TasteTrack</span></div><figcaption>16 px · browser tab</figcaption></figure>
+      <figure><svg class="mark" width="32" height="32" aria-hidden="true"><use href="#mark"/></svg><figcaption>32 px</figcaption></figure>
+      <figure><div class="tile"><svg class="mark" width="132" height="132" aria-hidden="true"><use href="#mark"/></svg></div><figcaption>180 px · home screen</figcaption></figure>
+      <figure><svg class="mark big" viewBox="0 0 32 32" aria-hidden="true"><use href="#mark"/></svg><figcaption>512 px</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Link card · 1200×630, always light</h2>
+    <div class="card-frame">
+      <div class="card">
+        <div class="lockup">
+          <svg class="mark" aria-hidden="true"><use href="#mark"/></svg>
+          <span class="wordmark"><span>Taste</span><span>Track</span></span>
+        </div>
+        <p>Your taste, on the record</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

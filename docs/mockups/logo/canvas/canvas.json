@@ -1,0 +1,39 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-09T12:00:00Z" },
+  "title": "TasteTrack Logo",
+  "launch": { "view": "canvas", "page": "pick" },
+  "pages": [
+    { "id": "marks", "name": "Round 1 · Marks" },
+    { "id": "wordmark", "name": "Round 2 · Wordmark" },
+    { "id": "modern", "name": "Round 3 · Modern wordmark" },
+    { "id": "pick", "name": "Pick · 7 Sora stacked" }
+  ],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 2100, "title": "A · Bookmark · header and sizes", "page": "marks" },
+    "ACard.dc.html": { "x": 1520, "y": 0, "w": 1200, "h": 630, "title": "A · Bookmark · link card 1200×630", "page": "marks" },
+    "BSheet.dc.html": { "x": 0, "y": 2480, "w": 1440, "h": 2100, "title": "B · Monogram · header and sizes", "page": "marks" },
+    "BCard.dc.html": { "x": 1520, "y": 2480, "w": 1200, "h": 630, "title": "B · Monogram · link card 1200×630", "page": "marks" },
+    "CSheet.dc.html": { "x": 0, "y": 4960, "w": 1440, "h": 2100, "title": "C · Ticket · header and sizes", "page": "marks" },
+    "CCard.dc.html": { "x": 1520, "y": 4960, "w": 1200, "h": 630, "title": "C · Ticket · link card 1200×630", "page": "marks" },
+    "DSheet.dc.html": { "x": 0, "y": 7440, "w": 1440, "h": 2100, "title": "D · Cover fan · header and sizes", "page": "marks" },
+    "DCard.dc.html": { "x": 1520, "y": 7440, "w": 1200, "h": 630, "title": "D · Cover fan · link card 1200×630", "page": "marks" },
+    "W1.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 1480, "title": "1 · Geist, tight", "page": "wordmark" },
+    "W2.dc.html": { "x": 1520, "y": 0, "w": 1440, "h": 1480, "title": "2 · DM Sans, lowercase", "page": "wordmark" },
+    "W3.dc.html": { "x": 0, "y": 1600, "w": 1440, "h": 1480, "title": "3 · Manrope, two weights", "page": "wordmark" },
+    "W4.dc.html": { "x": 1520, "y": 1600, "w": 1440, "h": 1480, "title": "4 · Instrument Sans, spaced capitals", "page": "wordmark" },
+    "R3a.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 1000, "title": "Modern 1–4", "page": "modern" },
+    "R3b.dc.html": { "x": 1520, "y": 0, "w": 1440, "h": 1000, "title": "Modern 5–8", "page": "modern" },
+    "Pick.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 2860, "title": "Pick · cover fan + Sora stacked: header, sizes, link card", "page": "pick" }
+  },
+  "order": ["Main.dc.html", "ACard.dc.html", "BSheet.dc.html", "BCard.dc.html", "CSheet.dc.html", "CCard.dc.html", "DSheet.dc.html", "DCard.dc.html", "W1.dc.html", "W2.dc.html", "W3.dc.html", "W4.dc.html", "R3a.dc.html", "R3b.dc.html", "Pick.dc.html"],
+  "notes": {
+    "titleA": { "x": 0, "y": -280, "text": "A · Bookmark: a saved bookmark with a Rating star cut out, fits every Media Type", "kind": "title1", "maxW": 2720, "page": "marks" },
+    "titleB": { "x": 0, "y": 2200, "text": "B · Monogram: an italic T on a gold tile, like the primary button", "kind": "title1", "maxW": 2720, "page": "marks" },
+    "titleC": { "x": 0, "y": 4680, "text": "C · Ticket: an admit-one stub with a star, cinema first", "kind": "title1", "maxW": 2720, "page": "marks" },
+    "titleD": { "x": 0, "y": 7160, "text": "D · Cover fan: three covers fanned like the Saved tile, a star on the front one", "kind": "title1", "maxW": 2720, "page": "marks" },
+    "titleW": { "x": 0, "y": -280, "text": "The cover fan mark with four plain sans wordmarks, and the slogan on the card", "kind": "title1", "maxW": 2960, "page": "wordmark" },
+    "titleM": { "x": 0, "y": -280, "text": "Same cover fan mark, eight modern wordmarks: light, dark and header size", "kind": "title1", "maxW": 2960, "page": "modern" }
+  },
+  "designSystems": []
+}
