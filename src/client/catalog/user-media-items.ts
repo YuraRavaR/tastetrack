@@ -62,9 +62,9 @@ function titlesOf(mediaItem: MediaItem): string[] {
   return [metadata.title, metadata.originalTitle, metadata.ukrainianTitle ?? ""];
 }
 
-// The search results that aren't the User's Media Items, so none shows twice, not even while
-// TMDB's results for the last query wait for the next. A TMDB result not in the catalog yet can't
-// be in the Library or on a List, so it always stays.
+// The search results that aren't the User's Media Items, so none shows twice, not even while the
+// External Source's results for the last query wait for the next. A result not in the catalog yet
+// can't be in the Library or on a List, so it always stays.
 export function withoutUserMediaItems(
   results: readonly Found[],
   items: readonly UserMediaItem[],

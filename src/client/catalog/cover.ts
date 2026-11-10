@@ -29,7 +29,7 @@ export type CoverImageSize = "small" | "large";
 
 export interface Cover {
   url: string | null;
-  // Null for a TMDB search result not in the catalog yet, which has no Media Item.
+  // Null for an External Source's search result not in the catalog yet, which has no Media Item.
   mediaItemId: number | null;
   mediaType: MediaType;
 }

@@ -9,7 +9,7 @@ import type { MediaType, SharedList, ShareLink } from "../../shared/api";
 import { sharedListTitle, sharedVisibilities, unsharedVisibilities } from "../../shared/lists";
 import { userColumns } from "../accounts/accounts";
 import { cacheOfMediaItem, toMediaItem } from "../catalog/media-items";
-import { posterUrls } from "../catalog/tmdb";
+import { sourceOf } from "../catalog/registry";
 import { randomToken } from "../random-token";
 import { listOrder, selectListItems } from "./list-items";
 
@@ -127,8 +127,8 @@ function sharedBy(token: string) {
   return eq(shareLinks.token, token);
 }
 
-// The poster path of the outer query's List's first item that has one, in List order.
-function firstPosterPath(now: Date) {
+// The cover reference of the outer query's List's first item that has one, in List order.
+function firstCoverRef(now: Date) {
   return sql<string | null>`(
     select ${catalogCache.coverRef} from ${listItems}
     inner join ${mediaItems} on ${mediaItems.id} = ${listItems.mediaItemId}
@@ -146,7 +146,7 @@ function selectHead(db: DrizzleD1Database, token: string, now: Date) {
       description: lists.description,
       mediaType: lists.mediaType,
       ownerDisplayName: userColumns.displayName,
-      posterPath: firstPosterPath(now),
+      coverRef: firstCoverRef(now),
     })
     .from(shareLinks)
     .innerJoin(lists, eq(shareLinks.listId, lists.id))
@@ -156,11 +156,11 @@ function selectHead(db: DrizzleD1Database, token: string, now: Date) {
 
 type HeadRow = Awaited<ReturnType<typeof selectHead>>[number];
 
-function toHead({ name, ownerDisplayName, posterPath, ...rest }: HeadRow): SharedListHead {
+function toHead({ name, ownerDisplayName, coverRef, ...rest }: HeadRow): SharedListHead {
   return {
     title: sharedListTitle(name, rest.mediaType, ownerDisplayName),
     ownerDisplayName,
-    posterUrl: posterUrls(posterPath)?.large ?? null,
+    posterUrl: sourceOf(rest.mediaType).coverUrls(coverRef)?.large ?? null,
     ...rest,
   };
 }

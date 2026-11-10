@@ -62,6 +62,26 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/**", "tests/**", "scripts/**", "!src/worker/catalog/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/catalog/sources/*"],
+                    "message": "A catalog source module is the catalog's own: reach it through src/worker/catalog/registry.ts (ADR-0005)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

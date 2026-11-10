@@ -3,7 +3,7 @@
 import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
-import type { Backlog, ListItem, MediaType, PlanRequest } from "../../shared/api";
+import type { Backlog, ExternalSource, ListItem, MediaType, PlanRequest } from "../../shared/api";
 import { visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
@@ -129,7 +129,7 @@ export async function plan(
 export async function plannedExternalIds(
   db: DrizzleD1Database,
   userId: number,
-  source: "tmdb",
+  source: ExternalSource,
   mediaType: MediaType,
   externalIds: string[],
 ): Promise<Set<string>> {

@@ -3,7 +3,6 @@ import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { ErrorResponse } from "../shared/api";
 import { equalInConstantTime } from "./accounts/password";
-import type { TmdbConfig } from "./catalog/tmdb";
 import { countQueries } from "./query-count";
 
 export const QUERY_COUNT_HEADER = "X-D1-Query-Count";
@@ -18,10 +17,6 @@ export type AppEnv = {
   Bindings: Env;
   Variables: { db: DrizzleD1Database; now: Date };
 };
-
-export function tmdbConfig(env: Env): TmdbConfig {
-  return { baseUrl: env.TMDB_BASE_URL, accessToken: env.TMDB_ACCESS_TOKEN };
-}
 
 export function testHooksOn(env: Pick<Env, "TEST_HOOKS">): boolean {
   return env.TEST_HOOKS === "1";

@@ -10,7 +10,8 @@ import { maxListItems } from "../shared/lists";
 import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { byCacheKey } from "./catalog/media-items";
-import { tmdbFake } from "./catalog/tmdb-fake";
+import { sourceNamed } from "./catalog/registry";
+import { sourceFakes } from "./catalog/source-fakes";
 import { type AppEnv, requestHasTestHooksAccess, testHooksOn } from "./env";
 import { fillBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
@@ -22,14 +23,8 @@ testHooks.use(async (c, next) => {
   await next();
 });
 
-// The TMDB fake that the `local` Worker searches (wrangler.jsonc). It comes before the secret
-// check because the Worker's own calls to it don't carry the secret, so it exists only for the
-// Worker that searches it: staging, which searches real TMDB, has no fake.
-testHooks.use("/tmdb/*", async (c, next) => {
-  if (!c.env.TMDB_BASE_URL.includes("/api/test/tmdb/")) return c.notFound();
-  await next();
-});
-testHooks.route("/tmdb", tmdbFake);
+// The External Sources' fakes, which answer the Worker's own calls without the secret.
+testHooks.route("/", sourceFakes);
 
 testHooks.use(async (c, next) => {
   if (!requestHasTestHooksAccess(c)) return c.notFound();
@@ -146,10 +141,15 @@ testHooks.post("/users/:username/manual-items", async (c) => {
 // Takes one entry out of the catalog cache, as the cron does once an entry expires, so tests can
 // see a page on a cold cache.
 testHooks.delete("/catalog-cache/:source/:mediaType/:externalId", async (c) => {
-  const { source, mediaType, externalId } = c.req.param();
-  if (source !== "tmdb" || mediaType !== "film") return c.notFound();
-  await c.var.db
-    .delete(catalogCache)
-    .where(byCacheKey({ externalSource: source, mediaType, externalId }));
+  const { source: name, mediaType, externalId } = c.req.param();
+  const source = sourceNamed(name, mediaType);
+  if (!source) return c.notFound();
+  await c.var.db.delete(catalogCache).where(
+    byCacheKey({
+      externalSource: source.externalSource,
+      mediaType: source.mediaType,
+      externalId,
+    }),
+  );
   return c.body(null, 204);
 });

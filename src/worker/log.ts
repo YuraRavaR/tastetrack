@@ -14,7 +14,7 @@ import {
 } from "../shared/api";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import { fillMissingMetadata } from "./catalog/media-items";
-import { type AppEnv, tmdbConfig } from "./env";
+import type { AppEnv } from "./env";
 import {
   createLogEntry,
   deleteLogEntry,
@@ -193,7 +193,7 @@ logRoutes.openapi(deleteRoute, async (c) => {
 logRoutes.openapi(listRoute, async (c) => {
   const logEntries = await userLog(c.var.db, c.var.userId, c.var.now);
   const mediaItems = logEntries.map((entry) => entry.mediaItem);
-  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItems, c.var.now);
+  await fillMissingMetadata(c.var.db, c.env, mediaItems, c.var.now);
   return c.json({ logEntries }, 200);
 });
 
@@ -203,6 +203,6 @@ logRoutes.openapi(historyRoute, async (c) => {
   if (!history) return c.json({ error: "unknown_media_item" }, 404);
   // Each Log Entry shows the same Media Item, so filling it once fills them all.
   const mediaItems = [history.mediaItem, ...history.logEntries.map((entry) => entry.mediaItem)];
-  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItems, c.var.now);
+  await fillMissingMetadata(c.var.db, c.env, mediaItems, c.var.now);
   return c.json(history, 200);
 });

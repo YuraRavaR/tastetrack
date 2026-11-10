@@ -7,6 +7,7 @@ import { catalogCache, listItems, lists, mediaItems } from "../../db/schema";
 import type { ListItem, ListItemEditRequest } from "../../shared/api";
 import { maxListItems, moved } from "../../shared/lists";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "../catalog/media-items";
+import { sourceOf } from "../catalog/registry";
 
 const listItemColumns = {
   id: listItems.id,
@@ -195,14 +196,18 @@ export async function fillList(
   count: number,
   now: Date,
 ): Promise<boolean> {
-  const [list] = await db.select({ id: lists.id }).from(lists).where(eq(lists.id, listId));
+  const [list] = await db
+    .select({ mediaType: lists.mediaType })
+    .from(lists)
+    .where(eq(lists.id, listId));
   if (!list) return false;
+  const { externalSource, mediaType } = sourceOf(list.mediaType);
   // The placeholders' ids share a prefix, so the index on External References finds them.
   const prefix = `test-fill-${crypto.randomUUID()}-`;
   await db.run(sql`
     insert into media_items (media_type, external_source, external_id, created_at)
     with recursive n(i) as (select 1 union all select i + 1 from n where i < ${count})
-    select 'film', 'tmdb', ${prefix} || i, ${now.getTime()} from n`);
+    select ${mediaType}, ${externalSource}, ${prefix} || i, ${now.getTime()} from n`);
   await db.run(sql`
     insert into list_items (list_id, media_item_id, position, note, created_at)
     select ${listId}, id,
@@ -210,7 +215,7 @@ export async function fillList(
         + row_number() over (order by id),
       null, ${now.getTime()}
     from media_items
-    where external_source = 'tmdb' and media_type = 'film'
+    where external_source = ${externalSource} and media_type = ${mediaType}
       and external_id > ${prefix} and external_id < ${`${prefix}~`}`);
   return true;
 }

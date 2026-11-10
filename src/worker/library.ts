@@ -4,7 +4,7 @@ import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { ErrorResponse, LibraryQuery, LibraryResponse } from "../shared/api";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import { fillMissingMetadata } from "./catalog/media-items";
-import { type AppEnv, tmdbConfig } from "./env";
+import type { AppEnv } from "./env";
 import { userLibrary } from "./library/user-library";
 
 const libraryRoute = createRoute({
@@ -38,6 +38,6 @@ libraryRoutes.openapi(libraryRoute, async (c) => {
   const { mediaType } = c.req.valid("query");
   const items = await userLibrary(c.var.db, c.var.userId, mediaType, c.var.now);
   const mediaItems = items.map((item) => item.mediaItem);
-  await fillMissingMetadata(c.var.db, tmdbConfig(c.env), mediaItems, c.var.now);
+  await fillMissingMetadata(c.var.db, c.env, mediaItems, c.var.now);
   return c.json({ items }, 200);
 });
