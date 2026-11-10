@@ -7,7 +7,7 @@ export class SearchResultRow extends ScopedComponent {
   readonly noPosterPlaceholder = this.root.getByRole("img", { name: "No poster" });
   // A book's, set in type: its title and first author.
   readonly noCoverPlaceholder = this.root.getByRole("img", { name: "No cover" });
-  // Every control but the title: none on a book's row yet.
+  // Every control but the title: on a book's row, Want to read alone so far.
   readonly actionButtons = this.root.getByRole("button", {
     name: /^(Mark|Watched|Read|Want to|Add to)/,
   });
@@ -18,6 +18,12 @@ export class SearchResultRow extends ScopedComponent {
   // The same bookmark, pressed: the film is on the Watchlist.
   readonly onWatchlistButton = this.root.getByRole("button", {
     name: "Want to watch",
+    pressed: true,
+  });
+  // A book's bookmark, and the same one pressed: the book is on the Reading list.
+  readonly wantToReadButton = this.root.getByRole("button", { name: "Want to read" });
+  readonly onReadingListButton = this.root.getByRole("button", {
+    name: "Want to read",
     pressed: true,
   });
   readonly addToListButton = this.root.getByRole("button", { name: "Add to collection" });

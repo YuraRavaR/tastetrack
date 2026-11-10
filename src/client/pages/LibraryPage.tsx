@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import type { LibraryItem, MediaType } from "../../shared/api";
 import { ratingStars } from "../../shared/log";
 import * as api from "../api";
+import { authorNames } from "../catalog/book-label";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { type Choice, ChoiceChip } from "../components/ChoiceChip";
 import { EmptyState } from "../components/EmptyState";
@@ -26,7 +27,7 @@ import {
   libraryPath,
   libraryTabItems,
   libraryTabOfSlug,
-  libraryTabs,
+  libraryTabsOf,
   mediaTypeOfSlug,
 } from "../library/library-tabs";
 import {
@@ -34,6 +35,7 @@ import {
   decadeChoices,
   filtersOf,
   genreChoices,
+  hasGenres,
   type LibrarySort,
   type LibraryView,
   librarySorts,
@@ -44,9 +46,9 @@ import {
   showLibrary,
 } from "../library/library-view";
 import { usePageTitle } from "../navigation/page-title";
-import { savedPath, searchPath } from "../navigation/paths";
+import { savedPath, searchPathOf } from "../navigation/paths";
 
-// What differs between the two tabs: the tab's name, its empty state, and what each poster shows
+// What differs between the tabs: the tab's name, its empty state, and what each cover shows
 // besides its title.
 interface TabParts {
   name: string;
@@ -55,8 +57,16 @@ interface TabParts {
     message: string;
     action: { label: string; to: string; icon?: LucideIcon };
   };
-  meta(item: LibraryItem, year: number | null | undefined): ReactNode;
+  meta(item: LibraryItem): ReactNode;
   mark(item: LibraryItem): string | undefined;
+}
+
+// What a planned Media Item says under its title: a film its year, a book its authors, in one
+// line.
+function plannedMeta({ mediaItem }: LibraryItem): ReactNode {
+  if (mediaItem.mediaType === "film") return mediaItem.metadata?.year;
+  const authors = mediaItem.metadata && authorNames(mediaItem.metadata.authors);
+  return authors && <span className="min-w-0 truncate">{authors}</span>;
 }
 
 function tabParts(mediaType: MediaType): Record<LibraryTab, TabParts> {
@@ -67,9 +77,9 @@ function tabParts(mediaType: MediaType): Record<LibraryTab, TabParts> {
       empty: {
         icon: Bookmark,
         message: mediaWord(mediaType, "backlogEmpty"),
-        action: { label: mediaWord(mediaType, "find"), to: searchPath, icon: Search },
+        action: { label: mediaWord(mediaType, "find"), to: searchPathOf(mediaType), icon: Search },
       },
-      meta: (_item, year) => year,
+      meta: plannedMeta,
       // A planned Media Item the User experienced before, planned again for a Revisit.
       mark: (item) => (item.log ? mediaWord(mediaType, "experiencedBefore") : undefined),
     },
@@ -94,23 +104,25 @@ type LibraryState =
   | { status: "loaded"; tabs: Record<LibraryTab, LibraryItem[]> }
   | { status: "failed" };
 
-// Saved for one Media Type at /saved/<type>/<tab>; an address naming no Media Type or tab opens
-// the films' Watchlist.
+// Saved for one Media Type at /saved/<type>/<tab>; an address naming no tab the Media Type has
+// opens its Backlog, and one naming no Media Type the films' Watchlist.
 export function LibraryPage() {
   const params = useParams();
   const mediaType = mediaTypeOfSlug(params.type);
-  const tab = libraryTabOfSlug(params.tab);
-  if (!mediaType || !tab) return <Navigate to={libraryPath("film", "backlog")} replace />;
+  const tab = mediaType && libraryTabOfSlug(mediaType, params.tab);
+  if (!mediaType || !tab) {
+    return <Navigate to={libraryPath(mediaType ?? "film", "backlog")} replace />;
+  }
   return <LibraryTabs mediaType={mediaType} tab={tab} />;
 }
 
-// The Media Type's heading, the way back up to Saved, its two tabs with their counts, and the open
-// tab's grid of posters under its sort and filter chips. The Library loads once for both tabs; the
+// The Media Type's heading, the way back up to Saved, its tabs with their counts, and the open
+// tab's grid of covers under its sort and filter chips. The Library loads once for every tab; the
 // open tab's view lives in the address.
 function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab }) {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const [params, setParams] = useSearchParams();
-  const view = libraryView(tab, params, rememberedSort(mediaType, tab));
+  const view = libraryView(mediaType, tab, params, rememberedSort(mediaType, tab));
   // A choice replaces the history entry, so Back leaves the tab rather than undoing each choice.
   const changeTo = (change: Partial<LibraryView>) => {
     setParams(changeView(params, change), { replace: true });
@@ -174,7 +186,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
       <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
         <SegmentedLinks
           label={t("saved.tabs")}
-          segments={libraryTabs.map((each) => ({
+          segments={libraryTabsOf(mediaType).map((each) => ({
             to: `${libraryPath(mediaType, each)}${filters && `?${filters}`}`,
             label: parts[each].name,
             count: state.status === "loaded" ? state.tabs[each].length : undefined,
@@ -227,7 +239,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
               key={item.mediaItem.id}
               mediaItem={item.mediaItem}
               loading={fill.loading(item.mediaItem)}
-              meta={open.meta(item, item.mediaItem.metadata?.year)}
+              meta={open.meta(item)}
               mark={open.mark(item)}
             />
           ))}
@@ -240,8 +252,9 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
 // The value of a menu's first choice, which clears its filter.
 const any = "any";
 
-// The chips above the grid: the sort, then Genre and Decade, and on the experienced tab Rating.
-// Each menu offers what the tab's films have, "Any …" first. On a phone the row scrolls sideways.
+// The chips above the grid: the sort, then Genre, for a Media Type that has genres, and Decade,
+// and on the experienced tab Rating. Each menu offers what the tab's items have, "Any …" first. On
+// a phone the row scrolls sideways.
 function LibraryChips({
   mediaType,
   tab,
@@ -258,9 +271,9 @@ function LibraryChips({
   onFilter(change: Partial<LibraryView>): void;
 }) {
   const sortName = (sort: LibrarySort) => {
-    return sort === "experienced"
-      ? mediaWord(mediaType, "lastExperienced")
-      : t(`saved.sort.${sort}`);
+    if (sort === "experienced") return mediaWord(mediaType, "lastExperienced");
+    if (sort === "year") return mediaWord(mediaType, "sortYear");
+    return t(`saved.sort.${sort}`);
   };
   const decadeName = (decade: number) => t("saved.decade.value", { decade: String(decade) });
   const ratingName = (floor: number) => {
@@ -285,17 +298,19 @@ function LibraryChips({
         chosen={view.sort}
         onChoose={(sort) => onSort(sort as LibrarySort)}
       />
-      <ChoiceChip
-        name={t("saved.genre")}
-        shown={view.genre ?? t("saved.genre")}
-        choices={[
-          anyChoice(t("saved.genre.any")),
-          ...genreChoices(items, view.genre).map((genre) => ({ value: genre, label: genre })),
-        ]}
-        chosen={choiceOf(view.genre)}
-        filtered={view.genre !== null}
-        onChoose={(genre) => onFilter({ genre: chosenOf(genre) })}
-      />
+      {hasGenres(mediaType) && (
+        <ChoiceChip
+          name={t("saved.genre")}
+          shown={view.genre ?? t("saved.genre")}
+          choices={[
+            anyChoice(t("saved.genre.any")),
+            ...genreChoices(items, view.genre).map((genre) => ({ value: genre, label: genre })),
+          ]}
+          chosen={choiceOf(view.genre)}
+          filtered={view.genre !== null}
+          onChoose={(genre) => onFilter({ genre: chosenOf(genre) })}
+        />
+      )}
       <ChoiceChip
         name={t("saved.decade")}
         shown={view.decade === null ? t("saved.decade") : decadeName(view.decade)}

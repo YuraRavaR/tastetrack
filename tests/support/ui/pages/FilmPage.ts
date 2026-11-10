@@ -21,7 +21,7 @@ class EntryActionsMenu extends ScopedComponent {
 }
 
 // A Media Item's page: its banner, and for a film the actions on it, the tiles and its Viewings.
-// A book's has the banner alone so far.
+// A book's has the banner and Want to read so far.
 export class FilmPage extends BasePage<[mediaItemId: number]> {
   path(mediaItemId: number) {
     return `/items/${mediaItemId}`;
@@ -49,6 +49,15 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   });
   readonly onWatchlistButton = this.main.getByRole("button", {
     name: "On your Watchlist",
+    pressed: true,
+  });
+  // A book's bookmark.
+  readonly wantToReadButton = this.main.getByRole("button", {
+    name: "Want to read",
+    pressed: false,
+  });
+  readonly onReadingListButton = this.main.getByRole("button", {
+    name: "On your Reading list",
     pressed: true,
   });
   readonly addToListButton = this.main.getByRole("button", { name: "Add to collection" });

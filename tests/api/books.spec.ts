@@ -1,5 +1,12 @@
-import { ItemHistoryResponse, MediaItemResponse } from "@shared/api";
+import {
+  BacklogResponse,
+  ItemHistoryResponse,
+  LibraryResponse,
+  ListItemResponse,
+  MediaItemResponse,
+} from "@shared/api";
 import { expectBody } from "../support/api/responses";
+import { at, minutesAgo } from "../support/clock";
 import { expect, test } from "../support/fixtures";
 import {
   bookReference,
@@ -17,6 +24,7 @@ import {
   voroshilovgrad,
   voroshilovgradId,
 } from "../support/scenarios/books";
+import { alien } from "../support/scenarios/films";
 
 // Locally the Worker calls an Open Library fake with fixed data; on staging, the real Open
 // Library. So these tests use only the works the fake mirrors.
@@ -97,6 +105,76 @@ test("a book's page shows it to a User who has done nothing with it", async ({ l
     currentRating: null,
     inBacklog: false,
   });
+});
+
+test("a new User has an empty, private Backlog of books from registration", async ({
+  loggedInApi,
+}) => {
+  const backlog = loggedInApi.backlog.getBacklog({ mediaType: "book" });
+
+  expect((await expectBody(backlog, 200, BacklogResponse)).backlog).toEqual({
+    id: expect.any(Number),
+    mediaType: "book",
+    visibility: "private",
+    shareLink: null,
+    items: [],
+  });
+});
+
+test("a book marked Planned is in the Backlog and the Library of books, and taken off it is in neither", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await tyhrolovy(loggedInApi);
+  const addedAt = minutesAgo(30);
+  const books = () => loggedInApi.backlog.getBacklog({ mediaType: "book" });
+  const library = () => loggedInApi.library.getLibrary({ mediaType: "book" });
+
+  const { listItem } = await expectBody(
+    loggedInApi.backlog.addBacklogItem({ mediaItemId: mediaItem.id }, at(addedAt)),
+    201,
+    ListItemResponse,
+  );
+
+  expect(listItem).toEqual({ id: expect.any(Number), mediaItem, position: 0, note: null });
+  expect((await expectBody(books())).backlog.items).toEqual([listItem]);
+  expect((await expectBody(library(), 200, LibraryResponse)).items).toEqual([
+    { mediaItem, backlog: { addedAt }, log: null },
+  ]);
+  const page = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+  expect((await expectBody(page, 200, ItemHistoryResponse)).inBacklog).toBe(true);
+
+  const removed = await loggedInApi.backlog.deleteBacklogItem(mediaItem.id);
+
+  expect(removed.status()).toBe(204);
+  expect((await expectBody(books())).backlog.items).toEqual([]);
+  expect((await expectBody(library())).items).toEqual([]);
+});
+
+test("a planned book stays out of the film Backlog and Library, and a planned film out of the books'", async ({
+  loggedInApi,
+}) => {
+  const book = await tyhrolovy(loggedInApi);
+  const film = await alien(loggedInApi);
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: book.id }), 201);
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: film.id }), 201);
+
+  for (const [mediaType, mediaItem] of [
+    ["book", book],
+    ["film", film],
+  ] as const) {
+    const { backlog } = await expectBody(
+      loggedInApi.backlog.getBacklog({ mediaType }),
+      200,
+      BacklogResponse,
+    );
+    const { items } = await expectBody(
+      loggedInApi.library.getLibrary({ mediaType }),
+      200,
+      LibraryResponse,
+    );
+    expect(backlog.items.map((item) => item.mediaItem)).toEqual([mediaItem]);
+    expect(items.map((item) => item.mediaItem)).toEqual([mediaItem]);
+  }
 });
 
 test("adding the same book again finds its Media Item", async ({ loggedInApi }) => {

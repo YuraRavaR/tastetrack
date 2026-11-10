@@ -2,17 +2,24 @@ import { step } from "../../step";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { BasePage } from "./BasePage";
 
-export type LibraryTab = "Watchlist" | "Watched";
+// A film's tabs, and a book's one so far.
+export type LibraryTab = "Watchlist" | "Watched" | "Reading list";
 
-// The chips above the grid: the sort, then the filters; Rating only on Watched.
+// The chips above the grid: the sort, then the filters; Genre only for films, Rating only on
+// Watched.
 export type LibraryChip = "Sort" | "Genre" | "Decade" | "Rating";
 
-const tabPaths: Record<LibraryTab, string> = { Watchlist: "watchlist", Watched: "watched" };
+const tabPaths: Record<LibraryTab, string> = {
+  Watchlist: "films/watchlist",
+  Watched: "films/watched",
+  "Reading list": "books/reading-list",
+};
 
-// Saved for films: the Library's Watchlist and Watched tabs, each a grid of posters.
+// Saved for one Media Type: a film's Watchlist and Watched tabs and a book's Reading list, each
+// a grid of covers.
 export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
   path(tab: LibraryTab = "Watchlist") {
-    return `/saved/films/${tabPaths[tab]}`;
+    return `/saved/${tabPaths[tab]}`;
   }
 
   readonly heading = this.main.getByRole("heading", { level: 1 });
@@ -20,8 +27,10 @@ export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
   readonly backToSavedLink = this.main.getByRole("link", { name: "Saved", exact: true });
   readonly breadcrumb = this.main.getByRole("navigation", { name: "Breadcrumb" });
   readonly tabsNav = this.main.getByRole("navigation", { name: "Status" });
+  readonly tabs = this.tabsNav.getByRole("link");
   // The buttons of an empty tab's quiet block.
   readonly findFilmLink = this.main.getByRole("link", { name: "Find a film" });
+  readonly findBookLink = this.main.getByRole("link", { name: "Find a book" });
   readonly goToWatchlistLink = this.main.getByRole("link", { name: "Go to Watchlist" });
   readonly chipsGroup = this.main.getByRole("group", { name: "Sort and filters" });
   readonly chips = this.chipsGroup.getByRole("button");

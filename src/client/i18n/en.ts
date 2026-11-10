@@ -36,6 +36,9 @@ export const en = {
   "mediaType.film.lastExperienced": "Last watched",
   "mediaType.film.noMatch": "No films match these filters.",
   "mediaType.film.tileCounts": "{backlog} to watch · {experienced} watched",
+  "mediaType.film.sortYear": "Release year",
+  "mediaType.film.backlogFull":
+    "Your Watchlist is full: it holds up to {max, number} films. Remove or log some to make room.",
   "mediaType.film.count": "{count, plural, one {# film} other {# films}}",
   "mediaType.film.searchPlaceholder": "Title in English or Ukrainian",
   "mediaType.film.searchHint": "Type a title to search your Saved and TMDB.",
@@ -67,7 +70,10 @@ export const en = {
   "mediaType.book.collection": "Book collection",
   "mediaType.book.lastExperienced": "Last read",
   "mediaType.book.noMatch": "No books match these filters.",
-  "mediaType.book.tileCounts": "{backlog} to read · {experienced} read",
+  "mediaType.book.tileCounts": "{backlog} to read",
+  "mediaType.book.sortYear": "First published",
+  "mediaType.book.backlogFull":
+    "Your Reading list is full: it holds up to {max, number} books. Remove some to make room.",
   "mediaType.book.count": "{count, plural, one {# book} other {# books}}",
   "mediaType.book.searchPlaceholder": "Title or author",
   "mediaType.book.searchHint": "Type a title or author to search your Saved and Open Library.",
@@ -142,7 +148,7 @@ export const en = {
   "settings.passwordFailed": "Couldn't change your password. Please try again.",
   "settings.deleteTitle": "Delete account",
   "settings.deleteDescription":
-    "Deletes your account for good, with your Log, Watchlist, Collections, the films you added by hand, your Share Links and your Invite Codes. People you invited keep their accounts. This can't be undone.",
+    "Deletes your account for good, with your Log, Watchlist, Reading list, Collections, the films you added by hand, your Share Links and your Invite Codes. People you invited keep their accounts. This can't be undone.",
   "settings.deletePassword": "Your password",
   "settings.deleteAccount": "Delete account",
   "settings.deletingAccount": "Deleting…",
@@ -215,8 +221,6 @@ export const en = {
   "logEntry.deleting": "Deleting…",
   "logEntry.deleteFailed": "Couldn't delete. Please try again.",
   "backlog.updateFailed": "Couldn't update your {backlogName}. Please try again.",
-  "backlog.full":
-    "Your {backlogName} is full: it holds up to {max, number} films. Remove or log some to make room.",
   "backlog.planned": "Put {film} on your {backlogName}.",
   "backlog.takenOff": "Took {film} off your {backlogName}.",
   "backlog.putBack": "Put {film} back on your {backlogName}.",
@@ -426,7 +430,6 @@ export const en = {
   "saved.sort.added": "Date added",
   "saved.sort.rating": "Rating",
   "saved.sort.title": "Title",
-  "saved.sort.year": "Release year",
   "saved.genre": "Genre",
   "saved.genre.any": "Any genre",
   "saved.decade": "Decade",

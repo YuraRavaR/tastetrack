@@ -56,20 +56,31 @@ const view = (changes: Partial<LibraryView>): LibraryView => {
 };
 
 describe("a tab's view, read from its address", () => {
+  it("leaves out a genre for books, which have none", () => {
+    const query = "genre=Horror&decade=1970";
+
+    expect(libraryView("book", "backlog", params(query), null)).toEqual({
+      sort: "added",
+      genre: null,
+      decade: 1970,
+      minRating: null,
+    });
+  });
+
   it("sorts the Watchlist by Date added and Watched by Last watched, unfiltered, by default", () => {
-    expect(libraryView("backlog", params(), null)).toEqual({
+    expect(libraryView("film", "backlog", params(), null)).toEqual({
       sort: "added",
       genre: null,
       decade: null,
       minRating: null,
     });
-    expect(libraryView("experienced", params(), null).sort).toBe("experienced");
+    expect(libraryView("film", "experienced", params(), null).sort).toBe("experienced");
   });
 
   it("takes the sort and filters from the address", () => {
     const query = "sort=rating&genre=Science+Fiction&decade=1990&rating=4.5";
 
-    expect(libraryView("experienced", params(query), null)).toEqual({
+    expect(libraryView("film", "experienced", params(query), null)).toEqual({
       sort: "rating",
       genre: "Science Fiction",
       decade: 1990,
@@ -78,27 +89,29 @@ describe("a tab's view, read from its address", () => {
   });
 
   it("names the sort by the last Log Entry with the UI's word, as the tabs are", () => {
-    expect(libraryView("experienced", params("sort=watched"), "rating").sort).toBe("experienced");
+    expect(libraryView("film", "experienced", params("sort=watched"), "rating").sort).toBe(
+      "experienced",
+    );
     expect(changeView(params(), { sort: "experienced" }).toString()).toBe("sort=watched");
   });
 
   it("falls back to the remembered sort when the address has none", () => {
-    expect(libraryView("backlog", params(), "title").sort).toBe("title");
-    expect(libraryView("backlog", params("sort=year"), "title").sort).toBe("year");
+    expect(libraryView("film", "backlog", params(), "title").sort).toBe("title");
+    expect(libraryView("film", "backlog", params("sort=year"), "title").sort).toBe("year");
   });
 
   it("ignores what the tab can't show", () => {
     const query = "sort=rating&decade=1995&rating=3";
 
-    expect(libraryView("backlog", params(query), "watched")).toEqual({
+    expect(libraryView("film", "backlog", params(query), "watched")).toEqual({
       sort: "added",
       genre: null,
       decade: null,
       minRating: null,
     });
     // Watched filters on Rating, but only from the three floors it offers.
-    expect(libraryView("experienced", params("rating=3"), null).minRating).toBeNull();
-    expect(libraryView("backlog", params("rating=5"), null).minRating).toBeNull();
+    expect(libraryView("film", "experienced", params("rating=3"), null).minRating).toBeNull();
+    expect(libraryView("film", "backlog", params("rating=5"), null).minRating).toBeNull();
   });
 });
 

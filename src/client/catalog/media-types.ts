@@ -32,16 +32,23 @@ const seriesSoon: MediaTypeChoice = {
   icon: Tv,
 };
 
-// The Media Types each section offers, in the one order they all keep. Search has books;
-// Collections and Saved get them as each builds its part.
+// The Media Types each section offers, in the one order they all keep. Search and Saved have
+// books; Collections get them once they build their part.
 export const searchMediaTypes: readonly MediaTypeChoice[] = [films, books, seriesSoon];
 export const listsMediaTypes: readonly MediaTypeChoice[] = [films, booksSoon, seriesSoon];
-export const savedMediaTypes: readonly MediaTypeChoice[] = [films, booksSoon];
+export const savedMediaTypes: readonly MediaTypeChoice[] = [films, books];
 
-// Whether a User can keep Media Items of the type yet: plan and log them, put them in Collections
-// and add them by hand. A book can only be found and opened so far.
-const kept: Record<MediaType, boolean> = { film: true, book: false };
+// What a User does to keep a Media Item: marks it Planned, logs it, puts it in Collections, or
+// adds one by hand.
+export type Keeping = "plan" | "log" | "collect" | "addByHand";
 
-export function canKeep(mediaType: MediaType): boolean {
-  return kept[mediaType];
+// What a User can do with Media Items of each type so far. A book can be found, opened and
+// marked Planned; the rest comes as each part is built.
+const keepings: Record<MediaType, readonly Keeping[]> = {
+  film: ["plan", "log", "collect", "addByHand"],
+  book: ["plan"],
+};
+
+export function can(mediaType: MediaType, keeping: Keeping): boolean {
+  return keepings[mediaType].includes(keeping);
 }

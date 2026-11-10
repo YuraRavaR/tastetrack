@@ -27,7 +27,7 @@ import {
   foundName,
   mediaItemOf,
 } from "../catalog/found";
-import { canKeep } from "../catalog/media-types";
+import { can } from "../catalog/media-types";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { useUserMediaItems } from "../catalog/use-user-media-items";
@@ -77,15 +77,15 @@ const noMatchIcons: Record<MediaType, LucideIcon> = { film: SearchX, book: BookO
 // yet adds it to the catalog when the User opens it, then opens its page. A book's row says its
 // authors and first-published year under its title.
 //
-// Where the Media Type can be kept, any result can be marked Watched, which records a Log Entry
-// for it, as a Revisit by default if it is in the Log, and takes it off the Watchlist with an
-// undo. Want to watch is a toggle, which puts a result on the Watchlist or takes it off again, and
-// any result can be added to or taken off the User's Lists. Below the results, a film search
-// doesn't find can be added by hand, and then shows first. A book can only be opened so far.
+// Any result can be marked Watched, which records a Log Entry for it, as a Revisit by default if
+// it is in the Log, and takes it off the Watchlist with an undo. Want to watch is a toggle, which
+// puts a result on the Watchlist or takes it off again, and any result can be added to or taken
+// off the User's Lists. Below the results, a film search doesn't find can be added by hand, and
+// then shows first. A Media Type offers only what it can do so far: a book, Want to read alone.
 export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
   const backlogName = mediaWord(mediaType, "backlog");
-  const keepable = canKeep(mediaType);
+  const addable = can(mediaType, "addByHand");
   const [query] = useSearchQuery();
   const search = useCatalogSearch(mediaType, query);
   const userItems = useUserMediaItems(mediaType, query);
@@ -277,7 +277,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
       {planError && (
         <p role="alert" className="text-destructive text-sm">
           {planError === "backlog_full"
-            ? t("backlog.full", { backlogName, max: maxListItems })
+            ? mediaWord(mediaType, "backlogFull", { max: maxListItems })
             : t("backlog.updateFailed", { backlogName })}
         </p>
       )}
@@ -316,7 +316,6 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
                   lists={listedNow.get(foundKey(found)) ?? found.lists}
                   inBacklog={inBacklog(found)}
                   planning={planning.has(foundKey(found))}
-                  keepable={keepable}
                   onExperienced={() => setLogging(found)}
                   onTogglePlanned={() => togglePlanned(found)}
                   onListed={() =>
@@ -337,7 +336,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
           icon={noMatchIcons[mediaType]}
           message={mediaWord(mediaType, "searchNoMatch", { query: trimmed })}
           action={
-            keepable
+            addable
               ? {
                   label: t("search.addManually"),
                   onClick: () => setAddingManually(true),
@@ -347,7 +346,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
           }
         />
       ) : (
-        keepable &&
+        addable &&
         trimmed !== "" &&
         search.status === "done" && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
@@ -483,8 +482,8 @@ function StatusLine({
 
 // One of the External Source's results. Its title opens its page and stretches over the whole
 // row, so on a phone a tap on the cover or around the title opens it too; the row's other controls
-// sit above. A book is named without its year, which follows its authors on the next line. Only a
-// Media Type that can be kept has the controls.
+// sit above. A book is named without its year, which follows its authors on the next line. The
+// row has the controls its Media Type can use so far.
 function SearchResult({
   found,
   mediaItemId,
@@ -495,7 +494,6 @@ function SearchResult({
   lists,
   inBacklog,
   planning,
-  keepable,
   onExperienced,
   onTogglePlanned,
   onListed,
@@ -509,7 +507,6 @@ function SearchResult({
   lists: HoldingList[];
   inBacklog: boolean;
   planning: boolean;
-  keepable: boolean;
   onExperienced: () => void;
   onTogglePlanned: () => void;
   onListed: () => void;
@@ -566,8 +563,8 @@ function SearchResult({
           </span>
           <ListChips lists={lists} onOpened={onOpened} />
         </div>
-        {keepable && (
-          <div className="relative flex shrink-0 gap-1.5 md:gap-2">
+        <div className="relative flex shrink-0 gap-1.5 md:gap-2">
+          {can(mediaType, "log") && (
             <Button
               variant={inLog ? "pressed" : "outline"}
               className="h-11 gap-1.5 px-2 font-semibold has-[>svg]:px-2 md:h-9 md:w-37.5"
@@ -576,18 +573,20 @@ function SearchResult({
               {inLog && <RotateCw aria-hidden className="hidden min-[380px]:block" />}
               {mediaWord(mediaType, inLog ? "experiencedAgain" : "markExperienced")}
             </Button>
-            <Button
-              variant={inBacklog ? "pressed" : "outline"}
-              size="icon"
-              className="size-11 md:size-9"
-              disabled={planning}
-              aria-pressed={inBacklog}
-              aria-label={mediaWord(mediaType, "planned")}
-              title={mediaWord(mediaType, "planned")}
-              onClick={onTogglePlanned}
-            >
-              <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
-            </Button>
+          )}
+          <Button
+            variant={inBacklog ? "pressed" : "outline"}
+            size="icon"
+            className="size-11 md:size-9"
+            disabled={planning}
+            aria-pressed={inBacklog}
+            aria-label={mediaWord(mediaType, "planned")}
+            title={mediaWord(mediaType, "planned")}
+            onClick={onTogglePlanned}
+          >
+            <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
+          </Button>
+          {can(mediaType, "collect") && (
             <Button
               variant="outline"
               size="icon"
@@ -598,8 +597,8 @@ function SearchResult({
             >
               <ListPlus aria-hidden />
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </li>
   );

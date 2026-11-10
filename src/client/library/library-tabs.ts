@@ -1,12 +1,18 @@
 // A Library's two tabs, in their default orders: the Backlog by Date added, and every Media Item
 // the User experienced, once each, by Last watched. The UI calls a film's "Watchlist" and
-// "Watched", and so do their addresses.
+// "Watched" and a book's "Reading list" and "Read", and so do their addresses.
 import type { LibraryItem, MediaItem, MediaType } from "../../shared/api";
 import { inLogOrder } from "../../shared/log";
+import { can } from "../catalog/media-types";
 
 export type LibraryTab = "backlog" | "experienced";
 
-export const libraryTabs: readonly LibraryTab[] = ["backlog", "experienced"];
+const libraryTabs: readonly LibraryTab[] = ["backlog", "experienced"];
+
+// The tabs a Media Type's Library has: the experienced one only once the type can be logged.
+export function libraryTabsOf(mediaType: MediaType): readonly LibraryTab[] {
+  return libraryTabs.filter((tab) => tab === "backlog" || can(mediaType, "log"));
+}
 
 // The Media Items in the Backlog, the latest added first.
 export function backlogItems(items: readonly LibraryItem[]): LibraryItem[] {
@@ -53,25 +59,33 @@ export function libraryTile(items: readonly LibraryItem[]): LibraryTile {
   };
 }
 
-// Each tab's word in Saved's addresses, and each Media Type's.
-const tabSlugs: Record<LibraryTab, string> = { backlog: "watchlist", experienced: "watched" };
-// A new Media Type doesn't compile until it has one.
+// Each Media Type's word in Saved's addresses, and its tabs' words. A new Media Type doesn't
+// compile until it has them.
 const typeSlugs: Record<MediaType, string> = { film: "films", book: "books" };
+const tabSlugs: Record<MediaType, Record<LibraryTab, string>> = {
+  film: { backlog: "watchlist", experienced: "watched" },
+  book: { backlog: "reading-list", experienced: "read" },
+};
 
 function bySlug<Key extends string>(slugs: Record<Key, string>, slug: string | undefined) {
   const found = Object.entries(slugs).find(([, each]) => each === slug);
   return found ? (found[0] as Key) : null;
 }
 
-export function libraryTabOfSlug(slug: string | undefined): LibraryTab | null {
-  return bySlug(tabSlugs, slug);
+// The Media Type's tab an address names, or null when the Media Type has no such tab.
+export function libraryTabOfSlug(
+  mediaType: MediaType,
+  slug: string | undefined,
+): LibraryTab | null {
+  const tab = bySlug(tabSlugs[mediaType], slug);
+  return tab && libraryTabsOf(mediaType).includes(tab) ? tab : null;
 }
 
 export function mediaTypeOfSlug(slug: string | undefined): MediaType | null {
   return bySlug(typeSlugs, slug);
 }
 
-// The address of a Media Type's tab in Saved: "/saved/films/watchlist".
+// The address of a Media Type's tab in Saved: "/saved/films/watchlist", "/saved/books/reading-list".
 export function libraryPath(mediaType: MediaType, tab: LibraryTab): string {
-  return `/saved/${typeSlugs[mediaType]}/${tabSlugs[tab]}`;
+  return `/saved/${typeSlugs[mediaType]}/${tabSlugs[mediaType][tab]}`;
 }

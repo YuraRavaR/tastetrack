@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { ItemHistoryResponse, LogEntry } from "../../shared/api";
 import * as api from "../api";
 import { filmTitleAndYear } from "../catalog/film-label";
-import { canKeep } from "../catalog/media-types";
+import { can } from "../catalog/media-types";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { FilmActions } from "../components/FilmActions";
@@ -40,8 +40,8 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 // no tiles, and says what will show where its entries go. The Worker sends them in Log Order, and
 // the page only reverses that for display. After a new entry, an edit or a delete it reloads, so
 // the order and the Current Rating are always the Worker's. A film the User added manually can be
-// edited too, or deleted with everything that goes with it. A Media Type that can't be kept yet,
-// a book, has the banner alone.
+// edited too, or deleted with everything that goes with it. A Media Type that can't be logged yet,
+// a book, has the banner and its actions alone.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();
@@ -83,37 +83,37 @@ export function ItemHistoryPage() {
 
   const { mediaItem, logEntries } = state.history;
   const manual = mediaItem.externalReference === null;
-  const keepable = canKeep(mediaItem.mediaType);
+  const loggable = can(mediaItem.mediaType, "log");
   return (
     <div className="flex flex-col gap-4.5 sm:gap-5.5">
       <FilmBanner mediaItem={mediaItem} />
-      {keepable && (
-        <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
-          {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
-          <FilmActions
-            history={state.history}
-            onLogged={reload}
-            onPlanned={(inBacklog) =>
-              setState((current) =>
-                current.status === "loaded"
-                  ? { ...current, history: { ...current.history, inBacklog } }
-                  : current,
-              )
-            }
-          />
-          {manual && (
-            <div className="flex flex-col gap-3">
-              <p className="text-muted-foreground text-sm">{t("manualItem.addedByYou")}</p>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditingFilm(true)}>
-                  {t("manualItem.edit")}
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setDeletingFilm(true)}>
-                  {t("manualItem.delete")}
-                </Button>
-              </div>
+      <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
+        {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
+        <FilmActions
+          history={state.history}
+          onLogged={reload}
+          onPlanned={(inBacklog) =>
+            setState((current) =>
+              current.status === "loaded"
+                ? { ...current, history: { ...current.history, inBacklog } }
+                : current,
+            )
+          }
+        />
+        {manual && (
+          <div className="flex flex-col gap-3">
+            <p className="text-muted-foreground text-sm">{t("manualItem.addedByYou")}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setEditingFilm(true)}>
+                {t("manualItem.edit")}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeletingFilm(true)}>
+                {t("manualItem.delete")}
+              </Button>
             </div>
-          )}
+          </div>
+        )}
+        {loggable && (
           <div className="flex flex-col gap-2.5">
             <h2 id={historyHeadingId} className="font-semibold text-lg tracking-tight">
               {mediaWord(mediaItem.mediaType, "history")}
@@ -141,8 +141,8 @@ export function ItemHistoryPage() {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
       <EditLogEntryDialog
         entry={editing}
         onClose={() => setEditing(null)}

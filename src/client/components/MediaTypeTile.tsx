@@ -10,7 +10,7 @@ import { mediaTypeIcon } from "../catalog/media-types";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { type LibraryTile, libraryPath } from "../library/library-tabs";
-import { searchPath } from "../navigation/paths";
+import { searchPathOf } from "../navigation/paths";
 import { Poster } from "./Poster";
 
 // What a built Media Type's tile knows of its Library: nothing yet, its counts and covers, or
@@ -20,7 +20,7 @@ export type TileState =
   | { status: "loaded"; tile: LibraryTile }
   | { status: "failed" };
 
-// A built Media Type's tile in Saved: its icon, its name, the counts of its two tabs and a fan of
+// A built Media Type's tile in Saved: its icon, its name, the counts of its tabs and a fan of
 // the covers last added to its Backlog. The name is the link that opens the Media Type's page, and
 // it stretches over the whole tile. A Library with nothing in it shows empty slots and a way to
 // find something instead; the tile still opens the empty tabs.
@@ -56,7 +56,7 @@ export function MediaTypeTile({ mediaType, state }: { mediaType: MediaType; stat
           asChild
           className="relative mt-4.5 h-12 rounded-xl px-5 font-semibold [grid-area:action] md:mt-3.5 md:h-11 md:justify-self-start md:px-4.5"
         >
-          <Link to={searchPath}>
+          <Link to={searchPathOf(mediaType)}>
             <Search aria-hidden />
             {mediaWord(mediaType, "find")}
           </Link>
