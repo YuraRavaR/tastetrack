@@ -55,9 +55,8 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   await expect(films.coverPlaceholders).toHaveCount(0);
   await expect(films.findFilmLink).toHaveCount(0);
 
-  const books = savedPage.comingSoonTile("Books");
-  await expect(books).toBeDisabled();
-  await expect(books).toHaveAccessibleDescription("Coming soon");
+  // Films planned don't count as books.
+  await expect(savedPage.tile("Books").root).toContainText("Nothing saved yet.");
 
   await films.link.click();
   await expect(page).toHaveURL(libraryPage.path("Watchlist"));

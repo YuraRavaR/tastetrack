@@ -6,6 +6,7 @@ import type { ItemHistoryResponse, RemovedListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
+import { can } from "../catalog/media-types";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
@@ -15,8 +16,10 @@ import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 type PlanError = "backlog_full" | "unavailable";
 
 // What the User can do with a film from its page: mark it Experienced, or again once it has Log
-// Entries, mark it Planned or take it off the Backlog, and put it on Lists. `onLogged` reloads the
-// page for a new Log Entry, and `onPlanned` tells it whether the film is on the Backlog now.
+// Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type shows
+// only what it can do so far: a book, Want to read alone, across the row on a phone. `onLogged`
+// reloads the page for a new Log Entry, and `onPlanned` tells it whether the film is on the
+// Backlog now.
 export function FilmActions({
   history,
   onLogged,
@@ -31,6 +34,7 @@ export function FilmActions({
   const backlogName = mediaWord(mediaType, "backlog");
   const film = mediaItem.metadata ? filmLabel(mediaItem.metadata) : mediaWord(mediaType, "unknown");
   const experienced = logEntries.length > 0;
+  const loggable = can(mediaType, "log");
   const [logging, setLogging] = useState(false);
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const [planning, setPlanning] = useState(false);
@@ -82,18 +86,21 @@ export function FilmActions({
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        <Button
-          className="h-12 font-semibold text-base sm:h-10 sm:text-sm"
-          onClick={() => setLogging(true)}
-        >
-          <Check aria-hidden />
-          {mediaWord(mediaType, experienced ? "experiencedAgain" : "experienced")}
-        </Button>
+        {loggable && (
+          <Button
+            className="h-12 font-semibold text-base sm:h-10 sm:text-sm"
+            onClick={() => setLogging(true)}
+          >
+            <Check aria-hidden />
+            {mediaWord(mediaType, experienced ? "experiencedAgain" : "experienced")}
+          </Button>
+        )}
         <Button
           variant={inBacklog ? "pressed" : "outline"}
           className={cn(
             "h-12 gap-1.5 px-1.5 sm:h-10 sm:gap-2 sm:px-4",
             inBacklog && "font-semibold",
+            !loggable && "col-span-2",
           )}
           disabled={planning}
           aria-pressed={inBacklog}
@@ -102,19 +109,21 @@ export function FilmActions({
           <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
           {inBacklog ? t("search.inBacklog", { backlogName }) : mediaWord(mediaType, "planned")}
         </Button>
-        <Button
-          variant="outline"
-          className="col-span-2 h-11 sm:h-10"
-          onClick={() => setListing({ label: film, mediaItem: async () => mediaItem })}
-        >
-          <ListPlus aria-hidden />
-          {t("filmLists.open")}
-        </Button>
+        {can(mediaType, "collect") && (
+          <Button
+            variant="outline"
+            className="col-span-2 h-11 sm:h-10"
+            onClick={() => setListing({ label: film, mediaItem: async () => mediaItem })}
+          >
+            <ListPlus aria-hidden />
+            {t("filmLists.open")}
+          </Button>
+        )}
       </div>
       {planError && (
         <p role="alert" className="text-destructive text-sm">
           {planError === "backlog_full"
-            ? t("backlog.full", { backlogName, max: maxListItems })
+            ? mediaWord(mediaType, "backlogFull", { max: maxListItems })
             : t("backlog.updateFailed", { backlogName })}
         </p>
       )}

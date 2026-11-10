@@ -36,9 +36,18 @@ const sortSlugs: Record<LibrarySort, string> = {
   year: "year",
 };
 
+// Whether Media Items of the type have genres to filter by. A book has none, since Open Library's
+// subjects aren't kept.
+const genred: Record<MediaType, boolean> = { film: true, book: false };
+
+export function hasGenres(mediaType: MediaType): boolean {
+  return genred[mediaType];
+}
+
 // The view the tab's address asks for. The address's sort wins, then the one remembered in the
-// browser, then the tab's default; whatever this tab can't show is left out.
+// browser, then the tab's default; whatever this Media Type's tab can't show is left out.
 export function libraryView(
+  mediaType: MediaType,
   tab: LibraryTab,
   params: URLSearchParams,
   rememberedSort: string | null,
@@ -49,7 +58,7 @@ export function libraryView(
   const minRating = Number(params.get(queryKeys.minRating));
   return {
     sort: sortOf(params.get(queryKeys.sort)) ?? sortOf(rememberedSort) ?? sorts[0],
-    genre: params.get(queryKeys.genre) || null,
+    genre: hasGenres(mediaType) ? params.get(queryKeys.genre) || null : null,
     decade: decade && /^\d{3}0$/.test(decade) ? Number(decade) : null,
     minRating:
       tab === "experienced" && ratingFloors.some((floor) => floor === minRating) ? minRating : null,
@@ -84,7 +93,7 @@ const comparators: Partial<Record<LibrarySort, (a: LibraryItem, b: LibraryItem) 
   ),
 };
 
-// A film's genres; a book has none, since Open Library's subjects aren't kept.
+// A film's genres; a book has none.
 function genresOf({ mediaItem }: LibraryItem): string[] {
   return mediaItem.mediaType === "film" ? (mediaItem.metadata?.genres ?? []) : [];
 }

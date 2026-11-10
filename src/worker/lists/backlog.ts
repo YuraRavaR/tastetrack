@@ -3,7 +3,13 @@
 import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
-import type { Backlog, ExternalSource, ListItem, MediaType, PlanRequest } from "../../shared/api";
+import {
+  type Backlog,
+  type ExternalSource,
+  type ListItem,
+  MediaType,
+  type PlanRequest,
+} from "../../shared/api";
 import { visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
@@ -17,29 +23,34 @@ import {
 } from "./list-items";
 import { shareLinkOf } from "./share-links";
 
-// Makes the film Backlog of the User that `user` picks out, for the batch that creates the User,
-// so no User ever exists without one. A Backlog the User already has is left as it is.
-export function createBacklog(db: DrizzleD1Database, user: SQL) {
-  return db
-    .insert(lists)
-    .select(
-      // Insert-select lists every column in table order; a null id takes the next one.
-      db
-        .select({
-          id: sql<number>`null`.as("id"),
-          userId: users.id,
-          kind: sql<"backlog">`'backlog'`.as("kind"),
-          mediaType: sql<"film">`'film'`.as("media_type"),
-          name: sql<null>`null`.as("name"),
-          nameKey: sql<null>`null`.as("name_key"),
-          description: sql<null>`null`.as("description"),
-          visibility: sql<"private">`'private'`.as("visibility"),
-          createdAt: users.createdAt,
-        })
-        .from(users)
-        .where(user),
-    )
-    .onConflictDoNothing();
+// Makes the Backlog of each Media Type for the User that `user` picks out, one statement per
+// Media Type, for the batch that creates the User, so no User ever exists without them. A Backlog
+// the User already has is left as it is.
+export function createBacklogs(db: DrizzleD1Database, user: SQL) {
+  const [first, ...rest] = MediaType.options.map((mediaType) =>
+    db
+      .insert(lists)
+      .select(
+        // Insert-select lists every column in table order; a null id takes the next one.
+        db
+          .select({
+            id: sql<number>`null`.as("id"),
+            userId: users.id,
+            kind: sql<"backlog">`'backlog'`.as("kind"),
+            mediaType: sql<MediaType>`${mediaType}`.as("media_type"),
+            name: sql<null>`null`.as("name"),
+            nameKey: sql<null>`null`.as("name_key"),
+            description: sql<null>`null`.as("description"),
+            visibility: sql<"private">`'private'`.as("visibility"),
+            createdAt: users.createdAt,
+          })
+          .from(users)
+          .where(user),
+      )
+      .onConflictDoNothing(),
+  );
+  if (!first) throw new Error("No Media Type to make a Backlog for");
+  return [first, ...rest] as const;
 }
 
 function backlogOf(userId: number, mediaType: MediaType) {

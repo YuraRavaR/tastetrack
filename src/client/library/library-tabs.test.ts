@@ -5,6 +5,7 @@ import {
   experiencedItems,
   libraryPath,
   libraryTabOfSlug,
+  libraryTabsOf,
   libraryTile,
 } from "./library-tabs";
 
@@ -116,9 +117,32 @@ describe("a tab's address", () => {
     expect(libraryPath("film", "experienced")).toBe("/saved/films/watched");
   });
 
+  it("uses the UI's words for a book's tabs", () => {
+    expect(libraryPath("book", "backlog")).toBe("/saved/books/reading-list");
+    expect(libraryPath("book", "experienced")).toBe("/saved/books/read");
+  });
+
   it("names the tab it was made for", () => {
-    expect(libraryTabOfSlug("watchlist")).toBe("backlog");
-    expect(libraryTabOfSlug("watched")).toBe("experienced");
-    expect(libraryTabOfSlug("backlog")).toBeNull();
+    expect(libraryTabOfSlug("film", "watchlist")).toBe("backlog");
+    expect(libraryTabOfSlug("film", "watched")).toBe("experienced");
+    expect(libraryTabOfSlug("film", "backlog")).toBeNull();
+    expect(libraryTabOfSlug("book", "reading-list")).toBe("backlog");
+  });
+
+  it("names no tab by another Media Type's word", () => {
+    expect(libraryTabOfSlug("book", "watchlist")).toBeNull();
+    expect(libraryTabOfSlug("film", "reading-list")).toBeNull();
+  });
+});
+
+describe("a Media Type's tabs", () => {
+  it("are the Backlog and what was experienced, for films", () => {
+    expect(libraryTabsOf("film")).toEqual(["backlog", "experienced"]);
+  });
+
+  // Until a book can be logged.
+  it("are the Backlog alone, for books", () => {
+    expect(libraryTabsOf("book")).toEqual(["backlog"]);
+    expect(libraryTabOfSlug("book", "read")).toBeNull();
   });
 });

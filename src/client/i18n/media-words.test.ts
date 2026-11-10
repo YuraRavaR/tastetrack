@@ -51,9 +51,6 @@ describe("sentences naming the Backlog", () => {
     expect(t("backlog.updateFailed", { backlogName })).toBe(
       "Couldn't update your Reading List. Please try again.",
     );
-    expect(t("backlog.full", { backlogName, max: 1000 })).toBe(
-      "Your Reading List is full: it holds up to 1,000 films. Remove or log some to make room.",
-    );
     expect(t("backlog.planned", { backlogName, film: "Alien" })).toBe(
       "Put Alien on your Reading List.",
     );
@@ -63,5 +60,32 @@ describe("sentences naming the Backlog", () => {
     expect(t("backlog.putBack", { backlogName, film: "Alien" })).toBe(
       "Put Alien back on your Reading List.",
     );
+  });
+});
+
+describe("a full Backlog", () => {
+  it("says what it holds, in its Media Type's words", () => {
+    expect(mediaWord("film", "backlogFull", { max: 1000 })).toBe(
+      "Your Watchlist is full: it holds up to 1,000 films. Remove or log some to make room.",
+    );
+    expect(mediaWord("book", "backlogFull", { max: 1000 })).toBe(
+      "Your Reading list is full: it holds up to 1,000 books. Remove some to make room.",
+    );
+  });
+});
+
+describe("a book's words", () => {
+  it.each([
+    ["planned", "Want to read"],
+    ["backlog", "Reading list"],
+    ["tab", "Books"],
+    ["sortYear", "First published"],
+  ] as const)("%s → %s", (word, expected) => {
+    expect(mediaWord("book", word)).toBe(expected);
+  });
+
+  // Until a book can be logged, the tile counts its Reading list alone.
+  it("count the Reading list on Saved's tile", () => {
+    expect(mediaWord("book", "tileCounts", { backlog: 8, experienced: 0 })).toBe("8 to read");
   });
 });

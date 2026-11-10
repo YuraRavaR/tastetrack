@@ -96,8 +96,9 @@ test("a book result shows its cover, title, authors and first-published year", a
   await expect(translated.root).toContainText(
     "Сергій Вікторович Жадан, Reilly Costigan-Humes +1 · 2012",
   );
-  // A book can only be opened so far.
-  await expect(translated.actionButtons).toHaveCount(0);
+  // A book can be opened and marked Want to read so far.
+  await expect(translated.actionButtons).toHaveCount(1);
+  await expect(translated.wantToReadButton).toBeVisible();
 });
 
 test("a result titled by its English edition names the work's own title alongside", async ({
@@ -135,8 +136,9 @@ test("a result opens the book's page, with its cover over a blurred copy, its ti
   await expect(filmPage.pictureImage).toHaveAttribute("src", cover);
   await expect(filmPage.pictureImage).toHaveCSS("filter", /blur/);
   await expect(filmPage.posterImage(cover)).toBeVisible();
-  // Nothing can be done with a book yet.
-  await expect(filmPage.buttons).toHaveCount(0);
+  // A book can be marked Want to read, and nothing else yet.
+  await expect(filmPage.buttons).toHaveCount(1);
+  await expect(filmPage.wantToReadButton).toBeVisible();
   await expect(filmPage.sectionHeadings).toHaveCount(0);
 });
 

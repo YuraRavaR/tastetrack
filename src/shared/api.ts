@@ -663,9 +663,8 @@ export const PlanRequest = z
 
 export type PlanRequest = z.infer<typeof PlanRequest>;
 
-// Only films have a Backlog so far.
 export const BacklogQuery = z.object({
-  mediaType: MediaType.extract(["film"]),
+  mediaType: MediaType,
 });
 
 // One Media Item's place in a List, counted from 0, and its optional Note.
