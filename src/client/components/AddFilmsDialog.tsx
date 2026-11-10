@@ -54,7 +54,7 @@ export function AddFilmsDialog({
 function AddFilms({ list, onAdded }: { list: List; onAdded: () => Promise<void> }) {
   const inputId = useId();
   const [query, setQuery] = useState("");
-  const search = useCatalogSearch(query);
+  const search = useCatalogSearch(list.mediaType, query);
   const [adding, setAdding] = useState<ReadonlySet<string>>(new Set());
   const [error, setError] = useState<api.AddToListError | null>(null);
   const inList = new Set(list.items.map((item) => mediaItemKey(item.mediaItem)));

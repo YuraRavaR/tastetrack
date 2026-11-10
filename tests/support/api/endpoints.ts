@@ -56,6 +56,7 @@ export const endpoints = {
     catalogCacheEntry: ({ source, mediaType, id }: ExternalReference) =>
       `/api/test/catalog-cache/${source}/${mediaType}/${id}`,
     tmdbFakeSearch: "/api/test/tmdb/3/search/movie?query=alien",
+    openLibraryFakeSearch: "/api/test/openlibrary/search.json?q=alien",
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,
     invitedBy: (username: string) => `/api/test/users/${username}/invited-by`,

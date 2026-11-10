@@ -238,10 +238,11 @@ export type CatalogSearchOutcome =
   | { ok: false; error: "aborted" | "unavailable" };
 
 export async function searchCatalog(
+  mediaType: MediaType,
   query: string,
   signal: AbortSignal,
 ): Promise<CatalogSearchOutcome> {
-  const params = new URLSearchParams({ mediaType: "film", query });
+  const params = new URLSearchParams({ mediaType, query });
   try {
     const response = await fetch(`/api/catalog/search?${params}`, { signal });
     if (!response.ok) return { ok: false, error: "unavailable" };

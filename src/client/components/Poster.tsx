@@ -6,8 +6,10 @@ import {
   coverOf,
   coverShape,
   placeholderFor,
+  typesetCoverOf,
 } from "../catalog/cover";
 import type { Found } from "../catalog/found";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
 type PosterSize = "dialog" | "thumbnail" | "search" | "large" | "grid" | "fan" | "collage";
@@ -40,10 +42,60 @@ const imageSizes: Record<PosterSize, CoverImageSize> = {
   collage: "large",
 };
 
-// A film's poster, or a placeholder when it has none. Only the grid and large sizes have room for
-// the placeholder's caption, the large one (the film page's) only from `sm`, and
-// `showCaption={false}` leaves it out, as under controls laid over the poster. The rest show their
-// icon.
+// What a cover set in type takes at each size: its padding and its title's size, how far in its
+// frame sits, how many lines its title may take, and its author's size and lines. The smallest
+// have room for the title alone.
+interface Typeset {
+  box: string;
+  frame: string;
+  title: string;
+  author: string;
+}
+
+const titleOnly: Typeset = {
+  box: "px-1.25 py-1.5 text-[8px]",
+  frame: "hidden",
+  title: "line-clamp-6",
+  author: "hidden",
+};
+const compact: Typeset = {
+  box: "px-2.25 pt-3 pb-2.25 text-[11px]",
+  frame: "inset-1.25",
+  title: "line-clamp-4",
+  author: "line-clamp-1 text-[9px]",
+};
+const roomy: Typeset = {
+  box: "px-3 pt-4 pb-3.25 text-sm",
+  frame: "inset-1.5",
+  title: "line-clamp-5",
+  author: "line-clamp-2 text-[11px]",
+};
+
+const typesets: Record<PosterSize, Typeset> = {
+  dialog: titleOnly,
+  thumbnail: titleOnly,
+  search: {
+    box: `${compact.box} md:px-1.25 md:py-1.5 md:text-[8px]`,
+    frame: `${compact.frame} md:hidden`,
+    title: `${compact.title} md:line-clamp-6`,
+    author: `${compact.author} md:hidden`,
+  },
+  large: {
+    box: `${roomy.box} sm:px-4.5 sm:pt-6 sm:pb-5 sm:text-[22px]`,
+    frame: `${roomy.frame} sm:inset-2`,
+    title: roomy.title,
+    author: `${roomy.author} sm:text-[13px]`,
+  },
+  grid: roomy,
+  fan: compact,
+  collage: compact,
+};
+
+// A Media Item's cover, a film's poster or a book's cover, or a placeholder when it has none. A
+// film's is an icon: only the grid and large sizes have room for its caption too, the large one
+// (the film page's) only from `sm`, and `showCaption={false}` leaves it out, as under controls
+// laid over the poster. A book's is a cover set in type: its title at the top and its first author
+// at the foot, inside a thin frame.
 export function Poster({
   subject,
   size,
@@ -66,6 +118,33 @@ export function Poster({
     );
   }
 
+  if (cover.mediaType === "book") {
+    const { title, author } = typesetCoverOf(subject);
+    const typeset = typesets[size];
+    return (
+      <div
+        role="img"
+        aria-label={mediaWord(cover.mediaType, "noCover")}
+        className={cn(
+          "relative flex shrink-0 flex-col overflow-hidden border border-border bg-primary-soft text-left leading-[1.1]",
+          sizeClass,
+          typeset.box,
+        )}
+      >
+        <span
+          className={cn(
+            "pointer-events-none absolute rounded-sm border border-primary-strong/45",
+            typeset.frame,
+          )}
+        />
+        <b className={cn("[overflow-wrap:anywhere]", typeset.title)}>{title}</b>
+        {author && (
+          <span className={cn("mt-auto text-muted-foreground", typeset.author)}>{author}</span>
+        )}
+      </div>
+    );
+  }
+
   const placeholder = placeholderFor(cover.mediaItemId);
   const Icon = placeholder.icon;
   const large = size === "large";
@@ -73,7 +152,7 @@ export function Poster({
   return (
     <div
       role="img"
-      aria-label={t("poster.none")}
+      aria-label={mediaWord(cover.mediaType, "noCover")}
       className={cn(
         "flex shrink-0 flex-col items-center justify-center gap-2 bg-muted text-center text-muted-foreground",
         sizeClass,

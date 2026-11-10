@@ -1,22 +1,24 @@
 import { cn } from "@/lib/utils";
-import type { FilmMetadata } from "../../shared/api";
+import type { MediaItem } from "../../shared/api";
+import { authorNames } from "../catalog/book-label";
 import { filmFacts, filmLabel } from "../catalog/film-label";
-import { t } from "../i18n/t";
+import { mediaWord } from "../i18n/media-words";
 
-// A film's label, "Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)", with its Ukrainian title
-// as a secondary line when it has a different one. Without metadata it is a placeholder while the
-// page is `loading` it, and says the details are unavailable after.
+// A Media Item's label, "Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)", with its Ukrainian
+// title as a secondary line when it has a different one. Without metadata it is a placeholder
+// while the page is `loading` it, and says the details are unavailable after.
 export function FilmTitle({
-  metadata,
+  mediaItem,
   loading = false,
 }: {
-  metadata: FilmMetadata | null;
+  mediaItem: MediaItem;
   loading?: boolean;
 }) {
+  const { metadata, mediaType } = mediaItem;
   if (!metadata) {
     return (
       <span className={cn("text-muted-foreground", loading && "animate-pulse")}>
-        {t(loading ? "film.loading" : "film.unknown")}
+        {mediaWord(mediaType, loading ? "loading" : "unknown")}
       </span>
     );
   }
@@ -35,9 +37,20 @@ export function FilmTitle({
   );
 }
 
-// A film's runtime and genres, as far as they are known: "122 min · Comedy, Romance". Nothing
-// while its metadata is missing or holds neither.
-export function FilmFacts({ metadata }: { metadata: FilmMetadata | null }) {
-  const facts = metadata && filmFacts(metadata);
+// What a Media Item's page says under its title, as far as it is known: a film's runtime and
+// genres, "122 min · Comedy, Romance", a book's authors, "Сергій Жадан, Reilly Costigan-Humes +1".
+// Nothing while its metadata is missing or holds none of it.
+export function FilmFacts({ mediaItem }: { mediaItem: MediaItem }) {
+  const facts = factsOf(mediaItem);
   return facts ? <p className="text-[13px] text-muted-foreground sm:text-[15px]">{facts}</p> : null;
+}
+
+function factsOf(mediaItem: MediaItem): string | null {
+  if (!mediaItem.metadata) return null;
+  switch (mediaItem.mediaType) {
+    case "film":
+      return filmFacts(mediaItem.metadata);
+    case "book":
+      return authorNames(mediaItem.metadata.authors);
+  }
 }

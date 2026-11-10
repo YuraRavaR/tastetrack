@@ -5,6 +5,12 @@ import { ScopedComponent } from "./ScopedComponent";
 export class SearchResultRow extends ScopedComponent {
   readonly poster = this.root.locator("img");
   readonly noPosterPlaceholder = this.root.getByRole("img", { name: "No poster" });
+  // A book's, set in type: its title and first author.
+  readonly noCoverPlaceholder = this.root.getByRole("img", { name: "No cover" });
+  // Every control but the title: none on a book's row yet.
+  readonly actionButtons = this.root.getByRole("button", {
+    name: /^(Mark|Watched|Want to|Add to)/,
+  });
   readonly markWatchedButton = this.root.getByRole("button", { name: "Mark watched" });
   readonly watchedAgainButton = this.root.getByRole("button", { name: "Watched again" });
   readonly watchedAgainIcon = this.watchedAgainButton.locator("svg");
@@ -25,7 +31,7 @@ export class SearchResultRow extends ScopedComponent {
   // over it, so the click goes to the row there, as a User's does, not to the image.
   @step
   async clickPoster(): Promise<void> {
-    const poster = this.poster.or(this.noPosterPlaceholder);
+    const poster = this.poster.or(this.noPosterPlaceholder).or(this.noCoverPlaceholder);
     const [row, cover] = await Promise.all([this.root.boundingBox(), poster.boundingBox()]);
     if (!row || !cover) throw new Error("The result's row or poster isn't on screen");
     const x = cover.x - row.x + cover.width / 2;

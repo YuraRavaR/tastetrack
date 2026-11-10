@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import type { LogEntry } from "../../shared/api";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
+import { mediaWord, pageMediaType } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
 // Asks before deleting a Log Entry, so a stray tap never removes one. `entry` is the one to
@@ -52,7 +53,9 @@ export function DeleteLogEntryDialog({
           <AlertDialogTitle>{t("logEntry.deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
             {t("logEntry.deleteDescription", {
-              film: metadata ? filmLabel(metadata) : t("film.unknown"),
+              film: metadata
+                ? filmLabel(metadata)
+                : mediaWord(entry?.mediaItem.mediaType ?? pageMediaType, "unknown"),
             })}
           </AlertDialogDescription>
         </AlertDialogHeader>

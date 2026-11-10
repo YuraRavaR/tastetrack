@@ -1,11 +1,21 @@
 import { sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { catalogCache, listItems, lists, logEntries, mediaItems, users } from "../../db/schema";
+import {
+  type CacheExtra,
+  catalogCache,
+  listItems,
+  lists,
+  logEntries,
+  mediaItems,
+  users,
+} from "../../db/schema";
+import type { ExternalReference, FilmMetadata, MediaItem } from "../../shared/api";
 import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
 import { addFromSearch, catalogMediaItems } from "./media-items";
+import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
 
 const day = 24 * 60 * 60 * 1000;
@@ -18,7 +28,8 @@ function daysAgo(days: number): Date {
 let database: TestDatabase;
 let db: DrizzleD1Database;
 let userId: number;
-let listId: number;
+// A List of each Media Type.
+let listIds: { film: number; book: number };
 
 beforeAll(async () => {
   database = await openTestDatabase();
@@ -47,49 +58,82 @@ beforeEach(async () => {
     .returning();
   if (!user) throw new Error("no user");
   userId = user.id;
-  const [list] = await db
+  const [films, books] = await db
     .insert(lists)
-    .values({ userId, kind: "list", mediaType: "film", name: "L", nameKey: "l", createdAt: now })
+    .values([
+      { userId, kind: "list", mediaType: "film", name: "F", nameKey: "f", createdAt: now },
+      { userId, kind: "list", mediaType: "book", name: "B", nameKey: "b", createdAt: now },
+    ])
     .returning();
-  if (!list) throw new Error("no list");
-  listId = list.id;
+  if (!films || !books) throw new Error("no lists");
+  listIds = { film: films.id, book: books.id };
 });
 
-interface Film {
-  // Where the film is referenced from, if anywhere.
+interface Work {
+  // Where the work is referenced from, if anywhere.
   in?: "log" | "list";
-  // Its cache entry: when it was last filled, whether by a details call, and whether it has an
-  // English Localized Title and a backdrop path. None when omitted.
+  // Its cache entry: when it was last filled, whether by a details call, and for a film whether it
+  // has an English Localized Title and a backdrop path. None when omitted.
   cached?: { updated: Date; detailed?: boolean; english?: boolean; backdrop?: string };
 }
 
-// Adds a catalog-backed film with TMDB id `id`.
-async function film(id: string, { in: where, cached }: Film = {}): Promise<void> {
+// Adds a catalog-backed Media Item, with a cache entry titled `title` if it is cached.
+async function work(
+  { source, mediaType, id }: ExternalReference,
+  title: string,
+  extra: CacheExtra,
+  { in: where, cached }: Work,
+): Promise<void> {
   const [item] = await db
     .insert(mediaItems)
-    .values({ mediaType: "film", externalSource: "tmdb", externalId: id, createdAt: now })
+    .values({ mediaType, externalSource: source, externalId: id, createdAt: now })
     .returning();
   if (!item) throw new Error("no media item");
   if (where === "log") {
     await db.insert(logEntries).values({ userId, mediaItemId: item.id, rating: 8, createdAt: now });
   }
   if (where === "list") {
-    await db
-      .insert(listItems)
-      .values({ listId, mediaItemId: item.id, position: item.id, createdAt: now });
+    await db.insert(listItems).values({
+      listId: listIds[mediaType],
+      mediaItemId: item.id,
+      position: item.id,
+      createdAt: now,
+    });
   }
   if (cached) {
     await db.insert(catalogCache).values({
-      externalSource: "tmdb",
-      mediaType: "film",
+      externalSource: source,
+      mediaType,
       externalId: id,
-      englishTitle: cached.english === false ? null : `Film ${id}`,
-      originalTitle: `Film ${id}`,
-      extra: { backdropPath: cached.backdrop ?? null, runtime: null, genres: null },
+      englishTitle: cached.english === false ? null : title,
+      originalTitle: title,
+      extra,
       updatedAt: cached.updated,
       detailedAt: cached.detailed === false ? null : cached.updated,
     });
   }
+}
+
+// Adds a catalog-backed film with TMDB id `id`.
+async function film(id: string, options: Work = {}): Promise<void> {
+  const extra = { backdropPath: options.cached?.backdrop ?? null, runtime: null, genres: null };
+  await work({ source: "tmdb", mediaType: "film", id }, `Film ${id}`, extra, options);
+}
+
+// Adds a catalog-backed book with Open Library work ID `id`.
+async function book(id: string, options: Work = {}): Promise<void> {
+  await work(
+    { source: "openlibrary", mediaType: "book", id },
+    `Book ${id}`,
+    { authors: [] },
+    options,
+  );
+}
+
+// A film's metadata, of a Media Item that should be one.
+function filmMetadata(mediaItem: MediaItem | undefined): FilmMetadata | null {
+  if (mediaItem?.mediaType !== "film") throw new Error("not a film");
+  return mediaItem.metadata;
 }
 
 async function due(limit?: number): Promise<string[]> {
@@ -137,6 +181,20 @@ describe("which cache entries the cron refreshes", () => {
     expect(odd.map((key) => key.externalId)).toEqual(["45", "44"]);
   });
 
+  it("counts a film as one subrequest and a book as two, and never spends more than 40", async () => {
+    // From the oldest: a book, a film, a book, a film and so on, three subrequests a pair.
+    for (let n = 1; n <= 20; n++) {
+      await book(`OL${n}W`, { in: "log", cached: { updated: daysAgo(100 - 2 * n) } });
+      await film(String(n), { in: "log", cached: { updated: daysAgo(99 - 2 * n) } });
+    }
+
+    const batch = await dueForRefresh(db, now);
+    // Thirteen pairs cost 39, and the next book doesn't fit: the film after it doesn't jump it.
+    expect(batch.map((key) => key.externalId)).toEqual(
+      Array.from({ length: 13 }, (_, index) => [`OL${index + 1}W`, String(index + 1)]).flat(),
+    );
+  });
+
   it("leaves entries refreshed within the last week until they are a week old", async () => {
     await film("1", { in: "log", cached: { updated: daysAgo(6) } });
     await film("2", { in: "log", cached: { updated: daysAgo(8) } });
@@ -160,22 +218,34 @@ describe("which cache entries the cron refreshes", () => {
   });
 });
 
-// The sources' configuration: TMDB is the fake the `local` Worker searches, reached through fetch.
-const tmdb = { TMDB_BASE_URL: "http://tmdb.test/3", TMDB_ACCESS_TOKEN: "fake-tmdb-token" };
+// The sources' configuration: each is the fake the `local` Worker searches, reached through fetch.
+const env = {
+  TMDB_BASE_URL: "http://tmdb.test/3",
+  TMDB_ACCESS_TOKEN: "fake-tmdb-token",
+  OPEN_LIBRARY_BASE_URL: "http://openlibrary.test",
+  OPEN_LIBRARY_CONTACT: "operator@tastetrack.invalid",
+};
 
 // The metadata titles the User's Log shows, in Log Order.
 async function loggedTitles(): Promise<(string | null)[]> {
   return (await userLog(db, userId, now)).map((entry) => entry.mediaItem.metadata?.title ?? null);
 }
 
-// Points fetch at the TMDB fake for each test in the enclosing describe.
-function useTmdbFake(): void {
+// How many subrequests the test has made to the sources.
+let subrequests = 0;
+
+// Points fetch at the sources' fakes for each test in the enclosing describe, and counts the calls.
+function useSourceFakes(): void {
   beforeEach(() => {
+    subrequests = 0;
     // Each failed details call is logged; the tests say which fail.
     vi.spyOn(console, "error").mockImplementation(() => undefined);
-    vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
-      tmdbFake.request(input instanceof Request ? input.url : String(input), init),
-    );
+    vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+      subrequests += 1;
+      const url = input instanceof Request ? input.url : String(input);
+      const fake = url.startsWith(env.OPEN_LIBRARY_BASE_URL) ? openLibraryFake : tmdbFake;
+      return fake.request(url, init);
+    });
   });
 
   afterEach(() => {
@@ -185,13 +255,13 @@ function useTmdbFake(): void {
 }
 
 describe("a cron run", () => {
-  useTmdbFake();
+  useSourceFakes();
 
   it("refreshes the entries due with TMDB's details", async () => {
     await film("348", { in: "log", cached: { updated: daysAgo(30) } });
     await film("679", { in: "log", cached: { updated: daysAgo(2) } });
 
-    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
     expect(await loggedTitles()).toEqual(["Alien", "Film 679"]);
     expect((await userLog(db, userId, now))[0]?.mediaItem.metadata).toEqual({
       title: "Alien",
@@ -216,15 +286,15 @@ describe("a cron run", () => {
     // The fake has no backdrop for this film.
     await film("679", { in: "log", cached: { updated: daysAgo(30), backdrop: "/gone.jpg" } });
 
-    await refreshCache(db, tmdb, now);
-    expect((await userLog(db, userId, now))[0]?.mediaItem.metadata?.backdropUrls).toBeNull();
+    await refreshCache(db, env, now);
+    expect(filmMetadata((await userLog(db, userId, now))[0]?.mediaItem)?.backdropUrls).toBeNull();
   });
 
   it("keeps an entry TMDB doesn't answer for, to try again next run", async () => {
     // The fake fails the details call for this one, the way TMDB does when it is down.
     await film("999000001", { in: "log", cached: { updated: daysAgo(30) } });
 
-    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 0, failed: 1, deleted: 0 });
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 1, deleted: 0 });
     expect(await loggedTitles()).toEqual(["Film 999000001"]);
     expect(await due()).toEqual(["999000001"]);
   });
@@ -236,9 +306,9 @@ describe("a cron run", () => {
     }
     await film("348", { in: "log", cached: { updated: daysAgo(30) } });
 
-    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 0, failed: 40, deleted: 0 });
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 40, deleted: 0 });
     const nextRun = new Date(now.getTime() + 15 * 60 * 1000);
-    expect(await refreshCache(db, tmdb, nextRun)).toEqual({
+    expect(await refreshCache(db, env, nextRun)).toEqual({
       refreshed: 1,
       failed: 39,
       deleted: 0,
@@ -252,17 +322,54 @@ describe("a cron run", () => {
     }
     await film("348", { in: "log", cached: { updated: daysAgo(1), detailed: false } });
 
-    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 0, failed: 40, deleted: 0 });
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 40, deleted: 0 });
     const nextRun = new Date(now.getTime() + 15 * 60 * 1000);
-    expect((await refreshCache(db, tmdb, nextRun)).refreshed).toBe(1);
+    expect((await refreshCache(db, env, nextRun)).refreshed).toBe(1);
     expect((await loggedTitles()).filter((title) => title === "Alien")).toHaveLength(1);
+  });
+
+  it("refreshes films and books in one run, within 40 subrequests", async () => {
+    // The two oldest are works the fakes know; neither fake knows the rest, which come a film
+    // and then a book, on and on.
+    await film("348", { in: "log", cached: { updated: daysAgo(89) } });
+    await book("OL2094429W", { in: "log", cached: { updated: daysAgo(88) } });
+    for (let n = 1; n <= 20; n++) {
+      await film(`404${n}`, { in: "list", cached: { updated: daysAgo(80 - n) } });
+      await book(`OL404${n}W`, { in: "list", cached: { updated: daysAgo(79.5 - n) } });
+    }
+
+    // Three for the two, then thirteen films and twelve books: the thirteenth book doesn't fit.
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 2, failed: 25, deleted: 0 });
+    expect(subrequests).toBe(40);
+    const [alien, tyhrolovy] = await userLog(db, userId, now);
+    expect(alien?.mediaItem.metadata?.title).toBe("Alien");
+    expect(tyhrolovy?.mediaItem.metadata).toEqual({
+      title: "Тигролови",
+      originalTitle: "Тигролови",
+      ukrainianTitle: null,
+      year: 1946,
+      coverUrls: {
+        small: "https://covers.openlibrary.org/b/id/12648826-M.jpg",
+        large: "https://covers.openlibrary.org/b/id/12648826-L.jpg",
+      },
+      authors: ["Іван Багряний"],
+    });
+  });
+
+  it("keeps a book's entry it couldn't refresh, however old: only a film's expires", async () => {
+    // Neither fake knows these.
+    await book("OL404404W", { in: "log", cached: { updated: daysAgo(400) } });
+    await film("404404", { in: "log", cached: { updated: daysAgo(91) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 2, deleted: 1 });
+    expect(await loggedTitles()).toEqual(["Book OL404404W", null]);
   });
 
   it("deletes entries past the 90-day hard expiry that it couldn't refresh", async () => {
     await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
     await film("404404", { in: "log", cached: { updated: daysAgo(89) } });
 
-    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 0, failed: 2, deleted: 1 });
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 2, deleted: 1 });
     expect(await loggedTitles()).toEqual([null, "Film 404404"]);
   });
 
@@ -271,7 +378,7 @@ describe("a cron run", () => {
     // Just added from search, and about to be logged or planned.
     await film("679", { cached: { updated: daysAgo(0) } });
 
-    expect(await refreshCache(db, tmdb, now)).toEqual({ refreshed: 0, failed: 0, deleted: 1 });
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 0, deleted: 1 });
     await db.insert(logEntries).values([
       { userId, mediaItemId: 1, rating: 8, createdAt: now },
       { userId, mediaItemId: 2, rating: 8, createdAt: now },
@@ -298,7 +405,7 @@ const failingFilmFromSearch = {
 } as const;
 
 describe("a read", () => {
-  useTmdbFake();
+  useSourceFakes();
 
   it("ignores entries past the 90-day hard expiry, whether or not the cron has run", async () => {
     await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
@@ -316,16 +423,17 @@ describe("a read", () => {
   it("fills a missing entry's backdrop, and keeps it for the next read", async () => {
     await film("348", { in: "log" });
 
-    const [item] = await catalogMediaItems(db, tmdb, [1], now);
-    expect(item?.metadata?.backdropUrls?.small).toMatch(/\/w780\/\w+\.jpg$/);
+    const [item] = await catalogMediaItems(db, env, [1], now);
+    const backdropUrls = filmMetadata(item)?.backdropUrls;
+    expect(backdropUrls?.small).toMatch(/\/w780\/\w+\.jpg$/);
     const [logged] = await userLog(db, userId, now);
-    expect(logged?.mediaItem.metadata?.backdropUrls).toEqual(item?.metadata?.backdropUrls);
+    expect(filmMetadata(logged?.mediaItem)?.backdropUrls).toEqual(backdropUrls);
   });
 
   it("refetches an expired entry from TMDB, as for one that is missing", async () => {
     await film("348", { in: "log", cached: { updated: daysAgo(91) } });
 
-    const [item] = await catalogMediaItems(db, tmdb, [1], now);
+    const [item] = await catalogMediaItems(db, env, [1], now);
     expect(item?.metadata?.title).toBe("Alien");
     expect(await loggedTitles()).toEqual(["Alien"]);
     expect(await due()).toEqual([]);
@@ -334,18 +442,18 @@ describe("a read", () => {
   it("refetches an expired entry when its film is added from search again", async () => {
     await film("348", { cached: { updated: daysAgo(91) } });
 
-    const added = await addFromSearch(db, tmdb, alienFromSearch, now);
+    const added = await addFromSearch(db, env, alienFromSearch, now);
     expect(added.mediaItem.metadata?.title).toBe("Alien");
-    expect(added.mediaItem.metadata?.runtime).toBe(117);
-    expect(added.mediaItem.metadata?.backdropUrls).not.toBeNull();
+    expect(filmMetadata(added.mediaItem)?.runtime).toBe(117);
+    expect(filmMetadata(added.mediaItem)?.backdropUrls).not.toBeNull();
   });
 
   it("shows the search result in place of an expired entry when TMDB is down", async () => {
     await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
 
-    const added = await addFromSearch(db, tmdb, failingFilmFromSearch, now);
+    const added = await addFromSearch(db, env, failingFilmFromSearch, now);
     expect(added.mediaItem.metadata?.title).toBe("Failing film from search");
-    expect(added.mediaItem.metadata?.backdropUrls).toBeNull();
+    expect(filmMetadata(added.mediaItem)?.backdropUrls).toBeNull();
     expect(await loggedTitles()).toEqual(["Failing film from search"]);
     // Filled from a search result alone, so the cron refreshes it first.
     expect(await due()).toEqual(["999000001"]);
@@ -354,10 +462,10 @@ describe("a read", () => {
   it("puts an entry refilled from a search result first, though the cron failed on it", async () => {
     // 89 days old when the cron fails on it, expired by the time it is added again.
     await film("999000001", { in: "log", cached: { updated: daysAgo(91) } });
-    expect(await refreshCache(db, tmdb, daysAgo(2))).toMatchObject({ failed: 1, deleted: 0 });
+    expect(await refreshCache(db, env, daysAgo(2))).toMatchObject({ failed: 1, deleted: 0 });
     await film("348", { in: "log", cached: { updated: daysAgo(30) } });
 
-    await addFromSearch(db, tmdb, failingFilmFromSearch, now);
+    await addFromSearch(db, env, failingFilmFromSearch, now);
     expect(await due()).toEqual(["999000001", "348"]);
   });
 });

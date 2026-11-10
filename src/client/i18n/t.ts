@@ -1,4 +1,5 @@
 import { IntlMessageFormat, type PrimitiveType } from "intl-messageformat";
+import type { ReactNode } from "react";
 import { en, type MessageId } from "./en";
 
 export type { MessageId };
@@ -6,13 +7,26 @@ export type { MessageId };
 const locale = "en";
 const formats = new Map<MessageId, IntlMessageFormat>();
 
-export function t(id: MessageId, values?: Record<string, PrimitiveType>): string {
+function formatOf(id: MessageId): IntlMessageFormat {
   let format = formats.get(id);
   if (!format) {
     format = new IntlMessageFormat(en[id], locale);
     formats.set(id, format);
   }
-  return String(format.format(values));
+  return format;
+}
+
+export function t(id: MessageId, values?: Record<string, PrimitiveType>): string {
+  return String(formatOf(id).format(values));
+}
+
+// A message with markup in it, such as a link inside a sentence: each `<tag>…</tag>` becomes what
+// the function of that name makes of its text.
+export function tRich(
+  id: MessageId,
+  tags: Record<string, (text: ReactNode[]) => ReactNode>,
+): ReactNode {
+  return formatOf(id).format<ReactNode>(tags);
 }
 
 // US English: the three-letter month, then the day and year, "Oct 26, 2026".

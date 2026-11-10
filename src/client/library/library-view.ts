@@ -84,6 +84,11 @@ const comparators: Partial<Record<LibrarySort, (a: LibraryItem, b: LibraryItem) 
   ),
 };
 
+// A film's genres; a book has none, since Open Library's subjects aren't kept.
+function genresOf({ mediaItem }: LibraryItem): string[] {
+  return mediaItem.mediaType === "film" ? (mediaItem.metadata?.genres ?? []) : [];
+}
+
 function decadeOf(year: number): number {
   return Math.floor(year / 10) * 10;
 }
@@ -92,7 +97,7 @@ function decadeOf(year: number): number {
 // is set.
 function matches(item: LibraryItem, { genre, decade, minRating }: LibraryView): boolean {
   const metadata = item.mediaItem.metadata;
-  if (genre !== null && !metadata?.genres.includes(genre)) return false;
+  if (genre !== null && !genresOf(item).includes(genre)) return false;
   if (decade !== null && (metadata?.year == null || decadeOf(metadata.year) !== decade)) {
     return false;
   }
@@ -129,7 +134,7 @@ export function filtersOf(params: URLSearchParams): URLSearchParams {
 
 // The genres the tab's films have, from A to Z, and the chosen one, so that its menu checks it.
 export function genreChoices(items: readonly LibraryItem[], chosen: string | null): string[] {
-  const genres = new Set(items.flatMap((item) => item.mediaItem.metadata?.genres ?? []));
+  const genres = new Set(items.flatMap(genresOf));
   if (chosen !== null) genres.add(chosen);
   return [...genres].toSorted(titleOrder.compare);
 }

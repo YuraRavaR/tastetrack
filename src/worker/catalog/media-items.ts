@@ -12,7 +12,7 @@ import type {
   MediaType,
 } from "../../shared/api";
 import { maxMetadataFills } from "../../shared/catalog";
-import { expiredEntries, isShown, shownEntries, sourceOf } from "./registry";
+import { expiredEntries, isShown, metadataOf, shownEntries, sourceOf } from "./registry";
 import { type CatalogEntry, type CatalogEnv, SourceUnavailable } from "./source";
 
 // Joins a Media Item to its cache entry, if any and not past its source's maximum entry age:
@@ -80,37 +80,62 @@ interface MediaItemRow {
 
 // A Manual Media Item shows the title its User gave, in any language, unchanged, with the title
 // standing in for an Original Title it doesn't have, as an External Source's does.
-function fromManual(id: number, manual: ManualMetadata): MediaItem["metadata"] {
+function fromManual(
+  id: number,
+  mediaType: MediaType,
+  manual: ManualMetadata,
+): MediaItem["metadata"] {
   if (manual.title === null) {
     throw new Error(`Media Item ${id} has neither an External Reference nor a title`);
   }
-  return {
+  const titles = {
     title: manual.title,
     originalTitle: manual.originalTitle ?? manual.title,
     ukrainianTitle: null,
     year: manual.year,
-    posterUrls: null,
-    backdropUrls: null,
-    runtime: manual.runtime,
-    genres: manual.genres ?? [],
   };
+  switch (mediaType) {
+    case "film":
+      return {
+        ...titles,
+        posterUrls: null,
+        backdropUrls: null,
+        runtime: manual.runtime,
+        genres: manual.genres ?? [],
+      };
+    case "book":
+      return { ...titles, coverUrls: null, authors: [] };
+  }
+}
+
+// A Media Item with the metadata of its Media Type. A row's Media Type says whose metadata its
+// source or its User gave it, which the types can't say of a row.
+function withMetadata(
+  item: Pick<MediaItem, "id" | "mediaType" | "externalReference">,
+  metadata: MediaItem["metadata"],
+): MediaItem {
+  return { ...item, metadata } as MediaItem;
 }
 
 export function toMediaItem(row: MediaItemRow): MediaItem {
+  const item = { id: row.mediaItemId, mediaType: row.mediaType };
   if (row.externalSource === null || row.externalId === null) {
-    return {
-      id: row.mediaItemId,
-      mediaType: row.mediaType,
-      externalReference: null,
-      metadata: fromManual(row.mediaItemId, row.manual),
-    };
+    return withMetadata(
+      { ...item, externalReference: null },
+      fromManual(row.mediaItemId, row.mediaType, row.manual),
+    );
   }
-  return {
-    id: row.mediaItemId,
-    mediaType: row.mediaType,
-    externalReference: { source: row.externalSource, mediaType: row.mediaType, id: row.externalId },
-    metadata: row.cache && sourceOf(row.mediaType).metadataOf(row.cache),
-  };
+  return withMetadata(
+    {
+      ...item,
+      externalReference: {
+        source: row.externalSource,
+        mediaType: row.mediaType,
+        id: row.externalId,
+      },
+    },
+    row.cache && metadataOf(row.mediaType, row.cache),
+  );
 }
 
 function byExternalReference({ source, mediaType, id }: ExternalReference) {
@@ -282,12 +307,10 @@ export async function addFromSearch(
   }
 
   return {
-    mediaItem: {
-      id: item.id,
-      mediaType: reference.mediaType,
-      externalReference: reference,
-      metadata: metadata ? source.metadataOf(metadata) : null,
-    },
+    mediaItem: withMetadata(
+      { id: item.id, mediaType: reference.mediaType, externalReference: reference },
+      metadata ? metadataOf(reference.mediaType, metadata) : null,
+    ),
     created: inserted.length > 0,
   };
 }
@@ -318,7 +341,7 @@ export async function fillMissingMetadata(
   for (const item of items) {
     const filled =
       item.externalReference && entries.get(cacheKeyId(cacheKeyOf(item.externalReference)));
-    if (filled) item.metadata = sourceOf(item.mediaType).metadataOf(filled);
+    if (filled) Object.assign(item, withMetadata(item, metadataOf(item.mediaType, filled)));
   }
 }
 

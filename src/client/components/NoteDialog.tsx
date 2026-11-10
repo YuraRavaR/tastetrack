@@ -15,6 +15,7 @@ import type { ListItem } from "../../shared/api";
 import { maxNoteLength } from "../../shared/lists";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
 // Adds, changes or clears a List Item's Note. `item` is the one to note; the dialog is open while
@@ -57,7 +58,9 @@ function NoteForm({ item, onSaved }: { item: ListItem; onSaved: () => void }) {
     <form onSubmit={submit} className="flex flex-col gap-5">
       <DialogHeader>
         <DialogTitle>
-          {t("note.title", { film: metadata ? filmLabel(metadata) : t("film.unknown") })}
+          {t("note.title", {
+            film: metadata ? filmLabel(metadata) : mediaWord(item.mediaItem.mediaType, "unknown"),
+          })}
         </DialogTitle>
         <DialogDescription>{t("note.description")}</DialogDescription>
       </DialogHeader>

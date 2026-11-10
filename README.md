@@ -70,13 +70,24 @@ pnpm exec wrangler secret put TMDB_ACCESS_TOKEN               # production
 
 The `local` env searches a TMDB fake with fixed data (`src/worker/catalog/sources/tmdb-fake.ts`), mounted among the test hooks at `/api/test/tmdb`, with a placeholder token, so local development, the tests and CI need no TMDB account. To search the real TMDB locally, set `TMDB_BASE_URL` and `TMDB_ACCESS_TOKEN` in `.dev.vars` (see `.dev.vars.example`). The API tests pass against both: they look only for well-known films that the fake mirrors.
 
+## Open Library
+
+Book search calls Open Library (ADR-0011) at `OPEN_LIBRARY_BASE_URL`, set per env in `wrangler.jsonc`. It needs no key, but asks every client to say who it is: each request carries `User-Agent: TasteTrack (<contact>)`, where the contact is the secret `OPEN_LIBRARY_CONTACT`, an email address or URL where Open Library can reach the Operator. Each deployment has its own, so it is never in the repo, and without it the Worker doesn't call Open Library at all: book search answers `catalog_unavailable`. Staging and production each need it once:
+
+```sh
+pnpm exec wrangler secret put OPEN_LIBRARY_CONTACT --env staging
+pnpm exec wrangler secret put OPEN_LIBRARY_CONTACT               # production
+```
+
+The `local` env searches an Open Library fake with fixed data (`src/worker/catalog/sources/open-library-fake.ts`), mounted among the test hooks at `/api/test/openlibrary`, with a placeholder contact. To search the real Open Library locally, set `OPEN_LIBRARY_BASE_URL` and `OPEN_LIBRARY_CONTACT` in `.dev.vars`. The fake's works mirror real ones, so the API tests pass against both. Covers are loaded by the browser from `covers.openlibrary.org`, never by the Worker.
+
 ## Test hooks
 
 `TEST_HOOKS=1` turns on test-only surfaces, which stay out of the OpenAPI spec and are a JSON 404 or ignored with hooks off. Staging is public, so all but the first answer only a request whose `X-Test-Hooks-Secret` header matches the `TEST_HOOKS_SECRET` secret; without it they behave as with hooks off (ADR-0010):
 
 - the `X-D1-Query-Count` response header, which needs no secret;
 - the `X-Test-Now` request header, an ISO time the Worker treats as now, so tests can step past session expiry;
-- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `POST /api/test/users/:username/backlog` and `POST /api/test/lists/:listId/items`, which fill a User's Backlog or a List with placeholder films so tests reach the 1,000-item limit, read-outs of what the API never reports, such as a User's password iterations and who invited them, `DELETE /api/test/catalog-cache/:source/:mediaType/:id`, which takes one Media Item's entry out of the catalog cache so tests can load a page on a cold cache, and the TMDB fake, which the `local` Worker calls without the secret and which only a Worker with `TMDB_BASE_URL` pointing at it serves.
+- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `POST /api/test/users/:username/backlog` and `POST /api/test/lists/:listId/items`, which fill a User's Backlog or a List with placeholder films so tests reach the 1,000-item limit, read-outs of what the API never reports, such as a User's password iterations and who invited them, `DELETE /api/test/catalog-cache/:source/:mediaType/:id`, which takes one Media Item's entry out of the catalog cache so tests can load a page on a cold cache, and the TMDB and Open Library fakes, which the `local` Worker calls without the secret and which only a Worker with `TMDB_BASE_URL` or `OPEN_LIBRARY_BASE_URL` pointing at them serves.
 
 Test seed Users therefore exist only in local and staging. The factories in `tests/support/scenarios/users.ts` give each Playwright worker one seed User, which issues an Invite Code for every other test User; those register through the public API like real ones, each with a unique Username, so tests share no mutable fixtures.
 

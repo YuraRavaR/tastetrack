@@ -1,13 +1,13 @@
 import { useEffect, useId, useState } from "react";
 import type { MediaType } from "../../shared/api";
 import * as api from "../api";
-import { mediaTypeChoices } from "../catalog/media-types";
+import { savedMediaTypes } from "../catalog/media-types";
 import { ComingSoonTile, MediaTypeTile, type TileState } from "../components/MediaTypeTile";
 import { t } from "../i18n/t";
 import { libraryTile } from "../library/library-tabs";
 import { usePageTitle } from "../navigation/page-title";
 
-// Saved at "/": one tile per Media Type, in the order every section offers them. A built one opens
+// Saved at "/": one tile per Media Type Saved offers, in the order every section keeps. A built one opens
 // its Backlog and experienced tabs; one still to come is a disabled stub. The heading names the
 // list of tiles. Being the home page, its title is the app's name alone.
 export function SavedPage() {
@@ -19,7 +19,7 @@ export function SavedPage() {
         {t("saved.title")}
       </h1>
       <ul aria-labelledby={headingId} className="grid gap-3.5 md:grid-cols-2 md:gap-5">
-        {mediaTypeChoices.map((choice) =>
+        {savedMediaTypes.map((choice) =>
           choice.status === "built" ? (
             <li key={choice.mediaType} className="grid">
               <BuiltTile mediaType={choice.mediaType} />

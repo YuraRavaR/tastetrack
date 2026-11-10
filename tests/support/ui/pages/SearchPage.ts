@@ -21,12 +21,19 @@ export class UserMediaItemMatches extends ScopedComponent {
   }
 }
 
-// The Search section: the film search, its results and what can be done with them.
-export class SearchPage extends BasePage<[query?: string]> {
-  // With a query, Search opens on its results.
-  path(query?: string) {
-    // Encoded as the app's URL has it, a space as "+".
-    return query ? `/search?${new URLSearchParams({ q: query })}` : "/search";
+// A Media Type chip's name: the two Search has, and Series, still to come.
+type MediaTypeChip = "Films" | "Books" | "Series";
+
+// The Search section: the search of one Media Type, its results and what can be done with them.
+export class SearchPage extends BasePage<[query?: string, mediaType?: "book"]> {
+  // With a query, Search opens on its results; with a Media Type, on that one's, else on films'.
+  path(query?: string, mediaType?: "book") {
+    // Encoded as the app's URL has it, a space as "+", the query before the type.
+    const params = new URLSearchParams({
+      ...(query && { q: query }),
+      ...(mediaType && { type: mediaType }),
+    });
+    return params.size > 0 ? `/search?${params}` : "/search";
   }
 
   readonly searchHeading = this.page.getByRole("heading", { level: 1, name: "Search" });
@@ -34,8 +41,7 @@ export class SearchPage extends BasePage<[query?: string]> {
   readonly clearSearchButton = this.page.getByRole("button", { name: "Clear search" });
   // A button that runs the search, which Search must not need.
   readonly searchButton = this.page.getByRole("button", { name: /^search/i });
-  readonly filmsChip = this.page.getByRole("button", { name: "Films", pressed: true });
-  readonly booksChip = this.page.getByRole("button", { name: "Books" });
+  readonly mediaTypeChips = this.page.getByRole("group", { name: "Category" });
   readonly userMediaItems = new UserMediaItemMatches(
     this.page.getByRole("list", { name: "In your Saved" }),
   );
@@ -47,6 +53,15 @@ export class SearchPage extends BasePage<[query?: string]> {
   readonly searchResults = new SearchResults(this.page.getByRole("list", { name: "From TMDB" }));
   readonly tmdbHeading = this.page.getByRole("heading", { level: 2, name: /^From TMDB/ });
   readonly noResultsMessage = this.page.getByText(/^No films found for “.*”\.$/);
+  // Open Library's results, on Books.
+  readonly openLibraryResults = new SearchResults(
+    this.page.getByRole("list", { name: "From Open Library" }),
+  );
+  readonly openLibraryHeading = this.page.getByRole("heading", {
+    level: 2,
+    name: /^From Open Library/,
+  });
+  readonly noBooksMessage = this.page.getByText(/^No books found for “.*”\.$/);
   readonly addManuallyButton = this.page.getByRole("button", { name: "Add manually" });
   readonly addManuallyDialog = new ManualMediaItemDialog(
     this.page.getByRole("dialog", { name: "Add a film manually" }),
@@ -57,6 +72,16 @@ export class SearchPage extends BasePage<[query?: string]> {
   // Any text on the page, such as a message that must be gone.
   text(content: string) {
     return this.page.getByText(content);
+  }
+
+  // A Media Type's chip, pressed or not.
+  mediaTypeChip(name: MediaTypeChip) {
+    return this.mediaTypeChips.getByRole("button", { name, exact: true });
+  }
+
+  // The chip of the Media Type Search is on.
+  currentChip(name: MediaTypeChip) {
+    return this.mediaTypeChips.getByRole("button", { name, exact: true, pressed: true });
   }
 
   @step

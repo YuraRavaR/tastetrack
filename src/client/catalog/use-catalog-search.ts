@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { MediaType } from "../../shared/api";
 import * as api from "../api";
 import { type Found, foundIn } from "./found";
 
@@ -14,10 +15,11 @@ export interface CatalogSearch {
 
 const idle: CatalogSearch = { status: "idle", results: [] };
 
-// Searches the catalog for `query` once it has stopped changing for searchDelayMs, but the query
-// the page opens with, which no one typed, at once. A newer query cancels the pending or running
-// search, so an older answer never replaces a newer one.
-export function useCatalogSearch(query: string): CatalogSearch {
+// Searches the Media Type's catalog for `query` once it has stopped changing for searchDelayMs,
+// but the query the page opens with, which no one typed, at once. A newer query cancels the
+// pending or running search, so an older answer never replaces a newer one. One search serves one
+// Media Type: a page that changes it mounts the search anew.
+export function useCatalogSearch(mediaType: MediaType, query: string): CatalogSearch {
   const [search, setSearch] = useState<CatalogSearch>(idle);
   const trimmed = query.trim();
   const openingQuery = useRef<string | null>(trimmed);
@@ -32,7 +34,7 @@ export function useCatalogSearch(query: string): CatalogSearch {
     const timer = setTimeout(async () => {
       openingQuery.current = null;
       setSearch((current) => ({ ...current, status: "searching" }));
-      const outcome = await api.searchCatalog(trimmed, controller.signal);
+      const outcome = await api.searchCatalog(mediaType, trimmed, controller.signal);
       if (controller.signal.aborted) return;
       setSearch(
         outcome.ok
@@ -44,7 +46,7 @@ export function useCatalogSearch(query: string): CatalogSearch {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [trimmed]);
+  }, [mediaType, trimmed]);
 
   return search;
 }

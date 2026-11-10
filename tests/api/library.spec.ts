@@ -174,7 +174,7 @@ test("a List Item outside the Backlog doesn't put a film in the Library", async 
 });
 
 test("the Library of an unknown Media Type is a 400", async ({ loggedInApi }) => {
-  const refused = loggedInApi.library.getLibrary({ mediaType: "book" as never });
+  const refused = loggedInApi.library.getLibrary({ mediaType: "series" as never });
 
   expect(await expectBody(refused, 400)).toEqual({ error: "invalid_request" });
 });

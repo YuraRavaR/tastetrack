@@ -1,5 +1,6 @@
 import { endpoints } from "../support/api/endpoints";
 import { expect, test } from "../support/fixtures";
+import { callsRealOpenLibrary } from "../support/scenarios/books";
 import { callsRealTmdb } from "../support/scenarios/tmdb";
 import { uniqueUsername } from "../support/scenarios/users";
 import { testHooksHeaders } from "../support/test-hooks-secret";
@@ -44,6 +45,18 @@ test("the TMDB fake is a 404 where the Worker searches real TMDB", { tag: "@smok
 
   const response = await request.get(endpoints.testHooks.tmdbFakeSearch, {
     headers: { ...testHooksHeaders(), Authorization: "Bearer any-token" },
+  });
+
+  expect(response.status()).toBe(404);
+});
+
+test("the Open Library fake is a 404 where the Worker searches real Open Library", {
+  tag: "@smoke",
+}, async ({ request }) => {
+  test.skip(!callsRealOpenLibrary(), "Only the Worker that searches the fake serves it");
+
+  const response = await request.get(endpoints.testHooks.openLibraryFakeSearch, {
+    headers: { ...testHooksHeaders(), "User-Agent": "TasteTrack (a test)" },
   });
 
   expect(response.status()).toBe(404);

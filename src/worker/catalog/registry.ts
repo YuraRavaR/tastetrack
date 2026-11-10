@@ -2,30 +2,44 @@
 // a source here and never imports one, which `pnpm lint` enforces (biome.json).
 import { and, eq, gte, lt, or, type SQL, sql } from "drizzle-orm";
 import { catalogCache } from "../../db/schema";
-import type { MediaType } from "../../shared/api";
-import type { CatalogSource } from "./source";
+import type { MediaItem, MediaType } from "../../shared/api";
+import type { AnyCatalogSource, CatalogEntry, CatalogSource } from "./source";
+import { openLibraryBooks } from "./sources/open-library";
 import { tmdbFilms } from "./sources/tmdb";
 
 // A new Media Type doesn't compile until it has a source.
-const sources: { [M in MediaType]: CatalogSource<M> } = { film: tmdbFilms };
+const sources: { [M in MediaType]: CatalogSource<M> } = {
+  film: tmdbFilms,
+  book: openLibraryBooks,
+};
 
 // The source of a Media Type's catalog-backed Media Items.
-export function sourceOf<M extends MediaType>(mediaType: M): CatalogSource<M> {
+export function sourceOf(mediaType: MediaType): AnyCatalogSource {
   return sources[mediaType];
 }
 
+// A cache entry as the API shows it, by its Media Type's source. The entry is that Media Type's,
+// since the cache is keyed by it, which the types can't say of a row.
+export function metadataOf(mediaType: MediaType, entry: CatalogEntry): MediaItem["metadata"] {
+  const source = sources[mediaType] as CatalogSource<MediaType>;
+  return source.metadataOf(entry);
+}
+
 // Every source, for what applies to each of them in turn.
-const catalogSources: readonly CatalogSource[] = Object.values(sources);
+const catalogSources: readonly AnyCatalogSource[] = Object.values(sources);
 
 // The source of a cache entry or External Reference, if it names one the registry has.
-export function sourceNamed(externalSource: string, mediaType: string): CatalogSource | undefined {
+export function sourceNamed(
+  externalSource: string,
+  mediaType: string,
+): AnyCatalogSource | undefined {
   return catalogSources.find(
     (source) => source.externalSource === externalSource && source.mediaType === mediaType,
   );
 }
 
 // The oldest a source's entry may be and still be shown, or null when its entries never expire.
-export function oldestShown(source: CatalogSource, now: Date): Date | null {
+export function oldestShown(source: AnyCatalogSource, now: Date): Date | null {
   return source.maxEntryAge === null ? null : new Date(now.getTime() - source.maxEntryAge);
 }
 
@@ -40,7 +54,7 @@ export function isShown(
 }
 
 // The cache entries of one source.
-function ofSource(source: CatalogSource): SQL | undefined {
+function ofSource(source: AnyCatalogSource): SQL | undefined {
   return and(
     eq(catalogCache.externalSource, source.externalSource),
     eq(catalogCache.mediaType, source.mediaType),

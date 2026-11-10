@@ -1,22 +1,33 @@
-import { Bookmark, List, ListPlus, RotateCw, SearchX, Star } from "lucide-react";
+import {
+  Bookmark,
+  BookOpen,
+  List,
+  ListPlus,
+  type LucideIcon,
+  RotateCw,
+  SearchX,
+  Star,
+} from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { HoldingList, RemovedListItem } from "../../shared/api";
+import type { HoldingList, MediaType, RemovedListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import {
   type Found,
+  foundAuthorsAndYear,
   foundKey,
   foundLabel,
   foundManual,
   foundMediaItemId,
   foundMediaType,
+  foundName,
   mediaItemOf,
 } from "../catalog/found";
+import { canKeep } from "../catalog/media-types";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { useUserMediaItems } from "../catalog/use-user-media-items";
@@ -26,17 +37,15 @@ import {
   userMediaItemStatus,
   withoutUserMediaItems,
 } from "../catalog/user-media-items";
-import { mediaWord, pageMediaType } from "../i18n/media-words";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { itemPath, listPath } from "../navigation/paths";
 import { EmptyState } from "./EmptyState";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
-import { MediaTypeChips } from "./MediaTypeChips";
 import { Poster } from "./Poster";
 import { PosterGridItem } from "./PosterGridItem";
-import { SearchField } from "./SearchField";
 import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
 // The User's last action on a result, which the toast reports.
@@ -55,25 +64,31 @@ type RowLog = { currentRating: number | null; logEntryCount: number };
 // How many of a result's Lists its row names, before saying how many more hold it.
 const maxListChips = 2;
 
-// Search as you type, with no button, under Media Type chips, with the query in the URL. The User's
-// Media Items that match, those in their Library or on their Lists, come first, "In your Saved": a
-// strip of covers matched against their titles on every keystroke, each with one status line and
-// linking to its film's page. The External Source's results follow, under its name, after a short
-// pause in typing, without the User's Media Items, the User's own Manual Media Items first. A
-// source's result with a Media Item links to its film's page, and shows the User's Current Rating,
-// how many viewings they have and the Lists that hold it, and one without a Media Item yet adds it
-// to the catalog when the User opens it, then opens its page. Any result can be marked Watched,
-// which records a Log Entry for it, as a Revisit by default if it is in the Log, and takes it off
-// the Watchlist with an undo. Want to watch is a toggle, which puts a result on the Watchlist or
-// takes it off again, and any result can be added to or taken off the User's Lists. Below the
-// results, a film search doesn't find can be added by hand, and then shows first.
-export function FilmSearch() {
+// What Search says when it finds nothing, by Media Type.
+const noMatchIcons: Record<MediaType, LucideIcon> = { film: SearchX, book: BookOpen };
+
+// What Search finds of one Media Type as the User types, with no button, for the query in the URL.
+// The User's Media Items that match, those in their Library or on their Lists, come first, "In
+// your Saved": a strip of covers matched against their titles on every keystroke, each with one
+// status line and linking to its page. The External Source's results follow, under its name,
+// after a short pause in typing, without the User's Media Items, the User's own Manual Media Items
+// first. A source's result with a Media Item links to its page, and shows the User's Current
+// Rating, how many viewings they have and the Lists that hold it, and one without a Media Item
+// yet adds it to the catalog when the User opens it, then opens its page. A book's row says its
+// authors and first-published year under its title.
+//
+// Where the Media Type can be kept, any result can be marked Watched, which records a Log Entry
+// for it, as a Revisit by default if it is in the Log, and takes it off the Watchlist with an
+// undo. Want to watch is a toggle, which puts a result on the Watchlist or takes it off again, and
+// any result can be added to or taken off the User's Lists. Below the results, a film search
+// doesn't find can be added by hand, and then shows first. A book can only be opened so far.
+export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
-  const backlogName = mediaWord(pageMediaType, "backlog");
-  const inputId = useId();
-  const [query, setQuery] = useSearchQuery();
-  const search = useCatalogSearch(query);
-  const userItems = useUserMediaItems(pageMediaType, query);
+  const backlogName = mediaWord(mediaType, "backlog");
+  const keepable = canKeep(mediaType);
+  const [query] = useSearchQuery();
+  const search = useCatalogSearch(mediaType, query);
+  const userItems = useUserMediaItems(mediaType, query);
   // The User's Media Items have loaded, or failed to.
   const userItemsReady = userItems.status !== "loading";
   // Both blocks are in place once the User's Media Items are ready and the source answered.
@@ -241,18 +256,11 @@ export function FilmSearch() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-bold text-3xl tracking-tight">
-          <Label htmlFor={inputId} className="font-bold text-3xl leading-9">
-            {t("search.title")}
-          </Label>
-        </h1>
-        <SearchField id={inputId} value={query} onChange={setQuery} prominent />
-        <MediaTypeChips current={pageMediaType} />
-      </div>
+    <>
       {trimmed === "" && (
-        <p className="text-[0.9375rem] text-muted-foreground">{t("search.hint")}</p>
+        <p className="text-[0.9375rem] text-muted-foreground">
+          {mediaWord(mediaType, "searchHint")}
+        </p>
       )}
       <p aria-live="polite" className="text-muted-foreground text-sm empty:hidden">
         {search.status === "searching" && t("search.searching")}
@@ -290,7 +298,7 @@ export function FilmSearch() {
       )}
       {matches.length > 0 && <UserMediaItemMatches items={matches} onOpened={rememberScroll} />}
       {showResults && (
-        <ResultsBlock heading={t("search.tmdb")} count={results.length}>
+        <ResultsBlock heading={mediaWord(mediaType, "searchSource")} count={results.length}>
           {(headingId) => (
             <ul
               aria-labelledby={headingId}
@@ -308,6 +316,7 @@ export function FilmSearch() {
                   lists={listedNow.get(foundKey(found)) ?? found.lists}
                   inBacklog={inBacklog(found)}
                   planning={planning.has(foundKey(found))}
+                  keepable={keepable}
                   onExperienced={() => setLogging(found)}
                   onTogglePlanned={() => togglePlanned(found)}
                   onListed={() =>
@@ -325,15 +334,20 @@ export function FilmSearch() {
       )}
       {noMatch ? (
         <EmptyState
-          icon={SearchX}
-          message={t("search.noMatch", { query: trimmed })}
-          action={{
-            label: t("search.addManually"),
-            onClick: () => setAddingManually(true),
-            outline: true,
-          }}
+          icon={noMatchIcons[mediaType]}
+          message={mediaWord(mediaType, "searchNoMatch", { query: trimmed })}
+          action={
+            keepable
+              ? {
+                  label: t("search.addManually"),
+                  onClick: () => setAddingManually(true),
+                  outline: true,
+                }
+              : undefined
+          }
         />
       ) : (
+        keepable &&
         trimmed !== "" &&
         search.status === "done" && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
@@ -359,7 +373,7 @@ export function FilmSearch() {
         onClose={() => setAddingManually(false)}
         onSaved={(mediaItem) => addedManually(foundManual(mediaItem))}
       />
-    </section>
+    </>
   );
 }
 
@@ -467,9 +481,10 @@ function StatusLine({
   );
 }
 
-// One of the External Source's results. Its title opens its film's page and stretches over the
-// whole row, so on a phone a tap on the poster or around the title opens it too; the row's other
-// controls sit above.
+// One of the External Source's results. Its title opens its page and stretches over the whole
+// row, so on a phone a tap on the cover or around the title opens it too; the row's other controls
+// sit above. A book is named without its year, which follows its authors on the next line. Only a
+// Media Type that can be kept has the controls.
 function SearchResult({
   found,
   mediaItemId,
@@ -480,6 +495,7 @@ function SearchResult({
   lists,
   inBacklog,
   planning,
+  keepable,
   onExperienced,
   onTogglePlanned,
   onListed,
@@ -493,6 +509,7 @@ function SearchResult({
   lists: HoldingList[];
   inBacklog: boolean;
   planning: boolean;
+  keepable: boolean;
   onExperienced: () => void;
   onTogglePlanned: () => void;
   onListed: () => void;
@@ -500,6 +517,8 @@ function SearchResult({
   const mediaType = foundMediaType(found);
   const { currentRating, logEntryCount } = log;
   const inLog = logEntryCount > 0;
+  const name = mediaType === "book" ? foundName(found) : foundLabel(found);
+  const authorsAndYear = mediaType === "book" ? foundAuthorsAndYear(found) : null;
 
   return (
     <li className="relative flex items-start gap-3 p-3 md:items-center">
@@ -512,7 +531,7 @@ function SearchResult({
               onClick={onOpened}
               className="break-words font-semibold underline-offset-4 after:absolute after:inset-0 hover:underline focus-visible:underline"
             >
-              {foundLabel(found)}
+              {name}
             </Link>
           ) : (
             <button
@@ -521,8 +540,11 @@ function SearchResult({
               disabled={pageOpening}
               className="cursor-pointer break-words text-left font-semibold underline-offset-4 after:absolute after:inset-0 hover:underline focus-visible:underline disabled:cursor-wait"
             >
-              {foundLabel(found)}
+              {name}
             </button>
+          )}
+          {authorsAndYear && (
+            <span className="break-words text-muted-foreground text-sm">{authorsAndYear}</span>
           )}
           <span className="relative flex flex-wrap items-center gap-x-2 text-xs empty:hidden">
             {found.kind === "manual" && (
@@ -544,38 +566,40 @@ function SearchResult({
           </span>
           <ListChips lists={lists} onOpened={onOpened} />
         </div>
-        <div className="relative flex shrink-0 gap-1.5 md:gap-2">
-          <Button
-            variant={inLog ? "pressed" : "outline"}
-            className="h-11 gap-1.5 px-2 font-semibold has-[>svg]:px-2 md:h-9 md:w-37.5"
-            onClick={onExperienced}
-          >
-            {inLog && <RotateCw aria-hidden className="hidden min-[380px]:block" />}
-            {mediaWord(mediaType, inLog ? "experiencedAgain" : "markExperienced")}
-          </Button>
-          <Button
-            variant={inBacklog ? "pressed" : "outline"}
-            size="icon"
-            className="size-11 md:size-9"
-            disabled={planning}
-            aria-pressed={inBacklog}
-            aria-label={mediaWord(mediaType, "planned")}
-            title={mediaWord(mediaType, "planned")}
-            onClick={onTogglePlanned}
-          >
-            <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-11 md:size-9"
-            aria-label={t("filmLists.open")}
-            title={t("filmLists.open")}
-            onClick={onListed}
-          >
-            <ListPlus aria-hidden />
-          </Button>
-        </div>
+        {keepable && (
+          <div className="relative flex shrink-0 gap-1.5 md:gap-2">
+            <Button
+              variant={inLog ? "pressed" : "outline"}
+              className="h-11 gap-1.5 px-2 font-semibold has-[>svg]:px-2 md:h-9 md:w-37.5"
+              onClick={onExperienced}
+            >
+              {inLog && <RotateCw aria-hidden className="hidden min-[380px]:block" />}
+              {mediaWord(mediaType, inLog ? "experiencedAgain" : "markExperienced")}
+            </Button>
+            <Button
+              variant={inBacklog ? "pressed" : "outline"}
+              size="icon"
+              className="size-11 md:size-9"
+              disabled={planning}
+              aria-pressed={inBacklog}
+              aria-label={mediaWord(mediaType, "planned")}
+              title={mediaWord(mediaType, "planned")}
+              onClick={onTogglePlanned}
+            >
+              <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-11 md:size-9"
+              aria-label={t("filmLists.open")}
+              title={t("filmLists.open")}
+              onClick={onListed}
+            >
+              <ListPlus aria-hidden />
+            </Button>
+          </div>
+        )}
       </div>
     </li>
   );

@@ -20,7 +20,8 @@ class EntryActionsMenu extends ScopedComponent {
   }
 }
 
-// A film's page: its banner, the actions on it, the tiles and its Viewings.
+// A Media Item's page: its banner, and for a film the actions on it, the tiles and its Viewings.
+// A book's has the banner alone so far.
 export class FilmPage extends BasePage<[mediaItemId: number]> {
   path(mediaItemId: number) {
     return `/items/${mediaItemId}`;
@@ -35,6 +36,10 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly pictureImage = this.picture.locator("img");
   readonly pictureSource = this.picture.locator("source");
   readonly noPosterPlaceholder = this.main.getByRole("img", { name: "No poster" });
+  // A book's, set in type: its title and first author.
+  readonly noCoverPlaceholder = this.main.getByRole("img", { name: "No cover" });
+  readonly buttons = this.main.getByRole("button");
+  readonly sectionHeadings = this.main.getByRole("heading", { level: 2 });
 
   readonly watchedButton = this.main.getByRole("button", { name: "Watched", exact: true });
   readonly watchedAgainButton = this.main.getByRole("button", { name: "Watched again" });

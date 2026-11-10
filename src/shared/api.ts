@@ -161,12 +161,13 @@ export const InviteCodesResponse = z
 
 export type InviteCodesResponse = z.infer<typeof InviteCodesResponse>;
 
-// The catalog is searched through the External Source of each Media Type: TMDB for films.
-export const MediaType = z.enum(["film"]).openapi({ example: "film" });
+// The catalog is searched through the External Source of each Media Type: TMDB for films, Open
+// Library for books.
+export const MediaType = z.enum(["film", "book"]).openapi({ example: "film" });
 
 export type MediaType = z.infer<typeof MediaType>;
 
-export const ExternalSource = z.enum(["tmdb"]).openapi({ example: "tmdb" });
+export const ExternalSource = z.enum(["tmdb", "openlibrary"]).openapi({ example: "tmdb" });
 
 export type ExternalSource = z.infer<typeof ExternalSource>;
 
@@ -214,8 +215,10 @@ const UserMarks = {
 };
 
 // The title is the Localized Title in the query's language, or the Original Title when the
-// External Source has none; titleLanguage says which language that query ran in. mediaItemId is
-// the film's Media Item, null until it joins the catalog.
+// External Source has none; titleLanguage says which language that query ran in. posterUrl is the
+// cover's thumbnail, whatever the Media Type calls its cover. authors are a book's, as names in
+// the source's order; a film has none. mediaItemId is the work's Media Item, null until it joins
+// the catalog.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -226,6 +229,7 @@ export const CatalogSearchResult = z
       example: "https://image.tmdb.org/t/p/w92/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
     }),
     titleLanguage: z.enum(["en", "uk"]).openapi({ example: "uk" }),
+    authors: z.array(z.string()).openapi({ example: [] }),
     mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
     ...UserMarks,
   })
@@ -233,10 +237,12 @@ export const CatalogSearchResult = z
 
 export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
 
-// A search result as the client got it, to add its film to the catalog. The details call
-// replaces what it says; it stands in only when that call fails. mediaItemId and the User's marks,
-// if sent, are ignored.
+// A search result as the client got it, to add its work to the catalog. The details call
+// replaces what it says; it stands in only when that call fails. Its External Reference names a
+// Media Type's own External Source, with an id as that source writes them. authors, mediaItemId
+// and the User's marks, if sent, are ignored.
 export const AddCatalogItemRequest = CatalogSearchResult.omit({
+  authors: true,
   mediaItemId: true,
   inLog: true,
   inBacklog: true,
@@ -245,12 +251,24 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
   lists: true,
 })
   .extend({
-    externalReference: ExternalReference.extend({
-      id: z
-        .string()
-        .regex(/^\d{1,12}$/)
-        .openapi({ example: "348" }),
-    }),
+    externalReference: z.discriminatedUnion("source", [
+      z.object({
+        source: z.literal("tmdb"),
+        mediaType: z.literal("film"),
+        id: z
+          .string()
+          .regex(/^\d{1,12}$/)
+          .openapi({ example: "348" }),
+      }),
+      z.object({
+        source: z.literal("openlibrary"),
+        mediaType: z.literal("book"),
+        id: z
+          .string()
+          .regex(/^OL\d{1,12}W$/)
+          .openapi({ example: "OL2094429W" }),
+      }),
+    ]),
     title: z.string().trim().min(1).max(500).openapi({ example: "Чужий" }),
     originalTitle: z.string().trim().min(1).max(500).openapi({ example: "Alien" }),
     year: z.int().min(1800).max(3000).nullable().openapi({ example: 1979 }),
@@ -300,6 +318,33 @@ export type FilmMetadata = z.infer<typeof FilmMetadata>;
 // A cover in a size for a thumbnail and one for a grid or an item's page, whatever its Media Type.
 export type CoverUrls = NonNullable<FilmMetadata["posterUrls"]>;
 
+// A book's metadata from the External Source, where a book is a work (ADR-0011). The titles follow
+// a film's rules: the title is an English edition's, or the work's own, its Original Title, when
+// it has none; ukrainianTitle is a Ukrainian edition's when it differs from the title. The year is
+// when the work was first published. The cover comes in a size for a thumbnail and one for a grid
+// or the book's page. Authors are names for display, in the source's order, translators among
+// them where the source lists them so; none until the details call succeeds.
+export const BookMetadata = z
+  .object({
+    title: z.string().openapi({ example: "Harry Potter and the Philosopher's Stone" }),
+    originalTitle: z.string().openapi({ example: "Harry Potter and the Philosopher's Stone" }),
+    ukrainianTitle: z
+      .string()
+      .nullable()
+      .openapi({ example: "Гаррі Поттер і філософський камінь" }),
+    year: z.int().nullable().openapi({ example: 1997 }),
+    coverUrls: z
+      .object({
+        small: z.url().openapi({ example: "https://covers.openlibrary.org/b/id/15155833-M.jpg" }),
+        large: z.url().openapi({ example: "https://covers.openlibrary.org/b/id/15155833-L.jpg" }),
+      })
+      .nullable(),
+    authors: z.array(z.string()).openapi({ example: ["J. K. Rowling"] }),
+  })
+  .openapi("BookMetadata");
+
+export type BookMetadata = z.infer<typeof BookMetadata>;
+
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
 // metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
@@ -314,7 +359,18 @@ export const FilmMediaItem = z
   })
   .openapi("FilmMediaItem");
 
-export const MediaItem = z.discriminatedUnion("mediaType", [FilmMediaItem]).openapi("MediaItem");
+export const BookMediaItem = z
+  .object({
+    id: z.int().openapi({ example: 43 }),
+    mediaType: z.literal("book"),
+    externalReference: ExternalReference.nullable(),
+    metadata: BookMetadata.nullable(),
+  })
+  .openapi("BookMediaItem");
+
+export const MediaItem = z
+  .discriminatedUnion("mediaType", [FilmMediaItem, BookMediaItem])
+  .openapi("MediaItem");
 
 export type MediaItem = z.infer<typeof MediaItem>;
 
@@ -398,10 +454,11 @@ const ManualGenres = z
   .openapi({ example: ["Drama", "Romance"] });
 
 // A new Manual Media Item. One with the same title and year as another of the User's is refused
-// as a possible duplicate unless allowDuplicate says to make it anyway.
+// as a possible duplicate unless allowDuplicate says to make it anyway. Only a film can be added
+// by hand so far.
 export const NewManualMediaItemRequest = z
   .object({
-    mediaType: MediaType,
+    mediaType: MediaType.extract(["film"]),
     title: ManualTitle,
     originalTitle: ManualOriginalTitle.default(null),
     year: ManualYear.default(null),
@@ -605,8 +662,9 @@ export const PlanRequest = z
 
 export type PlanRequest = z.infer<typeof PlanRequest>;
 
+// Only films have a Backlog so far.
 export const BacklogQuery = z.object({
-  mediaType: MediaType,
+  mediaType: MediaType.extract(["film"]),
 });
 
 // One Media Item's place in a List, counted from 0, and its optional Note.

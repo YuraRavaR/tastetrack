@@ -5,10 +5,11 @@ import type {
   MediaType,
 } from "../../shared/api";
 import * as api from "../api";
-import { t } from "../i18n/t";
+import { mediaWord } from "../i18n/media-words";
+import { authorsAndYear } from "./book-label";
 import { filmLabel, filmName, filmYearAndRuntime } from "./film-label";
 
-// A film that search found: one of the User's own Manual Media Items, or an External Source's
+// A work that search found: one of the User's own Manual Media Items, or an External Source's
 // result, which joins the catalog once a User acts on it, if none has yet.
 export type Found =
   | ({ kind: "manual" } & ManualSearchResult)
@@ -62,23 +63,37 @@ export function foundMediaItemId(found: Found): number | null {
 // "Alien (1979)", as filmLabel writes it.
 export function foundLabel(found: Found): string {
   if (found.kind === "catalog") return filmLabel(found);
-  const metadata = found.mediaItem.metadata;
-  return metadata ? filmLabel(metadata) : t("film.unknown");
+  const { metadata, mediaType } = found.mediaItem;
+  return metadata ? filmLabel(metadata) : mediaWord(mediaType, "unknown");
 }
 
 // "Alien", as filmName writes it.
 export function foundName(found: Found): string {
   if (found.kind === "catalog") return filmName(found);
-  const metadata = found.mediaItem.metadata;
-  return metadata ? filmName(metadata) : t("film.unknown");
+  const { metadata, mediaType } = found.mediaItem;
+  return metadata ? filmName(metadata) : mediaWord(mediaType, "unknown");
 }
 
 // "2001 · 122 min" as far as it is known. A source's result has no runtime until it joins the
-// catalog.
+// catalog, and a book has none at all.
 export function foundYearAndRuntime(found: Found): string | null {
   if (found.kind === "catalog") return filmYearAndRuntime({ year: found.year, runtime: null });
-  const metadata = found.mediaItem.metadata;
-  return metadata && filmYearAndRuntime(metadata);
+  return mediaItemYearAndRuntime(found.mediaItem);
+}
+
+export function mediaItemYearAndRuntime(mediaItem: MediaItem): string | null {
+  const { metadata } = mediaItem;
+  if (!metadata) return null;
+  const runtime = mediaItem.mediaType === "film" ? mediaItem.metadata?.runtime : null;
+  return filmYearAndRuntime({ year: metadata.year, runtime: runtime ?? null });
+}
+
+// "Іван Багряний · 1946", as authorsAndYear writes it: what a book's row says under its title.
+export function foundAuthorsAndYear(found: Found): string | null {
+  if (found.kind === "catalog") return authorsAndYear(found);
+  const { mediaItem } = found;
+  if (mediaItem.mediaType !== "book" || !mediaItem.metadata) return null;
+  return authorsAndYear(mediaItem.metadata);
 }
 
 // The film's Media Item, adding a source's result to the catalog first; null when that fails.

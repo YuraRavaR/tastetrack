@@ -119,6 +119,7 @@ describe("search results beside the User's Media Items", () => {
       year: 2001,
       posterUrl: null,
       titleLanguage: "en",
+      authors: [],
       mediaItemId,
       inLog: false,
       inBacklog: false,

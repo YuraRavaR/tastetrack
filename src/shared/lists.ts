@@ -55,7 +55,7 @@ export function sameListName(name: string, other: string): boolean {
 }
 
 // The UI's name for the Backlog of each Media Type (ADR-0005).
-const backlogNames: Record<MediaType, string> = { film: "Watchlist" };
+const backlogNames: Record<MediaType, string> = { film: "Watchlist", book: "Reading list" };
 
 // Names a List can't have, so that it can't be mistaken for a Backlog: the UI's name for the
 // Backlog of each Media Type.

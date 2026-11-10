@@ -4,13 +4,14 @@ import { version } from "../../../package.json";
 import logoMark from "../assets/logo-mark.svg?raw";
 import tmdbLogo from "../assets/tmdb-logo.svg";
 import { type LoginLocationState, useAuth } from "../auth";
-import { t } from "../i18n/t";
+import { t, tRich } from "../i18n/t";
 import { itemPath, listPath, listsPath, savedPath, searchPath } from "../navigation/paths";
 import { AccountMenu } from "./AccountMenu";
 import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 
-// The frame of every page: a header above a content column, and a footer with the app version and
-// the credit TMDB's terms require (ADR-0004). Header and footer stop at `max-w-6xl`, which Saved
+// The frame of every page: a header above a content column, and a footer with the credit TMDB's
+// terms require (ADR-0004), Open Library's credit under it (ADR-0011) and the app version, which
+// from `md` ends the credit's line. Header and footer stop at `max-w-6xl`, which Saved
 // uses for its tiles and grids of posters, Collections for its cards, one Collection and a Share
 // Link's page for their grids; every other page keeps the narrower column, Search one a little
 // wider for its grid of covers, and a film's page wider still (960 px of content from `sm`) for
@@ -79,17 +80,35 @@ export function AppLayout() {
         <Outlet />
       </main>
       <footer className="border-t">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:gap-4 md:px-6">
-          <a
-            href="https://www.themoviedb.org/"
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0"
-          >
-            <img src={tmdbLogo} alt={t("attribution.tmdbLogo")} className="h-3 w-auto" />
-          </a>
-          <p className="text-muted-foreground text-xs">{t("attribution.tmdb")}</p>
-          <p className="shrink-0 text-muted-foreground text-xs">{t("app.version", { version })}</p>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-1.5 px-4 py-4 text-muted-foreground text-xs md:px-6">
+          <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+            <a
+              href="https://www.themoviedb.org/"
+              target="_blank"
+              rel="noreferrer"
+              className="shrink-0 self-start md:self-auto"
+            >
+              <img src={tmdbLogo} alt={t("attribution.tmdbLogo")} className="h-3 w-auto" />
+            </a>
+            <p>{t("attribution.tmdb")}</p>
+          </div>
+          <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+            <p>
+              {tRich("attribution.openLibrary", {
+                link: (text) => (
+                  <a
+                    href="https://openlibrary.org/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-foreground underline underline-offset-2"
+                  >
+                    {text}
+                  </a>
+                ),
+              })}
+            </p>
+            <p className="shrink-0 md:ml-auto">{t("app.version", { version })}</p>
+          </div>
         </div>
       </footer>
       {authenticated && <SectionTabBar />}

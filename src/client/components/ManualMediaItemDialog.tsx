@@ -80,7 +80,8 @@ function ManualMediaItemForm({
     genres: useId(),
     error: useId(),
   };
-  const metadata = mediaItem?.metadata;
+  // Only a film can be added by hand so far, so only a film's details are here to edit.
+  const metadata = mediaItem?.mediaType === "film" ? mediaItem.metadata : null;
   const [title, setTitle] = useState(metadata?.title ?? initialTitle);
   // The title stands in for an Original Title the film doesn't have, so it shows as none here.
   const [originalTitle, setOriginalTitle] = useState(

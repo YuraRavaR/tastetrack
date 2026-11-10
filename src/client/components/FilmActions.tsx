@@ -29,7 +29,7 @@ export function FilmActions({
   const { mediaItem, logEntries, inBacklog } = history;
   const { mediaType } = mediaItem;
   const backlogName = mediaWord(mediaType, "backlog");
-  const film = mediaItem.metadata ? filmLabel(mediaItem.metadata) : t("film.unknown");
+  const film = mediaItem.metadata ? filmLabel(mediaItem.metadata) : mediaWord(mediaType, "unknown");
   const experienced = logEntries.length > 0;
   const [logging, setLogging] = useState(false);
   const [listing, setListing] = useState<ListsFilm | null>(null);

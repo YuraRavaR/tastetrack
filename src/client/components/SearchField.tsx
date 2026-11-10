@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { maxSearchQueryLength } from "../../shared/catalog";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
-// The field a film search is typed into. Its own clear button stands in for the browser's, which
+// The field a search is typed into, a film search's unless its `placeholder` says otherwise. Its own clear button stands in for the browser's, which
 // can't be themed, and leaves the cursor in the field, ready for the next search. A `prominent`
 // field, the Search section's own, is taller, with a search icon, and its clear button has a
 // thumb-sized target. An `autoFocus` field takes the focus as it appears, as in a dialog that is
@@ -15,12 +16,14 @@ export function SearchField({
   id,
   value,
   onChange,
+  placeholder = mediaWord("film", "searchPlaceholder"),
   prominent = false,
   autoFocus = false,
 }: {
   id: string;
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   prominent?: boolean;
   autoFocus?: boolean;
 }) {
@@ -41,7 +44,7 @@ export function SearchField({
         autoFocus={autoFocus}
         autoComplete="off"
         maxLength={maxSearchQueryLength}
-        placeholder={t("search.placeholder")}
+        placeholder={placeholder}
         className={cn(
           "pr-9 [&::-webkit-search-cancel-button]:hidden",
           prominent && "h-12 rounded-xl bg-card pr-12 pl-10.5 text-base md:text-base",
