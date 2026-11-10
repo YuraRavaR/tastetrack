@@ -171,8 +171,8 @@ export type CacheExtra = CacheExtras[keyof CacheExtras];
 // alone, when the details call failed, has no detailedAt. ukrainianTitle is null when the source
 // has no Ukrainian title. englishTitle is null when it has no English one; TMDB falls back to the
 // Original Title for that itself, so for a film it is null only in a row filled from a search
-// result that didn't run in English, while a book with no English edition has none. checkedAt is when the cron last tried to refresh the row and
-// the source didn't answer, if it has since the row was last filled; filling it clears it.
+// result that didn't run in English, while a book with no English edition has none. checkedAt is
+// when the cron last tried to refresh the row and the source didn't answer, if it has since the row was last filled; filling it clears it.
 export const catalogCache = sqliteTable(
   "catalog_cache",
   {

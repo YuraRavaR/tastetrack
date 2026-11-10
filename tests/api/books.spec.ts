@@ -178,6 +178,16 @@ test("a book whose details Open Library doesn't give is added with what search s
   expect((await bookSearchResult(loggedInApi, query, id)).mediaItemId).toBe(mediaItem.id);
 });
 
+test("a book first published long before any film can be added", async ({ loggedInApi }) => {
+  test.skip(callsRealOpenLibrary(), "Only the Open Library fake has a work no one has added");
+  const { id, query } = newBook();
+  const result = await bookSearchResult(loggedInApi, query, id);
+
+  const added = loggedInApi.catalog.addCatalogItem({ ...result, year: 1605 });
+
+  expect((await expectBody(added, 201)).mediaItem.metadata?.year).toBe(1605);
+});
+
 test("a search result is added only under its Media Type's own External Source and ids", async ({
   loggedInApi,
 }) => {

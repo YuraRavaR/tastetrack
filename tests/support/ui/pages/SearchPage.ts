@@ -74,6 +74,21 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: "book"]> {
     return this.page.getByText(content);
   }
 
+  // What the chip of a Media Type still to come says: "Soon" on a phone, "Coming soon" where
+  // there is room. The first "Coming soon" is the one on show; the other is the chip's description.
+  get seriesSoonLabel() {
+    return this.mediaTypeChip("Series").getByText("Soon", { exact: true });
+  }
+
+  get seriesComingSoonLabel() {
+    return this.mediaTypeChip("Series").getByText("Coming soon").first();
+  }
+
+  // Every Media Type's chip.
+  get mediaTypeChipButtons() {
+    return this.mediaTypeChips.getByRole("button");
+  }
+
   // A Media Type's chip, pressed or not.
   mediaTypeChip(name: MediaTypeChip) {
     return this.mediaTypeChips.getByRole("button", { name, exact: true });

@@ -271,7 +271,8 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
     ]),
     title: z.string().trim().min(1).max(500).openapi({ example: "Чужий" }),
     originalTitle: z.string().trim().min(1).max(500).openapi({ example: "Alien" }),
-    year: z.int().min(1800).max(3000).nullable().openapi({ example: 1979 }),
+    // A book may be centuries older than any film, so the year is only kept within reason.
+    year: z.int().min(-3000).max(3000).nullable().openapi({ example: 1979 }),
   })
   .openapi("AddCatalogItemRequest");
 

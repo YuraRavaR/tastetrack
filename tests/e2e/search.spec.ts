@@ -163,7 +163,7 @@ test("an empty field shows the hint and the Media Type chips, on Films, Series s
   await expect(searchPage.mediaTypeChip("Books")).toBeEnabled();
   await expect(searchPage.mediaTypeChip("Series")).toBeDisabled();
   await expect(searchPage.mediaTypeChip("Series")).toHaveAccessibleDescription("Coming soon");
-  await expect(searchPage.mediaTypeChips.getByRole("button")).toHaveCount(3);
+  await expect(searchPage.mediaTypeChipButtons).toHaveCount(3);
 
   await searchPage.search("alien");
   await expect(searchPage.text(hint)).toHaveCount(0);

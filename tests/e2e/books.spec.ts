@@ -84,7 +84,10 @@ test("a book result shows its cover, title, authors and first-published year", a
   const first = searchPage.openLibraryResults.rows.first();
   await expect(first).toContainText("Тигролови");
   await expect(first).toContainText("Іван Багряний · 1946");
-  await expect(first.locator("img")).toHaveAttribute("src", coverUrl(12648826, "M"));
+  await expect(searchPage.openLibraryResults.result("Тигролови").poster).toHaveAttribute(
+    "src",
+    coverUrl(12648826, "M"),
+  );
 
   // And still finds a Ukrainian novel held only in translation. Its author's name loses its
   // stress marks, and its translators beyond the second name are counted.
@@ -252,14 +255,11 @@ test("the chips are one control the width of the field, with equal thumb-sized s
     expect(segment.width).toBeCloseTo(segments[0]?.width ?? 0, 0);
   }
   // Series says "Soon" on a phone, "Coming soon" where there is room.
-  // The first of the two is the one on show; the other is the chip's description.
-  const series = searchPage.mediaTypeChip("Series");
-  const comingSoon = series.getByText("Coming soon").first();
-  await expect(series.getByText("Soon", { exact: true })).toBeVisible();
-  await expect(comingSoon).toBeHidden();
+  await expect(searchPage.seriesSoonLabel).toBeVisible();
+  await expect(searchPage.seriesComingSoonLabel).toBeHidden();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(comingSoon).toBeVisible();
-  await expect(series.getByText("Soon", { exact: true })).toBeHidden();
+  await expect(searchPage.seriesComingSoonLabel).toBeVisible();
+  await expect(searchPage.seriesSoonLabel).toBeHidden();
   expect((await box(searchPage.mediaTypeChips)).width).toBe(
     (await box(searchPage.searchBox)).width,
   );

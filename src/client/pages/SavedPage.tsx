@@ -7,8 +7,8 @@ import { t } from "../i18n/t";
 import { libraryTile } from "../library/library-tabs";
 import { usePageTitle } from "../navigation/page-title";
 
-// Saved at "/": one tile per Media Type Saved offers, in the order every section keeps. A built one opens
-// its Backlog and experienced tabs; one still to come is a disabled stub. The heading names the
+// Saved at "/": one tile per Media Type Saved offers, in the order every section keeps. A built one
+// opens its Backlog and experienced tabs; one still to come is a disabled stub. The heading names the
 // list of tiles. Being the home page, its title is the app's name alone.
 export function SavedPage() {
   const headingId = useId();

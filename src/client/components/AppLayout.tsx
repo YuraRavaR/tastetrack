@@ -100,7 +100,7 @@ export function AppLayout() {
                     href="https://openlibrary.org/"
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-foreground underline underline-offset-2"
+                    className="text-foreground underline underline-offset-2"
                   >
                     {text}
                   </a>

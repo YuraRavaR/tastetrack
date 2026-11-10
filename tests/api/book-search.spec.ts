@@ -91,7 +91,7 @@ test("films stay out of a search on Books, and books out of one on Films", async
     loggedInApi.catalog.searchCatalog({ mediaType: "film", query: "Тигролови" }),
   );
 
-  for (const result of [...books]) expect(result.externalReference.mediaType).toBe("book");
+  for (const result of books) expect(result.externalReference.mediaType).toBe("book");
   for (const result of [...films]) expect(result.externalReference.mediaType).toBe("film");
   expect(films).not.toContainEqual(expect.objectContaining({ title: "Тигролови" }));
 });

@@ -9,7 +9,7 @@ export class SearchResultRow extends ScopedComponent {
   readonly noCoverPlaceholder = this.root.getByRole("img", { name: "No cover" });
   // Every control but the title: none on a book's row yet.
   readonly actionButtons = this.root.getByRole("button", {
-    name: /^(Mark|Watched|Want to|Add to)/,
+    name: /^(Mark|Watched|Read|Want to|Add to)/,
   });
   readonly markWatchedButton = this.root.getByRole("button", { name: "Mark watched" });
   readonly watchedAgainButton = this.root.getByRole("button", { name: "Watched again" });

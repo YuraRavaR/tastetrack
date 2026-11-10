@@ -7,8 +7,9 @@ import { maxSearchQueryLength } from "../../shared/catalog";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
-// The field a search is typed into, a film search's unless its `placeholder` says otherwise. Its own clear button stands in for the browser's, which
-// can't be themed, and leaves the cursor in the field, ready for the next search. A `prominent`
+// The field a search is typed into, a film search's unless its `placeholder` says otherwise. Its
+// own clear button stands in for the browser's, which can't be themed, and leaves the cursor in
+// the field, ready for the next search. A `prominent`
 // field, the Search section's own, is taller, with a search icon, and its clear button has a
 // thumb-sized target. An `autoFocus` field takes the focus as it appears, as in a dialog that is
 // only a search.

@@ -41,8 +41,8 @@ function withParam(params: URLSearchParams, name: string, value: string): URLSea
   return next;
 }
 
-// Keeps the place in the results for going Back from a Media Item's page. The search runs again on the
-// way back, so the page is short until `resultsReady`, and only then can it scroll there. The
+// Keeps the place in the results for going Back from a Media Item's page. The search runs again on
+// the way back, so the page is short until `resultsReady`, and only then can it scroll there. The
 // returned function records the place in the history entry; a new query replaces the entry and
 // forgets it. Call it as the User leaves.
 export function useResultsScroll(resultsReady: boolean): () => void {
