@@ -13,7 +13,7 @@ import {
 import { describe, expect, it } from "vitest";
 import type { MediaItem } from "../../shared/api";
 import { t } from "../i18n/t";
-import { coverOf, placeholderFor } from "./cover";
+import { coverOf, placeholderFor, typesetCoverOf } from "./cover";
 import type { Found } from "./found";
 
 const posterUrl = "https://image.tmdb.org/t/p/w92/alien.jpg";
@@ -76,6 +76,7 @@ describe("a cover", () => {
     year: 1979,
     posterUrl,
     titleLanguage: "en",
+    authors: [],
     mediaItemId: null,
     inLog: false,
     inBacklog: false,
@@ -96,6 +97,69 @@ describe("a cover", () => {
     const found: Found = { ...tmdbResult, mediaItemId: 42 };
 
     expect(coverOf(found, "small")).toEqual({ url: posterUrl, mediaItemId: 42, mediaType: "film" });
+  });
+});
+
+describe("a book's cover", () => {
+  const coverUrls = {
+    small: "https://covers.openlibrary.org/b/id/12649478-M.jpg",
+    large: "https://covers.openlibrary.org/b/id/12649478-L.jpg",
+  };
+  const voroshilovgrad: MediaItem = {
+    id: 7,
+    mediaType: "book",
+    externalReference: { source: "openlibrary", mediaType: "book", id: "OL19962759W" },
+    metadata: {
+      title: "Voroshilovgrad",
+      originalTitle: "Voroshilovgrad",
+      ukrainianTitle: null,
+      year: 2012,
+      coverUrls,
+      authors: ["Сергі́й Ві́кторович Жада́н", "Reilly Costigan-Humes", "Isaac Wheeler"],
+    },
+  };
+  const fromOpenLibrary: Found = {
+    kind: "catalog",
+    externalReference: { source: "openlibrary", mediaType: "book", id: "OL12697597W" },
+    title: "Himn demokratychnoï molodi",
+    originalTitle: "Himn demokratychnoï molodi",
+    year: 2006,
+    posterUrl: null,
+    titleLanguage: "uk",
+    authors: ["Сергі́й Ві́кторович Жада́н"],
+    mediaItemId: null,
+    inLog: false,
+    inBacklog: false,
+    currentRating: null,
+    logEntryCount: 0,
+    lists: [],
+  };
+
+  it("is the book's cover image in the size asked for", () => {
+    expect(coverOf(voroshilovgrad, "large")).toEqual({
+      url: coverUrls.large,
+      mediaItemId: 7,
+      mediaType: "book",
+    });
+  });
+
+  it("set in type, says the title and the first author, without stress marks", () => {
+    expect(typesetCoverOf(voroshilovgrad)).toEqual({
+      title: "Voroshilovgrad",
+      author: "Сергій Вікторович Жадан",
+    });
+    expect(typesetCoverOf(fromOpenLibrary)).toEqual({
+      title: "Himn demokratychnoï molodi",
+      author: "Сергій Вікторович Жадан",
+    });
+  });
+
+  it("set in type, says what is known of a book without metadata or authors", () => {
+    expect(typesetCoverOf({ ...voroshilovgrad, metadata: null })).toEqual({
+      title: null,
+      author: null,
+    });
+    expect(typesetCoverOf({ ...fromOpenLibrary, authors: [] }).author).toBeNull();
   });
 });
 

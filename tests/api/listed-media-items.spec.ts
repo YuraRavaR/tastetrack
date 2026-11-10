@@ -67,7 +67,7 @@ test("another User's Lists never appear", async ({ loggedInApi, otherUserClient 
 });
 
 test("the films on Lists of an unknown Media Type are a 400", async ({ loggedInApi }) => {
-  const refused = loggedInApi.lists.getListedMediaItems({ mediaType: "book" as never });
+  const refused = loggedInApi.lists.getListedMediaItems({ mediaType: "series" as never });
 
   expect(await expectBody(refused, 400)).toEqual({ error: "invalid_request" });
 });

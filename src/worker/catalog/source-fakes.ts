@@ -4,6 +4,7 @@
 // for a Worker that searches it: staging, which searches the real sources, has none.
 import { Hono } from "hono";
 import type { AppEnv } from "../env";
+import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
 
 export const sourceFakes = new Hono<AppEnv>();
@@ -13,3 +14,9 @@ sourceFakes.use("/tmdb/*", async (c, next) => {
   await next();
 });
 sourceFakes.route("/tmdb", tmdbFake);
+
+sourceFakes.use("/openlibrary/*", async (c, next) => {
+  if (!c.env.OPEN_LIBRARY_BASE_URL.includes("/api/test/openlibrary")) return c.notFound();
+  await next();
+});
+sourceFakes.route("/openlibrary", openLibraryFake);

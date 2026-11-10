@@ -1,18 +1,20 @@
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
+import { coverOf } from "../catalog/cover";
 import { FilmFacts, FilmTitle } from "./FilmTitle";
 import { Poster } from "./Poster";
 
-// What opens a film's page: its backdrop whole, at 16:9, fading into the page, with the poster
-// pulled up over its bottom edge and the title beside it. On a phone the picture runs edge to edge
-// under the header, out of the page's padding; from `sm` it fills the column. A film with a poster
-// and no backdrop shows the poster in the picture's place, blurred: scaled past the picture's
-// edges, so the blur's soft border is cropped away. Without either there is no picture, and the
-// poster row starts at the top. The picture's box and the poster's size are fixed, so the page
-// doesn't move when the images arrive.
+// What opens a Media Item's page: a film's backdrop whole, at 16:9, fading into the page, with the
+// poster pulled up over its bottom edge and the title beside it. On a phone the picture runs edge
+// to edge under the header, out of the page's padding; from `sm` it fills the column. A film with
+// a poster and no backdrop, and every book with a cover, since a book has no backdrop, shows the
+// cover in the picture's place, blurred: scaled past the picture's edges, so the blur's soft
+// border is cropped away. Without either there is no picture, and the poster row starts at the
+// top. The picture's box and the poster's size are fixed, so the page doesn't move when the
+// images arrive.
 export function FilmBanner({ mediaItem }: { mediaItem: MediaItem }) {
-  const backdrop = mediaItem.metadata?.backdropUrls;
-  const posterUrl = mediaItem.metadata?.posterUrls?.large;
+  const backdrop = mediaItem.mediaType === "film" ? mediaItem.metadata?.backdropUrls : null;
+  const posterUrl = coverOf(mediaItem, "large").url;
   const pictureImage = backdrop ? (
     <>
       {/* The sm: breakpoint, where the picture leaves the phone's full bleed for the column. */}
@@ -43,9 +45,9 @@ export function FilmBanner({ mediaItem }: { mediaItem: MediaItem }) {
         <Poster subject={mediaItem} size="large" />
         <div className="flex min-w-0 flex-col gap-0.75 pb-0.5 sm:gap-1 sm:pb-1">
           <h1 className="font-bold text-[21px] leading-[1.15] tracking-[-0.01em] sm:text-[34px] sm:leading-[1.12] sm:tracking-[-0.02em]">
-            <FilmTitle metadata={mediaItem.metadata} />
+            <FilmTitle mediaItem={mediaItem} />
           </h1>
-          <FilmFacts metadata={mediaItem.metadata} />
+          <FilmFacts mediaItem={mediaItem} />
         </div>
       </div>
     </div>

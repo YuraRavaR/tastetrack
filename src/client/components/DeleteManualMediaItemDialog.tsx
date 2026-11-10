@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import type { ManualMediaItemResponse, MediaItem } from "../../shared/api";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
 type Usage = ManualMediaItemResponse["usage"];
@@ -61,7 +62,9 @@ export function DeleteManualMediaItemDialog({
     if (deleted) onDeleted();
   }
 
-  const film = mediaItem.metadata ? filmLabel(mediaItem.metadata) : t("film.unknown");
+  const film = mediaItem.metadata
+    ? filmLabel(mediaItem.metadata)
+    : mediaWord(mediaItem.mediaType, "unknown");
   return (
     <AlertDialog
       open={open}

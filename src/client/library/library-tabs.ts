@@ -56,7 +56,7 @@ export function libraryTile(items: readonly LibraryItem[]): LibraryTile {
 // Each tab's word in Saved's addresses, and each Media Type's.
 const tabSlugs: Record<LibraryTab, string> = { backlog: "watchlist", experienced: "watched" };
 // A new Media Type doesn't compile until it has one.
-const typeSlugs: Record<MediaType, string> = { film: "films" };
+const typeSlugs: Record<MediaType, string> = { film: "films", book: "books" };
 
 function bySlug<Key extends string>(slugs: Record<Key, string>, slug: string | undefined) {
   const found = Object.entries(slugs).find(([, each]) => each === slug);

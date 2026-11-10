@@ -15,9 +15,10 @@ function copyOf(elements: ReturnType<IntlMessageFormat["getAst"]>): string[] {
 }
 
 // A List is "Collection" in UI copy (GLOSSARY); the word "list" stays in code, routes and the API.
+// The one list in the copy is the book Backlog's name, "Reading list".
 describe("the English catalogue", () => {
   it.each(Object.entries(en))("%s never calls a List a list", (_id, message) => {
     const copy = copyOf(new IntlMessageFormat(message, "en").getAst()).join(" ");
-    expect(copy).not.toMatch(/\blists?\b/i);
+    expect(copy.replaceAll("Reading list", "")).not.toMatch(/\blists?\b/i);
   });
 });

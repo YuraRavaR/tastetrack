@@ -134,13 +134,14 @@ async function searchFilms(env: CatalogEnv, query: string): Promise<CatalogSearc
     year: yearOf(film),
     posterUrl: posterUrl(film.poster_path ?? null),
     titleLanguage: language === "uk-UA" ? "uk" : "en",
+    authors: [],
   }));
 }
 
 // One call for both titles, the images, the runtime and the genres: the details in English with
 // the film's translations appended. Unlike `title`, the translations list never falls back to
 // another language, so it alone says whether a Ukrainian title exists; an empty one counts as none.
-async function filmDetails(env: CatalogEnv, id: string): Promise<CatalogEntry> {
+async function filmDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"film">> {
   const body = TmdbDetailsResponse.safeParse(
     await get(env, `/movie/${encodeURIComponent(id)}`, {
       language: "en-US",

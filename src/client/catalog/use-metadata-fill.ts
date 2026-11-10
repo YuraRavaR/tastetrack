@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { FilmMetadata, MediaItem } from "../../shared/api";
+import type { MediaItem } from "../../shared/api";
 import { maxMetadataFills } from "../../shared/catalog";
 import * as api from "../api";
 
@@ -15,7 +15,7 @@ export interface MetadataFill {
 // order, and each film once per page view: one its source doesn't answer for stays unavailable.
 export function useMetadataFill(mediaItems: readonly MediaItem[]): MetadataFill {
   // What follow-ups found, by Media Item id: null where the source didn't answer.
-  const [found, setFound] = useState<ReadonlyMap<number, FilmMetadata | null>>(new Map());
+  const [found, setFound] = useState<ReadonlyMap<number, MediaItem | null>>(new Map());
   const requested = useRef(new Set<number>());
   const missing = [
     ...new Set(mediaItems.filter((item) => isMissing(item)).map((item) => item.id)),
@@ -39,7 +39,7 @@ export function useMetadataFill(mediaItems: readonly MediaItem[]): MetadataFill 
         const loaded = await api.fetchMediaItems(batch);
         setFound((before) => {
           const after = new Map(before);
-          for (const id of batch) after.set(id, loaded.get(id)?.metadata ?? null);
+          for (const id of batch) after.set(id, loaded.get(id) ?? null);
           return after;
         });
       }
@@ -51,8 +51,8 @@ export function useMetadataFill(mediaItems: readonly MediaItem[]): MetadataFill 
 
   return {
     filled(mediaItem) {
-      const metadata = found.get(mediaItem.id);
-      return metadata && !mediaItem.metadata ? { ...mediaItem, metadata } : mediaItem;
+      const loaded = found.get(mediaItem.id);
+      return loaded?.metadata && !mediaItem.metadata ? loaded : mediaItem;
     },
     loading(mediaItem) {
       return isMissing(mediaItem) && !found.has(mediaItem.id);

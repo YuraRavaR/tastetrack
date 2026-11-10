@@ -1,7 +1,7 @@
 // What every catalog source module gives (ADR-0005): one module per External Source in
 // ./sources/, and the only code that knows that source's API. Shared code reaches a source
 // through the registry alone.
-import type { CacheExtra } from "../../db/schema";
+import type { CacheExtras } from "../../db/schema";
 import type {
   CatalogSearchResult,
   CoverUrls,
@@ -15,6 +15,9 @@ import type {
 export interface CatalogEnv {
   TMDB_BASE_URL: string;
   TMDB_ACCESS_TOKEN?: string | undefined;
+  OPEN_LIBRARY_BASE_URL: string;
+  // How Open Library can reach the Operator, which every request to it carries (ADR-0011).
+  OPEN_LIBRARY_CONTACT?: string | undefined;
 }
 
 // A search result before what the app holds about it, its Media Item and the User's Log, Backlog
@@ -26,14 +29,14 @@ export type CatalogSearchMatch = Omit<
 
 // What the cache keeps about one External Reference: the columns every Media Type has, and in
 // `extra` what only its own has. A title is null when the source has none in that language.
-export interface CatalogEntry {
+export interface CatalogEntry<M extends MediaType = MediaType> {
   englishTitle: string | null;
   ukrainianTitle: string | null;
   originalTitle: string;
   year: number | null;
   // The source's own reference to the cover image, such as TMDB's poster path.
   coverRef: string | null;
-  extra: CacheExtra;
+  extra: CacheExtras[M];
 }
 
 // Why a source didn't answer: the work is gone from it, the source refuses us, or anything else,
@@ -58,7 +61,7 @@ type MetadataOf<M extends MediaType> = NonNullable<
 
 // One External Source's catalog of one Media Type: how to search it, fetch an entry's details and
 // show its covers, and the rules its cache entries keep.
-export interface CatalogSource<M extends MediaType = MediaType> {
+export interface CatalogSource<M extends MediaType> {
   externalSource: ExternalSource;
   mediaType: M;
   // How many subrequests refreshing one entry makes, for the cron's budget.
@@ -69,19 +72,22 @@ export interface CatalogSource<M extends MediaType = MediaType> {
   // The first page of the source's matches, in its order. Throws SourceUnavailable.
   search(env: CatalogEnv, query: string): Promise<CatalogSearchMatch[]>;
   // One External Reference's details, as its cache entry holds them. Throws SourceUnavailable.
-  details(env: CatalogEnv, externalId: string): Promise<CatalogEntry>;
+  details(env: CatalogEnv, externalId: string): Promise<CatalogEntry<M>>;
   // What a search result alone says, for when the details call fails: its cover reference back
   // out of the cover URL search gave, or null for any other URL, so a client can't make the app
   // show images from elsewhere, and an empty `extra`.
   coverRefOf(searchCoverUrl: string | null): string | null;
-  emptyExtra: CacheExtra;
+  emptyExtra: CacheExtras[M];
   // The cover in the sizes the app shows it, from its reference.
   coverUrls(coverRef: string | null): CoverUrls | null;
   // How a failed response counts, by its HTTP status.
   classifyFailure(status: number): SourceFailure;
   // A cache entry as the API shows it.
-  metadataOf(entry: CatalogEntry): MetadataOf<M>;
+  metadataOf(entry: CatalogEntry<M>): MetadataOf<M>;
 }
+
+// The source of any one Media Type, for code that works with whichever a Media Item has.
+export type AnyCatalogSource = { [M in MediaType]: CatalogSource<M> }[MediaType];
 
 // The titles a cache entry shows under, by ADR-0004's rules for every Media Type: the English
 // Localized Title leads, falling back to the Original Title; the Ukrainian one is worth showing

@@ -11,14 +11,16 @@ import {
   SearchX,
   Send,
 } from "lucide-react";
-import type { MediaItem, MediaType } from "../../shared/api";
+import type { CoverUrls, MediaItem, MediaType } from "../../shared/api";
 import type { MessageId } from "../i18n/t";
+import { authorName } from "./book-label";
 import { type Found, foundMediaType } from "./found";
 
 export type CoverShape = "2:3";
 
-// A new Media Type doesn't compile until it has a cover shape.
-const coverShapes: Record<MediaType, CoverShape> = { film: "2:3" };
+// A new Media Type doesn't compile until it has a cover shape. A book's cover is cropped to a
+// poster's, whatever shape its image has.
+const coverShapes: Record<MediaType, CoverShape> = { film: "2:3", book: "2:3" };
 
 export function coverShape(mediaType: MediaType): CoverShape {
   return coverShapes[mediaType];
@@ -34,11 +36,21 @@ export interface Cover {
   mediaType: MediaType;
 }
 
+// What each Media Type calls its cover: a film's poster, a book's cover.
+function coverUrlsOf(mediaItem: MediaItem): CoverUrls | null {
+  switch (mediaItem.mediaType) {
+    case "film":
+      return mediaItem.metadata?.posterUrls ?? null;
+    case "book":
+      return mediaItem.metadata?.coverUrls ?? null;
+  }
+}
+
 // A search result comes with a small image only, whatever size is asked for.
 export function coverOf(subject: MediaItem | Found, imageSize: CoverImageSize): Cover {
   if (!("kind" in subject)) {
     return {
-      url: subject.metadata?.posterUrls?.[imageSize] ?? null,
+      url: coverUrlsOf(subject)?.[imageSize] ?? null,
       mediaItemId: subject.id,
       mediaType: subject.mediaType,
     };
@@ -76,4 +88,27 @@ const placeholders: readonly Placeholder[] = [
 export function placeholderFor(mediaItemId: number | null): Placeholder {
   if (mediaItemId === null) return filmPlaceholder;
   return placeholders[mediaItemId % placeholders.length] ?? filmPlaceholder;
+}
+
+// What a cover set in type says where a book has no image: its title, and its first author as
+// shown. Null where unknown.
+export interface TypesetCover {
+  title: string | null;
+  author: string | null;
+}
+
+export function typesetCoverOf(subject: MediaItem | Found): TypesetCover {
+  if ("kind" in subject && subject.kind === "catalog") {
+    return { title: subject.title, author: firstAuthor(subject.authors) };
+  }
+  const mediaItem = "kind" in subject ? subject.mediaItem : subject;
+  return {
+    title: mediaItem.metadata?.title ?? null,
+    author: mediaItem.mediaType === "book" ? firstAuthor(mediaItem.metadata?.authors) : null,
+  };
+}
+
+function firstAuthor(authors: readonly string[] | undefined): string | null {
+  const [first] = authors ?? [];
+  return first === undefined ? null : authorName(first);
 }

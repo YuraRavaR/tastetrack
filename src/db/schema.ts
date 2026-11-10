@@ -113,8 +113,8 @@ export const mediaItems = sqliteTable(
   "media_items",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    mediaType: text("media_type", { enum: ["film"] }).notNull(),
-    externalSource: text("external_source", { enum: ["tmdb"] }),
+    mediaType: text("media_type", { enum: ["film", "book"] }).notNull(),
+    externalSource: text("external_source", { enum: ["tmdb", "openlibrary"] }),
     externalId: text("external_id"),
     ownerId: integer("owner_id").references(() => users.id, { onDelete: "cascade" }),
     title: text("title"),
@@ -150,8 +150,19 @@ export interface FilmCacheExtra {
   genres: string[] | null;
 }
 
-// What a cache entry's `extra` may hold: one shape for each Media Type.
-export type CacheExtra = FilmCacheExtra;
+// What only a book's cache entry has: its authors' names, in the source's order. A row filled from
+// a search result alone has none.
+export interface BookCacheExtra {
+  authors: string[];
+}
+
+// What a cache entry's `extra` holds, by its Media Type.
+export interface CacheExtras {
+  film: FilmCacheExtra;
+  book: BookCacheExtra;
+}
+
+export type CacheExtra = CacheExtras[keyof CacheExtras];
 
 // The disposable metadata cache of every External Source (ADR-0004), keyed by External Reference.
 // It can be wiped at any time without losing User data. The columns every Media Type has are
@@ -160,13 +171,13 @@ export type CacheExtra = FilmCacheExtra;
 // alone, when the details call failed, has no detailedAt. ukrainianTitle is null when the source
 // has no Ukrainian title. englishTitle is null when it has no English one; TMDB falls back to the
 // Original Title for that itself, so for a film it is null only in a row filled from a search
-// result that didn't run in English. checkedAt is when the cron last tried to refresh the row and
-// the source didn't answer, if it has since the row was last filled; filling it clears it.
+// result that didn't run in English, while a book with no English edition has none. checkedAt is
+// when the cron last tried to refresh the row and the source didn't answer, if it has since the row was last filled; filling it clears it.
 export const catalogCache = sqliteTable(
   "catalog_cache",
   {
-    externalSource: text("external_source", { enum: ["tmdb"] }).notNull(),
-    mediaType: text("media_type", { enum: ["film"] }).notNull(),
+    externalSource: text("external_source", { enum: ["tmdb", "openlibrary"] }).notNull(),
+    mediaType: text("media_type", { enum: ["film", "book"] }).notNull(),
     externalId: text("external_id").notNull(),
     englishTitle: text("english_title"),
     ukrainianTitle: text("ukrainian_title"),
@@ -246,7 +257,7 @@ export const lists = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     kind: text("kind", { enum: ["backlog", "list"] }).notNull(),
-    mediaType: text("media_type", { enum: ["film"] }).notNull(),
+    mediaType: text("media_type", { enum: ["film", "book"] }).notNull(),
     name: text("name"),
     nameKey: text("name_key"),
     description: text("description"),

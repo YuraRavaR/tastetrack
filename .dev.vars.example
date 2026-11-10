@@ -6,3 +6,8 @@
 # set both of these; the token is TMDB's "API Read Access Token".
 # TMDB_BASE_URL=https://api.themoviedb.org/3
 # TMDB_ACCESS_TOKEN=
+
+# The `local` env searches an Open Library fake too. To search the real Open Library locally, set
+# both of these; the contact is an email address or URL where Open Library can reach you.
+# OPEN_LIBRARY_BASE_URL=https://openlibrary.org
+# OPEN_LIBRARY_CONTACT=

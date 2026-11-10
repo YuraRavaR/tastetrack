@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import type { LogEntry, MediaItem, MediaType } from "../../shared/api";
 import { earliestLogDate, latestLogDate, maxReviewLength } from "../../shared/log";
 import * as api from "../api";
-import { filmName, filmYearAndRuntime } from "../catalog/film-label";
+import { filmName } from "../catalog/film-label";
 import {
   type Found,
   foundKey,
@@ -26,6 +26,7 @@ import {
   foundName,
   foundYearAndRuntime,
   mediaItemOf,
+  mediaItemYearAndRuntime,
 } from "../catalog/found";
 import { mediaWord } from "../i18n/media-words";
 import { formatCalendarDate, t } from "../i18n/t";
@@ -161,8 +162,8 @@ export function MediaItemLogEntryDialog({
         <LogEntryForm
           subject={mediaItem}
           mediaType={mediaType}
-          title={metadata ? filmName(metadata) : t("film.unknown")}
-          yearAndRuntime={metadata ? filmYearAndRuntime(metadata) : null}
+          title={metadata ? filmName(metadata) : mediaWord(mediaType, "unknown")}
+          yearAndRuntime={mediaItemYearAndRuntime(mediaItem)}
           initial={newEntry(inLog)}
           loggedMediaItemId={inLog ? mediaItem.id : null}
           hint={backlogHint(mediaType, inBacklog)}
@@ -197,9 +198,9 @@ export function EditLogEntryDialog({
             subject={entry.mediaItem}
             mediaType={entry.mediaItem.mediaType}
             title={t("logEntry.editTitle", {
-              film: metadata ? filmName(metadata) : t("film.unknown"),
+              film: metadata ? filmName(metadata) : mediaWord(entry.mediaItem.mediaType, "unknown"),
             })}
-            yearAndRuntime={metadata ? filmYearAndRuntime(metadata) : null}
+            yearAndRuntime={mediaItemYearAndRuntime(entry.mediaItem)}
             initial={{
               rating: entry.rating,
               date: entry.date,

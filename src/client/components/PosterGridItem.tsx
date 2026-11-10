@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
-import { t } from "../i18n/t";
+import { mediaWord } from "../i18n/media-words";
 import { itemPath } from "../navigation/paths";
 import { Poster } from "./Poster";
 
@@ -50,7 +50,8 @@ export function PosterGridItem({
   // What goes under the title and meta line, outside the link, such as a Note.
   children?: ReactNode;
 }) {
-  const title = mediaItem.metadata?.title ?? t(loading ? "film.loading" : "film.unknown");
+  const title =
+    mediaItem.metadata?.title ?? mediaWord(mediaItem.mediaType, loading ? "loading" : "unknown");
   const body = (
     <>
       <span className="relative block">

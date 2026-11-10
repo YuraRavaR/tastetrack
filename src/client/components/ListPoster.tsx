@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ListItem } from "../../shared/api";
 import { filmLabel } from "../catalog/film-label";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { MenuSheetContent, menuSheetIconClasses, menuSheetItemClasses } from "./MenuSheetContent";
 import { Poster } from "./Poster";
@@ -24,7 +25,7 @@ import { PosterGridItem } from "./PosterGridItem";
 
 export function listItemLabel(item: ListItem): string {
   const metadata = item.mediaItem.metadata;
-  return metadata ? filmLabel(metadata) : t("film.unknown");
+  return metadata ? filmLabel(metadata) : mediaWord(item.mediaItem.mediaType, "unknown");
 }
 
 type ListPosterProps = {
@@ -173,7 +174,7 @@ function PosterMenu({ item, place, listName, onMove, onNote, onRemove }: ListPos
           <Poster subject={item.mediaItem} size="dialog" />
           <span className="flex min-w-0 flex-col gap-0.5">
             <span className="truncate font-semibold text-[17px]">
-              {metadata?.title ?? t("film.unknown")}
+              {metadata?.title ?? mediaWord(item.mediaItem.mediaType, "unknown")}
             </span>
             <span className="truncate text-[13px] text-muted-foreground">{placeLine}</span>
           </span>

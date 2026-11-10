@@ -10,7 +10,8 @@ type EmptyStateAction = { label: string; icon?: LucideIcon; outline?: boolean } 
   | { onClick: () => void }
 );
 
-// The one quiet pattern of every empty page or tab: an icon in a circle, one line and one button.
+// The one quiet pattern of every empty page or tab: an icon in a circle, one line and one button,
+// where there is something to do about it.
 export function EmptyState({
   icon: Icon,
   message,
@@ -18,8 +19,20 @@ export function EmptyState({
 }: {
   icon: LucideIcon;
   message: string;
-  action: EmptyStateAction;
+  action?: EmptyStateAction | undefined;
 }) {
+  return (
+    <div className="flex flex-col items-center gap-4 px-6 pt-18 pb-10 text-center md:py-24">
+      <span className="flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary-strong md:size-16">
+        <Icon aria-hidden className="size-6 md:size-7" />
+      </span>
+      <p className="max-w-75 text-base leading-snug md:max-w-none md:text-lg">{message}</p>
+      {action && <EmptyStateButton action={action} />}
+    </div>
+  );
+}
+
+function EmptyStateButton({ action }: { action: EmptyStateAction }) {
   const ActionIcon = action.icon;
   const content = (
     <>
@@ -34,21 +47,13 @@ export function EmptyState({
       action.outline ? "rounded-full bg-card" : "rounded-xl",
     ),
   } as const;
-  return (
-    <div className="flex flex-col items-center gap-4 px-6 pt-18 pb-10 text-center md:py-24">
-      <span className="flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary-strong md:size-16">
-        <Icon aria-hidden className="size-6 md:size-7" />
-      </span>
-      <p className="max-w-75 text-base leading-snug md:max-w-none md:text-lg">{message}</p>
-      {"to" in action ? (
-        <Button asChild {...buttonProps}>
-          <Link to={action.to}>{content}</Link>
-        </Button>
-      ) : (
-        <Button {...buttonProps} onClick={action.onClick}>
-          {content}
-        </Button>
-      )}
-    </div>
+  return "to" in action ? (
+    <Button asChild {...buttonProps}>
+      <Link to={action.to}>{content}</Link>
+    </Button>
+  ) : (
+    <Button {...buttonProps} onClick={action.onClick}>
+      {content}
+    </Button>
   );
 }

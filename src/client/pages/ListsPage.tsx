@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ListPreview } from "../../shared/api";
 import * as api from "../api";
+import { listsMediaTypes } from "../catalog/media-types";
 import { EmptyState } from "../components/EmptyState";
 import { ListCard } from "../components/ListCard";
 import { ListFormDialog } from "../components/ListFormDialog";
@@ -61,7 +62,7 @@ export function ListsPage() {
             {t("lists.new")}
           </Button>
         </div>
-        <MediaTypeChips current="film" />
+        <MediaTypeChips choices={listsMediaTypes} current="film" />
       </div>
       {state.status === "loading" && (
         <p className="text-muted-foreground text-sm">{t("lists.loading")}</p>

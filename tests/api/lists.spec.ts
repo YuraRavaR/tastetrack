@@ -142,7 +142,7 @@ test("a List needs a name of up to 100 characters, a known Media Type and a shor
     { name: "   ", mediaType: "film" },
     { name: "x".repeat(101), mediaType: "film" },
     { name: "Horror" },
-    { name: "Horror", mediaType: "book" },
+    { name: "Horror", mediaType: "series" },
     { name: "Horror", mediaType: "film", description: "x".repeat(1001) },
   ]) {
     const response = await loggedInApi.lists.createList(data as never);
