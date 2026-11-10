@@ -20,6 +20,8 @@ export class SearchResultRow extends ScopedComponent {
     name: "Want to watch",
     pressed: true,
   });
+  readonly markReadButton = this.root.getByRole("button", { name: "Mark read" });
+  readonly readAgainButton = this.root.getByRole("button", { name: "Read again" });
   // A book's bookmark, and the same one pressed: the book is on the Reading list.
   readonly wantToReadButton = this.root.getByRole("button", { name: "Want to read" });
   readonly onReadingListButton = this.root.getByRole("button", {

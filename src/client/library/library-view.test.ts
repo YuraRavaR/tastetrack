@@ -92,7 +92,15 @@ describe("a tab's view, read from its address", () => {
     expect(libraryView("film", "experienced", params("sort=watched"), "rating").sort).toBe(
       "experienced",
     );
-    expect(changeView(params(), { sort: "experienced" }).toString()).toBe("sort=watched");
+    expect(changeView("film", params(), { sort: "experienced" }).toString()).toBe("sort=watched");
+  });
+
+  it("names a book's sort by the last Log Entry Last read, in the address too", () => {
+    expect(libraryView("book", "experienced", params("sort=read"), null).sort).toBe("experienced");
+    expect(libraryView("book", "experienced", params("sort=watched"), "rating").sort).toBe(
+      "rating",
+    );
+    expect(changeView("book", params(), { sort: "experienced" }).toString()).toBe("sort=read");
   });
 
   it("falls back to the remembered sort when the address has none", () => {
@@ -226,13 +234,13 @@ describe("a change to a view's address", () => {
   it("sets or removes only the choices it names, and keeps the rest", () => {
     const before = params("sort=title&genre=Drama&rating=4");
 
-    expect(changeView(before, { decade: 1990, minRating: null }).toString()).toBe(
+    expect(changeView("film", before, { decade: 1990, minRating: null }).toString()).toBe(
       "sort=title&genre=Drama&decade=1990",
     );
-    expect(changeView(before, { genre: "Science Fiction" }).toString()).toBe(
+    expect(changeView("film", before, { genre: "Science Fiction" }).toString()).toBe(
       "sort=title&genre=Science+Fiction&rating=4",
     );
-    expect(changeView(params(), { sort: "rating", minRating: 4.5 }).toString()).toBe(
+    expect(changeView("film", params(), { sort: "rating", minRating: 4.5 }).toString()).toBe(
       "sort=rating&rating=4.5",
     );
     expect(before.toString()).toBe("sort=title&genre=Drama&rating=4");

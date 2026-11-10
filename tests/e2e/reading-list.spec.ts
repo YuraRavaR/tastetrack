@@ -58,7 +58,7 @@ test("a User searches for a book, adds it to the Reading list from its page, fin
 
   await filmPage.mainNav.link("Saved").click();
   const books = savedPage.tile("Books");
-  await expect(books.link).toHaveAccessibleDescription("1 to read");
+  await expect(books.link).toHaveAccessibleDescription("1 to read · 0 read");
   await expect(savedPage.tile("Films").root).toContainText("Nothing saved yet.");
   await books.link.click();
   await expect(page).toHaveURL(libraryPage.path("Reading list"));
@@ -128,8 +128,8 @@ test("the Books tile counts the Reading list and fans out its latest covers, one
 
   await expect(savedPage.tiles).toHaveCount(2);
   const books = savedPage.tile("Books");
-  await expect(books.root).toContainText("4 to read");
-  await expect(books.link).toHaveAccessibleDescription("4 to read");
+  await expect(books.root).toContainText("4 to read · 0 read");
+  await expect(books.link).toHaveAccessibleDescription("4 to read · 0 read");
   await expect(savedPage.tile("Films").link).toHaveAccessibleDescription("1 to watch · 0 watched");
   // The three added last, the latest in front: the book with no cover, set in type, then two
   // covers; Тигролови, planned first, is left out.
@@ -187,9 +187,9 @@ test("the Books page shows the Reading list as covers with their authors, the la
   await expect(page).toHaveTitle("Reading list · Books · TasteTrack");
   await expect(libraryPage.heading).toHaveText("Books");
   await expect(libraryPage.breadcrumb).toHaveText("SavedBooks");
-  // One tab until a book can be marked Read.
-  await expect(libraryPage.tabs).toHaveCount(1);
+  await expect(libraryPage.tabs).toHaveCount(2);
   await expect(libraryPage.tab("Reading list")).toHaveAccessibleName("Reading list 4");
+  await expect(libraryPage.tab("Read")).toHaveAccessibleName("Read 0");
   await expect(libraryPage.tab("Reading list")).toHaveAttribute("aria-current", "page");
   await expect(libraryPage.posters("Reading list")).toHaveText([
     /Himn demokratychnoï molodi\s*Сергій Вікторович Жадан$/,
@@ -243,36 +243,34 @@ test("the Reading list sorts by Date added, Title or First published, and filter
   await expect(libraryPage.posters("Reading list")).toHaveCount(4);
 });
 
-test("an address with a film's tab, or the Read tab books don't have yet, opens the Reading list", async ({
+test("an address with a film's tab opens the Reading list, and one with Read the Read tab", async ({
   page,
   loggedInUi: ui,
 }) => {
   const { libraryPage } = ui;
 
-  for (const address of ["/saved/books", "/saved/books/watchlist", "/saved/books/read"]) {
+  for (const address of ["/saved/books", "/saved/books/watchlist", "/saved/books/watched"]) {
     await ui.goto(address);
 
     await expect(page, address).toHaveURL(libraryPage.path("Reading list"));
     await expect(libraryPage.heading).toHaveText("Books");
   }
+  await ui.goto("/saved/books/read");
+  await expect(page).toHaveURL(libraryPage.path("Read"));
 
   // A Media Type Saved doesn't have opens the films' Watchlist, whatever tab it names.
   await ui.goto("/saved/series/watched");
   await expect(page).toHaveURL(libraryPage.path("Watchlist"));
 });
 
-test("on a phone a book's page has Want to read across the row, and the Reading list three covers a row", async ({
+test("on a phone the Reading list shows three covers a row", async ({
   page,
   api,
   loggedInUi: ui,
 }) => {
-  const { tyhrolovyItem } = await fillReadingList(api);
-  const { filmPage, libraryPage } = ui;
+  await fillReadingList(api);
+  const { libraryPage } = ui;
   await page.setViewportSize({ width: 390, height: 844 });
-
-  await filmPage.goto(tyhrolovyItem.id);
-  const button = await filmPage.onReadingListButton.boundingBox();
-  expect([button?.x, button?.width, button?.height]).toEqual([16, 358, 48]);
 
   await libraryPage.goto("Reading list");
   await expect(libraryPage.posters("Reading list")).toHaveCount(4);

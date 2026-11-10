@@ -27,14 +27,13 @@ export const ratingFloors = [4, 4.5, 5] as const;
 // The names of the address's query parameters.
 const queryKeys = { sort: "sort", genre: "genre", decade: "decade", minRating: "rating" } as const;
 
-// Each sort's word in the address and in the browser's memory: the UI's, as for the tabs.
-const sortSlugs: Record<LibrarySort, string> = {
-  added: "added",
-  experienced: "watched",
-  rating: "rating",
-  title: "title",
-  year: "year",
-};
+// Each sort's word in the address and in the browser's memory: the UI's, as for the tabs, so the
+// sort by the last Log Entry is a film's "watched" and a book's "read".
+function sortSlug(mediaType: MediaType, sort: LibrarySort): string {
+  return sort === "experienced" ? experiencedSortSlugs[mediaType] : sort;
+}
+
+const experiencedSortSlugs: Record<MediaType, string> = { film: "watched", book: "read" };
 
 // Whether Media Items of the type have genres to filter by. A book has none, since Open Library's
 // subjects aren't kept.
@@ -53,7 +52,7 @@ export function libraryView(
   rememberedSort: string | null,
 ): LibraryView {
   const sorts = librarySorts[tab];
-  const sortOf = (slug: string | null) => sorts.find((sort) => sortSlugs[sort] === slug);
+  const sortOf = (slug: string | null) => sorts.find((sort) => sortSlug(mediaType, sort) === slug);
   const decade = params.get(queryKeys.decade);
   const minRating = Number(params.get(queryKeys.minRating));
   return {
@@ -123,12 +122,18 @@ export function showLibrary(items: readonly LibraryItem[], view: LibraryView): L
 
 // The tab's address after a change to its view: each choice named is set, or removed when null,
 // and the rest stay as they were.
-export function changeView(params: URLSearchParams, change: Partial<LibraryView>): URLSearchParams {
+export function changeView(
+  mediaType: MediaType,
+  params: URLSearchParams,
+  change: Partial<LibraryView>,
+): URLSearchParams {
   const changed = new URLSearchParams(params);
   for (const [name, value] of Object.entries(change)) {
     const key = queryKeys[name as keyof LibraryView];
     if (value === null || value === undefined) changed.delete(key);
-    else changed.set(key, name === "sort" ? sortSlugs[value as LibrarySort] : String(value));
+    else {
+      changed.set(key, name === "sort" ? sortSlug(mediaType, value as LibrarySort) : String(value));
+    }
   }
   return changed;
 }
@@ -175,7 +180,7 @@ export function rememberedSort(mediaType: MediaType, tab: LibraryTab): string | 
 // Best-effort: a browser that blocks storage just forgets.
 export function rememberSort(mediaType: MediaType, tab: LibraryTab, sort: LibrarySort): void {
   try {
-    localStorage.setItem(sortKey(mediaType, tab), sortSlugs[sort]);
+    localStorage.setItem(sortKey(mediaType, tab), sortSlug(mediaType, sort));
   } catch {
     // Nothing to do: the address still holds the sort.
   }

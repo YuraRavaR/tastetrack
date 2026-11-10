@@ -9,6 +9,7 @@ export class PosterGridItem extends ScopedComponent {
   // A book's cover set in type, when it has no cover.
   readonly typesetCover = this.root.getByRole("img", { name: "No cover" });
   readonly watchedBeforeMark = this.root.getByRole("img", { name: "Watched before" });
+  readonly readBeforeMark = this.root.getByRole("img", { name: "Read before" });
 
   // The Current Rating under a Watched poster, read out as e.g. "4.5 stars".
   rating(stars: string) {

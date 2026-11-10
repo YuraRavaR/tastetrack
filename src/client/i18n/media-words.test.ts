@@ -69,7 +69,7 @@ describe("a full Backlog", () => {
       "Your Watchlist is full: it holds up to 1,000 films. Remove or log some to make room.",
     );
     expect(mediaWord("book", "backlogFull", { max: 1000 })).toBe(
-      "Your Reading list is full: it holds up to 1,000 books. Remove some to make room.",
+      "Your Reading list is full: it holds up to 1,000 books. Remove or log some to make room.",
     );
   });
 });
@@ -80,12 +80,37 @@ describe("a book's words", () => {
     ["backlog", "Reading list"],
     ["tab", "Books"],
     ["sortYear", "First published"],
+    ["experienced", "Read"],
+    ["experiencedAgain", "Read again"],
+    ["revisit", "Reread"],
+    ["revisitHint", "You've read it before"],
+    ["history", "Readings"],
   ] as const)("%s → %s", (word, expected) => {
     expect(mediaWord("book", word)).toBe(expected);
   });
 
-  // Until a book can be logged, the tile counts its Reading list alone.
-  it("count the Reading list on Saved's tile", () => {
-    expect(mediaWord("book", "tileCounts", { backlog: 8, experienced: 0 })).toBe("8 to read");
+  it("count the Reading list and the books read on Saved's tile", () => {
+    expect(mediaWord("book", "tileCounts", { backlog: 8, experienced: 23 })).toBe(
+      "8 to read · 23 read",
+    );
+  });
+
+  it("count the Readings of a book in words up to twice", () => {
+    expect([1, 2, 3].map((count) => mediaWord("book", "experiencedCount", { count }))).toEqual([
+      "Once",
+      "Twice",
+      "3 times",
+    ]);
+  });
+});
+
+describe("a film's Revisit", () => {
+  it("is a Rewatch, counted in times", () => {
+    expect(mediaWord("film", "revisit")).toBe("Rewatch");
+    expect(mediaWord("film", "revisitHint")).toBe("You've watched it before");
+    expect([1, 2].map((count) => mediaWord("film", "experiencedCount", { count }))).toEqual([
+      "Once",
+      "2 times",
+    ]);
   });
 });

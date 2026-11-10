@@ -34,7 +34,7 @@ export function ItemHistoryStats({ history }: { history: ItemHistoryResponse }) 
   return (
     <dl className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:grid-cols-3">
       <Stat label={mediaWord(mediaItem.mediaType, "experienced")}>
-        {t("itemHistory.experiencedCount", { count: logEntries.length })}
+        {mediaWord(mediaItem.mediaType, "experiencedCount", { count: logEntries.length })}
       </Stat>
       <Stat label={t("itemHistory.currentRating")}>
         {currentRating !== null && <RatingValue rating={currentRating} />}

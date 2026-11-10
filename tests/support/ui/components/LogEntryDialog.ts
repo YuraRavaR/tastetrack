@@ -1,7 +1,8 @@
 import { step } from "../../step";
 import { ScopedComponent } from "./ScopedComponent";
 
-// The dialog that logs a film as watched, named after the film, or edits one of its Log Entries.
+// The dialog that logs a film as watched or a book as read, named after it, or edits one of its
+// Log Entries.
 export class LogEntryDialog extends ScopedComponent {
   readonly closeButton = this.root.getByRole("button", { name: "Close" });
   // The film's poster has no name, so it is found by tag.
@@ -9,6 +10,7 @@ export class LogEntryDialog extends ScopedComponent {
   readonly cancelButton = this.root.getByRole("button", { name: "Cancel" });
   readonly deleteButton = this.root.getByRole("button", { name: "Delete" });
   readonly revisitSwitch = this.root.getByRole("switch", { name: "Rewatch" });
+  readonly rereadSwitch = this.root.getByRole("switch", { name: "Reread" });
   readonly reviewInput = this.root.getByLabel("Review");
   readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
   readonly dateError = this.root.getByText("That isn't a valid date.");
@@ -16,8 +18,10 @@ export class LogEntryDialog extends ScopedComponent {
   // The hint with the film's Current Rating and date, once it is in the Log.
   readonly lastTime = this.root.getByText("Last time");
   readonly watchlistNote = this.root.getByText("Saving takes it off your Watchlist");
+  readonly readingListNote = this.root.getByText("Saving takes it off your Reading list");
   readonly checkedRatingRadios = this.root.getByRole("radio", { checked: true });
   readonly dateInput = this.root.getByLabel("Date watched");
+  readonly dateReadInput = this.root.getByLabel("Date read");
   readonly saveButton = this.root.getByRole("button", { name: "Save" });
 
   // "Watched" above the title, or "Watched again" for a film already in the Log.

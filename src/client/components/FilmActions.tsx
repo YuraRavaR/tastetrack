@@ -15,11 +15,10 @@ import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
 type PlanError = "backlog_full" | "unavailable";
 
-// What the User can do with a film from its page: mark it Experienced, or again once it has Log
-// Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type shows
-// only what it can do so far: a book, Want to read alone, across the row on a phone. `onLogged`
-// reloads the page for a new Log Entry, and `onPlanned` tells it whether the film is on the
-// Backlog now.
+// What the User can do with a Media Item from its page: mark it Experienced, or again once it has
+// Log Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type shows
+// only what it can do so far: a book has no Lists yet. `onLogged` reloads the page for a new Log
+// Entry, and `onPlanned` tells it whether the Media Item is on the Backlog now.
 export function FilmActions({
   history,
   onLogged,

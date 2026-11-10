@@ -20,8 +20,8 @@ class EntryActionsMenu extends ScopedComponent {
   }
 }
 
-// A Media Item's page: its banner, and for a film the actions on it, the tiles and its Viewings.
-// A book's has the banner and Want to read so far.
+// A Media Item's page: its banner, the actions on it, the tiles and its Item History, which a
+// film calls Viewings and a book Readings.
 export class FilmPage extends BasePage<[mediaItemId: number]> {
   path(mediaItemId: number) {
     return `/items/${mediaItemId}`;
@@ -51,7 +51,9 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     name: "On your Watchlist",
     pressed: true,
   });
-  // A book's bookmark.
+  // A book's actions.
+  readonly readButton = this.main.getByRole("button", { name: "Read", exact: true });
+  readonly readAgainButton = this.main.getByRole("button", { name: "Read again" });
   readonly wantToReadButton = this.main.getByRole("button", {
     name: "Want to read",
     pressed: false,
@@ -79,6 +81,9 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly noViewingsHint = this.main.getByText(
     "Each time you watch it, the date, Rating and Review show here.",
   );
+  readonly readingsHeading = this.main.getByRole("heading", { name: "Readings", level: 2 });
+  readonly readings = this.main.getByRole("list", { name: "Readings" }).getByRole("listitem");
+  readonly notReadYetMessage = this.main.getByText("Not read yet");
   readonly entryActionsMenu = new EntryActionsMenu(this.page.getByRole("menu"));
   readonly deleteEntryDialog = new ConfirmDialog(
     this.page.getByRole("alertdialog", { name: "Delete this entry?" }),
@@ -106,6 +111,10 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
 
   viewing(index: number) {
     return new ItemHistoryRow(this.viewings.nth(index));
+  }
+
+  reading(index: number) {
+    return new ItemHistoryRow(this.readings.nth(index));
   }
 
   // The "⋯" button of the Viewing with this date, or "No date".
