@@ -10,7 +10,8 @@ export class LogEntryDialog extends ScopedComponent {
   readonly cancelButton = this.root.getByRole("button", { name: "Cancel" });
   readonly deleteButton = this.root.getByRole("button", { name: "Delete" });
   readonly revisitSwitch = this.root.getByRole("switch", { name: "Rewatch" });
-  readonly rereadSwitch = this.root.getByRole("switch", { name: "Reread" });
+  // A book's, which the UI calls a Reread.
+  readonly bookRevisitSwitch = this.root.getByRole("switch", { name: "Reread" });
   readonly reviewInput = this.root.getByLabel("Review");
   readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
   readonly dateError = this.root.getByText("That isn't a valid date.");
@@ -21,7 +22,6 @@ export class LogEntryDialog extends ScopedComponent {
   readonly readingListNote = this.root.getByText("Saving takes it off your Reading list");
   readonly checkedRatingRadios = this.root.getByRole("radio", { checked: true });
   readonly dateInput = this.root.getByLabel("Date watched");
-  readonly dateReadInput = this.root.getByLabel("Date read");
   readonly saveButton = this.root.getByRole("button", { name: "Save" });
 
   // "Watched" above the title, or "Watched again" for a film already in the Log.

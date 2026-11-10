@@ -2,7 +2,7 @@
 // tab, the Current Rating. They live in the tab's address; the sort is also remembered per Media
 // Type and tab in the browser.
 import type { LibraryItem, MediaType } from "../../shared/api";
-import type { LibraryTab } from "./library-tabs";
+import { type LibraryTab, tabSlug } from "./library-tabs";
 
 // Date added and Last watched are the tabs' own orders: by when a Media Item joined the Backlog,
 // and by its last Log Entry in Log Order.
@@ -27,13 +27,11 @@ export const ratingFloors = [4, 4.5, 5] as const;
 // The names of the address's query parameters.
 const queryKeys = { sort: "sort", genre: "genre", decade: "decade", minRating: "rating" } as const;
 
-// Each sort's word in the address and in the browser's memory: the UI's, as for the tabs, so the
-// sort by the last Log Entry is a film's "watched" and a book's "read".
+// Each sort's word in the address and in the browser's memory: the UI's, so the sort by the last
+// Log Entry takes the experienced tab's word, a film's "watched" and a book's "read".
 function sortSlug(mediaType: MediaType, sort: LibrarySort): string {
-  return sort === "experienced" ? experiencedSortSlugs[mediaType] : sort;
+  return sort === "experienced" ? tabSlug(mediaType, "experienced") : sort;
 }
-
-const experiencedSortSlugs: Record<MediaType, string> = { film: "watched", book: "read" };
 
 // Whether Media Items of the type have genres to filter by. A book has none, since Open Library's
 // subjects aren't kept.

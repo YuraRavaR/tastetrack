@@ -250,29 +250,29 @@ test("a Reread is recorded as a Revisit, and a book's Readings and Current Ratin
       201,
       NewLogEntryResponse,
     );
-  const rereadAt = minutesAgo(20);
+  const revisitAt = minutesAgo(20);
   const first = await log({ rating: 3, date: "2020-05-01" }, minutesAgo(30));
 
-  const reread = await log({ rating: 5, date: "2026-03-02", revisit: true }, rereadAt);
+  const revisit = await log({ rating: 5, date: "2026-03-02", revisit: true }, revisitAt);
   // Logged last but read before the others: it changes neither the order's end nor the Rating.
   const backdated = await log({ rating: 1, date: "2019-01-01" }, minutesAgo(10));
 
-  expect(reread.logEntry.revisit).toBe(true);
-  expect(reread).toMatchObject({ removedFromBacklog: null, currentRating: 5, logEntryCount: 2 });
+  expect(revisit.logEntry.revisit).toBe(true);
+  expect(revisit).toMatchObject({ removedFromBacklog: null, currentRating: 5, logEntryCount: 2 });
   expect(backdated).toMatchObject({ currentRating: 5, logEntryCount: 3 });
   const history = await expectBody(
     loggedInApi.catalog.getMediaItemHistory(mediaItem.id),
     200,
     ItemHistoryResponse,
   );
-  expect(history.logEntries).toEqual([backdated.logEntry, first.logEntry, reread.logEntry]);
+  expect(history.logEntries).toEqual([backdated.logEntry, first.logEntry, revisit.logEntry]);
   expect(history.currentRating).toBe(5);
   const { items } = await expectBody(loggedInApi.library.getLibrary({ mediaType: "book" }));
   expect(items).toEqual([
     {
       mediaItem,
       backlog: null,
-      log: { currentRating: 5, lastLogEntry: { date: "2026-03-02", createdAt: rereadAt } },
+      log: { currentRating: 5, lastLogEntry: { date: "2026-03-02", createdAt: revisitAt } },
     },
   ]);
 });

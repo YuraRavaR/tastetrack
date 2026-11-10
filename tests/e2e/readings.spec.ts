@@ -23,33 +23,34 @@ async function logBook(
   await expectBody(api.log.createLogEntry({ mediaItemId, ...entry }, at(time)), 201);
 }
 
-// Besides its User, this journey writes the book's Backlog item and two Log Entries, deleted again
-// at the end, and the book's Media Item and cache entry where no one has added it yet (ADR-0006).
-test("a User reads a book from the Reading list, rereads it, and edits and deletes its Readings", {
+// Logging and rereading a book is the one key journey of books no other smoke test covers; its
+// edit and delete go through the film Log's smoke test's code. Besides its User, it writes the
+// book's Backlog item, two Log Entries, and the book's Media Item and cache entry where no one has
+// added it yet (ADR-0006).
+test("a User reads a book from the Reading list, finds it Read, and rereads it", {
   tag: "@smoke",
 }, async ({ page, api, loggedInUi: ui }) => {
-  await page.clock.setFixedTime(new Date("2026-03-15T12:00:00"));
   const book = await tyhrolovy(api);
   await expectBody(api.backlog.addBacklogItem({ mediaItemId: book.id }), 201);
   const { filmPage, libraryPage } = ui;
-  const { readings, stats, toast, deleteEntryDialog: confirm } = filmPage;
+  const { readings, stats, toast } = filmPage;
   await filmPage.goto(book.id);
   await expect(filmPage.notReadYetMessage).toBeVisible();
 
   // Read takes it off the Reading list, and the toast offers to put it back.
   await filmPage.readButton.click();
-  const reading = filmPage.logEntryDialog("Тигролови");
-  await expect(reading.kindLabel("Read")).toBeVisible();
-  await expect(reading.readingListNote).toBeVisible();
-  await expect(reading.rereadSwitch).not.toBeChecked();
-  await reading.dateChip("Yesterday").click();
-  await reading.rate("4 stars");
-  await reading.save();
+  const first = filmPage.logEntryDialog("Тигролови");
+  await expect(first.kindLabel("Read")).toBeVisible();
+  await expect(first.readingListNote).toBeVisible();
+  await expect(first.bookRevisitSwitch).not.toBeChecked();
+  await first.dateChip("No date").click();
+  await first.rate("4 stars");
+  await first.save();
 
-  await expect(reading.root).toBeHidden();
+  await expect(first.root).toBeHidden();
   await expect(filmPage.readAgainButton).toBeVisible();
   await expect(filmPage.wantToReadButton).toBeVisible();
-  await expect(stats).toHaveText(["Once", "4", "Mar 14, 2026"]);
+  await expect(stats).toHaveText(["Once", "4", "–"]);
   await expect(readings).toHaveCount(1);
   await expect(toast.message("Added Тигролови (1946) to your Log.")).toBeVisible();
   await expect(toast.message("Took Тигролови (1946) off your Reading list.")).toBeVisible();
@@ -65,23 +66,39 @@ test("a User reads a book from the Reading list, rereads it, and edits and delet
   // A Reread is a second Reading, which sets the Current Rating.
   await libraryPage.poster("Read", "Тигролови").link.click();
   await filmPage.readAgainButton.click();
-  const rereading = filmPage.logEntryDialog("Тигролови");
-  await expect(rereading.kindLabel("Read again")).toBeVisible();
-  await expect(rereading.rereadSwitch).toBeChecked();
-  await rereading.rate("5 stars");
-  await rereading.save();
+  const revisit = filmPage.logEntryDialog("Тигролови");
+  await expect(revisit.kindLabel("Read again")).toBeVisible();
+  await expect(revisit.bookRevisitSwitch).toBeChecked();
+  await revisit.dateChip("No date").click();
+  await revisit.rate("5 stars");
+  await revisit.save();
 
-  await expect(rereading.root).toBeHidden();
+  await expect(revisit.root).toBeHidden();
   await expect(readings).toHaveCount(2);
-  await expect(filmPage.reading(0).rereadBadge).toBeVisible();
-  await expect(filmPage.reading(1).rereadBadge).toHaveCount(0);
-  await expect(stats).toHaveText(["Twice", "5", "Mar 14, 2026"]);
+  await expect(filmPage.reading(0).bookRevisitBadge).toBeVisible();
+  await expect(filmPage.reading(1).bookRevisitBadge).toHaveCount(0);
+  await expect(stats).toHaveText(["Twice", "5", "–"]);
   await expect(filmPage.main).not.toContainText(filmWording);
+  await libraryPage.goto("Read");
+  await expect(libraryPage.poster("Read", "Тигролови").rating("5 stars")).toBeVisible();
+});
+
+test("editing and deleting a book's Readings updates its page and the Read tab", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const book = await tyhrolovy(api);
+  await logBook(api, book.id, { rating: 4, date: "2026-03-14" }, minutesAgo(20));
+  await logBook(api, book.id, { rating: 5, date: "2026-03-15", revisit: true }, minutesAgo(10));
+  const { filmPage, libraryPage } = ui;
+  const { readings, stats, deleteEntryDialog: confirm } = filmPage;
+  await filmPage.goto(book.id);
+  await expect(stats).toHaveText(["Twice", "5", "Mar 14, 2026"]);
 
   // Editing the Reread changes the Current Rating, on the page and on the Read tab.
   await filmPage.chooseEntryAction("Mar 15, 2026", "Edit");
   const editing = filmPage.logEntryDialog("Edit your entry for Тигролови");
-  await expect(editing.rereadSwitch).toBeChecked();
+  await expect(editing.bookRevisitSwitch).toBeChecked();
   await editing.rate("2.5 stars");
   await editing.save();
   await expect(editing.root).toBeHidden();
@@ -137,7 +154,8 @@ test("undoing a Reading's toast puts the book back on the Reading list, marked R
   await expect(libraryPage.tab("Read")).toHaveAccessibleName("Read 1");
 });
 
-test("Mark read in Search logs a book, whose row then links to its Readings", async ({
+test("Mark read in Search logs a book, which then shows its Current Rating in Search", async ({
+  page,
   loggedInUi: ui,
 }) => {
   const { searchPage, filmPage } = ui;
@@ -158,6 +176,14 @@ test("Mark read in Search logs a book, whose row then links to its Readings", as
   await expect(filmPage.readings).toHaveCount(1);
   await expect(filmPage.reading(0).ratingStars("4.5 stars")).toBeVisible();
   await expect(filmPage.reading(0).text("Loud and young.")).toBeVisible();
+
+  // The next search finds it In your Saved, with its Current Rating, and leaves it out of Open
+  // Library's results.
+  await page.goBack();
+  await searchPage.search("Himn");
+  const saved = searchPage.userMediaItems.film("Himn demokratychnoï molodi");
+  await expect(saved.root).toContainText("4.5 · Read");
+  await expect(result.root).toHaveCount(0);
 });
 
 test("the Read tab shows each book once with its Current Rating, the last read first, and the tile counts it", async ({

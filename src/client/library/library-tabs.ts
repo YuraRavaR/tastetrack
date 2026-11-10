@@ -85,6 +85,11 @@ export function mediaTypeOfSlug(slug: string | undefined): MediaType | null {
   return bySlug(typeSlugs, slug);
 }
 
+// A Media Type's word for one of its tabs, in addresses: "watched", "read".
+export function tabSlug(mediaType: MediaType, tab: LibraryTab): string {
+  return tabSlugs[mediaType][tab];
+}
+
 // The address of a Media Type's tab in Saved: "/saved/films/watchlist", "/saved/books/reading-list".
 export function libraryPath(mediaType: MediaType, tab: LibraryTab): string {
   return `/saved/${typeSlugs[mediaType]}/${tabSlugs[mediaType][tab]}`;
