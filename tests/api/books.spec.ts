@@ -4,6 +4,8 @@ import {
   LibraryResponse,
   ListItemResponse,
   MediaItemResponse,
+  type NewLogEntryRequest,
+  NewLogEntryResponse,
 } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
@@ -12,6 +14,7 @@ import {
   bookReference,
   bookSearchResult,
   callsRealOpenLibrary,
+  harryPotter,
   harryPotterId,
   hymn,
   kafkaOnTheShore,
@@ -175,6 +178,103 @@ test("a planned book stays out of the film Backlog and Library, and a planned fi
     expect(backlog.items.map((item) => item.mediaItem)).toEqual([mediaItem]);
     expect(items.map((item) => item.mediaItem)).toEqual([mediaItem]);
   }
+});
+
+test("logging a book from the Reading list returns the Log Entry and where the book was, and the Library of books shows it Read", async ({
+  loggedInApi,
+}) => {
+  const planned = await tyhrolovy(loggedInApi);
+  const logged = await harryPotter(loggedInApi);
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: planned.id }), 201);
+  await expectBody(
+    loggedInApi.backlog.addBacklogItem({ mediaItemId: logged.id, note: "Olena's copy" }),
+    201,
+  );
+  const loggedAt = minutesAgo(10);
+
+  const created = loggedInApi.log.createLogEntry(
+    {
+      mediaItemId: logged.id,
+      rating: 4.5,
+      date: "2026-10-01",
+      review: "  Better than I recalled. ",
+    },
+    at(loggedAt),
+  );
+
+  expect(await expectBody(created, 201, NewLogEntryResponse)).toEqual({
+    logEntry: {
+      id: expect.any(Number),
+      mediaItem: logged,
+      rating: 4.5,
+      date: "2026-10-01",
+      review: "Better than I recalled.",
+      revisit: false,
+      createdAt: loggedAt,
+    },
+    removedFromBacklog: { position: 1, note: "Olena's copy" },
+    currentRating: 4.5,
+    logEntryCount: 1,
+  });
+  const { backlog } = await expectBody(
+    loggedInApi.backlog.getBacklog({ mediaType: "book" }),
+    200,
+    BacklogResponse,
+  );
+  expect(backlog.items.map((item) => item.mediaItem)).toEqual([planned]);
+  const { items } = await expectBody(
+    loggedInApi.library.getLibrary({ mediaType: "book" }),
+    200,
+    LibraryResponse,
+  );
+  expect(items.find((item) => item.mediaItem.id === logged.id)).toEqual({
+    mediaItem: logged,
+    backlog: null,
+    log: {
+      currentRating: 4.5,
+      lastLogEntry: { date: "2026-10-01", createdAt: loggedAt },
+    },
+  });
+  // Logging a book leaves the film Library as it was.
+  const films = await expectBody(loggedInApi.library.getLibrary({ mediaType: "film" }));
+  expect(films.items).toEqual([]);
+});
+
+test("a Reread is recorded as a Revisit, and a book's Readings and Current Rating follow Log Order", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await kafkaOnTheShore(loggedInApi);
+  const log = (data: Omit<NewLogEntryRequest, "mediaItemId">, time: string) =>
+    expectBody(
+      loggedInApi.log.createLogEntry({ mediaItemId: mediaItem.id, ...data }, at(time)),
+      201,
+      NewLogEntryResponse,
+    );
+  const revisitAt = minutesAgo(20);
+  const first = await log({ rating: 3, date: "2020-05-01" }, minutesAgo(30));
+
+  const revisit = await log({ rating: 5, date: "2026-03-02", revisit: true }, revisitAt);
+  // Logged last but read before the others: it changes neither the order's end nor the Rating.
+  const backdated = await log({ rating: 1, date: "2019-01-01" }, minutesAgo(10));
+
+  expect(revisit.logEntry.revisit).toBe(true);
+  expect(revisit).toMatchObject({ removedFromBacklog: null, currentRating: 5, logEntryCount: 2 });
+  expect(backdated).toMatchObject({ currentRating: 5, logEntryCount: 3 });
+  const history = await expectBody(
+    loggedInApi.catalog.getMediaItemHistory(mediaItem.id),
+    200,
+    ItemHistoryResponse,
+  );
+  expect(history.logEntries).toEqual([backdated.logEntry, first.logEntry, revisit.logEntry]);
+  expect(history.currentRating).toBe(5);
+  const { items } = await expectBody(loggedInApi.library.getLibrary({ mediaType: "book" }));
+  expect(items).toEqual([
+    {
+      mediaItem,
+      backlog: null,
+      log: { currentRating: 5, lastLogEntry: { date: "2026-03-02", createdAt: revisitAt } },
+    },
+  ]);
 });
 
 test("adding the same book again finds its Media Item", async ({ loggedInApi }) => {

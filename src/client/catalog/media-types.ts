@@ -42,11 +42,11 @@ export const savedMediaTypes: readonly MediaTypeChoice[] = [films, books];
 // adds one by hand.
 export type Keeping = "plan" | "log" | "collect" | "addByHand";
 
-// What a User can do with Media Items of each type so far. A book can be found, opened and
-// marked Planned; the rest comes as each part is built.
+// What a User can do with Media Items of each type so far. A book can be found, opened, marked
+// Planned and logged; the rest comes as each part is built.
 const keepings: Record<MediaType, readonly Keeping[]> = {
   film: ["plan", "log", "collect", "addByHand"],
-  book: ["plan"],
+  book: ["plan", "log"],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {

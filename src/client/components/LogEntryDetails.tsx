@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import type { LogEntry } from "../../shared/api";
+import { mediaWord } from "../i18n/media-words";
 import { formatCalendarDate, t } from "../i18n/t";
 import { RatingStars } from "./Rating";
 
@@ -14,7 +15,9 @@ export function LogEntryMeta({ entry }: { entry: LogEntry }) {
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-sm">
       <RatingStars rating={entry.rating} />
       <span>{logEntryDateLabel(entry)}</span>
-      {entry.revisit && <Badge variant="secondary">{t("logEntry.revisit")}</Badge>}
+      {entry.revisit && (
+        <Badge variant="secondary">{mediaWord(entry.mediaItem.mediaType, "revisit")}</Badge>
+      )}
     </div>
   );
 }

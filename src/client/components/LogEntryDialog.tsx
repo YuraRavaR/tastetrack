@@ -425,9 +425,9 @@ function LogEntryForm<Saved>({
         </div>
         <div className="flex items-center gap-3 border-t pt-4">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <Label htmlFor={ids.revisit}>{t("logEntry.revisit")}</Label>
+            <Label htmlFor={ids.revisit}>{mediaWord(mediaType, "revisit")}</Label>
             <p id={ids.revisitHint} className="text-muted-foreground text-sm">
-              {t("logEntry.revisitHint")}
+              {mediaWord(mediaType, "revisitHint")}
             </p>
           </div>
           <Switch

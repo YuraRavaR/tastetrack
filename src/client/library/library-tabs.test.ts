@@ -140,9 +140,8 @@ describe("a Media Type's tabs", () => {
     expect(libraryTabsOf("film")).toEqual(["backlog", "experienced"]);
   });
 
-  // Until a book can be logged.
-  it("are the Backlog alone, for books", () => {
-    expect(libraryTabsOf("book")).toEqual(["backlog"]);
-    expect(libraryTabOfSlug("book", "read")).toBeNull();
+  it("are the Reading list and Read, for books", () => {
+    expect(libraryTabsOf("book")).toEqual(["backlog", "experienced"]);
+    expect(libraryTabOfSlug("book", "read")).toBe("experienced");
   });
 });

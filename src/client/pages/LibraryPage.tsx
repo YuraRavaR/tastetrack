@@ -125,7 +125,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
   const view = libraryView(mediaType, tab, params, rememberedSort(mediaType, tab));
   // A choice replaces the history entry, so Back leaves the tab rather than undoing each choice.
   const changeTo = (change: Partial<LibraryView>) => {
-    setParams(changeView(params, change), { replace: true });
+    setParams(changeView(mediaType, params, change), { replace: true });
   };
   // The filters go along to the other tab, as the address has them, so a Rating filter the
   // Watchlist ignores is back on Watched; each tab keeps its own sort.

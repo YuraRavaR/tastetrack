@@ -2,8 +2,8 @@ import { step } from "../../step";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { BasePage } from "./BasePage";
 
-// A film's tabs, and a book's one so far.
-export type LibraryTab = "Watchlist" | "Watched" | "Reading list";
+// A film's tabs and a book's.
+export type LibraryTab = "Watchlist" | "Watched" | "Reading list" | "Read";
 
 // The chips above the grid: the sort, then the filters; Genre only for films, Rating only on
 // Watched.
@@ -13,10 +13,11 @@ const tabPaths: Record<LibraryTab, string> = {
   Watchlist: "films/watchlist",
   Watched: "films/watched",
   "Reading list": "books/reading-list",
+  Read: "books/read",
 };
 
-// Saved for one Media Type: a film's Watchlist and Watched tabs and a book's Reading list, each
-// a grid of covers.
+// Saved for one Media Type: a film's Watchlist and Watched tabs and a book's Reading list and Read,
+// each a grid of covers.
 export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
   path(tab: LibraryTab = "Watchlist") {
     return `/saved/${tabPaths[tab]}`;

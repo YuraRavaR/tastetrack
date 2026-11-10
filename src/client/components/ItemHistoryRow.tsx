@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { LogEntry } from "../../shared/api";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { logEntryDateLabel } from "./LogEntryDetails";
 import { RatingStars } from "./Rating";
@@ -31,7 +32,9 @@ export function ItemHistoryRow({
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm">
           <span className="font-medium">{date}</span>
           <RatingStars rating={entry.rating} />
-          {entry.revisit && <Badge variant="secondary">{t("logEntry.revisit")}</Badge>}
+          {entry.revisit && (
+            <Badge variant="secondary">{mediaWord(entry.mediaItem.mediaType, "revisit")}</Badge>
+          )}
         </div>
         {entry.review && <p className="truncate text-muted-foreground text-sm">{entry.review}</p>}
       </div>

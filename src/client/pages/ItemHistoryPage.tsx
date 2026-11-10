@@ -40,8 +40,8 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 // no tiles, and says what will show where its entries go. The Worker sends them in Log Order, and
 // the page only reverses that for display. After a new entry, an edit or a delete it reloads, so
 // the order and the Current Rating are always the Worker's. A film the User added manually can be
-// edited too, or deleted with everything that goes with it. A Media Type that can't be logged yet,
-// a book, has the banner and its actions alone.
+// edited too, or deleted with everything that goes with it. A Media Type that can't be logged has
+// the banner and its actions alone.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();
