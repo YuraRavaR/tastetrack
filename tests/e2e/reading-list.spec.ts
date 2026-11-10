@@ -38,7 +38,8 @@ async function fillReadingList(api: ApiClient) {
   return { tyhrolovyItem, harryPotterItem, kafkaItem, hymnItem };
 }
 
-// The one write of this journey is the book's Backlog item, taken off again at the end (ADR-0006).
+// Besides its User, this journey writes the book's Backlog item, taken off again at the end, and
+// the book's Media Item and cache entry where no one has added it yet (ADR-0006).
 test("a User searches for a book, adds it to the Reading list from its page, finds it in Saved and takes it off", {
   tag: "@smoke",
 }, async ({ page, loggedInUi: ui }) => {
@@ -254,6 +255,10 @@ test("an address with a film's tab, or the Read tab books don't have yet, opens 
     await expect(page, address).toHaveURL(libraryPage.path("Reading list"));
     await expect(libraryPage.heading).toHaveText("Books");
   }
+
+  // A Media Type Saved doesn't have opens the films' Watchlist, whatever tab it names.
+  await ui.goto("/saved/series/watched");
+  await expect(page).toHaveURL(libraryPage.path("Watchlist"));
 });
 
 test("on a phone a book's page has Want to read across the row, and the Reading list three covers a row", async ({

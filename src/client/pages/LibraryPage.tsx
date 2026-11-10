@@ -48,7 +48,7 @@ import {
 import { usePageTitle } from "../navigation/page-title";
 import { savedPath, searchPathOf } from "../navigation/paths";
 
-// What differs between the two tabs: the tab's name, its empty state, and what each cover shows
+// What differs between the tabs: the tab's name, its empty state, and what each cover shows
 // besides its title.
 interface TabParts {
   name: string;
@@ -108,9 +108,11 @@ type LibraryState =
 // opens its Backlog, and one naming no Media Type the films' Watchlist.
 export function LibraryPage() {
   const params = useParams();
-  const mediaType = mediaTypeOfSlug(params.type) ?? "film";
-  const tab = libraryTabOfSlug(mediaType, params.tab);
-  if (!tab) return <Navigate to={libraryPath(mediaType, "backlog")} replace />;
+  const mediaType = mediaTypeOfSlug(params.type);
+  const tab = mediaType && libraryTabOfSlug(mediaType, params.tab);
+  if (!mediaType || !tab) {
+    return <Navigate to={libraryPath(mediaType ?? "film", "backlog")} replace />;
+  }
   return <LibraryTabs mediaType={mediaType} tab={tab} />;
 }
 
@@ -251,7 +253,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
 const any = "any";
 
 // The chips above the grid: the sort, then Genre, for a Media Type that has genres, and Decade,
-// and on the experienced tab Rating. Each menu offers what the tab's films have, "Any …" first. On
+// and on the experienced tab Rating. Each menu offers what the tab's items have, "Any …" first. On
 // a phone the row scrolls sideways.
 function LibraryChips({
   mediaType,

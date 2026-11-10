@@ -148,7 +148,7 @@ export const en = {
   "settings.passwordFailed": "Couldn't change your password. Please try again.",
   "settings.deleteTitle": "Delete account",
   "settings.deleteDescription":
-    "Deletes your account for good, with your Log, Watchlist, Collections, the films you added by hand, your Share Links and your Invite Codes. People you invited keep their accounts. This can't be undone.",
+    "Deletes your account for good, with your Log, Watchlist, Reading list, Collections, the films you added by hand, your Share Links and your Invite Codes. People you invited keep their accounts. This can't be undone.",
   "settings.deletePassword": "Your password",
   "settings.deleteAccount": "Delete account",
   "settings.deletingAccount": "Deleting…",

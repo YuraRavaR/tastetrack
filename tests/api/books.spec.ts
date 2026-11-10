@@ -140,8 +140,8 @@ test("a book marked Planned is in the Backlog and the Library of books, and take
   expect((await expectBody(library(), 200, LibraryResponse)).items).toEqual([
     { mediaItem, backlog: { addedAt }, log: null },
   ]);
-  const page = await expectBody(loggedInApi.catalog.getMediaItemHistory(mediaItem.id));
-  expect(page.inBacklog).toBe(true);
+  const page = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+  expect((await expectBody(page, 200, ItemHistoryResponse)).inBacklog).toBe(true);
 
   const removed = await loggedInApi.backlog.deleteBacklogItem(mediaItem.id);
 
@@ -162,12 +162,18 @@ test("a planned book stays out of the film Backlog and Library, and a planned fi
     ["book", book],
     ["film", film],
   ] as const) {
-    const { backlog } = await expectBody(loggedInApi.backlog.getBacklog({ mediaType }));
-    const { items } = await expectBody(loggedInApi.library.getLibrary({ mediaType }));
-    expect(backlog.items.map((item: { mediaItem: unknown }) => item.mediaItem)).toEqual([
-      mediaItem,
-    ]);
-    expect(items.map((item: { mediaItem: unknown }) => item.mediaItem)).toEqual([mediaItem]);
+    const { backlog } = await expectBody(
+      loggedInApi.backlog.getBacklog({ mediaType }),
+      200,
+      BacklogResponse,
+    );
+    const { items } = await expectBody(
+      loggedInApi.library.getLibrary({ mediaType }),
+      200,
+      LibraryResponse,
+    );
+    expect(backlog.items.map((item) => item.mediaItem)).toEqual([mediaItem]);
+    expect(items.map((item) => item.mediaItem)).toEqual([mediaItem]);
   }
 });
 

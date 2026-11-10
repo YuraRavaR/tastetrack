@@ -7,7 +7,7 @@ import { t } from "./t";
 // Planned action, the Backlog's name, the search label, the plural tab label, the row prefix, the
 // Item History's name, what it says while empty, the labels of its first date and of a Log Entry's
 // date field, the mark of a planned Media Item already experienced, the action that opens search,
-// what Saved's two tabs say while empty, the label over a shared Collection, the sort by the last
+// what Saved's tabs say while empty, the label over a shared Collection, the sort by the last
 // Log Entry, what Saved says when its filters match nothing, the counts on Saved's tile, the sort
 // by year, what a full Backlog says, how many a Collection holds, Search's placeholder, its hint, the heading over its External Source's
 // results and what it says when it finds nothing, what stands in for a title while its metadata
