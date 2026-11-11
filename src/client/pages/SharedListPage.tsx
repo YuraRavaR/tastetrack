@@ -6,7 +6,7 @@ import * as api from "../api";
 import { useAuth } from "../auth";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { NoteBubble } from "../components/NoteBubble";
-import { PosterGridItem, yearOrAuthorsAndYear } from "../components/PosterGridItem";
+import { collectionMeta, PosterGridItem } from "../components/PosterGridItem";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { usePageTitle } from "../navigation/page-title";
@@ -35,9 +35,9 @@ function titleNames(state: SharedListState): string[] | null {
 
 // The List behind a Share Link, for anyone holding it, logged in or not: its title, description,
 // owner and items in order with their Notes, as a grid of posters, and nothing more: under a book,
-// its authors and year. A poster
-// opens its film's page only for a logged-in viewer, the one who can see that page. A link that doesn't work says so the same way whether it was revoked, replaced or never
-// existed. A visitor without a session is told how to get an account.
+// its first author and year. A poster opens its item's page only for a logged-in viewer, the one
+// who can see that page. A link that doesn't work says so the same way whether it was revoked,
+// replaced or never existed. A visitor without a session is told how to get an account.
 export function SharedListPage() {
   const token = useParams().token ?? "";
   const authStatus = useAuth().state.status;
@@ -119,7 +119,7 @@ export function SharedListPage() {
                 key={item.position}
                 mediaItem={mediaItem}
                 loading={fill.loading(item.mediaItem)}
-                meta={yearOrAuthorsAndYear(mediaItem)}
+                meta={collectionMeta(mediaItem, true)}
                 place={index + 1}
                 unlinked={authStatus !== "authenticated"}
               >

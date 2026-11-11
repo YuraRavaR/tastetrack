@@ -3,25 +3,20 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
-import { authorNames, authorsAndYear } from "../catalog/book-label";
+import { authorName } from "../catalog/book-label";
 import { mediaWord } from "../i18n/media-words";
 import { itemPath } from "../navigation/paths";
 import { Poster } from "./Poster";
 
-// What a grid says under a Media Item's title by default: a film its year, a book its authors, in
-// one line. Nothing while its metadata is unknown.
-export function yearOrAuthors({ mediaType, metadata }: MediaItem): ReactNode {
+// What a Collection's grid says under a title (`docs/mockups/books/`): a film its year, a book its
+// first author, and with `withYear`, as on a Share Link's page, the author and then the year,
+// "Іван Багряний · 1946", in one line. Nothing while the metadata is unknown.
+export function collectionMeta({ mediaType, metadata }: MediaItem, withYear = false): ReactNode {
   if (!metadata) return undefined;
   if (mediaType === "film") return metadata.year ?? undefined;
-  const authors = authorNames(metadata.authors);
-  return authors && <span className="min-w-0 truncate">{authors}</span>;
-}
-
-// The same with a book's year after its authors, for a grid with room for both, such as a
-// Share Link's: "Іван Багряний · 1946".
-export function yearOrAuthorsAndYear(mediaItem: MediaItem): ReactNode {
-  if (mediaItem.mediaType === "film" || !mediaItem.metadata) return yearOrAuthors(mediaItem);
-  const line = authorsAndYear(mediaItem.metadata);
+  const author = metadata.authors[0] ? authorName(metadata.authors[0]) : null;
+  const year = withYear && metadata.year !== null ? String(metadata.year) : null;
+  const line = [author, year].filter(Boolean).join(" · ");
   return line && <span className="min-w-0 truncate">{line}</span>;
 }
 

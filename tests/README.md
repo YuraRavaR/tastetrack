@@ -15,7 +15,7 @@ tests/
 ## Users and sessions
 
 - Each test gets a User of its own, so tests share no mutable data: `registeredUser` has no session, `loggedInUser` is logged in on `api`, and `loggedInApi` or `loggedInUi` serve a test that needs the session but not the User.
-- A second client is a role. A role one spec needs is a fixture in that spec, such as `invitee` or `visitorUi`; one many specs need goes in `fixtures.ts`, such as `otherUserClient`; `createApiClient()` makes a device of its own.
+- A second client is a role. A role one spec needs is a fixture in that spec, such as `invitee`; one many specs need goes in `fixtures.ts`, such as `otherUserClient` or `visitorUi`; `createApiClient()` makes a device of its own.
 - The test hooks secret travels per request, through `TestHooksController` or `at()` (ADR-0010).
 - Names say what a thing is: `registeredUser`, `getCurrentUser()`. A short name fits inside a chain that supplies the context: `api.auth.login(...)`.
 

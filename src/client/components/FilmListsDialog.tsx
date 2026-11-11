@@ -26,8 +26,9 @@ import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { listsPathOf } from "../navigation/paths";
 
-// A film to put on Lists: its label, its Media Type, how to get its Media Item, which for a source's search result
-// adds it to the catalog first, and who to tell which Lists hold it, oldest first, as that changes.
+// A film or book to put on Lists: its label, its Media Type, how to get its Media Item, which for
+// a source's search result adds it to the catalog first, and who to tell which Lists hold it,
+// oldest first, as that changes.
 // Kept in state by the opener, so it loads once per opening.
 export type ListsFilm = {
   label: string;

@@ -12,8 +12,7 @@ import {
   type Found,
   foundAuthorsAndYear,
   foundKey,
-  foundLabel,
-  foundName,
+  foundRowTitle,
   mediaItemKey,
   mediaItemOf,
 } from "../catalog/found";
@@ -32,10 +31,10 @@ import {
 
 // "Add films" on a List (`docs/mockups/collections/`, Settled), or "Add books": a search of the
 // List's Media Type as you type, as on the Search page, the User's own Manual Media Items first,
-// where each one not yet in the List can be added to its end and each one in it says so. A book is
-// named without its year, which follows its authors on the next line, as in Search. `onAdded` reloads the List, which then marks the
-// film. A bottom sheet on a phone, a centred dialog from `md`, open while `open` is set. It
-// unmounts its search once closed, so each opening starts afresh.
+// where each one not yet in the List can be added to its end and each one in it says so. Rows are
+// titled as in Search. `onAdded` reloads the List, which then marks what was added. A bottom sheet
+// on a phone, a centred dialog from `md`, open while `open` is set. It unmounts its search once
+// closed, so each opening starts afresh.
 export function AddFilmsDialog({
   open,
   list,
@@ -100,12 +99,21 @@ function AddFilms({ list, onAdded }: { list: List; onAdded: () => Promise<void> 
         <Label htmlFor={inputId} className="sr-only">
           {mediaWord(list.mediaType, "search")}
         </Label>
-        <SearchField id={inputId} value={query} onChange={setQuery} prominent autoFocus />
+        <SearchField
+          id={inputId}
+          value={query}
+          onChange={setQuery}
+          placeholder={mediaWord(list.mediaType, "searchPlaceholder")}
+          prominent
+          autoFocus
+        />
       </div>
       <div className={cn(sheetBodyClasses, "gap-3 pt-3 md:pt-3")}>
         <p aria-live="polite" className="text-muted-foreground text-sm empty:hidden">
           {search.status === "searching" && t("search.searching")}
-          {search.status === "done" && search.results.length === 0 && t("search.none")}
+          {search.status === "done" &&
+            search.results.length === 0 &&
+            mediaWord(list.mediaType, "searchNoMatch", { query: query.trim() })}
         </p>
         {error && (
           <p role="alert" className="text-destructive text-sm">
@@ -128,15 +136,12 @@ function AddFilms({ list, onAdded }: { list: List; onAdded: () => Promise<void> 
           >
             {search.results.map((found) => {
               const key = foundKey(found);
-              const book = list.mediaType === "book";
-              const authorsAndYear = book ? foundAuthorsAndYear(found) : null;
+              const authorsAndYear = foundAuthorsAndYear(found);
               return (
                 <li key={key} className="flex items-center gap-3 px-3 py-2">
                   <Poster subject={found} size="thumbnail" />
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="break-words">
-                      {book ? foundName(found) : foundLabel(found)}
-                    </span>
+                    <span className="break-words">{foundRowTitle(found)}</span>
                     {authorsAndYear && (
                       <span className="break-words text-muted-foreground text-sm">
                         {authorsAndYear}

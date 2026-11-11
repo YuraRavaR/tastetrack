@@ -1,26 +1,17 @@
-import type { Page } from "@playwright/test";
+import type { MediaType } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { harryPotter, holdCovers, manualBook, tyhrolovy } from "../support/scenarios/books";
-import { test as base, expect } from "../support/ui/fixtures";
-import { Ui } from "../support/ui/Ui";
+import {
+  harryPotter,
+  holdCovers,
+  manualBook,
+  tyhrolovy,
+  voroshilovgrad,
+} from "../support/scenarios/books";
+import { expect, test } from "../support/ui/fixtures";
 
 // Locally the Worker searches an Open Library fake, which mirrors real works; their covers are
 // Open Library's own images, which these tests never load.
-
-const test = base.extend<{ visitorPage: Page; visitorUi: Ui }>({
-  // Someone with no session: a browser of their own.
-  visitorPage: async ({ browser }, use) => {
-    const visitor = await browser.newContext();
-    const page = await visitor.newPage();
-    await holdCovers(page);
-    await use(page);
-    await visitor.close();
-  },
-  visitorUi: async ({ visitorPage }, use) => {
-    await use(new Ui(visitorPage));
-  },
-});
 
 test.beforeEach(async ({ page }) => {
   await holdCovers(page);
@@ -29,7 +20,7 @@ test.beforeEach(async ({ page }) => {
 // The film words no book screen may say.
 const filmWording = /\bfilms?\b|poster/i;
 
-async function createList(api: ApiClient, name: string, mediaType: "film" | "book") {
+async function createList(api: ApiClient, name: string, mediaType: MediaType) {
   return (await expectBody(api.lists.createList({ name, mediaType }), 201)).list;
 }
 
@@ -74,6 +65,11 @@ for (const [device, viewport] of [
     // The User's own books come up too.
     await addBooks.add("Доця", "Доця");
     await addBooks.add("Harry Potter", "Harry Potter and the Philosopher's Stone");
+    // Nothing found speaks of books.
+    await addBooks.search("zzqx no such book");
+    await expect(addBooks.root).toContainText("No books found for “zzqx no such book”.");
+    await expect(addBooks.searchBox).toHaveAttribute("placeholder", "Title or author");
+    await expect(addBooks.root).not.toContainText(filmWording);
     await addBooks.doneButton.click();
     const items = listPage.items("Ukrainian prose");
     await expect(items).toHaveCount(3);
@@ -138,11 +134,14 @@ test("someone logged out opens a Collection of books by its Share Link: covers, 
   ui,
   loggedInUser: owner,
   loggedInApi: api,
+  visitorPage,
   visitorUi,
 }) => {
+  await holdCovers(visitorPage);
   const list = await createList(api, "Ukrainian prose", "book");
   await addToList(api, list.id, (await tyhrolovy(api)).id, "An adventure first.");
   await addToList(api, list.id, (await harryPotter(api)).id);
+  await addToList(api, list.id, (await voroshilovgrad(api)).id);
   const { listPage } = ui;
   await listPage.goto(list.id);
   await listPage.act("Share");
@@ -155,9 +154,9 @@ test("someone logged out opens a Collection of books by its Share Link: covers, 
 
   await expect(sharedPage.text("Book collection")).toBeVisible();
   await expect(sharedPage.heading("Ukrainian prose")).toBeVisible();
-  await expect(sharedPage.text(`Shared by ${owner.username} · 2 books`)).toBeVisible();
+  await expect(sharedPage.text(`Shared by ${owner.username} · 3 books`)).toBeVisible();
   const items = sharedPage.items("Ukrainian prose");
-  await expect(items).toHaveCount(2);
+  await expect(items).toHaveCount(3);
   const tyhrolovyItem = sharedPage.film("Ukrainian prose", "Тигролови");
   await expect(tyhrolovyItem.root).toContainText("Іван Багряний · 1946");
   await expect(tyhrolovyItem.note("An adventure first.")).toBeVisible();
@@ -166,6 +165,9 @@ test("someone logged out opens a Collection of books by its Share Link: covers, 
     /^https:\/\/covers\.openlibrary\.org\/b\/id\/\d+-L\.jpg$/,
   );
   await expect(items.nth(1)).toContainText("J. K. Rowling · 1997");
+  // A book names its first author only: the translators who follow stay off.
+  await expect(items.nth(2)).toContainText("Сергій Вікторович Жадан · 2012");
+  await expect(items.nth(2)).not.toContainText("Reilly");
   await expect(sharedPage.main).not.toContainText(filmWording);
   await expect(sharedPage.inviteLine).toBeVisible();
 });

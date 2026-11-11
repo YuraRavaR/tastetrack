@@ -64,9 +64,10 @@ function ListMeta({
 
 // One of the User's Lists in their own order, as a grid of posters with their Notes
 // (`docs/mockups/collections/`, and `docs/mockups/books/` for books). "Add films" by the heading,
-// or "Add books", and in an empty List, opens a search to add them with. Each poster's ⋯ menu notes, moves to the top or removes its film, and a
-// removal can be undone; the ⋯ by the heading edits, reorders, shares or deletes the List itself.
-// Reorder films puts arrows on each poster in place of "Add films" and the posters' ⋯ until Done.
+// or "Add books", and in an empty List, opens a search to add them with. Each poster's ⋯ menu
+// notes, moves to the top or removes its item, and a removal can be undone; the ⋯ by the heading
+// edits, reorders, shares or deletes the List itself. Reordering puts arrows on each poster in
+// place of "Add films" and the posters' ⋯ until Done.
 // After each change the page reloads, so what it shows is the Worker's.
 export function ListPage() {
   const listId = Number(useParams().listId);

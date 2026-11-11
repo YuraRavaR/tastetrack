@@ -21,7 +21,7 @@ import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { MenuSheetContent, menuSheetIconClasses, menuSheetItemClasses } from "./MenuSheetContent";
 import { Poster } from "./Poster";
-import { PosterGridItem, yearOrAuthors } from "./PosterGridItem";
+import { collectionMeta, PosterGridItem } from "./PosterGridItem";
 
 export function listItemLabel(item: ListItem): string {
   const metadata = item.mediaItem.metadata;
@@ -44,9 +44,9 @@ type ListPosterProps = {
   onRemove: () => void;
 };
 
-// One film in a List's grid of posters (`docs/mockups/collections/`): its place, poster, title and
-// year, or a book's authors (`docs/mockups/books/`), which open its page; a ⋯ menu over the poster's corner to note, move to the top or
-// remove it; and its Note under it, cut at three lines, which opens the Note too. While the User
+// One item in a List's grid of posters (`docs/mockups/collections/`): its place, poster, title and
+// year, or a book's first author (`docs/mockups/books/`), which open its page; a ⋯ menu over the
+// poster's corner to note, move to the top or remove it; and its Note under it, cut at three lines, which opens the Note too. While the User
 // reorders the List, arrows over the poster move it instead.
 export function ListPoster(props: ListPosterProps) {
   const { item, loading, place, reordering, onNote } = props;
@@ -54,7 +54,7 @@ export function ListPoster(props: ListPosterProps) {
     <PosterGridItem
       mediaItem={item.mediaItem}
       loading={loading}
-      meta={yearOrAuthors(item.mediaItem)}
+      meta={collectionMeta(item.mediaItem)}
       place={place}
       corner={reordering ? undefined : <PosterMenu {...props} />}
       overlay={reordering ? <MoveArrows {...props} /> : undefined}

@@ -230,7 +230,6 @@ export const en = {
   "search.dismiss": "Dismiss",
   "search.resultsLabel": "Search results",
   "search.searching": "Searching…",
-  "search.none": "No films found.",
   "search.unavailable": "Couldn't search right now. Please try again.",
   "search.inBacklog": "On your {backlogName}",
   "search.addedByYou": "Added by you",
@@ -483,7 +482,6 @@ export const en = {
   // What a book's row or page says of who wrote it: its first authors, then how many more.
   "book.authorsAndMore": "{authors} +{more, number}",
   "book.authorsAndYear": "{authors} · {year}",
-  "films.count": "{count, plural, one {# film} other {# films}}",
   "poster.caption.popcorn": "Eaten with the popcorn.",
   "poster.caption.ghost": "This poster is a ghost.",
   "poster.caption.makeup": "Still in makeup.",

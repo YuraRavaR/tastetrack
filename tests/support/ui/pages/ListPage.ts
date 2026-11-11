@@ -67,7 +67,7 @@ class ShareLinkDialog extends ScopedComponent {
 }
 
 // Adding films to a List, from "Add films", or books from "Add books": a search whose results each
-// have an Add button, or say the film is in the List already. A bottom sheet on a phone, a dialog
+// have an Add button, or say it is in the List already. A bottom sheet on a phone, a dialog
 // from md.
 class AddFilmsDialog extends ScopedComponent {
   readonly searchBox = this.root.getByRole("searchbox", { name: /^Search (films|books)$/ });

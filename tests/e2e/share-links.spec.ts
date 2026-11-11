@@ -1,22 +1,9 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Locator } from "@playwright/test";
 import { expectBody } from "../support/api/responses";
 import { alien, aliens } from "../support/scenarios/films";
-import { test as base, expect } from "../support/ui/fixtures";
-import { Ui } from "../support/ui/Ui";
+import { expect, test } from "../support/ui/fixtures";
 
 // Locally the Worker calls a TMDB fake; on staging, the real TMDB. Both know Alien and Aliens.
-
-const test = base.extend<{ visitorPage: Page; visitorUi: Ui }>({
-  // Someone with no session: a browser of their own.
-  visitorPage: async ({ browser }, use) => {
-    const visitor = await browser.newContext();
-    await use(await visitor.newPage());
-    await visitor.close();
-  },
-  visitorUi: async ({ visitorPage }, use) => {
-    await use(new Ui(visitorPage));
-  },
-});
 
 test("a User makes a List, adds a film and shares it, and someone logged out opens its Share Link", {
   tag: "@smoke",

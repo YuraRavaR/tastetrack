@@ -22,10 +22,10 @@ import {
 // The fields of a List that the form edits.
 type ListFields = Pick<ListSummary, "id" | "name" | "description">;
 
-// Makes a List of `mediaType`, or renames one and changes its description when `list` is given. The dialog
-// is open while `open` is set, and stays open until the List is saved. A bottom sheet on a phone,
-// a centred dialog from `md`. The dialog unmounts its form once closed, so each opening starts
-// afresh.
+// Makes a List of `mediaType`, or renames one and changes its description when `list` is given.
+// The dialog is open while `open` is set, and stays open until the List is saved. A bottom sheet on
+// a phone, a centred dialog from `md`. The dialog unmounts its form once closed, so each opening
+// starts afresh.
 export function ListFormDialog({
   open,
   mediaType,
