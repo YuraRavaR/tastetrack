@@ -12,14 +12,19 @@ import type {
   MediaType,
   NewManualMediaItem,
 } from "../../shared/api";
-import { latestFilmYear, maxManualMediaItems, maxManualSearchResults } from "../../shared/catalog";
+import {
+  earliestFilmYear,
+  latestFilmYear,
+  maxManualMediaItems,
+  maxManualSearchResults,
+} from "../../shared/catalog";
 import { textKey } from "../../shared/text";
 import { mediaItemColumns, noCacheEntry, toMediaItem } from "./media-items";
 
 // The columns of media_items that `fields` sets, with each title's key beside it. An empty
-// Original Title counts as none.
+// Original Title counts as none, and an empty author's name as no author.
 function manualColumns(fields: ManualMediaItemEditRequest) {
-  const { title, originalTitle } = fields;
+  const { title, originalTitle, authors } = fields;
   return {
     ...(title !== undefined && { title, titleKey: textKey(title) }),
     ...(originalTitle !== undefined && {
@@ -29,21 +34,45 @@ function manualColumns(fields: ManualMediaItemEditRequest) {
     year: fields.year,
     runtime: fields.runtime,
     genres: fields.genres,
+    authors: authors?.filter((name) => name !== ""),
   };
 }
 
-// A year the Worker refuses because it is more than five years from now.
-function tooLate(year: number | null | undefined, now: Date): boolean {
-  return year != null && year > latestFilmYear(now);
+// Whether `fields` are details a Media Item of the type can have: a year no more than five years
+// from now, and none before films for a film; a runtime and genres only for a film, and authors
+// only for a book.
+function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest, now: Date) {
+  const { year } = fields;
+  if (year != null && year > latestFilmYear(now)) return false;
+  switch (mediaType) {
+    case "film":
+      return fields.authors === undefined && (year == null || year >= earliestFilmYear);
+    case "book":
+      return fields.runtime === undefined && fields.genres === undefined;
+  }
 }
 
-// Another of the User's Manual Media Items with the same title and year as `fields`, compared as
-// a User reads them; a missing year is the same as another missing one.
-function sameTitleAndYear(userId: number, fields: { title: string; year: number | null }) {
+// Another of the User's Manual Media Items of the Media Type with the same year as `fields`, whose
+// title or Original Title is the title or Original Title of `fields`, compared as a User reads
+// them; a missing year is the same as another missing one.
+function sameTitlesAndYear(
+  userId: number,
+  fields: {
+    mediaType: MediaType;
+    title: string;
+    originalTitle: string | null;
+    year: number | null;
+  },
+) {
+  const keys = [fields.title, fields.originalTitle].flatMap((title) => {
+    return title ? [sql`${textKey(title)}`] : [];
+  });
+  const titles = sql.join(keys, sql`, `);
   return sql`exists (
     select 1 from ${mediaItems} as other
-    where other.owner_id = ${userId} and other.title_key = ${textKey(fields.title)}
+    where other.owner_id = ${userId} and other.media_type = ${fields.mediaType}
       and other.year is ${fields.year}
+      and (other.title_key in (${titles}) or other.original_title_key in (${titles}))
   )`;
 }
 
@@ -59,8 +88,8 @@ function ownCount(userId: number) {
   return sql<number>`(select count(*) from ${mediaItems} where owner_id = ${userId})`;
 }
 
-// Makes a Manual Media Item of the User's, with no External Reference, unless they have one with
-// the same title and year and `allowDuplicate` isn't set. A User holds at most
+// Makes a Manual Media Item of the User's, with no External Reference, unless they have one of its
+// Media Type with the same title and year and `allowDuplicate` isn't set. A User holds at most
 // `maxManualMediaItems`.
 export async function createManualMediaItem(
   db: DrizzleD1Database,
@@ -68,11 +97,15 @@ export async function createManualMediaItem(
   request: NewManualMediaItem,
   now: Date,
 ): Promise<CreatedManualMediaItem> {
-  if (tooLate(request.year, now)) return { ok: false, error: "invalid_request" };
+  if (!fitsMediaType(request.mediaType, request, now)) {
+    return { ok: false, error: "invalid_request" };
+  }
+  const film = request.mediaType === "film" ? request : null;
+  const book = request.mediaType === "book" ? request : null;
   const columns = manualColumns(request);
   // The item is inserted only while the User has room, and no other of theirs has its title and
   // year, if that matters.
-  const unique = request.allowDuplicate ? sql`1` : sql`not ${sameTitleAndYear(userId, request)}`;
+  const unique = request.allowDuplicate ? sql`1` : sql`not ${sameTitlesAndYear(userId, request)}`;
   const [created] = await db
     .insert(mediaItems)
     .select(
@@ -91,9 +124,12 @@ export async function createManualMediaItem(
             "original_title_key",
           ),
           year: sql<number | null>`${request.year}`.as("year"),
-          runtime: sql<number | null>`${request.runtime}`.as("runtime"),
-          genres: sql<string>`${JSON.stringify(request.genres)}`.as("genres"),
+          runtime: sql<number | null>`${film?.runtime ?? null}`.as("runtime"),
+          genres: sql<string | null>`${film ? JSON.stringify(film.genres) : null}`.as("genres"),
           createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+          authors: sql<string | null>`${book ? JSON.stringify(columns.authors) : null}`.as(
+            "authors",
+          ),
         })
         .from(users)
         .where(
@@ -150,11 +186,14 @@ export async function editManualMediaItem(
   edit: ManualMediaItemEditRequest,
   now: Date,
 ): Promise<EditedManualMediaItem> {
-  if (tooLate(edit.year, now)) return { ok: false, error: "invalid_request" };
+  const current = await ownManualMediaItem(db, userId, mediaItemId);
+  if (!current) return { ok: false, error: "unknown_media_item" };
+  if (!fitsMediaType(current.mediaType, edit, now)) return { ok: false, error: "invalid_request" };
   const changes = manualColumns(edit);
-  if (Object.values(changes).some((value) => value !== undefined)) {
-    await db.update(mediaItems).set(changes).where(ownManual(userId, mediaItemId));
+  if (!Object.values(changes).some((value) => value !== undefined)) {
+    return { ok: true, mediaItem: current };
   }
+  await db.update(mediaItems).set(changes).where(ownManual(userId, mediaItemId));
   const mediaItem = await ownManualMediaItem(db, userId, mediaItemId);
   return mediaItem ? { ok: true, mediaItem } : { ok: false, error: "unknown_media_item" };
 }

@@ -35,8 +35,8 @@ describe("what deleting a Manual Media Item deletes with it", () => {
     [0, "It isn't on your Watchlist or in any of your Collections."],
     [1, "It will be removed from 1 Collection, where your Watchlist counts as a Collection."],
     [2, "It will be removed from 2 Collections, where your Watchlist counts as a Collection."],
-  ])("%i List Items → %s", (count, expected) => {
-    expect(t("manualItem.deleteListItems", { count })).toBe(expected);
+  ])("%i List Items of a film → %s", (count, expected) => {
+    expect(t("manualItem.deleteListItems", { count, backlogName: "Watchlist" })).toBe(expected);
   });
 });
 

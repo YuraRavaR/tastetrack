@@ -3,9 +3,11 @@
 import { z } from "@hono/zod-openapi";
 import { maxDisplayNameLength, passwordLength, usernamePattern } from "./accounts";
 import {
+  earliestBookYear,
   earliestFilmYear,
   filmGenres,
   filmRuntime,
+  maxManualAuthors,
   maxManualTitleLength,
   maxMetadataFills,
   maxSearchQueryLength,
@@ -425,7 +427,8 @@ export type MediaItemResponse = z.infer<typeof MediaItemResponse>;
 
 // What a User gives about a Manual Media Item. Titles are trimmed, and an empty Original Title
 // counts as none. A year after five years from now is refused too, by the Worker, which knows
-// when now is. Genres are TMDB's film genres, each at most once.
+// when now is. A film's genres are TMDB's film genres, each at most once. A book's authors are
+// names for display, trimmed, in the User's order; empty ones are dropped.
 const ManualTitle = z
   .string()
   .trim()
@@ -440,7 +443,9 @@ const ManualOriginalTitle = z
   .nullable()
   .openapi({ example: "Shadows of Forgotten Ancestors" });
 
-const ManualYear = z.int().min(earliestFilmYear).nullable().openapi({ example: 1965 });
+const ManualFilmYear = z.int().min(earliestFilmYear).nullable().openapi({ example: 1965 });
+
+const ManualBookYear = z.int().min(earliestBookYear).nullable().openapi({ example: 2019 });
 
 const ManualRuntime = z
   .int()
@@ -454,19 +459,45 @@ const ManualGenres = z
   .refine((genres) => new Set(genres).size === genres.length, "Each genre at most once")
   .openapi({ example: ["Drama", "Romance"] });
 
-// A new Manual Media Item. One with the same title and year as another of the User's is refused
-// as a possible duplicate unless allowDuplicate says to make it anyway. Only a film can be added
-// by hand so far.
-export const NewManualMediaItemRequest = z
+const ManualAuthors = z
+  .array(z.string().trim().max(maxManualTitleLength))
+  .max(maxManualAuthors)
+  .openapi({ example: ["Тамара Горіха Зерня"] });
+
+// A new Manual Media Item, with the details of its Media Type. One with the same Media Type and
+// year as another of the User's, and a title or Original Title that is the other's title or
+// Original Title, is refused as a possible duplicate unless allowDuplicate says to make it anyway.
+export const NewManualFilmRequest = z
   .object({
-    mediaType: MediaType.extract(["film"]),
+    mediaType: z.literal("film"),
     title: ManualTitle,
     originalTitle: ManualOriginalTitle.default(null),
-    year: ManualYear.default(null),
+    year: ManualFilmYear.default(null),
     runtime: ManualRuntime.default(null),
     genres: ManualGenres.default([]),
     allowDuplicate: z.boolean().default(false),
   })
+  .strict()
+  .openapi("NewManualFilmRequest");
+
+export type NewManualFilmRequest = z.input<typeof NewManualFilmRequest>;
+
+export const NewManualBookRequest = z
+  .object({
+    mediaType: z.literal("book"),
+    title: ManualTitle,
+    originalTitle: ManualOriginalTitle.default(null),
+    year: ManualBookYear.default(null),
+    authors: ManualAuthors.default([]),
+    allowDuplicate: z.boolean().default(false),
+  })
+  .strict()
+  .openapi("NewManualBookRequest");
+
+export type NewManualBookRequest = z.input<typeof NewManualBookRequest>;
+
+export const NewManualMediaItemRequest = z
+  .discriminatedUnion("mediaType", [NewManualFilmRequest, NewManualBookRequest])
   .openapi("NewManualMediaItemRequest");
 
 export type NewManualMediaItemRequest = z.input<typeof NewManualMediaItemRequest>;
@@ -474,14 +505,18 @@ export type NewManualMediaItemRequest = z.input<typeof NewManualMediaItemRequest
 export type NewManualMediaItem = z.output<typeof NewManualMediaItemRequest>;
 
 // Only the fields given change, by the same rules as a new one; a null or empty Original Title,
-// or a null year or runtime, clears it. The Media Type can't change.
+// or a null year or runtime, clears it. The Media Type can't change, and the Worker refuses the
+// details of another Media Type: a book's runtime or genres, a film's authors, or a film's year
+// before films.
 export const ManualMediaItemEditRequest = z
   .object({
     title: ManualTitle.optional(),
     originalTitle: ManualOriginalTitle.optional(),
-    year: ManualYear.optional(),
+    // As early as any Media Type's year can be; the Worker holds a film's to films.
+    year: ManualBookYear.optional(),
     runtime: ManualRuntime.optional(),
     genres: ManualGenres.optional(),
+    authors: ManualAuthors.optional(),
   })
   .strict()
   .openapi("ManualMediaItemEditRequest");

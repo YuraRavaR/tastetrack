@@ -12,7 +12,9 @@ import { t } from "./t";
 // match nothing, the counts on Saved's tile, the sort by year, what a full Backlog says, how many a
 // Collection holds, Search's placeholder, its hint, the heading over its External Source's results
 // and what it says when it finds nothing, what stands in for a title while its metadata is
-// unavailable or loading, and the name of a missing cover.
+// unavailable or loading, the name of a missing cover, and the words for one the User adds by hand:
+// the dialog's title and descriptions, its possible-duplicate warning and invalid-details error, and
+// what its page says of it, with its edit and delete buttons.
 type MediaWord =
   | "experienced"
   | "experiencedAgain"
@@ -48,7 +50,15 @@ type MediaWord =
   | "searchNoMatch"
   | "unknown"
   | "loading"
-  | "noCover";
+  | "noCover"
+  | "manualNew"
+  | "manualNewDescription"
+  | "manualEditDescription"
+  | "manualDuplicate"
+  | "manualInvalid"
+  | "manualAddedByYou"
+  | "manualEdit"
+  | "manualDelete";
 
 // What a page with no Media Item of its own reads its words by, until it offers more Media Types
 // than films.

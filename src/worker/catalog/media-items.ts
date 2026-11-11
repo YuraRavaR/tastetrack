@@ -49,6 +49,7 @@ export const mediaItemColumns = {
     year: mediaItems.year,
     runtime: mediaItems.runtime,
     genres: mediaItems.genres,
+    authors: mediaItems.authors,
   },
   // Drizzle reads a left join's columns as no entry when the first of them is null, so they lead
   // with one that never is.
@@ -104,7 +105,7 @@ function fromManual(
         genres: manual.genres ?? [],
       };
     case "book":
-      return { ...titles, coverUrls: null, authors: [] };
+      return { ...titles, coverUrls: null, authors: manual.authors ?? [] };
   }
 }
 

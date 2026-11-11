@@ -16,6 +16,14 @@ export function latestFilmYear(now: Date): number {
   return now.getUTCFullYear() + 5;
 }
 
+// The years a book can have: it may be centuries older than any film, so the year is only kept
+// within reason, up to the same five years from now.
+export const earliestBookYear = -3000;
+
+// A manual book's authors: at most this many names, each at most `maxManualTitleLength` characters
+// once trimmed. Empty names are dropped.
+export const maxManualAuthors = 20;
+
 // A film's runtime, in minutes.
 export const filmRuntime = { min: 1, max: 1_000 } as const;
 

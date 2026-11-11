@@ -140,6 +140,7 @@ test("a result opens the book's page, with its cover over a blurred copy, its ti
   await expect(filmPage.buttons).toHaveText(["Read", "Want to read"]);
   await expect(filmPage.sectionHeadings).toHaveText(["Readings"]);
   await expect(filmPage.notReadYetMessage).toBeVisible();
+  await expect(filmPage.main).not.toContainText(/film|watch|viewing/i);
 });
 
 test("a book's page names its Original Title beside its English one", async ({
@@ -225,7 +226,7 @@ test("Search on Books finds the User's own books first, In your Saved, and Open 
   await expect(page).toHaveURL(filmPage.path(mediaItemId));
 });
 
-test("a query no book matches says so, without offering to add one by hand", async ({
+test("a query no book matches says so, and offers to add one by hand", async ({
   loggedInUi: ui,
 }) => {
   const { searchPage } = ui;
@@ -233,7 +234,7 @@ test("a query no book matches says so, without offering to add one by hand", asy
   await searchPage.goto("zzqx no such book", "book");
 
   await expect(searchPage.noBooksMessage).toHaveText("No books found for “zzqx no such book”.");
-  await expect(searchPage.addManuallyButton).toHaveCount(0);
+  await expect(searchPage.addManuallyButton).toBeVisible();
 });
 
 test("the chips are one control the width of the field, with equal thumb-sized segments", async ({

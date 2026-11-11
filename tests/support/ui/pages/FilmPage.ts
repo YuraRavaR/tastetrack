@@ -67,6 +67,11 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   // Only for a film the User added themselves.
   readonly editFilmButton = this.main.getByRole("button", { name: "Edit film" });
   readonly deleteFilmButton = this.main.getByRole("button", { name: "Delete film" });
+  // Only for a book the User added themselves.
+  readonly editBookButton = this.main.getByRole("button", { name: "Edit book" });
+  readonly deleteBookButton = this.main.getByRole("button", { name: "Delete book" });
+  // Why the page shows no Media Item: there is none, or it couldn't be loaded.
+  readonly errorMessage = this.main.getByRole("alert");
 
   // The tiles: how often it was watched, its Current Rating, when first watched.
   readonly stats = this.main.getByRole("definition");

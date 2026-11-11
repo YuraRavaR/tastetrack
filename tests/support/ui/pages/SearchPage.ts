@@ -66,6 +66,9 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: "book"]> {
   readonly addManuallyDialog = new ManualMediaItemDialog(
     this.page.getByRole("dialog", { name: "Add a film manually" }),
   );
+  readonly addBookManuallyDialog = new ManualMediaItemDialog(
+    this.page.getByRole("dialog", { name: "Add a book manually" }),
+  );
   readonly toast = new Toast(this.page.getByRole("status"));
   readonly errorMessage = this.page.getByRole("alert");
 

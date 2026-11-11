@@ -14,7 +14,9 @@ import {
   NewManualMediaItemRequest,
 } from "../shared/api";
 import {
+  earliestBookYear,
   earliestFilmYear,
+  maxManualAuthors,
   maxManualMediaItems,
   maxManualSearchResults,
   maxMetadataFills,
@@ -131,7 +133,8 @@ const createManualRoute = createRoute({
   description:
     "For works the External Source doesn't have. The Manual Media Item has no External " +
     "Reference, belongs to the logged-in User and is visible to them alone. It needs a title, " +
-    "and can have an Original Title, year, runtime and genres.",
+    "and can have an Original Title and a year; a film also a runtime and genres, a book its " +
+    "authors.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -149,15 +152,18 @@ const createManualRoute = createRoute({
       content: { "application/json": { schema: ErrorResponse } },
       description:
         "The request body is malformed, or a value is implausible: a title of 1–200 " +
-        `characters, a year from ${earliestFilmYear} to five years from now, a runtime of ` +
-        "1–1000 minutes and TMDB's film genres, each once (`invalid_request`)",
+        "characters, a year up to five years from now and, for a film, from " +
+        `${earliestFilmYear}, for a book from ${earliestBookYear}, a runtime of 1–1000 minutes ` +
+        `and TMDB's film genres, each once, and at most ${maxManualAuthors} authors of 1–200 ` +
+        "characters (`invalid_request`)",
     },
     401: unauthenticatedResponse,
     409: {
       content: { "application/json": { schema: ErrorResponse } },
       description:
-        "Another of the User's Manual Media Items has the same title, regardless of case, and " +
-        "the same year, and `allowDuplicate` isn't set, or the User already has " +
+        "Another of the User's Manual Media Items of the Media Type has the same year, and a " +
+        "title or Original Title that is this one's title or Original Title, regardless of " +
+        "case, and `allowDuplicate` isn't set, or the User already has " +
         `${maxManualMediaItems} (\`possible_duplicate\`, \`too_many_manual_media_items\`)`,
     },
   },
@@ -192,8 +198,9 @@ const editManualRoute = createRoute({
     400: {
       content: { "application/json": { schema: ErrorResponse } },
       description:
-        "The request body is malformed, names a field that can't be edited, or a value is " +
-        "implausible, by the same rules as a new one (`invalid_request`)",
+        "The request body is malformed, names a field that can't be edited or that the item's " +
+        "Media Type doesn't have, or a value is implausible, by the same rules as a new one " +
+        "(`invalid_request`)",
     },
     401: unauthenticatedResponse,
     404: unknownManualResponse,

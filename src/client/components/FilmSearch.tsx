@@ -368,6 +368,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
       <FilmListsDialog film={listing} onClose={() => setListing(null)} />
       <ManualMediaItemDialog
         open={addingManually}
+        mediaType={mediaType}
         title={trimmed}
         onClose={() => setAddingManually(false)}
         onSaved={(mediaItem) => addedManually(foundManual(mediaItem))}

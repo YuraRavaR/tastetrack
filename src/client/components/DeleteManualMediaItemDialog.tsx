@@ -18,7 +18,7 @@ import { t } from "../i18n/t";
 type Usage = ManualMediaItemResponse["usage"];
 
 // Asks before deleting a Manual Media Item, saying how many Log Entries and List Items, the
-// Watchlist's included, go with it, so no history is lost by surprise. The dialog is open while
+// Backlog's included, go with it, so no history is lost by surprise. The dialog is open while
 // `open` is set, and stays open until the deletion succeeds.
 export function DeleteManualMediaItemDialog({
   mediaItem,
@@ -82,7 +82,12 @@ export function DeleteManualMediaItemDialog({
               {usage ? (
                 <>
                   <p>{t("manualItem.deleteLogEntries", { count: usage.logEntries })}</p>
-                  <p>{t("manualItem.deleteListItems", { count: usage.listItems })}</p>
+                  <p>
+                    {t("manualItem.deleteListItems", {
+                      count: usage.listItems,
+                      backlogName: mediaWord(mediaItem.mediaType, "backlog"),
+                    })}
+                  </p>
                   <p>{t("manualItem.deleteForGood")}</p>
                 </>
               ) : (

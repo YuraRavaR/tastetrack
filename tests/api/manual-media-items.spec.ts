@@ -2,7 +2,7 @@ import {
   type ManualMediaItemEditRequest,
   ManualMediaItemResponse,
   MediaItemResponse,
-  type NewManualMediaItemRequest,
+  type NewManualFilmRequest,
 } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import type { RequestOptions } from "../support/api/controllers/BaseController";
@@ -82,7 +82,8 @@ test("implausible values are refused: a title of 1–200 characters, a year from
     { title: "Film", runtime: 1001 },
     { title: "Film", genres: ["Drama", "Drama"] },
     { title: "Film", genres: ["Cooking"] },
-    { title: "Film", mediaType: "book" },
+    { title: "Film", mediaType: "series" },
+    { title: "Film", authors: ["Someone"] },
   ]) {
     const response = await loggedInApi.catalog.addManualMediaItem(
       { mediaType: "film", ...data } as never,
@@ -110,7 +111,7 @@ test("the same title and year as another of the User's is refused as a possible 
   otherUserClient,
 }) => {
   const first = await manualFilm(loggedInApi, { title: "Тіні забутих предків", year: 1965 });
-  const post = (data: Omit<NewManualMediaItemRequest, "mediaType">) => {
+  const post = (data: Omit<NewManualFilmRequest, "mediaType">) => {
     return loggedInApi.catalog.addManualMediaItem({ mediaType: "film", ...data });
   };
 

@@ -39,8 +39,8 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 // Log Entry, newest first, each of which can be edited or deleted. A film with no Log Entries has
 // no tiles, and says what will show where its entries go. The Worker sends them in Log Order, and
 // the page only reverses that for display. After a new entry, an edit or a delete it reloads, so
-// the order and the Current Rating are always the Worker's. A film the User added manually can be
-// edited too, or deleted with everything that goes with it. A Media Type that can't be logged has
+// the order and the Current Rating are always the Worker's. A Media Item the User added manually
+// can be edited too, or deleted with everything that goes with it. A Media Type that can't be logged has
 // the banner and its actions alone.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
@@ -49,8 +49,8 @@ export function ItemHistoryPage() {
   const [state, setState] = useState<HistoryState>({ status: "loading" });
   const [editing, setEditing] = useState<LogEntry | null>(null);
   const [deleting, setDeleting] = useState<LogEntry | null>(null);
-  const [editingFilm, setEditingFilm] = useState(false);
-  const [deletingFilm, setDeletingFilm] = useState(false);
+  const [editingMediaItem, setEditingMediaItem] = useState(false);
+  const [deletingMediaItem, setDeletingMediaItem] = useState(false);
   // The page belongs to no section, so until the film is known the tab shows the app's name alone.
   const metadata = state.status === "loaded" ? state.history.mediaItem.metadata : null;
   usePageTitle(metadata ? [filmTitleAndYear(metadata)] : []);
@@ -102,13 +102,15 @@ export function ItemHistoryPage() {
         />
         {manual && (
           <div className="flex flex-col gap-3">
-            <p className="text-muted-foreground text-sm">{t("manualItem.addedByYou")}</p>
+            <p className="text-muted-foreground text-sm">
+              {mediaWord(mediaItem.mediaType, "manualAddedByYou")}
+            </p>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => setEditingFilm(true)}>
-                {t("manualItem.edit")}
+              <Button variant="outline" size="sm" onClick={() => setEditingMediaItem(true)}>
+                {mediaWord(mediaItem.mediaType, "manualEdit")}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setDeletingFilm(true)}>
-                {t("manualItem.delete")}
+              <Button variant="outline" size="sm" onClick={() => setDeletingMediaItem(true)}>
+                {mediaWord(mediaItem.mediaType, "manualDelete")}
               </Button>
             </div>
           </div>
@@ -166,18 +168,18 @@ export function ItemHistoryPage() {
       {manual && (
         <>
           <ManualMediaItemDialog
-            open={editingFilm}
+            open={editingMediaItem}
             mediaItem={mediaItem}
-            onClose={() => setEditingFilm(false)}
+            onClose={() => setEditingMediaItem(false)}
             onSaved={async () => {
-              setEditingFilm(false);
+              setEditingMediaItem(false);
               await reload();
             }}
           />
           <DeleteManualMediaItemDialog
             mediaItem={mediaItem}
-            open={deletingFilm}
-            onClose={() => setDeletingFilm(false)}
+            open={deletingMediaItem}
+            onClose={() => setDeletingMediaItem(false)}
             onDeleted={() =>
               navigate(libraryPath(mediaItem.mediaType, "experienced"), { replace: true })
             }
