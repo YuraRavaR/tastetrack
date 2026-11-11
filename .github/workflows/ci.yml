@@ -102,17 +102,22 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # The only job that installs WebKit, whose system libraries take half a minute.
+  # The only job that runs WebKit. Its system libraries come with Playwright's own image, since
+  # installing them with apt-get stalls whenever the runner can't reach the Ubuntu mirrors. Keep
+  # the image's version at @playwright/test's: the install step below fetches the browser alone,
+  # without its libraries, when the two differ.
   mobile:
     name: Mobile tests
     runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.65.0-noble
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
-        with:
-          webkit: "true"
+
+      - name: Install WebKit, unless the image has this version
+        run: pnpm exec playwright install webkit
 
       - name: Smoke tests on an iPhone in WebKit against local Wrangler
         run: pnpm exec playwright test --project=mobile
