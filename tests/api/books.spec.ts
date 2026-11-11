@@ -386,13 +386,3 @@ test("a search result is added only under its Media Type's own External Source a
     expect(await response.json()).toEqual({ error: "invalid_request" });
   }
 });
-
-test("a book can't be added by hand yet", async ({ loggedInApi }) => {
-  const response = await loggedInApi.catalog.addManualMediaItem({
-    mediaType: "book",
-    title: "Доця",
-  } as never);
-
-  expect(response.status()).toBe(400);
-  expect(await response.json()).toEqual({ error: "invalid_request" });
-});

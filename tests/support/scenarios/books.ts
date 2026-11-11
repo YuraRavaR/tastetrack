@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, type Page } from "@playwright/test";
-import type { ExternalReference } from "@shared/api";
+import type { ExternalReference, NewManualBookRequest } from "@shared/api";
 import type { ApiClient } from "../api/ApiClient";
 import { expectBody } from "../api/responses";
 
@@ -42,6 +42,12 @@ export async function book(client: ApiClient, query: string, id: string) {
   const response = await client.catalog.addCatalogItem(result);
   expect([200, 201]).toContain(response.status());
   return (await response.json()).mediaItem;
+}
+
+// A book the User adds by hand, as a Manual Media Item.
+export async function manualBook(client: ApiClient, data: Omit<NewManualBookRequest, "mediaType">) {
+  const created = client.catalog.addManualMediaItem({ mediaType: "book", ...data });
+  return (await expectBody(created, 201)).mediaItem;
 }
 
 // A Ukrainian novel with a Ukrainian edition and a cover, and no English edition.

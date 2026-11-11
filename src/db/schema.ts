@@ -104,8 +104,8 @@ export const inviteCodes = sqliteTable(
 // so the index constrains catalog-backed items alone.
 //
 // A Manual Media Item, and only one, has an owner and its own metadata: a title always, the rest
-// when its User gave them. Being manual follows from having no External Reference, with no flag of
-// its own. The keys are the titles as search and the same-title warning compare them
+// when its User gave them, a film's runtime and genres and a book's authors among them. Being
+// manual follows from having no External Reference, with no flag of its own. The keys are the titles as search and the same-title warning compare them
 // (src/shared/catalog.ts). These columns came after the table, so their rules are kept by the
 // Worker rather than a table check: adding one would rebuild the table, and on D1 dropping the old
 // one would cascade-delete every Log Entry and List Item.
@@ -125,6 +125,7 @@ export const mediaItems = sqliteTable(
     runtime: integer("runtime"),
     genres: text("genres", { mode: "json" }).$type<string[]>(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    authors: text("authors", { mode: "json" }).$type<string[]>(),
   },
   (table) => [
     index("media_items_owner_id_idx").on(table.ownerId),
