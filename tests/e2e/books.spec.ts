@@ -140,6 +140,7 @@ test("a result opens the book's page, with its cover over a blurred copy, its ti
   await expect(filmPage.buttons).toHaveText(["Read", "Want to read"]);
   await expect(filmPage.sectionHeadings).toHaveText(["Readings"]);
   await expect(filmPage.notReadYetMessage).toBeVisible();
+  await expect(filmPage.main).not.toContainText(/film|watch|viewing/i);
 });
 
 test("a book's page names its Original Title beside its English one", async ({

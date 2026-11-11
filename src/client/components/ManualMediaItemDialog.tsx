@@ -99,9 +99,7 @@ function ManualMediaItemForm({
     error: useId(),
   };
   const mediaItem = "mediaItem" in editing ? editing.mediaItem : null;
-  const mediaType = mediaItem
-    ? mediaItem.mediaType
-    : (editing as { mediaType: MediaType }).mediaType;
+  const mediaType = "mediaItem" in editing ? editing.mediaItem.mediaType : editing.mediaType;
   const metadata = mediaItem?.metadata ?? null;
   const film = mediaItem?.mediaType === "film" ? mediaItem.metadata : null;
   const book = mediaItem?.mediaType === "book" ? mediaItem.metadata : null;
@@ -138,21 +136,20 @@ function ManualMediaItemForm({
       originalTitle: originalTitle.trim() || null,
       year: numberOf(year),
     };
-    const fields =
+    const details =
       mediaType === "film"
         ? {
+            mediaType,
             ...titles,
             runtime: numberOf(runtime),
             genres: filmGenres.filter((genre) => genres.has(genre)),
           }
-        : { ...titles, authors: authorsOf(authors) };
+        : { mediaType, ...titles, authors: authorsOf(authors) };
+    // An edit can't change the Media Type, so it doesn't name it.
+    const { mediaType: _mediaType, ...fields } = details;
     const saved = mediaItem
       ? await api.editManualMediaItem(mediaItem.id, fields)
-      : await api.createManualMediaItem(
-          mediaType === "film"
-            ? { mediaType, ...fields, allowDuplicate: warned }
-            : { mediaType, ...fields, allowDuplicate: warned },
-        );
+      : await api.createManualMediaItem({ ...details, allowDuplicate: warned });
     setSaving(false);
     setError(saved.ok ? null : saved.error);
     if (saved.ok) onSaved(saved.mediaItem);

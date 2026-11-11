@@ -512,6 +512,7 @@ export const ManualMediaItemEditRequest = z
   .object({
     title: ManualTitle.optional(),
     originalTitle: ManualOriginalTitle.optional(),
+    // As early as any Media Type's year can be; the Worker holds a film's to films.
     year: ManualBookYear.optional(),
     runtime: ManualRuntime.optional(),
     genres: ManualGenres.optional(),

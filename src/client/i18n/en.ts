@@ -411,7 +411,7 @@ export const en = {
   "manualItem.saving": "Saving…",
   "manualItem.cancel": "Cancel",
   "manualItem.tooMany":
-    "You've added {max, number} titles manually, the most you can. Delete one to add another.",
+    "You've added {max, number} films and books manually, the most you can. Delete one to add another.",
   "manualItem.unavailable": "Couldn't save. Please try again.",
   "manualItem.added": "Added {film}. Only you can see it.",
   "manualItem.deleteTitle": "Delete {film}?",

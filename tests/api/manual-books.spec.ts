@@ -162,7 +162,7 @@ test("a manual book with the title or Original Title of another of the User's, a
   );
 });
 
-test("a manual book and a manual film with the same title and year are no duplicates", async ({
+test("a manual film doesn't make a manual book with its title and year a duplicate, while another film is one", async ({
   loggedInApi,
 }) => {
   await manualFilm(loggedInApi, { title: "Тигролови", year: 1994 });

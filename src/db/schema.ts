@@ -105,8 +105,8 @@ export const inviteCodes = sqliteTable(
 //
 // A Manual Media Item, and only one, has an owner and its own metadata: a title always, the rest
 // when its User gave them, a film's runtime and genres and a book's authors among them. Being
-// manual follows from having no External Reference, with no flag of its own. The keys are the titles as search and the same-title warning compare them
-// (src/shared/catalog.ts). These columns came after the table, so their rules are kept by the
+// manual follows from having no External Reference, with no flag of its own. The keys are the
+// titles as search and the same-title warning compare them (src/shared/catalog.ts). These columns came after the table, so their rules are kept by the
 // Worker rather than a table check: adding one would rebuild the table, and on D1 dropping the old
 // one would cascade-delete every Log Entry and List Item.
 export const mediaItems = sqliteTable(

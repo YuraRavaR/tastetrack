@@ -55,7 +55,7 @@ function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest,
 // Another of the User's Manual Media Items of the Media Type with the same year as `fields`, whose
 // title or Original Title is the title or Original Title of `fields`, compared as a User reads
 // them; a missing year is the same as another missing one.
-function sameTitleAndYear(
+function sameTitlesAndYear(
   userId: number,
   fields: {
     mediaType: MediaType;
@@ -105,7 +105,7 @@ export async function createManualMediaItem(
   const columns = manualColumns(request);
   // The item is inserted only while the User has room, and no other of theirs has its title and
   // year, if that matters.
-  const unique = request.allowDuplicate ? sql`1` : sql`not ${sameTitleAndYear(userId, request)}`;
+  const unique = request.allowDuplicate ? sql`1` : sql`not ${sameTitlesAndYear(userId, request)}`;
   const [created] = await db
     .insert(mediaItems)
     .select(

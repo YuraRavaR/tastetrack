@@ -53,32 +53,34 @@ for (const { device, viewport } of [
     await expect(filmPage.noCoverPlaceholder.first()).toBeVisible();
     await expect(filmPage.main).not.toContainText(filmWords);
   });
+
+  test(`adding a book with the title and year of one already added warns first, then adds it anyway (${device})`, async ({
+    page,
+    ui,
+    loggedInApi: api,
+  }) => {
+    await page.setViewportSize(viewport);
+    await manualBook(api, { title: dotsia, year: 2019, authors: [author] });
+    const { searchPage } = ui;
+    const result = searchPage.openLibraryResults.result(dotsia);
+    await searchPage.goto("доця", "book");
+    await expect(searchPage.userMediaItems.film(dotsia).root).toHaveCount(0);
+    await expect(result.root).toHaveCount(1);
+
+    await searchPage.addManuallyButton.click();
+    const adding = searchPage.addBookManuallyDialog;
+    await adding.titleInput.fill(dotsia);
+    await adding.yearInput.fill("2019");
+    await adding.addButton.click();
+
+    await expect(adding.errorMessage).toHaveText(
+      "You've already added a book with this title and year. Add another one anyway?",
+    );
+    await adding.addAnywayButton.click();
+    await expect(adding.root).toBeHidden();
+    await expect(result.root).toHaveCount(2);
+  });
 }
-
-test("adding a book with the title and year of one already added warns first, then adds it anyway", async ({
-  ui,
-  loggedInApi: api,
-}) => {
-  await manualBook(api, { title: dotsia, year: 2019, authors: [author] });
-  const { searchPage } = ui;
-  const result = searchPage.openLibraryResults.result(dotsia);
-  await searchPage.goto("доця", "book");
-  await expect(searchPage.userMediaItems.film(dotsia).root).toHaveCount(0);
-  await expect(result.root).toHaveCount(1);
-
-  await searchPage.addManuallyButton.click();
-  const adding = searchPage.addBookManuallyDialog;
-  await adding.titleInput.fill(dotsia);
-  await adding.yearInput.fill("2019");
-  await adding.addButton.click();
-
-  await expect(adding.errorMessage).toHaveText(
-    "You've already added a book with this title and year. Add another one anyway?",
-  );
-  await adding.addAnywayButton.click();
-  await expect(adding.root).toBeHidden();
-  await expect(result.root).toHaveCount(2);
-});
 
 test("a manual book's page edits its authors, and deletes it in a book's words", async ({
   page,
