@@ -18,12 +18,6 @@ export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
 
 const films: MediaTypeChoice = { status: "built", mediaType: "film" };
 const books: MediaTypeChoice = { status: "built", mediaType: "book" };
-// Books in a section that hasn't built them yet.
-const booksSoon: MediaTypeChoice = {
-  status: "comingSoon",
-  name: "mediaType.book.tab",
-  icon: mediaTypeIcons.book,
-};
 // Series come after books. Music and Games stay out until each has an ADR choosing its External
 // Source.
 const seriesSoon: MediaTypeChoice = {
@@ -32,21 +26,19 @@ const seriesSoon: MediaTypeChoice = {
   icon: Tv,
 };
 
-// The Media Types each section offers, in the one order they all keep. Search and Saved have
-// books; Collections get them once they build their part.
+// The Media Types each section offers, in the one order they all keep.
 export const searchMediaTypes: readonly MediaTypeChoice[] = [films, books, seriesSoon];
-export const listsMediaTypes: readonly MediaTypeChoice[] = [films, booksSoon, seriesSoon];
+export const listsMediaTypes: readonly MediaTypeChoice[] = [films, books, seriesSoon];
 export const savedMediaTypes: readonly MediaTypeChoice[] = [films, books];
 
 // What a User does to keep a Media Item: marks it Planned, logs it, puts it in Collections, or
 // adds one by hand.
 export type Keeping = "plan" | "log" | "collect" | "addByHand";
 
-// What a User can do with Media Items of each type so far. A book can be found, opened, marked
-// Planned, logged and added by hand; the rest comes as each part is built.
+// What a User can do with Media Items of each type so far.
 const keepings: Record<MediaType, readonly Keeping[]> = {
   film: ["plan", "log", "collect", "addByHand"],
-  book: ["plan", "log", "addByHand"],
+  book: ["plan", "log", "collect", "addByHand"],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {

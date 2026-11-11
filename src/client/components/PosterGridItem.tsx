@@ -3,9 +3,22 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
+import { authorName } from "../catalog/book-label";
 import { mediaWord } from "../i18n/media-words";
 import { itemPath } from "../navigation/paths";
 import { Poster } from "./Poster";
+
+// What a Collection's grid says under a title (`docs/mockups/books/`): a film its year, a book its
+// first author, and with `withYear`, as on a Share Link's page, the author and then the year,
+// "Іван Багряний · 1946", in one line. Nothing while the metadata is unknown.
+export function collectionMeta({ mediaType, metadata }: MediaItem, withYear = false): ReactNode {
+  if (!metadata) return undefined;
+  if (mediaType === "film") return metadata.year ?? undefined;
+  const author = metadata.authors[0] ? authorName(metadata.authors[0]) : null;
+  const year = withYear && metadata.year !== null ? String(metadata.year) : null;
+  const line = [author, year].filter(Boolean).join(" · ");
+  return line && <span className="min-w-0 truncate">{line}</span>;
+}
 
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title
 // in two lines at most, and a meta line, such as the year or the Current Rating. All of it opens

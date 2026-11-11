@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { List, ListItem } from "../../shared/api";
+import type { List, ListItem, MediaType } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { mediaTypeIcon } from "../catalog/media-types";
@@ -16,10 +16,11 @@ import { ListFormDialog } from "../components/ListFormDialog";
 import { ListPoster, listItemLabel } from "../components/ListPoster";
 import { NoteDialog } from "../components/NoteDialog";
 import { ShareLinkDialog } from "../components/ShareLinkDialog";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { useListItemEditing } from "../lists/use-list-item-editing";
 import { usePageTitle } from "../navigation/page-title";
-import { listsPath } from "../navigation/paths";
+import { listsPath, listsPathOf } from "../navigation/paths";
 
 type ListState =
   | { status: "loading" }
@@ -36,13 +37,21 @@ async function loadList(listId: number): Promise<ListState> {
   }
 }
 
-// Under a List's heading: how many films it holds, if any, and whether it is shared.
-function ListMeta({ films, shared }: { films: number; shared: boolean }) {
-  if (films === 0 && !shared) return null;
+// Under a List's heading: how many items it holds, if any, and whether it is shared.
+function ListMeta({
+  mediaType,
+  count,
+  shared,
+}: {
+  mediaType: MediaType;
+  count: number;
+  shared: boolean;
+}) {
+  if (count === 0 && !shared) return null;
   return (
     <p className="flex flex-wrap items-center gap-x-1.5 text-muted-foreground text-sm">
-      {films > 0 && <span>{t("films.count", { count: films })}</span>}
-      {films > 0 && shared && <span aria-hidden>·</span>}
+      {count > 0 && <span>{mediaWord(mediaType, "count", { count })}</span>}
+      {count > 0 && shared && <span aria-hidden>·</span>}
       {shared && (
         <span className="flex items-center gap-1">
           <Link2 aria-hidden className="size-3.5" />
@@ -54,10 +63,11 @@ function ListMeta({ films, shared }: { films: number; shared: boolean }) {
 }
 
 // One of the User's Lists in their own order, as a grid of posters with their Notes
-// (`docs/mockups/collections/`). "Add films" by the heading, and in an empty List, opens a search
-// to add films with. Each poster's ⋯ menu notes, moves to the top or removes its film, and a
-// removal can be undone; the ⋯ by the heading edits, reorders, shares or deletes the List itself.
-// Reorder films puts arrows on each poster in place of "Add films" and the posters' ⋯ until Done.
+// (`docs/mockups/collections/`, and `docs/mockups/books/` for books). "Add films" by the heading,
+// or "Add books", and in an empty List, opens a search to add them with. Each poster's ⋯ menu
+// notes, moves to the top or removes its item, and a removal can be undone; the ⋯ by the heading
+// edits, reorders, shares or deletes the List itself. Reordering puts arrows on each poster in
+// place of "Add films" and the posters' ⋯ until Done.
 // After each change the page reloads, so what it shows is the Worker's.
 export function ListPage() {
   const listId = Number(useParams().listId);
@@ -97,9 +107,10 @@ export function ListPage() {
 
   const empty = state.status === "loaded" && state.list.items.length === 0;
 
+  // Back to Collections on the List's Media Type, once it is known.
   const back = (
     <Link
-      to={listsPath}
+      to={state.status === "loaded" ? listsPathOf(state.list.mediaType) : listsPath}
       className="flex items-center gap-1 self-start text-muted-foreground text-sm underline-offset-4 hover:underline"
     >
       <ArrowLeft aria-hidden className="size-4" />
@@ -141,7 +152,11 @@ export function ListPage() {
               {state.list.description && (
                 <p className="whitespace-pre-line break-words">{state.list.description}</p>
               )}
-              <ListMeta films={state.list.items.length} shared={state.list.shareLink !== null} />
+              <ListMeta
+                mediaType={state.list.mediaType}
+                count={state.list.items.length}
+                shared={state.list.shareLink !== null}
+              />
             </div>
             {!reordering && (
               // With no films the empty state's button leads, so this one steps back.
@@ -154,10 +169,11 @@ export function ListPage() {
                 onClick={() => setAddingFilms(true)}
               >
                 <Plus aria-hidden />
-                {t("list.addLabel")}
+                {mediaWord(state.list.mediaType, "collectionAdd")}
               </Button>
             )}
             <ListActionsMenu
+              mediaType={state.list.mediaType}
               className="[grid-area:more]"
               shared={state.list.shareLink !== null}
               reorderable={state.list.items.length >= 2}
@@ -172,7 +188,7 @@ export function ListPage() {
               role="status"
               className="sticky top-0 z-10 flex items-center justify-between gap-2.5 rounded-xl border border-primary-strong bg-primary-soft py-2 pr-2 pl-3.5 text-sm md:top-3 md:pl-4 md:text-[15px]"
             >
-              {t("list.reorderHint")}
+              {mediaWord(state.list.mediaType, "collectionReorderHint")}
               <Button
                 className="h-10 shrink-0 rounded-full px-4 font-semibold"
                 onClick={() => setReordering(false)}
@@ -197,7 +213,9 @@ export function ListPage() {
           </div>
           {error && (
             <p role="alert" className="text-destructive text-sm">
-              {error === "full" ? t("list.full", { max: maxListItems }) : t("list.updateFailed")}
+              {error === "full"
+                ? mediaWord(state.list.mediaType, "collectionFull", { max: maxListItems })
+                : t("list.updateFailed")}
             </p>
           )}
           {empty ? (
@@ -205,7 +223,7 @@ export function ListPage() {
               icon={mediaTypeIcon(state.list.mediaType)}
               message={t("list.empty")}
               action={{
-                label: t("list.addLabel"),
+                label: mediaWord(state.list.mediaType, "collectionAdd"),
                 onClick: () => setAddingFilms(true),
               }}
             />
@@ -243,6 +261,7 @@ export function ListPage() {
           />
           <ListFormDialog
             open={editingList}
+            mediaType={state.list.mediaType}
             list={state.list}
             onClose={() => setEditingList(false)}
             onSaved={async () => {
@@ -260,7 +279,7 @@ export function ListPage() {
             list={state.list}
             open={deleting}
             onClose={() => setDeleting(false)}
-            onDeleted={() => navigate(listsPath)}
+            onDeleted={() => navigate(listsPathOf(state.list.mediaType))}
           />
         </>
       )}

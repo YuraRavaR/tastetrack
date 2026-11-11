@@ -24,7 +24,7 @@ import {
   foundManual,
   foundMediaItemId,
   foundMediaType,
-  foundName,
+  foundRowTitle,
   mediaItemOf,
 } from "../catalog/found";
 import { can } from "../catalog/media-types";
@@ -321,6 +321,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
                   onListed={() =>
                     setListing({
                       label: foundLabel(found),
+                      mediaType: foundMediaType(found),
                       mediaItem: () => addToCatalog(found),
                       onHeld: (lists) => markListed(found, lists),
                     })
@@ -515,8 +516,8 @@ function SearchResult({
   const mediaType = foundMediaType(found);
   const { currentRating, logEntryCount } = log;
   const inLog = logEntryCount > 0;
-  const name = mediaType === "book" ? foundName(found) : foundLabel(found);
-  const authorsAndYear = mediaType === "book" ? foundAuthorsAndYear(found) : null;
+  const name = foundRowTitle(found);
+  const authorsAndYear = foundAuthorsAndYear(found);
 
   return (
     <li className="relative flex items-start gap-3 p-3 md:items-center">

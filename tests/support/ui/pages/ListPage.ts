@@ -19,6 +19,7 @@ export type ListPosterAction =
 export type ListAction =
   | "Edit collection"
   | "Reorder films"
+  | "Reorder books"
   | "Share"
   | "Share Link"
   | "Delete collection";
@@ -65,10 +66,11 @@ class ShareLinkDialog extends ScopedComponent {
   }
 }
 
-// Adding films to a List, from "Add films": a search whose results each have an Add button, or
-// say the film is in the List already. A bottom sheet on a phone, a dialog from md.
+// Adding films to a List, from "Add films", or books from "Add books": a search whose results each
+// have an Add button, or say it is in the List already. A bottom sheet on a phone, a dialog
+// from md.
 class AddFilmsDialog extends ScopedComponent {
-  readonly searchBox = this.root.getByRole("searchbox", { name: "Search films" });
+  readonly searchBox = this.root.getByRole("searchbox", { name: /^Search (films|books)$/ });
   readonly searchResults = new SearchResults(
     this.root.getByRole("list", { name: "Search results" }),
   );
@@ -119,6 +121,10 @@ export class ListPage extends BasePage<[listId: number]> {
   // "Add films" by the heading. An empty List has its own, after it. Both open the dialog.
   readonly addFilmsButton = this.main.getByRole("button", { name: "Add films" }).first();
   readonly emptyStateAddFilmsButton = this.main.getByRole("button", { name: "Add films" }).last();
+  // The same for a List of books.
+  readonly addBooksButton = this.main.getByRole("button", { name: "Add books" }).first();
+  // The way back to Collections.
+  readonly backLink = this.main.getByRole("link", { name: "All Collections" });
   // Any search on the page itself, outside the Add films dialog.
   readonly searchBox = this.main.getByRole("searchbox");
   // The open poster's ⋯ menu.
@@ -150,6 +156,10 @@ export class ListPage extends BasePage<[listId: number]> {
 
   addFilmsDialog(listName: string) {
     return new AddFilmsDialog(this.page.getByRole("dialog", { name: `Add films to ${listName}` }));
+  }
+
+  addBooksDialog(listName: string) {
+    return new AddFilmsDialog(this.page.getByRole("dialog", { name: `Add books to ${listName}` }));
   }
 
   noteDialog(filmLabel: string) {

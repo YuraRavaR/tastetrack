@@ -89,11 +89,20 @@ export function mediaItemYearAndRuntime(mediaItem: MediaItem): string | null {
 }
 
 // "Іван Багряний · 1946", as authorsAndYear writes it: what a book's row says under its title.
+// Null for a film, whose year is in its title.
 export function foundAuthorsAndYear(found: Found): string | null {
+  if (foundMediaType(found) !== "book") return null;
   if (found.kind === "catalog") return authorsAndYear(found);
   const { mediaItem } = found;
-  if (mediaItem.mediaType !== "book" || !mediaItem.metadata) return null;
-  return authorsAndYear(mediaItem.metadata);
+  return mediaItem.mediaType === "book" && mediaItem.metadata
+    ? authorsAndYear(mediaItem.metadata)
+    : null;
+}
+
+// What a result's row is titled: a film by its label, "Alien (1979)", and a book by its name
+// alone, since its year follows its authors on the next line.
+export function foundRowTitle(found: Found): string {
+  return foundMediaType(found) === "book" ? foundName(found) : foundLabel(found);
 }
 
 // The film's Media Item, adding a source's result to the catalog first; null when that fails.

@@ -4,9 +4,10 @@ import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { ListSummary } from "../../shared/api";
+import type { ListSummary, MediaType } from "../../shared/api";
 import { maxListDescriptionLength, maxListNameLength, maxLists } from "../../shared/lists";
 import * as api from "../api";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { FormError } from "./FormError";
 import {
@@ -21,17 +22,20 @@ import {
 // The fields of a List that the form edits.
 type ListFields = Pick<ListSummary, "id" | "name" | "description">;
 
-// Makes a film List, or renames one and changes its description when `list` is given. The dialog
-// is open while `open` is set, and stays open until the List is saved. A bottom sheet on a phone,
-// a centred dialog from `md`. The dialog unmounts its form once closed, so each opening starts
-// afresh.
+// Makes a List of `mediaType`, or renames one and changes its description when `list` is given.
+// The dialog is open while `open` is set, and stays open until the List is saved. A bottom sheet on
+// a phone, a centred dialog from `md`. The dialog unmounts its form once closed, so each opening
+// starts afresh.
 export function ListFormDialog({
   open,
+  mediaType,
   list,
   onClose,
   onSaved,
 }: {
   open: boolean;
+  // The new List's Media Type, or the edited one's.
+  mediaType: MediaType;
   list?: ListFields;
   onClose: () => void;
   onSaved: (list: ListSummary) => void;
@@ -39,7 +43,7 @@ export function ListFormDialog({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent showCloseButton={false} className={sheetClasses}>
-        <ListForm list={list} onSaved={onSaved} />
+        <ListForm mediaType={mediaType} list={list} onSaved={onSaved} />
       </DialogContent>
     </Dialog>
   );
@@ -58,7 +62,15 @@ function errorMessage(error: api.ListError): string {
   }
 }
 
-function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSummary) => void }) {
+function ListForm({
+  mediaType,
+  list,
+  onSaved,
+}: {
+  mediaType: MediaType;
+  list?: ListFields;
+  onSaved: (list: ListSummary) => void;
+}) {
   const ids = { name: useId(), description: useId(), error: useId() };
   const [name, setName] = useState(list?.name ?? "");
   const [description, setDescription] = useState(list?.description ?? "");
@@ -71,7 +83,7 @@ function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSu
     const fields = { name: name.trim(), description: description.trim() || null };
     const saved = list
       ? await api.editList(list.id, fields)
-      : await api.createList({ ...fields, mediaType: "film" });
+      : await api.createList({ ...fields, mediaType });
     setSaving(false);
     setError(saved.ok ? null : saved.error);
     if (saved.ok) onSaved(saved.list);
@@ -83,7 +95,7 @@ function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSu
     <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
       <SheetHeader
         title={t(list ? "listForm.editTitle" : "listForm.newTitle")}
-        description={t(list ? "listForm.editDescription" : "listForm.newDescription")}
+        description={list ? t("listForm.editDescription") : mediaWord(mediaType, "collectionNew")}
       />
       <div className={sheetBodyClasses}>
         <div className="flex flex-col gap-2">
@@ -93,7 +105,7 @@ function ListForm({ list, onSaved }: { list?: ListFields; onSaved: (list: ListSu
             required
             autoComplete="off"
             maxLength={maxListNameLength}
-            placeholder={t("listForm.namePlaceholder")}
+            placeholder={mediaWord(mediaType, "collectionNamePlaceholder")}
             value={name}
             onChange={(event) => setName(event.target.value)}
             aria-invalid={nameError || undefined}

@@ -7,7 +7,7 @@ describe("English plurals", () => {
     [1, "1 film"],
     [2, "2 films"],
   ])("%i → %s", (count, expected) => {
-    expect(t("films.count", { count })).toBe(expected);
+    expect(t("mediaType.film.count", { count })).toBe(expected);
   });
 });
 

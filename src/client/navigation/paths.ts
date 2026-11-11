@@ -8,6 +8,11 @@ export const savedPath = "/";
 
 export const listsPath = "/collections";
 
+// Collections on a Media Type, which `?type=` names, unless it is films.
+export function listsPathOf(mediaType: MediaType): string {
+  return mediaType === "film" ? listsPath : `${listsPath}?type=${mediaType}`;
+}
+
 export function listPath(listId: number | string): string {
   return `${listsPath}/${listId}`;
 }

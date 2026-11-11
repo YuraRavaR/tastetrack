@@ -2,6 +2,7 @@ import { useLayoutEffect } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import type { MediaType } from "../../shared/api";
 import { searchMediaTypes } from "./media-types";
+import { useMediaTypeParam, withParam } from "./use-media-type-param";
 
 // Search's query, kept in the URL as `?q=`, so going Back, reloading or sharing the link brings
 // the results back. A change replaces the history entry, so typing doesn't fill the history, and
@@ -12,33 +13,9 @@ export function useSearchQuery(): [string, (query: string) => void] {
   return [params.get("q") ?? "", setQuery];
 }
 
-// The Media Type Search is on, kept in the URL as `?type=`, so reloading, going Back or sharing
-// the link keeps it. Without one, or with one Search doesn't have, it is on films, and choosing
-// films leaves the URL without `type`. A change replaces the history entry, as typing does, and
-// keeps the query.
+// The Media Type Search is on, as `?type=` names it; changing it keeps the query.
 export function useSearchMediaType(): [MediaType, (mediaType: MediaType) => void] {
-  const [params, setParams] = useSearchParams();
-  const asked = params.get("type");
-  const offered = searchMediaTypes.flatMap((choice) =>
-    choice.status === "built" ? [choice.mediaType] : [],
-  );
-  const mediaType = offered.find((each) => each === asked) ?? defaultMediaType;
-  const setMediaType = (chosen: MediaType) => {
-    setParams(withParam(params, "type", chosen === defaultMediaType ? "" : chosen), {
-      replace: true,
-    });
-  };
-  return [mediaType, setMediaType];
-}
-
-const defaultMediaType: MediaType = "film";
-
-// The URL's parameters with one set, or left out when its value is empty.
-function withParam(params: URLSearchParams, name: string, value: string): URLSearchParams {
-  const next = new URLSearchParams(params);
-  if (value) next.set(name, value);
-  else next.delete(name);
-  return next;
+  return useMediaTypeParam(searchMediaTypes);
 }
 
 // Keeps the place in the results for going Back from a Media Item's page. The search runs again on

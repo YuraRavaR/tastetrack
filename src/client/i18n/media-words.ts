@@ -14,7 +14,10 @@ import { t } from "./t";
 // and what it says when it finds nothing, what stands in for a title while its metadata is
 // unavailable or loading, the name of a missing cover, and the words for one the User adds by hand:
 // the dialog's title and descriptions, its possible-duplicate warning and invalid-details error, and
-// what its page says of it, with its edit and delete buttons.
+// what its page says of it, with its edit and delete buttons; and a Collection's words: what a new
+// one is for and its name's placeholder, the button and dialog that add to it, what it says of one
+// already in it and when it is full, its reordering and hint, the hint of the dialog that puts one
+// on Collections, and what a shared one says while empty.
 type MediaWord =
   | "experienced"
   | "experiencedAgain"
@@ -58,7 +61,18 @@ type MediaWord =
   | "manualInvalid"
   | "manualAddedByYou"
   | "manualEdit"
-  | "manualDelete";
+  | "manualDelete"
+  | "collectionNew"
+  | "collectionNamePlaceholder"
+  | "collectionAdd"
+  | "collectionAddTitle"
+  | "collectionAddDescription"
+  | "collectionAlreadyIn"
+  | "collectionFull"
+  | "collectionReorder"
+  | "collectionReorderHint"
+  | "collectionTick"
+  | "sharedEmpty";
 
 // What a page with no Media Item of its own reads its words by, until it offers more Media Types
 // than films.

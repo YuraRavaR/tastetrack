@@ -112,7 +112,7 @@ export function FilmActions({
           <Button
             variant="outline"
             className="col-span-2 h-11 sm:h-10"
-            onClick={() => setListing({ label: film, mediaItem: async () => mediaItem })}
+            onClick={() => setListing({ label: film, mediaType, mediaItem: async () => mediaItem })}
           >
             <ListPlus aria-hidden />
             {t("filmLists.open")}
