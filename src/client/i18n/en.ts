@@ -101,7 +101,9 @@ export const en = {
   "mediaType.book.collection": "Book collection",
   "mediaType.book.lastExperienced": "Last read",
   "mediaType.book.noMatch": "No books match these filters.",
-  "mediaType.book.tileCounts": "{backlog} to read · {inProgress} reading · {experienced} read",
+  // The books being read show only while there are some: Reading is a passing state.
+  "mediaType.book.tileCounts":
+    "{backlog} to read{inProgress, plural, =0 {} other { · # reading}} · {experienced} read",
   "mediaType.book.sortYear": "First published",
   "mediaType.book.backlogFull":
     "Your Reading list is full: it holds up to {max, number} books. Remove or log some to make room.",

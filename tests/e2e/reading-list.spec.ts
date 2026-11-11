@@ -58,7 +58,7 @@ test("a User searches for a book, adds it to the Reading list from its page, fin
 
   await filmPage.mainNav.link("Saved").click();
   const books = savedPage.tile("Books");
-  await expect(books.link).toHaveAccessibleDescription("1 to read · 0 reading · 0 read");
+  await expect(books.link).toHaveAccessibleDescription("1 to read · 0 read");
   await expect(savedPage.tile("Films").root).toContainText("Nothing saved yet.");
   await books.link.click();
   await expect(page).toHaveURL(libraryPage.path("Reading list"));
@@ -128,8 +128,8 @@ test("the Books tile counts the Reading list and fans out its latest covers, one
 
   await expect(savedPage.tiles).toHaveCount(2);
   const books = savedPage.tile("Books");
-  await expect(books.root).toContainText("4 to read · 0 reading · 0 read");
-  await expect(books.link).toHaveAccessibleDescription("4 to read · 0 reading · 0 read");
+  await expect(books.root).toContainText("4 to read · 0 read");
+  await expect(books.link).toHaveAccessibleDescription("4 to read · 0 read");
   await expect(savedPage.tile("Films").link).toHaveAccessibleDescription("1 to watch · 0 watched");
   // The three added last, the latest in front: the book with no cover, set in type, then two
   // covers; Тигролови, planned first, is left out.

@@ -9,6 +9,7 @@ import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
 import { expect, test } from "../support/fixtures";
 import { kafkaOnTheShore, manualBook, tyhrolovy } from "../support/scenarios/books";
+import { alien } from "../support/scenarios/films";
 
 // In Progress: a book the User has started and not finished ("Reading" in the UI).
 
@@ -228,5 +229,20 @@ test("another User's book In Progress is theirs alone, and their Manual Media It
   expect(await bookLibrary(otherUserClient)).toEqual([]);
   expect((await bookLibrary(loggedInApi)).map((item) => item.inProgress)).toEqual([
     expect.objectContaining({ startDate: null }),
+  ]);
+});
+
+test("a film can't be started, as a film has no In Progress, and stays on the Watchlist", async ({
+  loggedInApi,
+}) => {
+  const film = await alien(loggedInApi);
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: film.id }), 201);
+
+  const started = loggedInApi.inProgress.start({ mediaItemId: film.id });
+
+  expect(await expectBody(started, 400)).toEqual({ error: "not_progressable" });
+  const library = loggedInApi.library.getLibrary({ mediaType: "film" });
+  expect((await expectBody(library, 200, LibraryResponse)).items).toEqual([
+    { mediaItem: film, backlog: { addedAt: expect.any(String) }, inProgress: null, log: null },
   ]);
 });

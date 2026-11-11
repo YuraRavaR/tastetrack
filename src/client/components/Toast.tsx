@@ -47,47 +47,53 @@ const actionMessages = {
 // The User's last action on a film, which the toast reports.
 export type FilmAction =
   | { kind: "logged"; mediaItemId: number; removedFromBacklog: RemovedListItem | null }
-  | { kind: "started"; mediaItemId: number; removedFromBacklog: RemovedListItem | null }
+  | { kind: "started"; removedFromBacklog: RemovedListItem | null }
   | { kind: "stopped" }
   | { kind: keyof typeof actionMessages };
 
 // Reports a film's action: `film` is its label. Logging links to Saved's tab of what the User
-// experienced, and starting to the In Progress tab; both take a film off the Backlog, which
-// `onUndo` puts back where it was.
+// experienced, and takes a film off the Backlog, which `onUndo` puts back where it was. Starting
+// offers `onUndoStart`, which takes back the whole start, Backlog included.
 export function FilmActionMessage({
   action,
   film,
   mediaType,
   onUndo,
+  onUndoStart,
 }: {
   action: FilmAction;
   film: string;
   mediaType: MediaType;
   onUndo: (mediaItemId: number, removed: RemovedListItem) => void;
+  onUndoStart?: (removed: RemovedListItem | null) => void;
 }) {
   const backlogName = mediaWord(mediaType, "backlog");
-  if (action.kind === "stopped") {
-    return canProgress(mediaType) && <p>{progressWord(mediaType, "stopped", { film })}</p>;
+  if (action.kind === "stopped" || action.kind === "started") {
+    if (!canProgress(mediaType)) return null;
+    if (action.kind === "stopped" || !onUndoStart) {
+      return <p>{progressWord(mediaType, action.kind, { film })}</p>;
+    }
+    const { removedFromBacklog } = action;
+    return (
+      <UndoLine
+        message={progressWord(mediaType, "started", { film })}
+        onUndo={() => onUndoStart(removedFromBacklog)}
+      />
+    );
   }
-  if (action.kind !== "logged" && action.kind !== "started") {
+  if (action.kind !== "logged") {
     return <p>{t(actionMessages[action.kind], { film, backlogName })}</p>;
   }
   const { mediaItemId, removedFromBacklog } = action;
-  const started = action.kind === "started" && canProgress(mediaType);
-  const tab = started ? "inProgress" : "experienced";
   return (
     <>
       <p>
-        {started ? progressWord(mediaType, "started", { film }) : t("logEntry.saved", { film })}{" "}
+        {t("logEntry.saved", { film })}{" "}
         <Link
-          to={libraryPath(mediaType, tab)}
+          to={libraryPath(mediaType, "experienced")}
           className="text-primary-strong underline-offset-4 hover:underline"
         >
-          {t("saved.goTo", {
-            tab: started
-              ? progressWord(mediaType, "inProgress")
-              : mediaWord(mediaType, "experienced"),
-          })}
+          {t("saved.goTo", { tab: mediaWord(mediaType, "experienced") })}
         </Link>
       </p>
       {removedFromBacklog && (

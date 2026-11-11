@@ -1,6 +1,6 @@
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { holdCovers, tyhrolovy } from "../support/scenarios/books";
+import { holdCovers, kafkaOnTheShore, tyhrolovy } from "../support/scenarios/books";
 import { alien } from "../support/scenarios/films";
 import { expect, test } from "../support/ui/fixtures";
 
@@ -51,12 +51,12 @@ for (const [device, viewport] of [
     await expect(filmPage.readButton).toBeHidden();
     await expect(filmPage.addToListButton).toBeVisible();
     await expect(toast.message("Started reading Тигролови (1946).")).toBeVisible();
-    await expect(toast.message("Took Тигролови (1946) off your Reading list.")).toBeVisible();
     await expect(toast.undoButton).toBeVisible();
+    // One line: Undo takes back the whole start, not only the Reading list.
+    await expect(toast.root).not.toContainText("off your Reading list");
     await expect(filmPage.main).not.toContainText(filmWording);
 
-    await toast.goToReadingLink.click();
-    await expect(page).toHaveURL(libraryPage.path("Reading"));
+    await libraryPage.goto("Reading");
     await expect(libraryPage.tabs).toHaveText([
       /^Reading list/,
       /^Reading(?! list)/,
@@ -140,12 +140,14 @@ for (const [device, viewport] of [
   });
 }
 
-test("undoing a start puts the book back on the Reading list, and it stays Reading", async ({
+test("undoing a start stops reading the book and puts it back where it was on the Reading list", async ({
   api,
   loggedInUi: ui,
 }) => {
   const book = await tyhrolovy(api);
-  await expectBody(api.backlog.addBacklogItem({ mediaItemId: book.id }), 201);
+  const other = await kafkaOnTheShore(api);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId: book.id, note: "Olena's copy" }), 201);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId: other.id }), 201);
   const { filmPage, libraryPage } = ui;
   await filmPage.goto(book.id);
   await filmPage.startReadingButton.click();
@@ -153,12 +155,45 @@ test("undoing a start puts the book back on the Reading list, and it stays Readi
 
   await filmPage.toast.undo();
 
+  await expect(filmPage.readingCard.root).toBeHidden();
+  await expect(filmPage.onReadingListButton).toBeVisible();
+  await expect(filmPage.startReadingButton).toBeVisible();
   await expect(
     filmPage.toast.message("Put Тигролови (1946) back on your Reading list."),
   ).toBeVisible();
+  const { backlog } = await expectBody(api.backlog.getBacklog({ mediaType: "book" }));
+  expect(
+    backlog.items.map(({ mediaItem, note }: { mediaItem: { id: number }; note: string | null }) => [
+      mediaItem.id,
+      note,
+    ]),
+  ).toEqual([
+    [book.id, "Olena's copy"],
+    [other.id, null],
+  ]);
   await libraryPage.goto("Reading list");
-  await expect(libraryPage.tab("Reading list")).toHaveAccessibleName("Reading list 1");
-  await expect(libraryPage.tab("Reading")).toHaveAccessibleName("Reading 1");
+  await expect(libraryPage.tab("Reading list")).toHaveAccessibleName("Reading list 2");
+  await expect(libraryPage.tab("Reading")).toHaveAccessibleName("Reading 0");
+});
+
+test("undoing the start of a book not on the Reading list just stops reading it", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const book = await tyhrolovy(api);
+  const { filmPage, libraryPage } = ui;
+  await filmPage.goto(book.id);
+  await filmPage.startReadingButton.click();
+  await expect(filmPage.readingCard.root).toBeVisible();
+
+  await filmPage.toast.undo();
+
+  await expect(filmPage.readingCard.root).toBeHidden();
+  await expect(filmPage.wantToReadButton).toBeVisible();
+  await expect(filmPage.toast.message("Stopped reading Тигролови (1946).")).toBeVisible();
+  await libraryPage.goto("Reading");
+  await expect(libraryPage.tab("Reading list")).toHaveAccessibleName("Reading list 0");
+  await expect(libraryPage.tab("Reading")).toHaveAccessibleName("Reading 0");
 });
 
 test("the start date can be changed, and the book shows Reading in Search", async ({

@@ -207,7 +207,7 @@ test("the Read tab shows each book once with its Current Rating, the last read f
 
   await savedPage.goto();
   const books = savedPage.tile("Books");
-  await expect(books.link).toHaveAccessibleDescription("1 to read · 0 reading · 2 read");
+  await expect(books.link).toHaveAccessibleDescription("1 to read · 2 read");
 
   await libraryPage.goto("Read");
 

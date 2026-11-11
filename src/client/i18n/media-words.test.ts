@@ -95,6 +95,12 @@ describe("a book's words", () => {
     );
   });
 
+  it("leave the books being read out of Saved's tile while there are none", () => {
+    expect(mediaWord("book", "tileCounts", { backlog: 8, inProgress: 0, experienced: 23 })).toBe(
+      "8 to read · 23 read",
+    );
+  });
+
   it("count the Readings of a book in words up to twice", () => {
     expect([1, 2, 3].map((count) => mediaWord("book", "experiencedCount", { count }))).toEqual([
       "Once",

@@ -83,11 +83,7 @@ export function FilmActions({
     }
     await onChanged();
     setPlanning(false);
-    setLastAction({
-      kind: "started",
-      mediaItemId: mediaItem.id,
-      removedFromBacklog: outcome.removedFromBacklog,
-    });
+    setLastAction({ kind: "started", removedFromBacklog: outcome.removedFromBacklog });
   }
 
   async function stop() {
@@ -128,6 +124,27 @@ export function FilmActions({
     }
     onPlanned(true);
     setLastAction({ kind: "putBack" });
+  }
+
+  // Takes back a start: stops reading, and puts the Media Item back on the Backlog where it was,
+  // with its Note, if starting took it off.
+  async function undoStart(removed: RemovedListItem | null) {
+    setActionError(null);
+    setStopping(true);
+    const stopped = await api.stopInProgress(mediaItem.id);
+    const putBack =
+      stopped && removed ? await api.plan({ mediaItemId: mediaItem.id, ...removed }) : null;
+    if (stopped) await onChanged();
+    setStopping(false);
+    if (!stopped) {
+      setActionError("stopFailed");
+      return;
+    }
+    if (putBack && !putBack.ok) {
+      setActionError(putBack.error);
+      return;
+    }
+    setLastAction({ kind: putBack ? "putBack" : "stopped" });
   }
 
   return (
@@ -215,7 +232,13 @@ export function FilmActions({
       <FilmListsDialog film={listing} onClose={() => setListing(null)} />
       <Toast onDismiss={() => setLastAction(null)}>
         {lastAction && (
-          <FilmActionMessage action={lastAction} film={film} mediaType={mediaType} onUndo={undo} />
+          <FilmActionMessage
+            action={lastAction}
+            film={film}
+            mediaType={mediaType}
+            onUndo={undo}
+            onUndoStart={undoStart}
+          />
         )}
       </Toast>
     </div>

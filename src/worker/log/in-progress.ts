@@ -12,6 +12,7 @@ import type {
   NewInProgressRequest,
   RemovedListItem,
 } from "../../shared/api";
+import { canProgress } from "../../shared/catalog";
 import { type LogDateProblem, logDateProblem } from "../../shared/log";
 import { visibleTo } from "../catalog/media-items";
 import { takeOffBacklog } from "../lists/backlog";
@@ -28,12 +29,16 @@ export type NewInProgress = Required<Omit<NewInProgressRequest, "timeZone">> &
 
 export type Started =
   | { ok: true; inProgress: InProgress; removedFromBacklog: RemovedListItem | null }
-  | { ok: false; error: LogDateProblem | "unknown_media_item" | "already_in_progress" };
+  | {
+      ok: false;
+      error: LogDateProblem | "unknown_media_item" | "not_progressable" | "already_in_progress";
+    };
 
 // Starts a Media Item for the User, and takes it off their Backlog in the same batch;
 // `removedFromBacklog` says where it was, so the client can offer to undo that. The start date
-// follows a Log Entry date's rules. A Media Item already In Progress is refused, its Backlog left as
-// it is, and another User's Manual Media Item is as unknown as one that doesn't exist.
+// follows a Log Entry date's rules. A Media Item of a type without In Progress, such as a film, or
+// one already In Progress is refused, its Backlog left as it is, and another User's Manual Media
+// Item is as unknown as one that doesn't exist.
 export async function start(
   db: DrizzleD1Database,
   userId: number,
@@ -45,11 +50,12 @@ export async function start(
   if (dateProblem) return { ok: false, error: dateProblem };
 
   const [found] = await db
-    .select({ startedAt: inProgress.createdAt })
+    .select({ mediaType: mediaItems.mediaType, startedAt: inProgress.createdAt })
     .from(mediaItems)
     .leftJoin(inProgress, ownInProgress(userId, mediaItems.id))
     .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId)));
   if (!found) return { ok: false, error: "unknown_media_item" };
+  if (!canProgress(found.mediaType)) return { ok: false, error: "not_progressable" };
   if (found.startedAt !== null) return { ok: false, error: "already_in_progress" };
 
   const [inserted, [removed]] = await db.batch([

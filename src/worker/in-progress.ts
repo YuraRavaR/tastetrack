@@ -30,8 +30,8 @@ const startRoute = createRoute({
   summary: "Start a Media Item, marking it In Progress",
   description:
     "Also takes the Media Item off the User's Backlog, and says where it was and its Note, so " +
-    "that marking it Planned at that position with that Note undoes it. A Media Item already " +
-    "In Progress is refused.",
+    "that marking it Planned at that position with that Note undoes it. Only a book can be " +
+    "started, and not while it is In Progress already.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -45,8 +45,9 @@ const startRoute = createRoute({
     400: {
       content: { "application/json": { schema: ErrorResponse } },
       description:
-        "The request body is malformed, the Media Item doesn't exist (`invalid_request`, " +
-        `\`unknown_media_item\`), or ${dateRules}`,
+        "The request body is malformed, the Media Item doesn't exist, or its Media Type has no " +
+        "In Progress, as a film has none (`invalid_request`, `unknown_media_item`, " +
+        `\`not_progressable\`), or ${dateRules}`,
     },
     401: unauthenticatedResponse,
     409: {

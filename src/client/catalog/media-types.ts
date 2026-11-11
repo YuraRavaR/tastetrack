@@ -45,13 +45,6 @@ export function can(mediaType: MediaType, keeping: Keeping): boolean {
   return keepings[mediaType].includes(keeping);
 }
 
-// The Media Types a User can have In Progress: started and not yet finished. A film is watched in
-// one sitting, so it has none. A new one doesn't compile until the catalogue has its In Progress
-// words.
-const progressMediaTypes = ["book"] as const satisfies readonly MediaType[];
-
-export type ProgressMediaType = (typeof progressMediaTypes)[number];
-
-export function canProgress(mediaType: MediaType): mediaType is ProgressMediaType {
-  return (progressMediaTypes as readonly MediaType[]).includes(mediaType);
-}
+// Which Media Types have In Progress is the Worker's rule too. A new one doesn't compile until the
+// catalogue has its In Progress words (progressWord).
+export { canProgress, type ProgressMediaType } from "../../shared/catalog";
