@@ -5,4 +5,4 @@ Data access uses Drizzle ORM. drizzle-kit generates SQL migrations, which are co
 ## Consequences
 
 - D1 Free allows 50 queries per Worker invocation, so every page loads in a fixed number of queries (JOIN / IN, never one query per item). An integration test counts the queries.
-- Before every production migration, the Operator takes a manual D1 export, kept off the public repo and CI. D1 Time Travel (always on, 7 days on the free plan) is the main line of recovery. Encrypted automated backups in CI come later.
+- Before every migration, staging and production deploys back up their D1: an export encrypted with age to the Operator's public key, kept 90 days as a workflow artifact, so the public repo's artifacts never hold Users' data in the clear. Only the Operator's private key opens one. D1 Time Travel (always on, 7 days on the free plan) is the main line of recovery, and the backup the fallback beyond it. (Revised 2026-11-11: this replaced a manual export the Operator took before each production deploy.)
