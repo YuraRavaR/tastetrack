@@ -23,16 +23,16 @@ type ActionError = PlanError | "startFailed" | "stopFailed";
 // What the User can do with a Media Item from its page: mark it Experienced, or again once it has
 // Log Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type that
 // has In Progress can be started too; while it is, a card says since when, and finishing it or
-// stopping it take the place of marking it Experienced, Planned or started. `onLogged` reloads the
+// stopping it take the place of marking it Experienced, Planned or started. `onChanged` reloads the
 // page for a new Log Entry or a change to In Progress, and `onPlanned` tells it whether the Media
 // Item is on the Backlog now.
 export function FilmActions({
   history,
-  onLogged,
+  onChanged,
   onPlanned,
 }: {
   history: ItemHistoryResponse;
-  onLogged: () => Promise<void>;
+  onChanged: () => Promise<void>;
   onPlanned: (inBacklog: boolean) => void;
 }) {
   const { mediaItem, logEntries, inBacklog, inProgress } = history;
@@ -48,19 +48,19 @@ export function FilmActions({
   const [stopping, setStopping] = useState(false);
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const [planning, setPlanning] = useState(false);
-  const [planError, setPlanError] = useState<ActionError | null>(null);
+  const [planError, setActionError] = useState<ActionError | null>(null);
   const [lastAction, setLastAction] = useState<FilmAction | null>(null);
 
   async function togglePlanned() {
     const adding = !inBacklog;
-    setPlanError(null);
+    setActionError(null);
     setPlanning(true);
     const outcome = adding
       ? await api.plan({ mediaItemId: mediaItem.id })
       : await api.removeFromBacklog(mediaItem.id);
     setPlanning(false);
     if (!outcome.ok) {
-      setPlanError(outcome.error);
+      setActionError(outcome.error);
       return;
     }
     onPlanned(adding);
@@ -69,7 +69,7 @@ export function FilmActions({
 
   // Starts the Media Item today, taking it off the Backlog, which the toast offers to undo.
   async function start() {
-    setPlanError(null);
+    setActionError(null);
     setPlanning(true);
     const outcome = await api.startInProgress({
       mediaItemId: mediaItem.id,
@@ -78,10 +78,10 @@ export function FilmActions({
     });
     if (!outcome.ok) {
       setPlanning(false);
-      setPlanError("startFailed");
+      setActionError("startFailed");
       return;
     }
-    await onLogged();
+    await onChanged();
     setPlanning(false);
     setLastAction({
       kind: "started",
@@ -91,13 +91,13 @@ export function FilmActions({
   }
 
   async function stop() {
-    setPlanError(null);
+    setActionError(null);
     setStopping(true);
     const stopped = await api.stopInProgress(mediaItem.id);
-    if (stopped) await onLogged();
+    if (stopped) await onChanged();
     setStopping(false);
     if (!stopped) {
-      setPlanError("stopFailed");
+      setActionError("stopFailed");
       return;
     }
     setLastAction({ kind: "stopped" });
@@ -107,9 +107,9 @@ export function FilmActions({
   async function logged(saved: api.SavedLogEntry) {
     setLogging(false);
     setFinishing(false);
-    setPlanError(null);
+    setActionError(null);
     setPlanning(true);
-    await onLogged();
+    await onChanged();
     setPlanning(false);
     setLastAction({
       kind: "logged",
@@ -120,10 +120,10 @@ export function FilmActions({
 
   // Puts a logged film back on the Backlog where it was, with its Note.
   async function undo(mediaItemId: number, removed: RemovedListItem) {
-    setPlanError(null);
+    setActionError(null);
     const outcome = await api.plan({ mediaItemId, ...removed });
     if (!outcome.ok) {
-      setPlanError(outcome.error);
+      setActionError(outcome.error);
       return;
     }
     onPlanned(true);
@@ -140,7 +140,7 @@ export function FilmActions({
           stopping={stopping}
           onFinish={() => setFinishing(true)}
           onStop={stop}
-          onChanged={onLogged}
+          onChanged={onChanged}
         />
       )}
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">

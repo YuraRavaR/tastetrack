@@ -1,6 +1,6 @@
 // The Library: every Media Item of one Media Type that a User has in their Backlog, has In Progress
-// or has at least one Log Entry for. Route handlers only translate HTTP to these calls; Log Order and the Current
-// Rating are the domain core's (src/shared/log.ts).
+// or has at least one Log Entry for. Route handlers only translate HTTP to these calls; Log Order
+// and the Current Rating are the domain core's (src/shared/log.ts).
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import {
@@ -14,8 +14,7 @@ import {
 import type { LibraryItem, MediaType } from "../../shared/api";
 import { inLogOrder, toStars } from "../../shared/log";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem } from "../catalog/media-items";
-import { toInProgress } from "../log/in-progress";
-import { ownInProgress } from "../log/log-entries";
+import { ownInProgress, toInProgress } from "../log/log-entries";
 
 // The User's Library of the Media Type, each Media Item once, in two queries however large it is:
 // one for the Media Items, with when each was added to the Backlog and started, and one for the Log
@@ -32,8 +31,8 @@ export async function userLibrary(
     .where(
       and(eq(lists.userId, userId), eq(lists.kind, "backlog"), eq(lists.mediaType, mediaType)),
     );
-  // The Media Items in the Backlog, In Progress or logged, found through their indexes rather than by reading
-  // every Media Item of the type.
+  // The Media Items in the Backlog, In Progress or logged, found through their indexes rather than
+  // by reading every Media Item of the type.
   const inLibrary = sql`(
     select ${listItems.mediaItemId} from ${listItems} where ${inArray(listItems.listId, backlog)}
     union

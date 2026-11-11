@@ -158,18 +158,18 @@ test("a book's page says since when it is In Progress, and the start date can be
     ),
     201,
   );
-  const page = async () => {
+  const inProgressOnPage = async () => {
     const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
     return (await expectBody(history, 200, ItemHistoryResponse)).inProgress;
   };
-  expect(await page()).toEqual({ startDate: "2026-10-12", createdAt: startedAt });
+  expect(await inProgressOnPage()).toEqual({ startDate: "2026-10-12", createdAt: startedAt });
 
   const changed = loggedInApi.inProgress.updateStartDate(mediaItem.id, { startDate: "2026-09-30" });
 
   expect(await expectBody(changed)).toEqual({
     inProgress: { startDate: "2026-09-30", createdAt: startedAt },
   });
-  expect(await page()).toEqual({ startDate: "2026-09-30", createdAt: startedAt });
+  expect(await inProgressOnPage()).toEqual({ startDate: "2026-09-30", createdAt: startedAt });
 
   const cleared = loggedInApi.inProgress.updateStartDate(mediaItem.id, { startDate: null });
 

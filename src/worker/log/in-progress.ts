@@ -15,13 +15,13 @@ import type {
 import { type LogDateProblem, logDateProblem } from "../../shared/log";
 import { visibleTo } from "../catalog/media-items";
 import { takeOffBacklog } from "../lists/backlog";
-import { type CreatedLogEntry, createLogEntry, ownInProgress } from "./log-entries";
-
-const inProgressColumns = { startDate: inProgress.startDate, createdAt: inProgress.createdAt };
-
-export function toInProgress(row: { startDate: string | null; createdAt: Date }): InProgress {
-  return { startDate: row.startDate, createdAt: row.createdAt.toISOString() };
-}
+import {
+  type CreatedLogEntry,
+  createLogEntry,
+  inProgressColumns,
+  ownInProgress,
+  toInProgress,
+} from "./log-entries";
 
 export type NewInProgress = Required<Omit<NewInProgressRequest, "timeZone">> &
   Pick<NewInProgressRequest, "timeZone">;

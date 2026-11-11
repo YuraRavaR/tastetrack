@@ -4,6 +4,7 @@ import { and, type Column, eq, exists, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { catalogCache, inProgress, logEntries, mediaItems } from "../../db/schema";
 import type {
+  InProgress,
   ItemHistoryResponse,
   LogEntry,
   LogEntryEditRequest,
@@ -125,9 +126,18 @@ export async function createLogEntry(
   return { ok: true, logEntry: toLogEntry(row), removedFromBacklog: removed ?? null, ...item };
 }
 
-// The User's In Progress of the Media Item.
+// The User's In Progress of the Media Item, which finishing it checks and ends.
 export function ownInProgress(userId: number, mediaItemId: number | Column) {
   return and(eq(inProgress.userId, userId), eq(inProgress.mediaItemId, mediaItemId));
+}
+
+export const inProgressColumns = {
+  startDate: inProgress.startDate,
+  createdAt: inProgress.createdAt,
+};
+
+export function toInProgress(row: { startDate: string | null; createdAt: Date }): InProgress {
+  return { startDate: row.startDate, createdAt: row.createdAt.toISOString() };
 }
 
 // One of the User's own Log Entries: another User's is as unknown as one that doesn't exist.
@@ -213,10 +223,7 @@ export async function itemHistory(
       .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))
       .orderBy(logEntries.id),
     isInBacklog(db, userId, mediaItemId),
-    db
-      .select({ startDate: inProgress.startDate, createdAt: inProgress.createdAt })
-      .from(inProgress)
-      .where(ownInProgress(userId, mediaItemId)),
+    db.select(inProgressColumns).from(inProgress).where(ownInProgress(userId, mediaItemId)),
   ]);
   if (!item) return null;
   const current = currentRating(rows);
@@ -225,9 +232,7 @@ export async function itemHistory(
     logEntries: inLogOrder(rows).map(toLogEntry),
     currentRating: current === null ? null : toStars(current),
     inBacklog,
-    inProgress: started[0]
-      ? { startDate: started[0].startDate, createdAt: started[0].createdAt.toISOString() }
-      : null,
+    inProgress: started[0] ? toInProgress(started[0]) : null,
   };
 }
 

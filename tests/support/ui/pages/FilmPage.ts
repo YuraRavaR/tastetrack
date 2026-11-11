@@ -24,13 +24,14 @@ class InProgressCard extends ScopedComponent {
   }
 }
 
+type DateChip = "Today" | "Yesterday" | "Other date" | "No date";
+
 // The dialog that changes when a Media Item In Progress was started, with a Log Entry's date chips.
 class StartDateDialog extends ScopedComponent {
   readonly dateInput = this.root.getByLabel("Start date", { exact: true });
   readonly saveButton = this.root.getByRole("button", { name: "Save" });
 
-  // Today, Yesterday, Other date or No date.
-  dateChip(name: string) {
+  dateChip(name: DateChip) {
     return this.root.getByRole("button", { name });
   }
 }
