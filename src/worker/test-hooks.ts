@@ -4,7 +4,7 @@ import { z } from "@hono/zod-openapi";
 import { inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { catalogCache, listItems, lists, logEntries, mediaItems } from "../db/schema";
-import { type ErrorResponse, Password, Username } from "../shared/api";
+import { type ErrorResponse, MediaType, Password, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
 import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
@@ -13,7 +13,7 @@ import { byCacheKey } from "./catalog/media-items";
 import { sourceNamed } from "./catalog/registry";
 import { sourceFakes } from "./catalog/source-fakes";
 import { type AppEnv, requestHasTestHooksAccess, testHooksOn } from "./env";
-import { fillBacklog } from "./lists/backlog";
+import { fillBacklog, removeBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
 
 export const testHooks = new Hono<AppEnv>();
@@ -106,6 +106,17 @@ testHooks.post("/users/:username/backlog", async (c) => {
   const body = ListFill.safeParse(await c.req.json().catch(() => undefined));
   if (!body.success) return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
   if (!(await fillBacklog(c.var.db, c.req.param("username"), body.data.count, c.var.now))) {
+    return c.notFound();
+  }
+  return c.body(null, 204);
+});
+
+// Takes away a User's Backlog of a Media Type, as for a User made by code from before that Media
+// Type had one, so tests reach the Worker making it on demand.
+testHooks.delete("/users/:username/backlog", async (c) => {
+  const mediaType = MediaType.safeParse(c.req.query("mediaType"));
+  if (!mediaType.success) return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
+  if (!(await removeBacklog(c.var.db, c.req.param("username"), mediaType.data))) {
     return c.notFound();
   }
   return c.body(null, 204);

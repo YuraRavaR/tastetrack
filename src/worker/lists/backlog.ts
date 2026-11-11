@@ -53,12 +53,20 @@ export function createBacklogs(db: DrizzleD1Database, user: SQL) {
   return [first, ...rest] as const;
 }
 
+// Makes whichever Backlogs the User lacks, as registration does. A User made by code from before a
+// Media Type had a Backlog has none of that type: the Operator CLI run from an older checkout, or
+// a registration between a deploy's migration, which gives every User then existing one, and its
+// new Worker. So a Backlog that isn't there is made the first time it is needed.
+async function makeMissingBacklogs(db: DrizzleD1Database, userId: number): Promise<void> {
+  await db.batch(createBacklogs(db, eq(users.id, userId)));
+}
+
 function backlogOf(userId: number, mediaType: MediaType) {
   return and(eq(lists.userId, userId), eq(lists.kind, "backlog"), eq(lists.mediaType, mediaType));
 }
 
 // The User's Backlog of the Media Type, its Share Link at `origin` while it has one, and its items
-// in order, in two queries however long it is.
+// in order, in two queries however long it is. A Backlog the User lacks is made, empty.
 export async function userBacklog(
   db: DrizzleD1Database,
   userId: number,
@@ -67,16 +75,22 @@ export async function userBacklog(
   now: Date,
 ): Promise<Backlog> {
   const own = backlogOf(userId, mediaType);
-  const [[backlog], rows] = await Promise.all([
-    db
-      .select({ id: lists.id, visibility: lists.visibility, shareToken: shareLinks.token })
-      .from(lists)
-      .leftJoin(shareLinks, eq(shareLinks.listId, lists.id))
-      .where(own),
-    selectListItems(db, now)
-      .where(own)
-      .orderBy(...listOrder),
-  ]);
+  const read = () =>
+    Promise.all([
+      db
+        .select({ id: lists.id, visibility: lists.visibility, shareToken: shareLinks.token })
+        .from(lists)
+        .leftJoin(shareLinks, eq(shareLinks.listId, lists.id))
+        .where(own),
+      selectListItems(db, now)
+        .where(own)
+        .orderBy(...listOrder),
+    ]);
+  let [[backlog], rows] = await read();
+  if (!backlog) {
+    await makeMissingBacklogs(db, userId);
+    [[backlog], rows] = await read();
+  }
   if (!backlog) throw new Error(`User ${userId} has no ${mediaType} Backlog`);
   return {
     id: backlog.id,
@@ -94,26 +108,34 @@ export type Planned =
 // Marks a Media Item Planned: adds it to the User's Backlog of its Media Type, at `position` when
 // given and at the end otherwise, with its Note. A Media Item already there keeps its place and
 // Note; `created` is false then. Planning a Media Item back where logging took it from, with its
-// Note, undoes that. A Backlog holds at most `maxListItems`. Another User's Manual Media Item is as
-// unknown as one that doesn't exist.
+// Note, undoes that. A Backlog holds at most `maxListItems`, and one the User lacks is made first.
+// Another User's Manual Media Item is as unknown as one that doesn't exist.
 export async function plan(
   db: DrizzleD1Database,
   userId: number,
   request: PlanRequest,
   now: Date,
 ): Promise<Planned> {
-  const [found] = await db
-    .select({ backlogId: lists.id })
-    .from(mediaItems)
-    .leftJoin(
-      lists,
-      and(
-        eq(lists.userId, userId),
-        eq(lists.kind, "backlog"),
-        eq(lists.mediaType, mediaItems.mediaType),
-      ),
-    )
-    .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId)));
+  const find = async () => {
+    const [found] = await db
+      .select({ backlogId: lists.id })
+      .from(mediaItems)
+      .leftJoin(
+        lists,
+        and(
+          eq(lists.userId, userId),
+          eq(lists.kind, "backlog"),
+          eq(lists.mediaType, mediaItems.mediaType),
+        ),
+      )
+      .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId)));
+    return found;
+  };
+  let found = await find();
+  if (found?.backlogId === null) {
+    await makeMissingBacklogs(db, userId);
+    found = await find();
+  }
   if (!found) return { ok: false, error: "unknown_media_item" };
   const { backlogId } = found;
   if (backlogId === null)
@@ -216,6 +238,26 @@ export function takeOffBacklog(
     db.select({ position: listIndex, note: listItems.note }).from(listItems).where(inBacklog),
     db.delete(listItems).where(inBacklog),
   ] as const;
+}
+
+// For the test hooks only: deletes the Backlog of the Media Type of the User with the Username, with
+// its items. False when there is no such Backlog.
+export async function removeBacklog(
+  db: DrizzleD1Database,
+  username: string,
+  mediaType: MediaType,
+): Promise<boolean> {
+  const user = db
+    .select({ id: users.id })
+    .from(users)
+    .where(sql`lower(${users.username}) = lower(${username})`);
+  const deleted = await db
+    .delete(lists)
+    .where(
+      and(inArray(lists.userId, user), eq(lists.kind, "backlog"), eq(lists.mediaType, mediaType)),
+    )
+    .returning({ id: lists.id });
+  return deleted.length > 0;
 }
 
 // For the test hooks only: plans `count` placeholder films, which have no metadata, for the User
