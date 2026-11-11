@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/YuraRavaR/tastetrack/compare/v0.10.0...v0.11.0) (2026-11-11)
+
+
+### Features
+
+* **ops:** back up each D1, encrypted, before every deploy migrates it ([#197](https://github.com/YuraRavaR/tastetrack/issues/197)) ([ac6ff43](https://github.com/YuraRavaR/tastetrack/commit/ac6ff431943a2a6e6a7438fa736081b1a1509100))
+
 ## [0.10.0](https://github.com/YuraRavaR/tastetrack/compare/v0.9.0...v0.10.0) (2026-11-11)
 
 
