@@ -50,6 +50,10 @@ jobs:
         env:
           D1_BACKUP_RECIPIENT: ${{ vars.D1_BACKUP_RECIPIENT }}
         run: |
+          if [ -z "$D1_BACKUP_RECIPIENT" ]; then
+            echo "::error::Set the D1_BACKUP_RECIPIENT repo variable to the age public key backups are for (docs/production.md)."
+            exit 1
+          fi
           pnpm exec wrangler d1 time-travel info tastetrack-staging
           pnpm backup take --env staging --output "$RUNNER_TEMP/d1-backup-staging.sql.age"
 

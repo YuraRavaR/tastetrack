@@ -58,7 +58,8 @@ async function take(args: string[]): Promise<void> {
   // The schema, then the rows. One export writes each table's rows after its own CREATE, in the
   // order the tables were made, and a table a migration remade, such as users, comes after
   // tables whose rows refer to it: importing that fails with "no such table" once those rows
-  // exist. Nothing migrates while a deploy backs up, so the two exports see one schema.
+  // exist. Nothing migrates while a deploy backs up, so the two exports see one schema; each
+  // table's rows come from one moment, if not the same moment as the schema.
   const encrypted = await withTemporaryDirectory(async (directory) => {
     const parts = [];
     for (const part of ["--no-data", "--no-schema"]) {
@@ -74,8 +75,10 @@ async function take(args: string[]): Promise<void> {
 
 async function identity(): Promise<string> {
   const path = process.env.D1_BACKUP_IDENTITY || join(homedir(), "tastetrack-backup.key");
-  const file = await readFile(path, "utf8").catch(() => {
-    throw new BackupError(`No private key at ${path}. Set D1_BACKUP_IDENTITY to its file.`);
+  const file = await readFile(path, "utf8").catch((error: Error) => {
+    throw new BackupError(
+      `Can't read the private key at ${path} (${error.message}). Set D1_BACKUP_IDENTITY to its file.`,
+    );
   });
   const key = file.split("\n").find((line) => line.startsWith("AGE-SECRET-KEY-"));
   if (!key) throw new BackupError(`${path} holds no age private key.`);
@@ -111,7 +114,7 @@ async function restoreBackup(backup: string, directory: string): Promise<void> {
   const decrypter = new Decrypter();
   decrypter.addIdentity(await identity());
   const sql = await decrypter.decrypt(await readFile(backup)).catch(() => {
-    throw new BackupError(`${backup} doesn't open with this private key.`);
+    throw new BackupError(`${backup} doesn't open with this private key, or isn't a backup.`);
   });
   // The top-level config's DB binding, kept in the directory instead of .wrangler.
   const target = ["--local", "--persist-to", directory];

@@ -1,4 +1,6 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { generateIdentity, identityToRecipient } from "age-encryption";
 import { eq } from "drizzle-orm";
@@ -8,8 +10,20 @@ import { runBackup, runOperator } from "../support/operator";
 import { uniqueUsername } from "../support/scenarios/users";
 
 // `pnpm backup` against the local D1 that the `local` Worker serves. Each test makes its own key
-// pair; the backups and restored databases go in the test's output directory. Other tests' rows
-// are in the backup too, so a test looks only for its own.
+// pair. Other tests' rows are in the backup too, so a test looks only for its own.
+
+// Keys, backups and restored databases go in a temporary directory, not the test's output
+// directory: CI uploads that as a public artifact.
+let directory: string;
+const pathOf = (name: string) => join(directory, name);
+
+test.beforeEach(async () => {
+  directory = await mkdtemp(join(tmpdir(), "tastetrack-backup-test-"));
+});
+
+test.afterEach(async () => {
+  await rm(directory, { recursive: true, force: true });
+});
 
 // An age key pair, the private key in a file as age-keygen writes it.
 async function keyPair(path: string) {
@@ -19,7 +33,7 @@ async function keyPair(path: string) {
 }
 
 // A User with a session, so the backup holds rows that refer to the users table.
-async function loggedInUser(request: APIRequestContext): Promise<string> {
+async function usernameWithSession(request: APIRequestContext): Promise<string> {
   const username = uniqueUsername();
   const password = "a long enough password";
   await runOperator(["create-user", "--env", "local"], [username, password, password]);
@@ -30,10 +44,10 @@ async function loggedInUser(request: APIRequestContext): Promise<string> {
 
 test("a backup of the local D1 is encrypted and restores with its Users", async ({ request }) => {
   test.slow();
-  const username = await loggedInUser(request);
-  const { identityFile, recipient } = await keyPair(test.info().outputPath("key.txt"));
-  const backup = test.info().outputPath("backup.sql.age");
-  const restored = test.info().outputPath("restored");
+  const username = await usernameWithSession(request);
+  const { identityFile, recipient } = await keyPair(pathOf("key.txt"));
+  const backup = pathOf("backup.sql.age");
+  const restored = pathOf("restored");
 
   const take = await runBackup(["take", "--env", "local", "--output", backup], {
     D1_BACKUP_RECIPIENT: recipient,
@@ -60,7 +74,7 @@ test("a backup of the local D1 is encrypted and restores with its Users", async 
 });
 
 test("a backup isn't taken without the public key to encrypt it to", async () => {
-  const backup = test.info().outputPath("backup.sql.age");
+  const backup = pathOf("backup.sql.age");
 
   const take = await runBackup(["take", "--env", "local", "--output", backup], {
     D1_BACKUP_RECIPIENT: "",
@@ -73,19 +87,20 @@ test("a backup isn't taken without the public key to encrypt it to", async () =>
 
 test("a backup doesn't restore with another private key", async () => {
   test.slow();
-  const owner = await keyPair(test.info().outputPath("owner.txt"));
-  const stranger = await keyPair(test.info().outputPath("stranger.txt"));
-  const backup = test.info().outputPath("backup.sql.age");
-  const restored = test.info().outputPath("restored");
-  await runBackup(["take", "--env", "local", "--output", backup], {
+  const owner = await keyPair(pathOf("owner.txt"));
+  const stranger = await keyPair(pathOf("stranger.txt"));
+  const backup = pathOf("backup.sql.age");
+  const restored = pathOf("restored");
+  const take = await runBackup(["take", "--env", "local", "--output", backup], {
     D1_BACKUP_RECIPIENT: owner.recipient,
   });
+  expect(take.code).toBe(0);
 
   const restore = await runBackup(["restore", backup, "--to", restored], {
     D1_BACKUP_IDENTITY: stranger.identityFile,
   });
 
   expect(restore.code).toBe(1);
-  expect(restore.stderr).toContain(`${backup} doesn't open with this private key.`);
+  expect(restore.stderr).toContain(`${backup} doesn't open with this private key`);
   await expect(access(restored)).rejects.toThrow();
 });

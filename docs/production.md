@@ -17,9 +17,9 @@ The same smoke test (`pnpm test:smoke`) runs on every PR against a local Worker 
 Every deploy, staging and production, backs up its database right before applying migrations, and stops before them if the backup fails:
 
 - The log shows the D1 Time Travel bookmark from just before the migrations, the exact point to restore to if they go wrong.
-- `pnpm backup take` exports the database and encrypts the export with [age](https://age-encryption.org) to the Operator's public key, the repo variable `D1_BACKUP_RECIPIENT`. The export in the clear never leaves the runner's temporary directory.
+- `pnpm backup take` exports the database and encrypts the export with [age](https://age-encryption.org) to the Operator's public key, the repo variable `D1_BACKUP_RECIPIENT`. The export in the clear exists only in a temporary directory on the runner, deleted once it is encrypted.
 - The encrypted file is uploaded as the run's `d1-backup-staging` or `d1-backup-production` artifact and kept 90 days. This repo's artifacts are public, which is why nothing else goes up: only the Operator's private key opens it.
-- The database doesn't serve requests while the export runs, so expect a pause of a few seconds at the current data size.
+- The database doesn't serve requests while it is exported, schema then rows, so expect two short pauses at the current data size.
 
 To look at a backup, or to get data back from one, restore it into a local D1:
 

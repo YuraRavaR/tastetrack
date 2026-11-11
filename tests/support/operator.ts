@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 
-export interface OperatorResult {
+export interface ScriptResult {
   code: number | null;
   stdout: string;
   stderr: string;
@@ -12,7 +12,7 @@ function runScript(
   script: string,
   args: string[],
   { answers = [], env = {} }: { answers?: string[]; env?: Record<string, string> },
-): Promise<OperatorResult> {
+): Promise<ScriptResult> {
   return new Promise((resolve, reject) => {
     const child = spawn("node", ["--import", "tsx", script, ...args], {
       stdio: ["pipe", "pipe", "pipe"],
@@ -33,11 +33,11 @@ function runScript(
 }
 
 // The Operator CLI, `pnpm operator`.
-export function runOperator(args: string[], answers: string[]): Promise<OperatorResult> {
+export function runOperator(args: string[], answers: string[]): Promise<ScriptResult> {
   return runScript("scripts/operator.ts", args, { answers });
 }
 
 // The D1 backup script, `pnpm backup`.
-export function runBackup(args: string[], env: Record<string, string>): Promise<OperatorResult> {
+export function runBackup(args: string[], env: Record<string, string>): Promise<ScriptResult> {
   return runScript("scripts/d1-backup.ts", args, { env });
 }

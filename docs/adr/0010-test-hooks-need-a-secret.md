@@ -25,6 +25,6 @@ Nothing here rate-limits requests. Separating staging into its own Cloudflare ac
 
 - The test side sends the secret only on requests that use a hook, never as a context-wide header, so it doesn't reach third parties from the browser.
 - The TMDB fake can't sit behind the secret, because the `local` Worker calls itself without it. Only a Worker whose `TMDB_BASE_URL` points at the fake serves it, so staging has none.
-- Staging runs publish `playwright-staging.enc` and nothing else, encrypted with `STAGING_REPORT_KEY`; `pnpm test:report` opens it. Don't upload a staging run's `test-results/` or `playwright-report/` in the clear. A missing key fails the run rather than publishing anything.
+- Staging runs publish `playwright-staging.enc`, encrypted with `STAGING_REPORT_KEY`, which `pnpm test:report` opens, and the D1 backup taken before migrations, encrypted with age (ADR-0009), and nothing else (revised 2026-11-11, #195). Don't upload a staging run's `test-results/` or `playwright-report/` in the clear. A missing key fails the run rather than publishing anything.
 - Job logs stay public. GitHub masks the secret there, but not test Users' logins, so a failure message can show one.
 - `TEST_HOOKS_SECRET` lives on the Worker and in the `staging` GitHub environment. A mismatch shows up as 404s in the staging smoke tests.
