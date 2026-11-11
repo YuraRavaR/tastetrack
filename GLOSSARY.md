@@ -58,7 +58,7 @@ _Avoid_: Watch, view, diary entry, log (for a single record)
 The User action that creates a Log Entry ("Watched" for films and "Read" for books in the UI).
 _Avoid_: Watched (as a domain term), seen, consumed
 
-**In Progress** _(planned)_:
+**In Progress**:
 The state of a Media Item that a User has started and not yet finished, separate from their Log Entries and Backlog ("Reading" for books in the UI).
 _Avoid_: Reading (as a domain term), currently reading, started, ongoing
 
@@ -101,7 +101,7 @@ A named, ordered collection of Media Items of one Media Type, owned by a User; i
 _Avoid_: Collection (as a domain term), playlist, custom list
 
 **Library**:
-All of one User's Media Items of one Media Type that are in their Backlog, are In Progress _(planned)_ or have at least one of their Log Entries ("Saved" in the UI).
+All of one User's Media Items of one Media Type that are in their Backlog, are In Progress or have at least one of their Log Entries ("Saved" in the UI).
 _Avoid_: Saved (as a domain term), shelf, collection
 
 **List Item**:

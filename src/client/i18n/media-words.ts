@@ -1,5 +1,6 @@
 import type { PrimitiveType } from "intl-messageformat";
 import type { MediaType } from "../../shared/api";
+import type { ProgressMediaType } from "../catalog/media-types";
 import { t } from "./t";
 
 // The UI words that differ per Media Type (ADR-0005): the Experienced verb, for the first time and
@@ -77,6 +78,31 @@ type MediaWord =
 // What a page with no Media Item of its own reads its words by, until it offers more Media Types
 // than films.
 export const pageMediaType: MediaType = "film";
+
+// The words of In Progress, for a Media Type that has it: its name and the tab's, starting it for
+// the first time and again, finishing and stopping it, the heading over what is In Progress on
+// Saved, what its tab says while empty, what the toast says once it is started or stopped, and
+// what fails.
+type ProgressWord =
+  | "inProgress"
+  | "start"
+  | "startAgain"
+  | "finish"
+  | "stop"
+  | "inProgressNow"
+  | "inProgressEmpty"
+  | "started"
+  | "stopped"
+  | "startFailed"
+  | "stopFailed";
+
+export function progressWord(
+  mediaType: ProgressMediaType,
+  word: ProgressWord,
+  values?: Record<string, PrimitiveType>,
+): string {
+  return t(`mediaType.${mediaType}.${word}`, values);
+}
 
 // A new Media Type doesn't compile until the catalogue has all its words.
 export function mediaWord(

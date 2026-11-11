@@ -10,13 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import type { LogEntry, MediaItem, MediaType } from "../../shared/api";
-import { earliestLogDate, latestLogDate, maxReviewLength } from "../../shared/log";
+import { maxReviewLength } from "../../shared/log";
 import * as api from "../api";
 import { filmName } from "../catalog/film-label";
 import {
@@ -30,14 +28,11 @@ import {
 } from "../catalog/found";
 import { mediaWord } from "../i18n/media-words";
 import { formatCalendarDate, t } from "../i18n/t";
-import { type DateChip, dateChipFor, dateChips, dateOfChip } from "../log/date-chips";
+import { userTimeZone, userToday } from "../log/user-day";
+import { LogDateField, logDateOf, logDateValue } from "./LogDateField";
 import { Poster } from "./Poster";
 import { RatingInput } from "./Rating";
 import { sheetClasses } from "./sheet";
-
-const userTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-const userToday = () => latestLogDate(new Date(), userTimeZone());
 
 // A new Log Entry's form: a Revisit when the User already has a Log Entry for the film.
 const newEntry = (inLog: boolean): FormValues => ({
@@ -139,12 +134,14 @@ export function LogEntryDialog({
 }
 
 // Marks a film Experienced from its page, as LogEntryDialog does from search, for a Media Item that
-// is already in the catalog. The dialog is open while `open` is set.
+// is already in the catalog. The dialog is open while `open` is set. While `finishing`, the entry
+// finishes the Media Item In Progress.
 export function MediaItemLogEntryDialog({
   mediaItem,
   open,
   inLog,
   inBacklog,
+  finishing = false,
   onClose,
   onLogged,
 }: {
@@ -152,6 +149,7 @@ export function MediaItemLogEntryDialog({
   open: boolean;
   inLog: boolean;
   inBacklog: boolean;
+  finishing?: boolean;
   onClose: () => void;
   onLogged: (saved: api.SavedLogEntry) => void;
 }) {
@@ -167,7 +165,11 @@ export function MediaItemLogEntryDialog({
           initial={newEntry(inLog)}
           loggedMediaItemId={inLog ? mediaItem.id : null}
           hint={backlogHint(mediaType, inBacklog)}
-          save={(fields) => api.createLogEntry({ mediaItemId: mediaItem.id, ...fields })}
+          save={(fields) =>
+            finishing
+              ? api.finishInProgress(mediaItem.id, fields)
+              : api.createLogEntry({ mediaItemId: mediaItem.id, ...fields })
+          }
           onSaved={onLogged}
         />
       </DialogContent>
@@ -243,13 +245,6 @@ const errorMessages = {
   unavailable: "logEntry.unavailable",
 } as const;
 
-const chipLabels = {
-  today: "logEntry.today",
-  yesterday: "logEntry.yesterday",
-  other: "logEntry.otherDate",
-  none: "logEntry.noDate",
-} as const;
-
 function LogEntryForm<Saved>({
   subject,
   mediaType,
@@ -279,8 +274,7 @@ function LogEntryForm<Saved>({
   // once, so an entry opened before midnight doesn't change day when it is saved after.
   const [today] = useState(userToday);
   const [rating, setRating] = useState(initial.rating);
-  const [chip, setChip] = useState(() => dateChipFor(initial.date, today));
-  const [otherDate, setOtherDate] = useState(() => (chip === "other" ? (initial.date ?? "") : ""));
+  const [date, setDate] = useState(() => logDateValue(initial.date, today));
   const [review, setReview] = useState(initial.review);
   const [revisit, setRevisit] = useState(initial.revisit);
   const [saving, setSaving] = useState(false);
@@ -295,25 +289,20 @@ function LogEntryForm<Saved>({
     if (error) bodyRef.current?.querySelector("[role=alert]")?.scrollIntoView({ block: "nearest" });
   }, [error]);
 
-  function pickChip(picked: DateChip) {
-    setChip(picked);
-    if (dateError) setError(null);
-  }
-
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (rating === null) {
       setError("rating");
       return;
     }
-    if (chip === "other" && !otherDate) {
+    if (date.chip === "other" && !date.otherDate) {
       setError("invalid_date");
       return;
     }
     setSaving(true);
     const outcome = await save({
       rating,
-      date: dateOfChip(chip, today, otherDate),
+      date: logDateOf(date, today),
       timeZone: userTimeZone(),
       review: review.trim() || null,
       revisit,
@@ -365,49 +354,17 @@ function LogEntryForm<Saved>({
           hint={lastEntry && <LastTime entry={lastEntry} />}
           error={error === "rating" ? t(errorMessages.rating) : null}
         />
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 font-medium text-sm">
-            {t("logEntry.date")}{" "}
-            <span className="font-normal text-muted-foreground">{t("logEntry.optional")}</span>
-          </legend>
-          <div className="flex flex-wrap gap-2">
-            {dateChips.map((option) => (
-              <Button
-                key={option}
-                type="button"
-                variant={chip === option ? "pressed" : "outline"}
-                aria-pressed={chip === option}
-                className={cn(
-                  "h-11 rounded-full px-3.5 font-normal md:h-9",
-                  chip === option && "font-semibold text-foreground",
-                )}
-                onClick={() => pickChip(option)}
-              >
-                {t(chipLabels[option])}
-              </Button>
-            ))}
-          </div>
-          {chip === "other" && (
-            <Input
-              type="date"
-              aria-label={mediaWord(mediaType, "dateExperienced")}
-              min={earliestLogDate}
-              max={today}
-              value={otherDate}
-              onChange={(event) => {
-                setOtherDate(event.target.value);
-                if (dateError) setError(null);
-              }}
-              aria-invalid={dateError || undefined}
-              className="h-11 w-auto self-start md:h-10"
-            />
-          )}
-          {dateError && (
-            <p role="alert" className="text-destructive text-sm">
-              {t(errorMessages[error])}
-            </p>
-          )}
-        </fieldset>
+        <LogDateField
+          legend={t("logEntry.date")}
+          dateLabel={mediaWord(mediaType, "dateExperienced")}
+          today={today}
+          value={date}
+          onChange={(changed) => {
+            setDate(changed);
+            if (dateError) setError(null);
+          }}
+          error={dateError ? t(errorMessages[error]) : null}
+        />
         <div className="flex flex-col gap-2">
           <Label htmlFor={ids.review} className="gap-1">
             {t("logEntry.review")}

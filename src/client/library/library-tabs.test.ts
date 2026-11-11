@@ -3,6 +3,7 @@ import type { LibraryItem } from "../../shared/api";
 import {
   backlogItems,
   experiencedItems,
+  inProgressItems,
   libraryPath,
   libraryTabOfSlug,
   libraryTabsOf,
@@ -13,10 +14,12 @@ let nextId = 1;
 
 function item({
   addedAt,
+  started,
   last,
   rating = 4,
 }: {
   addedAt?: string;
+  started?: { startDate: string | null; createdAt: string };
   last?: { date: string | null; createdAt: string };
   rating?: number;
 }): LibraryItem {
@@ -24,6 +27,7 @@ function item({
   return {
     mediaItem: { id, mediaType: "film", externalReference: null, metadata: null },
     backlog: addedAt ? { addedAt } : null,
+    inProgress: started ?? null,
     log: last ? { currentRating: rating, lastLogEntry: last } : null,
   };
 }
@@ -46,6 +50,27 @@ describe("the Backlog tab", () => {
     });
 
     expect(ids(backlogItems([rewatch]))).toEqual(ids([rewatch]));
+  });
+});
+
+describe("the In Progress tab", () => {
+  it("holds the Media Items In Progress, the latest started first, by start date then when marked", () => {
+    const planned = item({ addedAt: "2026-10-01T10:00:00.000Z" });
+    const october = item({
+      started: { startDate: "2026-10-12", createdAt: "2026-11-01T10:00:00.000Z" },
+    });
+    const november = item({
+      started: { startDate: "2026-11-03", createdAt: "2026-11-03T10:00:00.000Z" },
+    });
+    // With no start date, the day it was marked In Progress stands in for one.
+    const undated = item({ started: { startDate: null, createdAt: "2026-10-20T10:00:00.000Z" } });
+    const sameDay = item({
+      started: { startDate: "2026-11-03", createdAt: "2026-11-03T12:00:00.000Z" },
+    });
+
+    expect(ids(inProgressItems([planned, october, undated, november, sameDay]))).toEqual(
+      ids([sameDay, november, undated, october]),
+    );
   });
 });
 
@@ -79,7 +104,25 @@ describe("a Media Type's tile in Saved", () => {
       last: { date: "2026-08-01", createdAt: "2026-08-01T10:00:00.000Z" },
     });
 
-    expect(libraryTile([planned, watched, rewatch]).counts).toEqual({ backlog: 2, experienced: 2 });
+    expect(libraryTile([planned, watched, rewatch]).counts).toEqual({
+      backlog: 2,
+      inProgress: 0,
+      experienced: 2,
+    });
+  });
+
+  it("counts the Media Items In Progress, and lists them as their tab orders them", () => {
+    const first = item({
+      started: { startDate: "2026-10-12", createdAt: "2026-10-12T10:00:00.000Z" },
+    });
+    const second = item({
+      started: { startDate: "2026-11-03", createdAt: "2026-11-03T10:00:00.000Z" },
+    });
+    const tile = libraryTile([first, second]);
+
+    expect(tile.counts.inProgress).toBe(2);
+    expect(tile.empty).toBe(false);
+    expect(ids(tile.inProgress)).toEqual(ids([second, first]));
   });
 
   it("fans out the three films added to the Backlog last, the latest first", () => {
@@ -140,8 +183,15 @@ describe("a Media Type's tabs", () => {
     expect(libraryTabsOf("film")).toEqual(["backlog", "experienced"]);
   });
 
-  it("are the Reading list and Read, for books", () => {
-    expect(libraryTabsOf("book")).toEqual(["backlog", "experienced"]);
+  it("are the Reading list, Reading and Read, for books", () => {
+    expect(libraryTabsOf("book")).toEqual(["backlog", "inProgress", "experienced"]);
     expect(libraryTabOfSlug("book", "read")).toBe("experienced");
+    expect(libraryTabOfSlug("book", "reading")).toBe("inProgress");
+    expect(libraryPath("book", "inProgress")).toBe("/saved/books/reading");
+  });
+
+  it("have no In Progress tab for films", () => {
+    expect(libraryTabOfSlug("film", "reading")).toBeNull();
+    expect(libraryTabOfSlug("film", "watching")).toBeNull();
   });
 });

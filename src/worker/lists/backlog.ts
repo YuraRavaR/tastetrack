@@ -202,10 +202,16 @@ export async function removeFromBacklog(
   return removed.length > 0;
 }
 
-// Takes a Media Item off the User's Backlog, for the batch that logs it: the first statement reads
-// where it was and its Note, so that planning it back there can undo this; the second removes it.
-export function takeOffBacklog(db: DrizzleD1Database, userId: number, mediaItemId: number) {
-  const inBacklog = inBacklogOf(db, userId, mediaItemId);
+// Takes a Media Item off the User's Backlog, for the batch that logs or starts it: the first
+// statement reads where it was and its Note, so that planning it back there can undo this; the
+// second removes it. With `when`, both do so only while that holds.
+export function takeOffBacklog(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaItemId: number,
+  when?: SQL,
+) {
+  const inBacklog = and(inBacklogOf(db, userId, mediaItemId), when);
   return [
     db.select({ position: listIndex, note: listItems.note }).from(listItems).where(inBacklog),
     db.delete(listItems).where(inBacklog),

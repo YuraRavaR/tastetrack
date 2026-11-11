@@ -3,6 +3,9 @@ import type {
   CatalogSearchResponse,
   CatalogSearchResult,
   ErrorResponse,
+  FinishRequest,
+  InProgressEditRequest,
+  InProgressResponse,
   InviteCode,
   InviteCodeResponse,
   InviteCodesResponse,
@@ -33,6 +36,8 @@ import type {
   MediaItemResponse,
   MediaItemsResponse,
   MediaType,
+  NewInProgressRequest,
+  NewInProgressResponse,
   NewListItemRequest,
   NewListRequest,
   NewLogEntryRequest,
@@ -370,11 +375,12 @@ export type SaveLogEntryResult<Saved = NewLogEntryResponse> =
 
 const logEntryErrors = new Set<string>(["invalid_date", "date_too_early", "date_in_future"]);
 
-// Sends a new or edited Log Entry, and reads back the entry or the reason it was refused.
+// Sends a new or edited Log Entry, or anything else dated by its rules, and reads back what was
+// saved or the reason it was refused.
 async function sendLogEntry<Saved>(
   url: string,
   method: "POST" | "PATCH",
-  request: NewLogEntryRequest | LogEntryEditRequest,
+  request: NewLogEntryRequest | LogEntryEditRequest | FinishRequest | NewInProgressRequest,
 ): Promise<SaveLogEntryResult<Saved>> {
   try {
     const response = await fetch(url, {
@@ -410,6 +416,45 @@ export function editLogEntry(
 export async function deleteLogEntry(logEntryId: number): Promise<boolean> {
   try {
     const response = await fetch(`/api/log-entries/${logEntryId}`, { method: "DELETE" });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+// Starts a Media Item, marking it In Progress. Starting one already In Progress is refused as
+// unavailable: the page that offered it was out of date.
+export function startInProgress(
+  request: NewInProgressRequest,
+): Promise<SaveLogEntryResult<NewInProgressResponse>> {
+  return sendLogEntry<NewInProgressResponse>("/api/in-progress", "POST", request);
+}
+
+// Sets or clears when the User started a Media Item In Progress.
+export function changeStartDate(
+  mediaItemId: number,
+  edit: InProgressEditRequest,
+): Promise<SaveLogEntryResult<InProgressResponse>> {
+  return sendLogEntry<InProgressResponse>(`/api/in-progress/${mediaItemId}`, "PATCH", edit);
+}
+
+// Finishes a Media Item In Progress, recording a Log Entry as logging does.
+export function finishInProgress(
+  mediaItemId: number,
+  request: FinishRequest,
+): Promise<SaveLogEntryResult> {
+  return sendLogEntry<NewLogEntryResponse>(
+    `/api/in-progress/${mediaItemId}/finish`,
+    "POST",
+    request,
+  );
+}
+
+// Stops a Media Item In Progress, with no Log Entry. True once it is stopped, including when it
+// already was.
+export async function stopInProgress(mediaItemId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/in-progress/${mediaItemId}`, { method: "DELETE" });
     return response.ok || response.status === 404;
   } catch {
     return false;

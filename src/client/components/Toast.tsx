@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { MediaType, RemovedListItem } from "../../shared/api";
-import { mediaWord } from "../i18n/media-words";
+import { canProgress } from "../catalog/media-types";
+import { mediaWord, progressWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { libraryPath } from "../library/library-tabs";
 import { UndoLine } from "./UndoLine";
@@ -46,22 +47,40 @@ const actionMessages = {
 // The User's last action on a film, which the toast reports.
 export type FilmAction =
   | { kind: "logged"; mediaItemId: number; removedFromBacklog: RemovedListItem | null }
+  | { kind: "started"; removedFromBacklog: RemovedListItem | null }
+  | { kind: "stopped" }
   | { kind: keyof typeof actionMessages };
 
 // Reports a film's action: `film` is its label. Logging links to Saved's tab of what the User
-// experienced, and takes a film off the Backlog, which `onUndo` puts back where it was.
+// experienced, and takes a film off the Backlog, which `onUndo` puts back where it was. Starting
+// offers `onUndoStart`, which takes back the whole start, Backlog included.
 export function FilmActionMessage({
   action,
   film,
   mediaType,
   onUndo,
+  onUndoStart,
 }: {
   action: FilmAction;
   film: string;
   mediaType: MediaType;
   onUndo: (mediaItemId: number, removed: RemovedListItem) => void;
+  onUndoStart?: (removed: RemovedListItem | null) => void;
 }) {
   const backlogName = mediaWord(mediaType, "backlog");
+  if (action.kind === "stopped" || action.kind === "started") {
+    if (!canProgress(mediaType)) return null;
+    if (action.kind === "stopped" || !onUndoStart) {
+      return <p>{progressWord(mediaType, action.kind, { film })}</p>;
+    }
+    const { removedFromBacklog } = action;
+    return (
+      <UndoLine
+        message={progressWord(mediaType, "started", { film })}
+        onUndo={() => onUndoStart(removedFromBacklog)}
+      />
+    );
+  }
   if (action.kind !== "logged") {
     return <p>{t(actionMessages[action.kind], { film, backlogName })}</p>;
   }

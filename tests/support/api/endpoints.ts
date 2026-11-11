@@ -19,6 +19,11 @@ export const endpoints = {
     mediaItemHistory: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/history`,
     mediaItemLists: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/lists`,
   },
+  inProgress: {
+    collection: "/api/in-progress",
+    byMediaItem: (mediaItemId: number) => `/api/in-progress/${mediaItemId}`,
+    finish: (mediaItemId: number) => `/api/in-progress/${mediaItemId}/finish`,
+  },
   inviteCodes: "/api/invite-codes",
   library: "/api/library",
   listItems: {

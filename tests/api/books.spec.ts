@@ -107,6 +107,7 @@ test("a book's page shows it to a User who has done nothing with it", async ({ l
     logEntries: [],
     currentRating: null,
     inBacklog: false,
+    inProgress: null,
   });
 });
 
@@ -141,7 +142,7 @@ test("a book marked Planned is in the Backlog and the Library of books, and take
   expect(listItem).toEqual({ id: expect.any(Number), mediaItem, position: 0, note: null });
   expect((await expectBody(books())).backlog.items).toEqual([listItem]);
   expect((await expectBody(library(), 200, LibraryResponse)).items).toEqual([
-    { mediaItem, backlog: { addedAt }, log: null },
+    { mediaItem, backlog: { addedAt }, inProgress: null, log: null },
   ]);
   const page = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
   expect((await expectBody(page, 200, ItemHistoryResponse)).inBacklog).toBe(true);
@@ -230,6 +231,7 @@ test("logging a book from the Reading list returns the Log Entry and where the b
   expect(items.find((item) => item.mediaItem.id === logged.id)).toEqual({
     mediaItem: logged,
     backlog: null,
+    inProgress: null,
     log: {
       currentRating: 4.5,
       lastLogEntry: { date: "2026-10-01", createdAt: loggedAt },
@@ -272,6 +274,7 @@ test("a Reread is recorded as a Revisit, and a book's Readings and Current Ratin
     {
       mediaItem,
       backlog: null,
+      inProgress: null,
       log: { currentRating: 5, lastLogEntry: { date: "2026-03-02", createdAt: revisitAt } },
     },
   ]);

@@ -101,7 +101,9 @@ export const en = {
   "mediaType.book.collection": "Book collection",
   "mediaType.book.lastExperienced": "Last read",
   "mediaType.book.noMatch": "No books match these filters.",
-  "mediaType.book.tileCounts": "{backlog} to read · {experienced} read",
+  // The books being read show only while there are some: Reading is a passing state.
+  "mediaType.book.tileCounts":
+    "{backlog} to read{inProgress, plural, =0 {} other { · # reading}} · {experienced} read",
   "mediaType.book.sortYear": "First published",
   "mediaType.book.backlogFull":
     "Your Reading list is full: it holds up to {max, number} books. Remove or log some to make room.",
@@ -138,8 +140,27 @@ export const en = {
   "mediaType.book.collectionTick":
     "Tick a Collection to add the book, untick it to take the book off.",
   "mediaType.book.sharedEmpty": "There are no books here yet.",
+  // In Progress, for the Media Types that have it (catalog/media-types.ts).
+  "mediaType.book.inProgress": "Reading",
+  "mediaType.book.start": "Start reading",
+  "mediaType.book.startAgain": "Start rereading",
+  "mediaType.book.finish": "Finished",
+  "mediaType.book.stop": "Stop reading",
+  "mediaType.book.inProgressNow": "Reading now",
+  "mediaType.book.inProgressEmpty": "Books you start reading show up here.",
+  "mediaType.book.started": "Started reading {film}.",
+  "mediaType.book.stopped": "Stopped reading {film}.",
+  "mediaType.book.startFailed": "Couldn't start reading. Please try again.",
+  "mediaType.book.stopFailed": "Couldn't stop reading. Please try again.",
   // A Media Type still to come, shown as a stub where a section offers the Media Types.
   "mediaType.series.tab": "Series",
+  "inProgress.since": "Since {date}",
+  "inProgress.authorAndSince": "{author} · since {date}",
+  "inProgress.changeStartDate": "Change the start date",
+  "inProgress.startDate": "Start date",
+  "inProgress.save": "Save",
+  "inProgress.saving": "Saving…",
+  "inProgress.unavailable": "Couldn't save the start date. Please try again.",
   "account.menu": "Account menu",
   "login.title": "Log in",
   "login.username": "Username",
@@ -475,6 +496,7 @@ export const en = {
   "saved.rating.top": "{rating}★ only",
   "saved.clearFilters": "Clear filters",
   "saved.nothingYet": "Nothing saved yet.",
+  "saved.sort.started": "Started",
   "saved.comingSoon": "Coming soon",
   "mediaTypeChips.label": "Category",
   // "Coming soon" where a chip has no room for it.

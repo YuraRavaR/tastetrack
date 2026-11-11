@@ -3,7 +3,7 @@ import { PosterGridItem } from "../components/PosterGridItem";
 import { BasePage } from "./BasePage";
 
 // A film's tabs and a book's.
-export type LibraryTab = "Watchlist" | "Watched" | "Reading list" | "Read";
+export type LibraryTab = "Watchlist" | "Watched" | "Reading list" | "Reading" | "Read";
 
 // The chips above the grid: the sort, then the filters; Genre only for films, Rating only on
 // Watched.
@@ -13,11 +13,12 @@ const tabPaths: Record<LibraryTab, string> = {
   Watchlist: "films/watchlist",
   Watched: "films/watched",
   "Reading list": "books/reading-list",
+  Reading: "books/reading",
   Read: "books/read",
 };
 
-// Saved for one Media Type: a film's Watchlist and Watched tabs and a book's Reading list and Read,
-// each a grid of covers.
+// Saved for one Media Type: a film's Watchlist and Watched tabs and a book's Reading list, Reading
+// and Read, each a grid of covers.
 export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
   path(tab: LibraryTab = "Watchlist") {
     return `/saved/${tabPaths[tab]}`;
@@ -45,9 +46,9 @@ export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
     return this.main.getByText(content);
   }
 
-  // A tab's link, named with its count, such as "Watchlist 2".
+  // A tab's link, named with its count, such as "Watchlist 2", or without it while it loads.
   tab(name: LibraryTab) {
-    return this.tabsNav.getByRole("link", { name: new RegExp(`^${name}\\b`) });
+    return this.tabsNav.getByRole("link", { name: new RegExp(`^${name}( \\d+)?$`) });
   }
 
   // The posters of the tab that is open.

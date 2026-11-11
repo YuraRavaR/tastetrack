@@ -187,7 +187,7 @@ test("the Books page shows the Reading list as covers with their authors, the la
   await expect(page).toHaveTitle("Reading list · Books · TasteTrack");
   await expect(libraryPage.heading).toHaveText("Books");
   await expect(libraryPage.breadcrumb).toHaveText("SavedBooks");
-  await expect(libraryPage.tabs).toHaveCount(2);
+  await expect(libraryPage.tabs).toHaveCount(3);
   await expect(libraryPage.tab("Reading list")).toHaveAccessibleName("Reading list 4");
   await expect(libraryPage.tab("Read")).toHaveAccessibleName("Read 0");
   await expect(libraryPage.tab("Reading list")).toHaveAttribute("aria-current", "page");

@@ -62,3 +62,13 @@ export const maxManualMediaItems = 1_000;
 // A page fetches the metadata of at most this many films missing from the catalog cache, and shows
 // the rest as placeholders, which the client then loads this many at a time (ADR-0004).
 export const maxMetadataFills = 10;
+
+// The Media Types a User can have In Progress: started and not yet finished (ADR-0005). A film is
+// watched in one sitting, so it has none.
+export const progressMediaTypes = ["book"] as const;
+
+export type ProgressMediaType = (typeof progressMediaTypes)[number];
+
+export function canProgress(mediaType: string): mediaType is ProgressMediaType {
+  return (progressMediaTypes as readonly string[]).includes(mediaType);
+}

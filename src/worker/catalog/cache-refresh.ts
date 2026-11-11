@@ -4,7 +4,7 @@
 // which an expired one counts as.
 import { and, asc, eq, exists, isNull, lt, not, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { catalogCache, listItems, logEntries, mediaItems } from "../../db/schema";
+import { catalogCache, inProgress, listItems, logEntries, mediaItems } from "../../db/schema";
 import { type CacheKey, cacheKeyId, fetchDetails, storeDetails } from "./media-items";
 import { expiredEntries, sourceOf } from "./registry";
 import type { CatalogEnv } from "./source";
@@ -32,7 +32,7 @@ function before(now: Date, age: number): Date {
   return new Date(now.getTime() - age);
 }
 
-// The cache entry's Media Item, when a Log Entry or List Item references it.
+// The cache entry's Media Item, when a Log Entry, List Item or In Progress references it (ADR-0011).
 function referenced(db: DrizzleD1Database) {
   return exists(
     db
@@ -56,6 +56,12 @@ function referenced(db: DrizzleD1Database) {
                 .from(listItems)
                 .where(eq(listItems.mediaItemId, mediaItems.id)),
             ),
+            exists(
+              db
+                .select({ userId: inProgress.userId })
+                .from(inProgress)
+                .where(eq(inProgress.mediaItemId, mediaItems.id)),
+            ),
           ),
         ),
       ),
@@ -63,11 +69,12 @@ function referenced(db: DrizzleD1Database) {
 }
 
 // The cache entries the cron refreshes next, as many as `budget` subrequests refresh: those a Log
-// Entry or List Item references and that are a week old, or were filled from a search result
-// alone, at any age. Those the cron hasn't tried since come first, then the rest by when they were
-// last filled or tried, so an entry its source never answers for goes to the back each run instead
-// of taking the batch for good. The batch stops at the first entry that doesn't fit, so none jumps
-// the order. A referenced Media Item with no entry isn't due: the first page to show it fills it.
+// Entry, List Item or In Progress references and that are a week old, or were filled from a search
+// result alone, at any age. Those the cron hasn't tried since come first, then the rest by when
+// they were last filled or tried, so an entry its source never answers for goes to the back each
+// run instead of taking the batch for good. The batch stops at the first entry that doesn't fit, so
+// none jumps the order. A referenced Media Item with no entry isn't due: the first page to show it
+// fills it.
 // Nothing reads an unreferenced entry, so it is never refreshed.
 export async function dueForRefresh(
   db: DrizzleD1Database,

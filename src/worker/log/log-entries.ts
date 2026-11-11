@@ -1,9 +1,10 @@
 // Log Entries: the Experienced action and the Log. Route handlers only translate HTTP to these
 // calls; the rules themselves are the domain core's (src/shared/log.ts).
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, type Column, eq, exists, inArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { catalogCache, logEntries, mediaItems } from "../../db/schema";
+import { catalogCache, inProgress, logEntries, mediaItems } from "../../db/schema";
 import type {
+  InProgress,
   ItemHistoryResponse,
   LogEntry,
   LogEntryEditRequest,
@@ -56,7 +57,11 @@ function toLogEntry(row: LogEntryRow): LogEntry {
 export type NewLogEntry = Required<Omit<NewLogEntryRequest, "timeZone">> &
   Pick<NewLogEntryRequest, "timeZone">;
 
-export type LogEntryProblem = LogDateProblem | "invalid_rating" | "unknown_media_item";
+export type LogEntryProblem =
+  | LogDateProblem
+  | "invalid_rating"
+  | "unknown_media_item"
+  | "not_in_progress";
 
 export type CreatedLogEntry =
   | ({ ok: true; logEntry: LogEntry; removedFromBacklog: RemovedListItem | null } & LoggedMediaItem)
@@ -66,12 +71,14 @@ export type CreatedLogEntry =
 // batch; `removedFromBacklog` says where it was, so the client can offer to undo that. It answers
 // with the Media Item's Current Rating and number of Log Entries now. A first entry may be a
 // Revisit, and an empty Review counts as none. Another User's Manual Media Item is as unknown as
-// one that doesn't exist.
+// one that doesn't exist. `finishing` records it only for a Media Item the User has In Progress,
+// and ends that in the same batch.
 export async function createLogEntry(
   db: DrizzleD1Database,
   userId: number,
   request: NewLogEntry,
   now: Date,
+  { finishing = false } = {},
 ): Promise<CreatedLogEntry> {
   const rating = storedRating(request.rating);
   if (rating === null) return { ok: false, error: "invalid_rating" };
@@ -79,30 +86,37 @@ export async function createLogEntry(
   if (dateProblem) return { ok: false, error: dateProblem };
 
   // The entry is inserted only for a Media Item the User may see. Nothing else could have put one
-  // they may not see in their Backlog, so taking it off alongside is safe either way.
-  const [[inserted], [removed]] = await db.batch([
-    db
-      .insert(logEntries)
-      .select(
-        // Insert-select lists every column in schema order; a null id takes the next one.
-        db
-          .select({
-            id: sql<number>`null`.as("id"),
-            userId: sql<number>`${userId}`.as("user_id"),
-            mediaItemId: mediaItems.id,
-            rating: sql<number>`${rating}`.as("rating"),
-            date: sql<string | null>`${request.date}`.as("date"),
-            review: sql<string | null>`${request.review?.trim() || null}`.as("review"),
-            revisit: sql<boolean>`${request.revisit ? 1 : 0}`.as("revisit"),
-            createdAt: sql<number>`${now.getTime()}`.as("created_at"),
-          })
-          .from(mediaItems)
-          .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId))),
-      )
-      .returning({ id: logEntries.id }),
-    ...takeOffBacklog(db, userId, request.mediaItemId),
-  ]);
-  if (!inserted) return { ok: false, error: "unknown_media_item" };
+  // they may not see in their Backlog, so taking it off alongside is safe either way. Finishing
+  // also needs it In Progress, and changes nothing when it isn't.
+  const started = ownInProgress(userId, request.mediaItemId);
+  const whileStarted = finishing
+    ? exists(db.select({ userId: inProgress.userId }).from(inProgress).where(started))
+    : undefined;
+  const insert = db
+    .insert(logEntries)
+    .select(
+      // Insert-select lists every column in schema order; a null id takes the next one.
+      db
+        .select({
+          id: sql<number>`null`.as("id"),
+          userId: sql<number>`${userId}`.as("user_id"),
+          mediaItemId: mediaItems.id,
+          rating: sql<number>`${rating}`.as("rating"),
+          date: sql<string | null>`${request.date}`.as("date"),
+          review: sql<string | null>`${request.review?.trim() || null}`.as("review"),
+          revisit: sql<boolean>`${request.revisit ? 1 : 0}`.as("revisit"),
+          createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+        })
+        .from(mediaItems)
+        .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId), whileStarted)),
+    )
+    .returning({ id: logEntries.id });
+  const backlog = takeOffBacklog(db, userId, request.mediaItemId, whileStarted);
+  // In Progress ends last, as the statements before it check it.
+  const [[inserted], [removed]] = finishing
+    ? await db.batch([insert, ...backlog, db.delete(inProgress).where(started)])
+    : await db.batch([insert, ...backlog]);
+  if (!inserted) return { ok: false, error: finishing ? "not_in_progress" : "unknown_media_item" };
   const [[row], logged] = await Promise.all([
     selectLog(db, now).where(eq(logEntries.id, inserted.id)),
     loggedMediaItems(db, userId, [request.mediaItemId]),
@@ -110,6 +124,20 @@ export async function createLogEntry(
   const item = logged.get(request.mediaItemId);
   if (!row || !item) throw new Error(`Log Entry ${inserted.id} vanished`);
   return { ok: true, logEntry: toLogEntry(row), removedFromBacklog: removed ?? null, ...item };
+}
+
+// The User's In Progress of the Media Item, which finishing it checks and ends.
+export function ownInProgress(userId: number, mediaItemId: number | Column) {
+  return and(eq(inProgress.userId, userId), eq(inProgress.mediaItemId, mediaItemId));
+}
+
+export const inProgressColumns = {
+  startDate: inProgress.startDate,
+  createdAt: inProgress.createdAt,
+};
+
+export function toInProgress(row: { startDate: string | null; createdAt: Date }): InProgress {
+  return { startDate: row.startDate, createdAt: row.createdAt.toISOString() };
 }
 
 // One of the User's own Log Entries: another User's is as unknown as one that doesn't exist.
@@ -177,7 +205,7 @@ export async function userLog(
 }
 
 // The User's Item History of a Media Item, or null when there is no such Media Item they may see.
-// Three queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
+// Four queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
 // columns would collide.
 export async function itemHistory(
   db: DrizzleD1Database,
@@ -185,7 +213,7 @@ export async function itemHistory(
   mediaItemId: number,
   now: Date,
 ): Promise<ItemHistoryResponse | null> {
-  const [[item], rows, inBacklog] = await Promise.all([
+  const [[item], rows, inBacklog, started] = await Promise.all([
     db
       .select(mediaItemColumns)
       .from(mediaItems)
@@ -195,6 +223,7 @@ export async function itemHistory(
       .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))
       .orderBy(logEntries.id),
     isInBacklog(db, userId, mediaItemId),
+    db.select(inProgressColumns).from(inProgress).where(ownInProgress(userId, mediaItemId)),
   ]);
   if (!item) return null;
   const current = currentRating(rows);
@@ -203,6 +232,7 @@ export async function itemHistory(
     logEntries: inLogOrder(rows).map(toLogEntry),
     currentRating: current === null ? null : toStars(current),
     inBacklog,
+    inProgress: started[0] ? toInProgress(started[0]) : null,
   };
 }
 

@@ -212,7 +212,7 @@ test("the Read tab shows each book once with its Current Rating, the last read f
   await libraryPage.goto("Read");
 
   await expect(page).toHaveTitle("Read · Books · TasteTrack");
-  await expect(libraryPage.tabs).toHaveText([/^Reading list/, /^Read/]);
+  await expect(libraryPage.tabs).toHaveText([/^Reading list/, /^Reading(?! list)/, /^Read(?!ing)/]);
   await expect(libraryPage.tab("Read")).toHaveAccessibleName("Read 2");
   await expect(libraryPage.tab("Read")).toHaveAttribute("aria-current", "page");
   await expect(libraryPage.posters("Read")).toHaveText([/^Тигролови/, /^Kafka on the Shore/]);

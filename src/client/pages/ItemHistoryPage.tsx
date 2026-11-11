@@ -91,7 +91,7 @@ export function ItemHistoryPage() {
         {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
         <FilmActions
           history={state.history}
-          onLogged={reload}
+          onChanged={reload}
           onPlanned={(inBacklog) =>
             setState((current) =>
               current.status === "loaded"

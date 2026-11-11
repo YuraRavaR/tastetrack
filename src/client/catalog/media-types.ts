@@ -44,3 +44,7 @@ const keepings: Record<MediaType, readonly Keeping[]> = {
 export function can(mediaType: MediaType, keeping: Keeping): boolean {
   return keepings[mediaType].includes(keeping);
 }
+
+// Which Media Types have In Progress is the Worker's rule too. A new one doesn't compile until the
+// catalogue has its In Progress words (progressWord).
+export { canProgress, type ProgressMediaType } from "../../shared/catalog";
