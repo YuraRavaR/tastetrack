@@ -1,0 +1,55 @@
+name: Production backup
+
+# Backs up the production D1 once a week, the same encrypted backup a deploy takes before it
+# migrates, so there are restore points older than Time Travel's 7 days between releases too.
+# Run it by hand (Actions → Production backup → Run workflow, from `main`) for one more. It only
+# reads the database: no migrations, no deploy. See docs/production.md.
+on:
+  schedule:
+    # Sundays at 01:17 UTC: 03:17 in Kyiv in winter, 04:17 in summer. Off the hour, when
+    # GitHub's scheduled runs queue up.
+    - cron: "17 1 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_SEND_METRICS: "false"
+
+jobs:
+  backup:
+    name: Back up the production D1
+    runs-on: ubuntu-latest
+    # Unlike `production`, no required reviewers: nobody is there to approve a run at night. It
+    # is limited to `main`, so a run by hand runs `main`'s code too.
+    environment: production-backup
+    # Not the deploys' `production` group: there a newly queued run cancels the pending one, so a
+    # backup could cancel a queued release deploy, or a deploy cancel a backup without failing it.
+    # The price is that a deploy approved during the export's few seconds, at night, could migrate
+    # between its schema and its rows.
+    concurrency:
+      group: production-backup
+      cancel-in-progress: false
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check the Cloudflare secrets
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets on the repo or the production-backup environment."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+
+      # No build: wrangler's D1 commands don't need one.
+      - uses: ./.github/actions/setup
+
+      - name: Back up the D1
+        uses: ./.github/actions/d1-backup
+        with:
+          environment: production
+          recipient: ${{ vars.D1_BACKUP_RECIPIENT }}

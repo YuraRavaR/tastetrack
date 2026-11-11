@@ -44,26 +44,12 @@ jobs:
         run: pnpm build
 
       # Before migrations, so each one has a backup to go back to (ADR-0009). The Time Travel
-      # bookmark is the exact point before them. Only the encrypted file goes up: this repo's
-      # artifacts are public. Open it with `pnpm backup open <run-id>`; see docs/production.md.
+      # bookmark it logs is the exact point before them. See docs/production.md.
       - name: Back up the D1
-        env:
-          D1_BACKUP_RECIPIENT: ${{ vars.D1_BACKUP_RECIPIENT }}
-        run: |
-          if [ -z "$D1_BACKUP_RECIPIENT" ]; then
-            echo "::error::Set the D1_BACKUP_RECIPIENT repo variable to the age public key backups are for (docs/production.md)."
-            exit 1
-          fi
-          pnpm exec wrangler d1 time-travel info tastetrack-staging
-          pnpm backup take --env staging --output "$RUNNER_TEMP/d1-backup-staging.sql.age"
-
-      - name: Upload the encrypted D1 backup
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/d1-backup
         with:
-          name: d1-backup-staging
-          path: ${{ runner.temp }}/d1-backup-staging.sql.age
-          if-no-files-found: error
-          retention-days: 90
+          environment: staging
+          recipient: ${{ vars.D1_BACKUP_RECIPIENT }}
 
       # Migrations go first: they are forward-only and expand/contract (ADR-0009), so the
       # running Worker keeps working against the migrated database.
