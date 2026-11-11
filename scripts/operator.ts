@@ -13,16 +13,13 @@ import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
 import { Password, Username } from "../src/shared/api";
 import { createUser, resetPassword } from "../src/worker/accounts/accounts";
-import { WranglerError, wranglerDatabase } from "./wrangler-d1";
-
-// The wrangler arguments that reach each environment's database.
-const environments = {
-  local: ["--env", "local", "--local"],
-  staging: ["--env", "staging", "--remote"],
-  production: ["--remote"],
-} as const;
-
-type Environment = keyof typeof environments;
+import {
+  type Environment,
+  environments,
+  parseEnvironment,
+  WranglerError,
+  wranglerDatabase,
+} from "./wrangler-d1";
 
 class OperatorError extends Error {}
 
@@ -87,14 +84,6 @@ const commands = {
   "create-user": createUserCommand,
   "reset-password": resetPasswordCommand,
 } as const;
-
-function parseEnvironment(args: string[]): Environment {
-  const value = args[args.indexOf("--env") + 1];
-  if (!args.includes("--env") || !value || !(value in environments)) {
-    throw new OperatorError("Name the environment: --env local|staging|production");
-  }
-  return value as Environment;
-}
 
 const usage = "Usage: pnpm operator create-user|reset-password --env local|staging|production";
 

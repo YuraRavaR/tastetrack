@@ -9,6 +9,24 @@ import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 
 export class WranglerError extends Error {}
 
+// The wrangler arguments that reach each environment's database.
+export const environments = {
+  local: ["--env", "local", "--local"],
+  staging: ["--env", "staging", "--remote"],
+  production: ["--remote"],
+} as const;
+
+export type Environment = keyof typeof environments;
+
+// The environment named by `--env` in a script's arguments.
+export function parseEnvironment(args: string[]): Environment {
+  const value = args[args.indexOf("--env") + 1];
+  if (!args.includes("--env") || !value || !(value in environments)) {
+    throw new WranglerError("Name the environment: --env local|staging|production");
+  }
+  return value as Environment;
+}
+
 type Row = Record<string, unknown>;
 
 function literal(value: unknown): string {
@@ -47,7 +65,7 @@ function inline(sql: string, values: unknown[]): string {
   return inlined;
 }
 
-function wrangler(
+export function wrangler(
   args: string[],
 ): Promise<{ code: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
