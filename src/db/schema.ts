@@ -193,29 +193,6 @@ export const catalogCache = sqliteTable(
   (table) => [primaryKey({ columns: [table.externalSource, table.mediaType, table.externalId] })],
 );
 
-// The TMDB cache that catalog_cache replaced, copied into it by migration 0013. Nothing reads or
-// writes it any more; it is kept for one release so that rolling back still finds it (ADR-0009),
-// and dropped in the next.
-export const tmdbCache = sqliteTable(
-  "tmdb_cache",
-  {
-    mediaType: text("media_type", { enum: ["film"] }).notNull(),
-    externalId: text("external_id").notNull(),
-    englishTitle: text("english_title"),
-    ukrainianTitle: text("ukrainian_title"),
-    originalTitle: text("original_title").notNull(),
-    year: integer("year"),
-    posterPath: text("poster_path"),
-    backdropPath: text("backdrop_path"),
-    runtime: integer("runtime"),
-    genres: text("genres", { mode: "json" }).$type<string[]>(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-    detailedAt: integer("detailed_at", { mode: "timestamp_ms" }),
-    checkedAt: integer("checked_at", { mode: "timestamp_ms" }),
-  },
-  (table) => [primaryKey({ columns: [table.mediaType, table.externalId] })],
-);
-
 // One time a User experienced a Media Item. The Rating is stored in half stars, 1 to 10. The date
 // is an optional calendar day, YYYY-MM-DD. createdAt never changes, so it settles Log Order among
 // entries of the same day.
