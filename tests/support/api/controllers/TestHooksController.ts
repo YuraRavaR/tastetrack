@@ -1,4 +1,4 @@
-import type { ExternalReference } from "@shared/api";
+import type { ExternalReference, MediaType } from "@shared/api";
 import { testHooksHeaders } from "../../test-hooks-secret";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
@@ -61,6 +61,15 @@ export class TestHooksController extends BaseController {
     return this.requestContext.post(endpoints.testHooks.backlog(username), {
       ...withSecret(options),
       data: { count },
+    });
+  }
+
+  // Takes away the User's Backlog of a Media Type, as for a User made by code from before that
+  // Media Type had one.
+  removeBacklog(username: string, mediaType: MediaType, options?: RequestOptions) {
+    return this.requestContext.delete(endpoints.testHooks.backlog(username), {
+      ...withSecret(options),
+      params: { mediaType },
     });
   }
 

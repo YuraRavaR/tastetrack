@@ -389,3 +389,36 @@ test("a search result is added only under its Media Type's own External Source a
     expect(await response.json()).toEqual({ error: "invalid_request" });
   }
 });
+
+// A User made by code from before books had a Backlog, such as the Operator CLI run from an older
+// checkout, or a registration between a deploy's migration and its new Worker, has none.
+test("a User with no Backlog of books yet gets one, empty, the first time they need it", async ({
+  loggedInApi,
+  loggedInUser,
+}) => {
+  const removed = await loggedInApi.testHooks.removeBacklog(loggedInUser.username, "book");
+  expect(removed.status()).toBe(204);
+
+  const backlog = loggedInApi.backlog.getBacklog({ mediaType: "book" });
+
+  expect((await expectBody(backlog, 200, BacklogResponse)).backlog).toMatchObject({
+    mediaType: "book",
+    visibility: "private",
+    items: [],
+  });
+});
+
+test("a User with no Backlog of books yet can still put a book on the Reading list", async ({
+  loggedInApi,
+  loggedInUser,
+}) => {
+  const mediaItem = await tyhrolovy(loggedInApi);
+  const removed = await loggedInApi.testHooks.removeBacklog(loggedInUser.username, "book");
+  expect(removed.status()).toBe(204);
+
+  const planned = loggedInApi.backlog.addBacklogItem({ mediaItemId: mediaItem.id });
+
+  expect((await expectBody(planned, 201, ListItemResponse)).listItem.mediaItem).toEqual(mediaItem);
+  const { backlog } = await expectBody(loggedInApi.backlog.getBacklog({ mediaType: "book" }));
+  expect(backlog.items.map((item: { mediaItem: unknown }) => item.mediaItem)).toEqual([mediaItem]);
+});
