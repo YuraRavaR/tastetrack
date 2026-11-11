@@ -10,6 +10,31 @@ import { BasePage } from "./BasePage";
 
 type EntryAction = "Edit" | "Delete";
 
+// The card a Media Item's page shows while it is In Progress, which a book calls "Reading": since
+// when, the button that changes that, and Finished and Stop reading.
+class InProgressCard extends ScopedComponent {
+  readonly changeStartDateButton = this.root.getByRole("button", {
+    name: "Change the start date",
+  });
+  readonly finishedButton = this.root.getByRole("button", { name: "Finished" });
+  readonly stopReadingButton = this.root.getByRole("button", { name: "Stop reading" });
+
+  text(content: string | RegExp) {
+    return this.root.getByText(content);
+  }
+}
+
+// The dialog that changes when a Media Item In Progress was started, with a Log Entry's date chips.
+class StartDateDialog extends ScopedComponent {
+  readonly dateInput = this.root.getByLabel("Start date", { exact: true });
+  readonly saveButton = this.root.getByRole("button", { name: "Save" });
+
+  // Today, Yesterday, Other date or No date.
+  dateChip(name: string) {
+    return this.root.getByRole("button", { name });
+  }
+}
+
 // The menu a Viewing's "⋯" button opens: Edit and Delete.
 class EntryActionsMenu extends ScopedComponent {
   readonly items = this.root.getByRole("menuitem");
@@ -62,6 +87,16 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     name: "On your Reading list",
     pressed: true,
   });
+  readonly startReadingButton = this.main.getByRole("button", { name: "Start reading" });
+  readonly startRereadingButton = this.main.getByRole("button", { name: "Start rereading" });
+  // Any button that starts a Media Item, which a film never has.
+  readonly startButtons = this.main.getByRole("button", { name: /^Start/ });
+  readonly readingCard = new InProgressCard(
+    this.main.getByRole("region", { name: "Reading", exact: true }),
+  );
+  readonly startDateDialog = new StartDateDialog(
+    this.page.getByRole("dialog", { name: "Change the start date" }),
+  );
   readonly addToListButton = this.main.getByRole("button", { name: "Add to collection" });
   readonly toast = new Toast(this.page.getByRole("status"));
   // Only for a film the User added themselves.

@@ -340,6 +340,7 @@ test("a film's Item History has its Log Entries in Log Order, and the last one's
     logEntries: [backdated, latest],
     currentRating: 4,
     inBacklog: false,
+    inProgress: null,
   });
 });
 
@@ -355,6 +356,7 @@ test("the Item History of a film the User hasn't logged is empty, with no Curren
     logEntries: [],
     currentRating: null,
     inBacklog: false,
+    inProgress: null,
   });
 });
 

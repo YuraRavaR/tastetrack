@@ -618,13 +618,74 @@ export const NewLogEntryResponse = LogEntryResponse.extend({
 
 export type NewLogEntryResponse = z.infer<typeof NewLogEntryResponse>;
 
+// A Media Item the User has started and not finished: since when, a calendar day they may leave
+// out, and when they marked it. It carries no amount of progress (ADR-0005).
+export const InProgress = z
+  .object({
+    startDate: LogDate.nullable(),
+    createdAt: z.iso.datetime().openapi({ example: "2026-10-12T19:30:00.000Z" }),
+  })
+  .openapi("InProgress");
+
+export type InProgress = z.infer<typeof InProgress>;
+
+// Starts a Media Item. The start date follows a Log Entry date's rules, with timeZone setting the
+// latest one allowed.
+export const NewInProgressRequest = z
+  .object({
+    mediaItemId: z.int().positive().openapi({ example: 42 }),
+    startDate: LogDate.nullable().default(null),
+    timeZone: z.string().max(100).optional().openapi({ example: "Europe/Kyiv" }),
+  })
+  .openapi("NewInProgressRequest");
+
+export type NewInProgressRequest = z.input<typeof NewInProgressRequest>;
+
+// The new In Progress, and where its Media Item was in the User's Backlog before starting it took it
+// off, or null when it wasn't there.
+export const NewInProgressResponse = z
+  .object({
+    inProgress: InProgress,
+    removedFromBacklog: RemovedListItem.nullable(),
+  })
+  .openapi("NewInProgressResponse");
+
+export type NewInProgressResponse = z.infer<typeof NewInProgressResponse>;
+
+// A new start date, or null to clear it.
+export const InProgressEditRequest = z
+  .object({
+    startDate: LogDate.nullable(),
+    timeZone: z.string().max(100).optional().openapi({ example: "Europe/Kyiv" }),
+  })
+  .strict()
+  .openapi("InProgressEditRequest");
+
+export type InProgressEditRequest = z.infer<typeof InProgressEditRequest>;
+
+export const InProgressResponse = z
+  .object({
+    inProgress: InProgress,
+  })
+  .openapi("InProgressResponse");
+
+export type InProgressResponse = z.infer<typeof InProgressResponse>;
+
+// Finishing a Media Item In Progress records a Log Entry for it, by a new Log Entry's rules.
+export const FinishRequest = NewLogEntryRequest.omit({ mediaItemId: true }).openapi(
+  "FinishRequest",
+);
+
+export type FinishRequest = z.input<typeof FinishRequest>;
+
 export const LibraryQuery = z.object({
   mediaType: MediaType,
 });
 
-// One Media Item of a User's Library: in their Backlog, with when it was added there, or with at
-// least one of their Log Entries, with its Current Rating and the date and creation time of the
-// last Log Entry in Log Order, or both. That entry's date is null when no entry is dated.
+// One Media Item of a User's Library: in their Backlog, with when it was added there, In Progress,
+// or with at least one of their Log Entries, with its Current Rating and the date and creation time
+// of the last Log Entry in Log Order, or any of these together. That entry's date is null when no
+// entry is dated.
 export const LibraryItem = z
   .object({
     mediaItem: MediaItem,
@@ -633,6 +694,7 @@ export const LibraryItem = z
         addedAt: z.iso.datetime().openapi({ example: "2026-10-19T19:30:00.000Z" }),
       })
       .nullable(),
+    inProgress: InProgress.nullable(),
     log: z
       .object({
         currentRating: Rating,
@@ -670,14 +732,15 @@ export const MediaItemParams = z.object({
 });
 
 // One User's Item History of a Media Item: every Log Entry for it in Log Order, the Current Rating,
-// which is the last one's Rating, and whether it is in their Backlog. A film the User hasn't
-// experienced has neither Log Entries nor a Current Rating.
+// which is the last one's Rating, whether it is in their Backlog, and since when it is In Progress,
+// if it is. A Media Item the User hasn't experienced has neither Log Entries nor a Current Rating.
 export const ItemHistoryResponse = z
   .object({
     mediaItem: MediaItem,
     logEntries: z.array(LogEntry),
     currentRating: Rating.nullable(),
     inBacklog: z.boolean(),
+    inProgress: InProgress.nullable(),
   })
   .openapi("ItemHistoryResponse");
 

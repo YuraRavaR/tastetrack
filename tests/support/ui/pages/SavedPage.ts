@@ -30,6 +30,14 @@ export class SavedPage extends BasePage {
 
   readonly heading = this.main.getByRole("heading", { level: 1 });
   readonly tiles = this.main.getByRole("list", { name: "Saved" }).getByRole("listitem");
+  // What the User is reading, one row per book, each a link to its page.
+  readonly readingNow = this.main.getByRole("region", { name: "Reading now" });
+  readonly readingNowRows = this.readingNow.getByRole("listitem");
+
+  // A row of Reading now, by its book's title.
+  readingNowRow(title: string) {
+    return this.readingNowRows.filter({ hasText: title }).getByRole("link");
+  }
 
   // A Media Type's tile, by the name on it.
   tile(name: MediaTypeName) {

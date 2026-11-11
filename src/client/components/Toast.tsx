@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { MediaType, RemovedListItem } from "../../shared/api";
-import { mediaWord } from "../i18n/media-words";
+import { canProgress } from "../catalog/media-types";
+import { mediaWord, progressWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { libraryPath } from "../library/library-tabs";
 import { UndoLine } from "./UndoLine";
@@ -46,10 +47,13 @@ const actionMessages = {
 // The User's last action on a film, which the toast reports.
 export type FilmAction =
   | { kind: "logged"; mediaItemId: number; removedFromBacklog: RemovedListItem | null }
+  | { kind: "started"; mediaItemId: number; removedFromBacklog: RemovedListItem | null }
+  | { kind: "stopped" }
   | { kind: keyof typeof actionMessages };
 
 // Reports a film's action: `film` is its label. Logging links to Saved's tab of what the User
-// experienced, and takes a film off the Backlog, which `onUndo` puts back where it was.
+// experienced, and starting to the In Progress tab; both take a film off the Backlog, which
+// `onUndo` puts back where it was.
 export function FilmActionMessage({
   action,
   film,
@@ -62,19 +66,28 @@ export function FilmActionMessage({
   onUndo: (mediaItemId: number, removed: RemovedListItem) => void;
 }) {
   const backlogName = mediaWord(mediaType, "backlog");
-  if (action.kind !== "logged") {
+  if (action.kind === "stopped") {
+    return canProgress(mediaType) && <p>{progressWord(mediaType, "stopped", { film })}</p>;
+  }
+  if (action.kind !== "logged" && action.kind !== "started") {
     return <p>{t(actionMessages[action.kind], { film, backlogName })}</p>;
   }
   const { mediaItemId, removedFromBacklog } = action;
+  const started = action.kind === "started" && canProgress(mediaType);
+  const tab = started ? "inProgress" : "experienced";
   return (
     <>
       <p>
-        {t("logEntry.saved", { film })}{" "}
+        {started ? progressWord(mediaType, "started", { film }) : t("logEntry.saved", { film })}{" "}
         <Link
-          to={libraryPath(mediaType, "experienced")}
+          to={libraryPath(mediaType, tab)}
           className="text-primary-strong underline-offset-4 hover:underline"
         >
-          {t("saved.goTo", { tab: mediaWord(mediaType, "experienced") })}
+          {t("saved.goTo", {
+            tab: started
+              ? progressWord(mediaType, "inProgress")
+              : mediaWord(mediaType, "experienced"),
+          })}
         </Link>
       </p>
       {removedFromBacklog && (

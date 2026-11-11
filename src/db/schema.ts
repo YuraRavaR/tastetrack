@@ -241,6 +241,28 @@ export const logEntries = sqliteTable(
   ],
 );
 
+// A Media Item a User has started and not finished: In Progress ("Reading" for books in the UI). A
+// User has at most one per Media Item, which is why the two make its key. The start date is an
+// optional calendar day, as a Log Entry's date is; there is no amount of progress (ADR-0005).
+// Finishing it records a Log Entry and deletes the row, and stopping deletes it, leaving no trace.
+export const inProgress = sqliteTable(
+  "in_progress",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    mediaItemId: integer("media_item_id")
+      .notNull()
+      .references(() => mediaItems.id, { onDelete: "cascade" }),
+    startDate: text("start_date"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.mediaItemId] }),
+    index("in_progress_media_item_id_idx").on(table.mediaItemId),
+  ],
+);
+
 // A List: an ordered collection of Media Items of one Media Type, owned by a User. The Backlog is
 // the system List of what the User plans to experience: every User has exactly one per Media Type,
 // made with their account. It has no name, since its name is the UI's word for its Media Type

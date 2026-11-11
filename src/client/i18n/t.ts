@@ -44,3 +44,15 @@ export function formatDate(date: Date): string {
 export function formatCalendarDate(date: string): string {
   return utcDateFormat.format(new Date(`${date}T00:00:00Z`));
 }
+
+const dayAndMonthFormat = new Intl.DateTimeFormat(locale, {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
+// A calendar day written YYYY-MM-DD without its year, where the year goes without saying, as for
+// when a book still being read was started: "Oct 12".
+export function formatCalendarDayAndMonth(date: string): string {
+  return dayAndMonthFormat.format(new Date(`${date}T00:00:00Z`));
+}

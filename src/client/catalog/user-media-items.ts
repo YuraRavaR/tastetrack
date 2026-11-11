@@ -9,6 +9,7 @@ import { type Found, foundMediaItemId } from "./found";
 export interface UserMediaItem {
   mediaItem: MediaItem;
   inBacklog: boolean;
+  inProgress: boolean;
   // Null until the User has a Log Entry for it.
   currentRating: number | null;
   // The User's own Lists holding it, oldest first. The Backlog isn't one.
@@ -25,6 +26,7 @@ export function userMediaItems(
     items.set(item.mediaItem.id, {
       mediaItem: item.mediaItem,
       inBacklog: item.backlog !== null,
+      inProgress: item.inProgress !== null,
       currentRating: item.log?.currentRating ?? null,
       lists: [],
     });
@@ -32,16 +34,26 @@ export function userMediaItems(
   for (const { mediaItem, lists } of listed) {
     const item = items.get(mediaItem.id);
     if (item) item.lists = lists;
-    else items.set(mediaItem.id, { mediaItem, inBacklog: false, currentRating: null, lists });
+    else {
+      items.set(mediaItem.id, {
+        mediaItem,
+        inBacklog: false,
+        inProgress: false,
+        currentRating: null,
+        lists,
+      });
+    }
   }
   const titleKey = (item: UserMediaItem) => textKey(item.mediaItem.metadata?.title ?? "");
   return [...items.values()].toSorted((a, b) => titleKey(a).localeCompare(titleKey(b)));
 }
 
 // The one status line under a User's Media Item's cover, the first that applies: its Current
-// Rating, and whether it is planned again; that it is in the Backlog; the oldest List holding it.
+// Rating, and whether it is planned again; that it is In Progress; that it is in the Backlog; the
+// oldest List holding it.
 export type UserMediaItemStatus =
   | { kind: "rated"; rating: number; inBacklog: boolean }
+  | { kind: "inProgress" }
   | { kind: "backlog" }
   | { kind: "list"; name: string };
 
@@ -49,6 +61,7 @@ export function userMediaItemStatus(item: UserMediaItem): UserMediaItemStatus | 
   if (item.currentRating !== null) {
     return { kind: "rated", rating: item.currentRating, inBacklog: item.inBacklog };
   }
+  if (item.inProgress) return { kind: "inProgress" };
   if (item.inBacklog) return { kind: "backlog" };
   const [oldest] = item.lists;
   return oldest ? { kind: "list", name: oldest.name } : null;

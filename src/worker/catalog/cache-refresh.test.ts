@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import {
   type CacheExtra,
   catalogCache,
+  inProgress,
   listItems,
   lists,
   logEntries,
@@ -71,7 +72,7 @@ beforeEach(async () => {
 
 interface Work {
   // Where the work is referenced from, if anywhere.
-  in?: "log" | "list";
+  in?: "log" | "list" | "inProgress";
   // Its cache entry: when it was last filled, whether by a details call, and for a film whether it
   // has an English Localized Title and a backdrop path. None when omitted.
   cached?: { updated: Date; detailed?: boolean; english?: boolean; backdrop?: string };
@@ -91,6 +92,9 @@ async function work(
   if (!item) throw new Error("no media item");
   if (where === "log") {
     await db.insert(logEntries).values({ userId, mediaItemId: item.id, rating: 8, createdAt: now });
+  }
+  if (where === "inProgress") {
+    await db.insert(inProgress).values({ userId, mediaItemId: item.id, createdAt: now });
   }
   if (where === "list") {
     await db.insert(listItems).values({
@@ -147,6 +151,13 @@ describe("which cache entries the cron refreshes", () => {
     await film("3", { in: "log", cached: { updated: daysAgo(45) } });
 
     expect(await due()).toEqual(["2", "3", "1"]);
+  });
+
+  it("picks entries an In Progress references, as one a Log Entry does", async () => {
+    await book("OL1W", { in: "inProgress", cached: { updated: daysAgo(30) } });
+    await book("OL2W", { cached: { updated: daysAgo(30) } });
+
+    expect(await due()).toEqual(["OL1W"]);
   });
 
   it("leaves out entries nothing references, however old", async () => {
@@ -371,6 +382,12 @@ describe("a cron run", () => {
 
     expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 2, deleted: 1 });
     expect(await loggedTitles()).toEqual([null, "Film 404404"]);
+  });
+
+  it("keeps an entry only an In Progress references", async () => {
+    await book("404404404", { in: "inProgress", cached: { updated: daysAgo(2) } });
+
+    expect((await refreshCache(db, env, now)).deleted).toBe(0);
   });
 
   it("deletes entries nothing has referenced for a day", async () => {

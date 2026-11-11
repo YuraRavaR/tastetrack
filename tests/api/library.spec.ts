@@ -40,7 +40,7 @@ test("a film only planned is in the Library with when it was added, and no Log",
     200,
     LibraryResponse,
   );
-  expect(library.items).toEqual([{ mediaItem, backlog: { addedAt }, log: null }]);
+  expect(library.items).toEqual([{ mediaItem, backlog: { addedAt }, inProgress: null, log: null }]);
 });
 
 test("a film only logged is in the Library with its Current Rating and last Log Entry", async ({
@@ -54,6 +54,7 @@ test("a film only logged is in the Library with its Current Rating and last Log 
     {
       mediaItem,
       backlog: null,
+      inProgress: null,
       log: {
         currentRating: 4,
         lastLogEntry: { date: "2026-10-01", createdAt: logEntry.createdAt },
@@ -76,6 +77,7 @@ test("a film logged and planned again for a rewatch is in the Library once, with
     {
       mediaItem,
       backlog: { addedAt },
+      inProgress: null,
       log: { currentRating: 3.5, lastLogEntry: { date: null, createdAt: logEntry.createdAt } },
     },
   ]);
@@ -95,6 +97,7 @@ test("a film logged twice is in the Library once, with the last entry in Log Ord
     {
       mediaItem,
       backlog: null,
+      inProgress: null,
       log: { currentRating: 5, lastLogEntry: { date: "2026-10-10", createdAt: latest.createdAt } },
     },
   ]);
@@ -155,7 +158,7 @@ test("another User's Backlog and Log never appear in the Library", async ({
   await logFilm(otherUserClient, mine.id, 1, null);
 
   expect(await theLibrary(loggedInApi)).toEqual([
-    { mediaItem: mine, backlog: { addedAt: expect.any(String) }, log: null },
+    { mediaItem: mine, backlog: { addedAt: expect.any(String) }, inProgress: null, log: null },
   ]);
 });
 

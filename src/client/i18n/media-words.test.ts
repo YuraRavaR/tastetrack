@@ -89,9 +89,9 @@ describe("a book's words", () => {
     expect(mediaWord("book", word)).toBe(expected);
   });
 
-  it("count the Reading list and the books read on Saved's tile", () => {
-    expect(mediaWord("book", "tileCounts", { backlog: 8, experienced: 23 })).toBe(
-      "8 to read · 23 read",
+  it("count the Reading list, the books being read and the books read on Saved's tile", () => {
+    expect(mediaWord("book", "tileCounts", { backlog: 8, inProgress: 2, experienced: 23 })).toBe(
+      "8 to read · 2 reading · 23 read",
     );
   });
 

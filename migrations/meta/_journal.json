@@ -113,6 +113,13 @@
       "when": 1794380104142,
       "tag": "0015_manual_book_authors",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1794383723790,
+      "tag": "0016_in_progress",
+      "breakpoints": true
     }
   ]
 }

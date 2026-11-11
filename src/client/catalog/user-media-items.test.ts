@@ -30,7 +30,12 @@ function film(title: string, more: { originalTitle?: string; ukrainianTitle?: st
 }
 
 function planned(mediaItem: MediaItem): LibraryItem {
-  return { mediaItem, backlog: { addedAt: "2026-10-01T10:00:00.000Z" }, log: null };
+  return {
+    mediaItem,
+    backlog: { addedAt: "2026-10-01T10:00:00.000Z" },
+    inProgress: null,
+    log: null,
+  };
 }
 
 const titles = (films: { mediaItem: MediaItem }[]) => films.map((f) => f.mediaItem.metadata?.title);
@@ -76,8 +81,20 @@ describe("matching the User's Media Items", () => {
     );
 
     expect(matchUserMediaItems(items, "par")).toEqual([
-      { mediaItem: parasite, inBacklog: true, currentRating: null, lists: [roadMovies] },
-      { mediaItem: paris, inBacklog: false, currentRating: null, lists: [roadMovies] },
+      {
+        mediaItem: parasite,
+        inBacklog: true,
+        inProgress: false,
+        currentRating: null,
+        lists: [roadMovies],
+      },
+      {
+        mediaItem: paris,
+        inBacklog: false,
+        inProgress: false,
+        currentRating: null,
+        lists: [roadMovies],
+      },
     ]);
   });
 });
@@ -85,7 +102,13 @@ describe("matching the User's Media Items", () => {
 describe("a User's Media Item's status line", () => {
   const roadMovies = { id: 1, name: "Road movies" };
   const horror = { id: 2, name: "Horror nights" };
-  const base = { mediaItem: film("Parasite"), inBacklog: false, currentRating: null, lists: [] };
+  const base = {
+    mediaItem: film("Parasite"),
+    inBacklog: false,
+    inProgress: false,
+    currentRating: null,
+    lists: [],
+  };
 
   it.each([
     [
@@ -97,6 +120,16 @@ describe("a User's Media Item's status line", () => {
       "a logged film: its Current Rating",
       { currentRating: 4.5, lists: [roadMovies] },
       { kind: "rated", rating: 4.5, inBacklog: false },
+    ],
+    [
+      "a book read before and started again: its Current Rating",
+      { inProgress: true, currentRating: 4 },
+      { kind: "rated", rating: 4, inBacklog: false },
+    ],
+    [
+      "a book In Progress and planned: In Progress",
+      { inProgress: true, inBacklog: true, lists: [roadMovies] },
+      { kind: "inProgress" },
     ],
     ["a planned film: the Backlog", { inBacklog: true, lists: [roadMovies] }, { kind: "backlog" }],
     [

@@ -39,6 +39,7 @@ function film({
   return {
     mediaItem: { id: nextId++, mediaType: "film", externalReference: null, metadata },
     backlog: rating === undefined ? { addedAt: "2026-10-01T10:00:00.000Z" } : null,
+    inProgress: null,
     log:
       rating === undefined
         ? null

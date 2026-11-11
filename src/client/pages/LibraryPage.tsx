@@ -1,4 +1,12 @@
-import { ArrowDownUp, Bookmark, ChevronLeft, Eye, type LucideIcon, Search } from "lucide-react";
+import {
+  ArrowDownUp,
+  Bookmark,
+  BookOpen,
+  ChevronLeft,
+  Eye,
+  type LucideIcon,
+  Search,
+} from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router";
 import {
@@ -14,14 +22,15 @@ import type { LibraryItem, MediaType } from "../../shared/api";
 import { ratingStars } from "../../shared/log";
 import * as api from "../api";
 import { authorNames } from "../catalog/book-label";
+import { canProgress, type ProgressMediaType } from "../catalog/media-types";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { type Choice, ChoiceChip } from "../components/ChoiceChip";
 import { EmptyState } from "../components/EmptyState";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { RatingValue } from "../components/Rating";
 import { SegmentedLinks } from "../components/SegmentedLinks";
-import { mediaWord } from "../i18n/media-words";
-import { t } from "../i18n/t";
+import { mediaWord, progressWord } from "../i18n/media-words";
+import { formatCalendarDayAndMonth, t } from "../i18n/t";
 import {
   type LibraryTab,
   libraryPath,
@@ -69,9 +78,34 @@ function plannedMeta({ mediaItem }: LibraryItem): ReactNode {
   return authors && <span className="min-w-0 truncate">{authors}</span>;
 }
 
-function tabParts(mediaType: MediaType): Record<LibraryTab, TabParts> {
+// When a Media Item In Progress was started, "Since Oct 12"; nothing without a start date.
+function sinceMeta({ inProgress }: LibraryItem): ReactNode {
+  return inProgress?.startDate
+    ? t("inProgress.since", { date: formatCalendarDayAndMonth(inProgress.startDate) })
+    : undefined;
+}
+
+function inProgressParts(mediaType: ProgressMediaType): TabParts {
+  return {
+    name: progressWord(mediaType, "inProgress"),
+    empty: {
+      icon: BookOpen,
+      message: progressWord(mediaType, "inProgressEmpty"),
+      action: {
+        label: t("saved.goTo", { tab: mediaWord(mediaType, "backlog") }),
+        to: libraryPath(mediaType, "backlog"),
+      },
+    },
+    meta: sinceMeta,
+    mark: () => undefined,
+  };
+}
+
+// Each tab's parts; none for a tab the Media Type doesn't have.
+function tabParts(mediaType: MediaType): Partial<Record<LibraryTab, TabParts>> {
   const backlogName = mediaWord(mediaType, "backlog");
   return {
+    ...(canProgress(mediaType) && { inProgress: inProgressParts(mediaType) }),
     backlog: {
       name: backlogName,
       empty: {
@@ -133,6 +167,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
   const typeName = mediaWord(mediaType, "tab");
   const parts = tabParts(mediaType);
   const open = parts[tab];
+  if (!open) throw new Error(`${mediaType} has no ${tab} tab`);
   usePageTitle([open.name, typeName]);
 
   useEffect(() => {
@@ -188,12 +223,12 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
           label={t("saved.tabs")}
           segments={libraryTabsOf(mediaType).map((each) => ({
             to: `${libraryPath(mediaType, each)}${filters && `?${filters}`}`,
-            label: parts[each].name,
+            label: parts[each]?.name ?? "",
             count: state.status === "loaded" ? state.tabs[each].length : undefined,
             current: each === tab,
           }))}
         />
-        {tabItems.length > 0 && (
+        {tabItems.length > 0 && tab !== "inProgress" && (
           <LibraryChips
             mediaType={mediaType}
             tab={tab}

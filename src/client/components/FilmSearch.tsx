@@ -27,7 +27,7 @@ import {
   foundRowTitle,
   mediaItemOf,
 } from "../catalog/found";
-import { can } from "../catalog/media-types";
+import { can, canProgress } from "../catalog/media-types";
 import { useCatalogSearch } from "../catalog/use-catalog-search";
 import { useResultsScroll, useSearchQuery } from "../catalog/use-search-query";
 import { useUserMediaItems } from "../catalog/use-user-media-items";
@@ -37,7 +37,7 @@ import {
   userMediaItemStatus,
   withoutUserMediaItems,
 } from "../catalog/user-media-items";
-import { mediaWord } from "../i18n/media-words";
+import { mediaWord, progressWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { itemPath, listPath } from "../navigation/paths";
 import { EmptyState } from "./EmptyState";
@@ -449,6 +449,16 @@ function UserMediaItemStatusLine({ item }: { item: UserMediaItem }) {
           status: mediaWord(mediaType, status.inBacklog ? "backlog" : "experienced"),
         })}
       </StatusLine>
+    );
+  }
+  if (status.kind === "inProgress") {
+    // Only a Media Type that has In Progress can be In Progress.
+    return (
+      canProgress(mediaType) && (
+        <StatusLine icon={<BookOpen aria-hidden className="size-3.5" />}>
+          {progressWord(mediaType, "inProgress")}
+        </StatusLine>
+      )
     );
   }
   if (status.kind === "backlog") {

@@ -1,12 +1,12 @@
 // How a Library tab is shown: its sort, and the filters on genre, decade and, on the experienced
-// tab, the Current Rating. They live in the tab's address; the sort is also remembered per Media
-// Type and tab in the browser.
+// tab, the Current Rating. The In Progress tab has only its own order and no filter. They live in
+// the tab's address; the sort is also remembered per Media Type and tab in the browser.
 import type { LibraryItem, MediaType } from "../../shared/api";
 import { type LibraryTab, tabSlug } from "./library-tabs";
 
-// Date added and Last watched are the tabs' own orders: by when a Media Item joined the Backlog,
-// and by its last Log Entry in Log Order.
-export type LibrarySort = "added" | "experienced" | "rating" | "title" | "year";
+// Date added, Started and Last watched are the tabs' own orders: by when a Media Item joined the
+// Backlog, by when it was started, and by its last Log Entry in Log Order.
+export type LibrarySort = "added" | "started" | "experienced" | "rating" | "title" | "year";
 
 export interface LibraryView {
   sort: LibrarySort;
@@ -18,6 +18,7 @@ export interface LibraryView {
 // Each tab's sorts, its default first.
 export const librarySorts: Record<LibraryTab, readonly [LibrarySort, ...LibrarySort[]]> = {
   backlog: ["added", "title", "year"],
+  inProgress: ["started"],
   experienced: ["experienced", "rating", "title", "year"],
 };
 
@@ -55,8 +56,9 @@ export function libraryView(
   const minRating = Number(params.get(queryKeys.minRating));
   return {
     sort: sortOf(params.get(queryKeys.sort)) ?? sortOf(rememberedSort) ?? sorts[0],
-    genre: hasGenres(mediaType) ? params.get(queryKeys.genre) || null : null,
-    decade: decade && /^\d{3}0$/.test(decade) ? Number(decade) : null,
+    genre:
+      hasGenres(mediaType) && tab !== "inProgress" ? params.get(queryKeys.genre) || null : null,
+    decade: tab !== "inProgress" && decade && /^\d{3}0$/.test(decade) ? Number(decade) : null,
     minRating:
       tab === "experienced" && ratingFloors.some((floor) => floor === minRating) ? minRating : null,
   };
