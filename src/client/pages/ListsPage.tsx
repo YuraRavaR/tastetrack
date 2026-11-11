@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { ListPreview } from "../../shared/api";
 import * as api from "../api";
 import { listsMediaTypes } from "../catalog/media-types";
+import { useMediaTypeParam } from "../catalog/use-media-type-param";
 import { EmptyState } from "../components/EmptyState";
 import { ListCard } from "../components/ListCard";
 import { ListFormDialog } from "../components/ListFormDialog";
@@ -19,14 +20,15 @@ type ListsState =
   | { status: "loaded"; lists: ListPreview[] }
   | { status: "failed" };
 
-// Collections: the User's own Lists, oldest first, as cards with a collage of their first covers,
-// under the Media Type chips, and the way to make a new one, which then opens. With none yet, the
-// quiet empty state offers the same.
+// Collections: the User's own Lists of the Media Type the chips are on, which `?type=` names,
+// oldest first, as cards with a collage of their first covers, and the way to make a new one of
+// that type, which then opens. With none yet, the quiet empty state offers the same.
 export function ListsPage() {
   const headingId = useId();
   const [state, setState] = useState<ListsState>({ status: "loading" });
   const [creating, setCreating] = useState(false);
   const navigate = useNavigate();
+  const [mediaType, setMediaType] = useMediaTypeParam(listsMediaTypes);
   usePageTitle([t("lists.title")]);
 
   useEffect(() => {
@@ -40,7 +42,9 @@ export function ListsPage() {
     };
   }, []);
 
-  const noLists = state.status === "loaded" && state.lists.length === 0;
+  const lists =
+    state.status === "loaded" ? state.lists.filter((list) => list.mediaType === mediaType) : [];
+  const noLists = state.status === "loaded" && lists.length === 0;
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
@@ -62,7 +66,7 @@ export function ListsPage() {
             {t("lists.new")}
           </Button>
         </div>
-        <MediaTypeChips choices={listsMediaTypes} current="film" />
+        <MediaTypeChips choices={listsMediaTypes} current={mediaType} onChoose={setMediaType} />
       </div>
       {state.status === "loading" && (
         <p className="text-muted-foreground text-sm">{t("lists.loading")}</p>
@@ -79,12 +83,12 @@ export function ListsPage() {
           action={{ label: t("lists.new"), onClick: () => setCreating(true) }}
         />
       )}
-      {state.status === "loaded" && state.lists.length > 0 && (
+      {lists.length > 0 && (
         <ul
           aria-labelledby={headingId}
           className="grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] md:gap-x-5 md:gap-y-7"
         >
-          {state.lists.map((list) => (
+          {lists.map((list) => (
             <li key={list.id}>
               <ListCard list={list} />
             </li>
@@ -93,6 +97,7 @@ export function ListsPage() {
       )}
       <ListFormDialog
         open={creating}
+        mediaType={mediaType}
         onClose={() => setCreating(false)}
         onSaved={(list) => navigate(listPath(list.id))}
       />

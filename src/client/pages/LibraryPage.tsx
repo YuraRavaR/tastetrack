@@ -13,11 +13,10 @@ import { Button } from "@/components/ui/button";
 import type { LibraryItem, MediaType } from "../../shared/api";
 import { ratingStars } from "../../shared/log";
 import * as api from "../api";
-import { authorNames } from "../catalog/book-label";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { type Choice, ChoiceChip } from "../components/ChoiceChip";
 import { EmptyState } from "../components/EmptyState";
-import { PosterGridItem } from "../components/PosterGridItem";
+import { PosterGridItem, yearOrAuthors } from "../components/PosterGridItem";
 import { RatingValue } from "../components/Rating";
 import { SegmentedLinks } from "../components/SegmentedLinks";
 import { mediaWord } from "../i18n/media-words";
@@ -61,12 +60,9 @@ interface TabParts {
   mark(item: LibraryItem): string | undefined;
 }
 
-// What a planned Media Item says under its title: a film its year, a book its authors, in one
-// line.
+// What a planned Media Item says under its title: a film its year, a book its authors.
 function plannedMeta({ mediaItem }: LibraryItem): ReactNode {
-  if (mediaItem.mediaType === "film") return mediaItem.metadata?.year;
-  const authors = mediaItem.metadata && authorNames(mediaItem.metadata.authors);
-  return authors && <span className="min-w-0 truncate">{authors}</span>;
+  return yearOrAuthors(mediaItem);
 }
 
 function tabParts(mediaType: MediaType): Record<LibraryTab, TabParts> {

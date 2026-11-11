@@ -17,18 +17,21 @@ import type {
   ListItemPlace,
   MediaItem,
   MediaItemList,
+  MediaType,
   RemovedListItem,
 } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
-import { listsPath } from "../navigation/paths";
+import { listsPathOf } from "../navigation/paths";
 
-// A film to put on Lists: its label, how to get its Media Item, which for a source's search result
+// A film to put on Lists: its label, its Media Type, how to get its Media Item, which for a source's search result
 // adds it to the catalog first, and who to tell which Lists hold it, oldest first, as that changes.
 // Kept in state by the opener, so it loads once per opening.
 export type ListsFilm = {
   label: string;
+  mediaType: MediaType;
   mediaItem: () => Promise<MediaItem | null>;
   onHeld?: (lists: HoldingList[]) => void;
 };
@@ -147,7 +150,7 @@ function FilmLists({ film }: { film: ListsFilm }) {
     <div className="flex flex-col gap-5">
       <DialogHeader>
         <DialogTitle>{t("filmLists.title", { film: film.label })}</DialogTitle>
-        <DialogDescription>{t("filmLists.description")}</DialogDescription>
+        <DialogDescription>{mediaWord(film.mediaType, "collectionTick")}</DialogDescription>
       </DialogHeader>
       {state.status === "loading" && (
         <p className="text-muted-foreground text-sm">{t("filmLists.loading")}</p>
@@ -161,7 +164,7 @@ function FilmLists({ film }: { film: ListsFilm }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           <span className="text-muted-foreground">{t("filmLists.empty")}</span>
           <Button variant="outline" size="sm" asChild>
-            <Link to={listsPath}>{t("filmLists.make")}</Link>
+            <Link to={listsPathOf(film.mediaType)}>{t("filmLists.make")}</Link>
           </Button>
         </div>
       )}
@@ -180,7 +183,9 @@ function FilmLists({ film }: { film: ListsFilm }) {
       )}
       {error && (
         <p role="alert" className="text-destructive text-sm">
-          {error === "list_full" ? t("list.full", { max: maxListItems }) : t("list.updateFailed")}
+          {error === "list_full"
+            ? mediaWord(film.mediaType, "collectionFull", { max: maxListItems })
+            : t("list.updateFailed")}
         </p>
       )}
       <DialogFooter>

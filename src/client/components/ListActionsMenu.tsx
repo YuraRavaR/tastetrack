@@ -8,13 +8,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import type { MediaType } from "../../shared/api";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { MenuSheetContent, menuSheetIconClasses, menuSheetItemClasses } from "./MenuSheetContent";
 
 // The ⋯ by a List's heading (`docs/mockups/collections/`) and every action on the List itself:
-// edit it, reorder its films (off under two), share it ("Share Link" once it is shared) and,
+// edit it, reorder its items (off under two), share it ("Share Link" once it is shared) and,
 // after a divider, delete it. A bottom sheet on a phone, a dropdown from `md`.
 export function ListActionsMenu({
+  mediaType,
   shared,
   reorderable,
   className,
@@ -23,8 +26,9 @@ export function ListActionsMenu({
   onShare,
   onDelete,
 }: {
+  mediaType: MediaType;
   shared: boolean;
-  // True when the List holds two films or more.
+  // True when the List holds two items or more.
   reorderable: boolean;
   className?: string;
   onEdit: () => void;
@@ -57,7 +61,7 @@ export function ListActionsMenu({
           onSelect={onReorder}
         >
           <ArrowDownUp aria-hidden className={menuSheetIconClasses} />
-          {t("list.reorder")}
+          {mediaWord(mediaType, "collectionReorder")}
         </DropdownMenuItem>
         <DropdownMenuItem className={menuSheetItemClasses} onSelect={onShare}>
           <Link2 aria-hidden className={menuSheetIconClasses} />

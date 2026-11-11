@@ -3,9 +3,27 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
+import { authorNames, authorsAndYear } from "../catalog/book-label";
 import { mediaWord } from "../i18n/media-words";
 import { itemPath } from "../navigation/paths";
 import { Poster } from "./Poster";
+
+// What a grid says under a Media Item's title by default: a film its year, a book its authors, in
+// one line. Nothing while its metadata is unknown.
+export function yearOrAuthors({ mediaType, metadata }: MediaItem): ReactNode {
+  if (!metadata) return undefined;
+  if (mediaType === "film") return metadata.year ?? undefined;
+  const authors = authorNames(metadata.authors);
+  return authors && <span className="min-w-0 truncate">{authors}</span>;
+}
+
+// The same with a book's year after its authors, for a grid with room for both, such as a
+// Share Link's: "Іван Багряний · 1946".
+export function yearOrAuthorsAndYear(mediaItem: MediaItem): ReactNode {
+  if (mediaItem.mediaType === "film" || !mediaItem.metadata) return yearOrAuthors(mediaItem);
+  const line = authorsAndYear(mediaItem.metadata);
+  return line && <span className="min-w-0 truncate">{line}</span>;
+}
 
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title
 // in two lines at most, and a meta line, such as the year or the Current Rating. All of it opens

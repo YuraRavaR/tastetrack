@@ -5,15 +5,20 @@ import {
   ListSummaryResponse,
   ListsResponse,
   MediaItemListsResponse,
+  type MediaType,
   type NewListItemRequest,
 } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
+import { harryPotter, tyhrolovy } from "../support/scenarios/books";
 import { alien, aliens, amelie, manualFilm, titlesOf } from "../support/scenarios/films";
 
-// Makes a film List: its summary, as the Worker answers.
-async function createList(api: ApiClient, data: { name: string; description?: string }) {
+// Makes a List, of films unless it says otherwise: its summary, as the Worker answers.
+async function createList(
+  api: ApiClient,
+  data: { name: string; description?: string; mediaType?: MediaType },
+) {
   return (await expectBody(api.lists.createList({ mediaType: "film", ...data }), 201)).list;
 }
 
@@ -251,6 +256,51 @@ test("the same film can be in several Lists and the Backlog at once", async ({ l
   expect(backlog.items).toHaveLength(1);
 });
 
+test("a List of books takes only books, and a List of films only films", async ({
+  loggedInApi,
+}) => {
+  const books = await createList(loggedInApi, { name: "To start with", mediaType: "book" });
+  const films = await createList(loggedInApi, { name: "Space" });
+  const [book, film] = [await tyhrolovy(loggedInApi), await alien(loggedInApi)];
+
+  const filmInBooks = loggedInApi.lists.addListItem(books.id, { mediaItemId: film.id });
+  const bookInFilms = loggedInApi.lists.addListItem(films.id, { mediaItemId: book.id });
+  const added = await addToList(loggedInApi, books.id, { mediaItemId: book.id });
+
+  expect(await expectBody(filmInBooks, 400)).toEqual({ error: "wrong_media_type" });
+  expect(await expectBody(bookInFilms, 400)).toEqual({ error: "wrong_media_type" });
+  expect(added).toMatchObject({ mediaItem: { id: book.id, mediaType: "book" }, position: 0 });
+  expect((await theList(loggedInApi, films.id)).items).toEqual([]);
+});
+
+test("a List of books shows each book's cover, titles and authors, and so does its preview", async ({
+  loggedInApi,
+}) => {
+  const list = await createList(loggedInApi, { name: "Ukrainian prose", mediaType: "book" });
+  const [first, second] = [await harryPotter(loggedInApi), await tyhrolovy(loggedInApi)];
+  await addToList(loggedInApi, list.id, { mediaItemId: first.id, note: "Start here." });
+  await addToList(loggedInApi, list.id, { mediaItemId: second.id });
+
+  const { items } = await theList(loggedInApi, list.id);
+
+  expect(items.map(({ mediaItem }: { mediaItem: unknown }) => mediaItem)).toEqual([first, second]);
+  expect(items[0].mediaItem.metadata).toEqual({
+    title: "Harry Potter and the Philosopher's Stone",
+    originalTitle: "Harry Potter and the Philosopher's Stone",
+    ukrainianTitle: "Гаррі Поттер і філософський камінь",
+    year: 1997,
+    coverUrls: {
+      small: "https://covers.openlibrary.org/b/id/15155833-M.jpg",
+      large: "https://covers.openlibrary.org/b/id/15155833-L.jpg",
+    },
+    authors: ["J. K. Rowling"],
+  });
+  expect(items[0].note).toBe("Start here.");
+  expect(await theLists(loggedInApi)).toEqual([
+    { ...list, itemCount: 2, covers: [first, second], shared: false },
+  ]);
+});
+
 test("adding an unknown Media Item is a 400", async ({ loggedInApi }) => {
   const list = await createList(loggedInApi, { name: "Space" });
 
@@ -304,6 +354,27 @@ test("a List loads in the same number of queries for 1 film as for 1,000", async
 
   expect(one).toMatch(/^\d+$/);
   expect(thousand).toBe(one);
+});
+
+test("a List loads in the same number of queries for 1 book as for 500, on a cold cache", async ({
+  loggedInApi,
+}) => {
+  // The placeholders have no cache entry, so the page fetches what it may from Open Library.
+  const queriesForListOf = async (books: number) => {
+    const list = await createList(loggedInApi, { name: `${books} books`, mediaType: "book" });
+    expect((await loggedInApi.testHooks.fillList(list.id, books)).status()).toBe(204);
+    const response = await loggedInApi.lists.getList(list.id);
+    expect(await response.json()).toMatchObject({
+      list: { mediaType: "book", items: { length: books } },
+    });
+    return response.headers()["x-d1-query-count"];
+  };
+
+  const one = await queriesForListOf(1);
+  const fiveHundred = await queriesForListOf(500);
+
+  expect(one).toMatch(/^\d+$/);
+  expect(fiveHundred).toBe(one);
 });
 
 test("the Lists page loads in the same number of queries for 1 List as for 100", async ({

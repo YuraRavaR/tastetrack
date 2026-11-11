@@ -1,7 +1,8 @@
-import { SharedListResponse, ShareLinkResponse } from "@shared/api";
+import { type MediaType, SharedListResponse, ShareLinkResponse } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { test as base, expect } from "../support/fixtures";
+import { harryPotter, hymn, tyhrolovy } from "../support/scenarios/books";
 import { alien, aliens, manualFilm } from "../support/scenarios/films";
 
 // `visitor` is a client with no session, holding nothing but the link.
@@ -11,8 +12,11 @@ const test = base.extend<{ visitor: ApiClient }>({
   },
 });
 
-// Makes a film List: its summary, as the Worker answers.
-async function createList(api: ApiClient, data: { name: string; description?: string }) {
+// Makes a List, of films unless it says otherwise: its summary, as the Worker answers.
+async function createList(
+  api: ApiClient,
+  data: { name: string; description?: string; mediaType?: MediaType },
+) {
   return (await expectBody(api.lists.createList({ mediaType: "film", ...data }), 201)).list;
 }
 
@@ -248,6 +252,43 @@ test("Manual Media Items in a shared List show their title and year", async ({
   });
 });
 
+test("anyone with the link sees a List of books: covers, titles, authors and Notes", async ({
+  api,
+  loggedInUser,
+  visitor,
+}) => {
+  const list = await createList(api, { name: "Ukrainian prose", mediaType: "book" });
+  const [first, second] = [await tyhrolovy(api), await harryPotter(api)];
+  await expectBody(
+    api.lists.addListItem(list.id, { mediaItemId: first.id, note: "Start here." }),
+    201,
+  );
+  await expectBody(api.lists.addListItem(list.id, { mediaItemId: second.id }), 201);
+  const { token } = await share(api, list.id);
+
+  const { sharedList } = await expectBody(
+    visitor.sharedLists.getSharedList(token),
+    200,
+    SharedListResponse,
+  );
+
+  expect(sharedList).toEqual({
+    title: "Ukrainian prose",
+    description: null,
+    mediaType: "book",
+    owner: { displayName: loggedInUser.username },
+    items: [
+      { mediaItem: first, position: 0, note: "Start here." },
+      { mediaItem: second, position: 1, note: null },
+    ],
+  });
+  expect(sharedList.items[1]?.mediaItem.metadata).toMatchObject({
+    title: "Harry Potter and the Philosopher's Stone",
+    coverUrls: { large: "https://covers.openlibrary.org/b/id/15155833-L.jpg" },
+    authors: ["J. K. Rowling"],
+  });
+});
+
 test("only the List's owner can share it, regenerate or revoke its link", async ({
   loggedInApi,
   otherUserClient,
@@ -310,6 +351,29 @@ test("a shared List loads in the same number of queries for 1 film as for 1,000"
 
   expect(one).toMatch(/^\d+$/);
   expect(thousand).toBe(one);
+});
+
+test("a shared List loads in the same number of queries for 1 book as for 500, on a cold cache", async ({
+  loggedInApi,
+  visitor,
+}) => {
+  // The placeholders have no cache entry, so the page fetches what it may from Open Library.
+  const queriesForSharedListOf = async (books: number) => {
+    const list = await createList(loggedInApi, { name: `${books} books`, mediaType: "book" });
+    expect((await loggedInApi.testHooks.fillList(list.id, books)).status()).toBe(204);
+    const { token } = await share(loggedInApi, list.id);
+    const response = await visitor.sharedLists.getSharedList(token);
+    expect(await response.json()).toMatchObject({
+      sharedList: { mediaType: "book", items: { length: books } },
+    });
+    return response.headers()["x-d1-query-count"];
+  };
+
+  const one = await queriesForSharedListOf(1);
+  const fiveHundred = await queriesForSharedListOf(500);
+
+  expect(one).toMatch(/^\d+$/);
+  expect(fiveHundred).toBe(one);
 });
 
 // The page a Share Link opens, as a messenger fetching a preview sees it: the app's HTML with
@@ -389,6 +453,27 @@ test("a Share Link's card shows the List's first poster, in place of the app's o
   ]);
   expect(metaTags(page.html, "(?:og:)?description")).toEqual([]);
   expect(metaTags(page.html, "twitter:card")).toHaveLength(1);
+});
+
+test("a shared List of books shows its first cover on its card", async ({
+  loggedInApi,
+  visitor,
+}) => {
+  const list = await createList(loggedInApi, { name: "Ukrainian prose", mediaType: "book" });
+  const [coverless, first] = [await hymn(loggedInApi), await harryPotter(loggedInApi)];
+  for (const book of [coverless, first, await tyhrolovy(loggedInApi)]) {
+    await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId: book.id }), 201);
+  }
+  const { token } = await share(loggedInApi, list.id);
+
+  const page = await sharePage(visitor, token);
+
+  expect(metaTags(page.html, "og:image")).toEqual([
+    '<meta property="og:image" content="https://covers.openlibrary.org/b/id/15155833-L.jpg">',
+  ]);
+  expect(metaTags(page.html, "og:title")).toEqual([
+    '<meta property="og:title" content="Ukrainian prose">',
+  ]);
 });
 
 test("a shared Backlog's page is titled \"<Display Name>'s Watchlist\", with no description", async ({

@@ -16,16 +16,19 @@ export class ListCard extends ScopedComponent {
   readonly sharedMark = this.root.getByText(/^Shared( by link)?$/).filter({ visible: true });
 }
 
-// Collections: the User's Lists as cards, under the Media Type chips.
-export class ListsPage extends BasePage {
-  path() {
-    return "/collections";
+// Collections: the User's Lists of one Media Type as cards, under the Media Type chips. `?type=`
+// names the Media Type, unless it is films.
+export class ListsPage extends BasePage<[mediaType?: "book"]> {
+  path(mediaType?: "book") {
+    return mediaType ? `/collections?type=${mediaType}` : "/collections";
   }
 
   readonly heading = this.main.getByRole("heading", { level: 1, name: "Collections" });
   readonly mediaTypeChips = this.main.getByRole("group", { name: "Category" });
   readonly filmsChip = this.mediaTypeChips.getByRole("button", { name: "Films" });
   readonly booksChip = this.mediaTypeChips.getByRole("button", { name: "Books" });
+  // The chip of the Media Type Collections is on.
+  readonly pressedChip = this.mediaTypeChips.getByRole("button", { pressed: true });
   readonly seriesChip = this.mediaTypeChips.getByRole("button", { name: "Series" });
   readonly emptyMessage = this.main.getByText("No collections yet.");
   // The button in the heading. With no Lists the empty state has its own, after it.

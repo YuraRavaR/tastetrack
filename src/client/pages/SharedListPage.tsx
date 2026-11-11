@@ -6,7 +6,7 @@ import * as api from "../api";
 import { useAuth } from "../auth";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { NoteBubble } from "../components/NoteBubble";
-import { PosterGridItem } from "../components/PosterGridItem";
+import { PosterGridItem, yearOrAuthorsAndYear } from "../components/PosterGridItem";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { usePageTitle } from "../navigation/page-title";
@@ -34,7 +34,8 @@ function titleNames(state: SharedListState): string[] | null {
 }
 
 // The List behind a Share Link, for anyone holding it, logged in or not: its title, description,
-// owner and films in order with their Notes, as a grid of posters, and nothing more. A poster
+// owner and items in order with their Notes, as a grid of posters, and nothing more: under a book,
+// its authors and year. A poster
 // opens its film's page only for a logged-in viewer, the one who can see that page. A link that doesn't work says so the same way whether it was revoked, replaced or never
 // existed. A visitor without a session is told how to get an account.
 export function SharedListPage() {
@@ -99,12 +100,13 @@ export function SharedListPage() {
           </span>
           <span>
             {t("shared.by", { name: ownerName })}
-            {list.items.length > 0 && ` · ${t("films.count", { count: list.items.length })}`}
+            {list.items.length > 0 &&
+              ` · ${mediaWord(list.mediaType, "count", { count: list.items.length })}`}
           </span>
         </p>
       </div>
       {list.items.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("shared.empty")}</p>
+        <p className="text-muted-foreground text-sm">{mediaWord(list.mediaType, "sharedEmpty")}</p>
       ) : (
         <ol
           aria-label={list.title}
@@ -112,13 +114,12 @@ export function SharedListPage() {
         >
           {list.items.map((item, index) => {
             const mediaItem = fill.filled(item.mediaItem);
-            const year = mediaItem.metadata?.year;
             return (
               <PosterGridItem
                 key={item.position}
                 mediaItem={mediaItem}
                 loading={fill.loading(item.mediaItem)}
-                meta={year != null ? String(year) : undefined}
+                meta={yearOrAuthorsAndYear(mediaItem)}
                 place={index + 1}
                 unlinked={authStatus !== "authenticated"}
               >

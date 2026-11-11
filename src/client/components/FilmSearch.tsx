@@ -321,6 +321,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
                   onListed={() =>
                     setListing({
                       label: foundLabel(found),
+                      mediaType: foundMediaType(found),
                       mediaItem: () => addToCatalog(found),
                       onHeld: (lists) => markListed(found, lists),
                     })
