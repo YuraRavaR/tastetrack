@@ -1,0 +1,44 @@
+name: Back up the D1
+description: >-
+  Export an environment's D1, encrypt it with age to the Operator's public key and upload it as the
+  run's d1-backup-<environment> artifact, kept 90 days. Logs the Time Travel bookmark of the moment
+  first. Only the encrypted file goes up: this repo's artifacts are public. Open it with
+  `pnpm backup open <run-id>`; see docs/production.md. Needs CLOUDFLARE_API_TOKEN and
+  CLOUDFLARE_ACCOUNT_ID in the job's env, and the setup action run before it. It only reads the
+  database.
+
+inputs:
+  environment:
+    description: staging or production.
+    required: true
+  recipient:
+    description: The age public key the backup is for, the D1_BACKUP_RECIPIENT repo variable.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Back up the D1
+      shell: bash
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
+        D1_BACKUP_RECIPIENT: ${{ inputs.recipient }}
+      run: |
+        if [ "$ENVIRONMENT" != staging ] && [ "$ENVIRONMENT" != production ]; then
+          echo "::error::'$ENVIRONMENT' is not staging or production."
+          exit 1
+        fi
+        if [ -z "$D1_BACKUP_RECIPIENT" ]; then
+          echo "::error::Set the D1_BACKUP_RECIPIENT repo variable to the age public key backups are for (docs/production.md)."
+          exit 1
+        fi
+        pnpm exec wrangler d1 time-travel info "tastetrack-$ENVIRONMENT"
+        pnpm backup take --env "$ENVIRONMENT" --output "$RUNNER_TEMP/d1-backup-$ENVIRONMENT.sql.age"
+
+    - name: Upload the encrypted D1 backup
+      uses: actions/upload-artifact@v7
+      with:
+        name: d1-backup-${{ inputs.environment }}
+        path: ${{ runner.temp }}/d1-backup-${{ inputs.environment }}.sql.age
+        if-no-files-found: error
+        retention-days: 90

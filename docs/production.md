@@ -31,6 +31,15 @@ It downloads the run's backup, decrypts it with the private key in `~/tastetrack
 
 Restored databases hold Users' data: keep them outside the repo, as `open` does.
 
+## Every week: the scheduled backup
+
+Releases can be weeks apart, longer than Time Travel's 7 days, so [backup.yml](../.github/workflows/backup.yml) also backs up the production database every Sunday at 01:17 UTC (03:17 in Kyiv in winter, 04:17 in summer). It runs the deploy's backup step, so its `d1-backup-production` artifact is the same encrypted file, kept 90 days, and opens the same way: `pnpm backup open <run-id>`. It only reads the database: no migrations, no deploy.
+
+- Nobody approves it: it runs in the `production-backup` environment, which has no required reviewers (below).
+- It shares the deploys' `production` concurrency group, so it waits for a deploy that is running or waiting for approval rather than exporting halfway through a migration.
+- For one more backup at any time: Actions → Production backup → Run workflow, from `main`.
+- A failed run fails the workflow, and GitHub emails whoever last changed the workflow's schedule (Settings → Notifications → Actions, if it doesn't). GitHub turns scheduled workflows off after 60 days without activity in the repo, and emails a warning first; turn it back on under Actions → Production backup.
+
 ## Recovery
 
 **D1 Time Travel is the main line of recovery.** It is always on and restores the production database to any minute within the retention window (7 days on the Workers Free plan):
@@ -42,7 +51,7 @@ pnpm exec wrangler d1 time-travel restore tastetrack-production --timestamp 2026
 
 A restore overwrites the database in place and prints a bookmark that undoes the restore.
 
-The deploy's backup is the fallback for when Time Travel can't help, for example when the problem is noticed after the retention window. Restore it locally with `pnpm backup open <run-id>` to take what you need from it. To restore a whole database from it, decrypt it to a file outside the repo and import it into a fresh database with `wrangler d1 execute <database> --remote --file <export>.sql`.
+A backup, a deploy's or the weekly one, is the fallback for when Time Travel can't help, for example when the problem is noticed after the retention window. Restore it locally with `pnpm backup open <run-id>` to take what you need from it. To restore a whole database from it, decrypt it to a file outside the repo and import it into a fresh database with `wrangler d1 execute <database> --remote --file <export>.sql`.
 
 **Rolling back code**: run the Production workflow by hand (Actions → Production → Run workflow, from `main`) with the previous release tag. It needs approval like any deploy. Migrations are forward-only and expand/contract (ADR-0009), so the previous release still works against the migrated database; don't restore the database just to roll back code.
 
@@ -50,7 +59,8 @@ The deploy's backup is the fallback for when Time Travel can't help, for example
 
 - **Production D1**: `pnpm exec wrangler d1 create tastetrack-production`, then put its `database_id` at the top level of `wrangler.jsonc`. The deploy job refuses to run while the placeholder id is there.
 - **`production` GitHub environment** (Settings → Environments): required reviewers, so every deploy waits for approval, and deployment branches limited to `main`.
-- **Cloudflare secrets**: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, on the repo (shared with staging) or on the `production` environment. Production-only secrets go on the environment.
+- **`production-backup` GitHub environment**, for the weekly backup: no required reviewers, deployment branches limited to `main`, so a run can't wait for approval but runs only reviewed code. Create it before the first scheduled run: a workflow that names an environment that doesn't exist creates it with no branch limit.
+- **Cloudflare secrets**: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, on the repo (shared with staging and the weekly backup) or on the `production` environment. Production-only secrets go on the environment; then put them on `production-backup` too.
 - **Backup key pair**: generate it once with `age-keygen -o ~/tastetrack-backup.key` (`brew install age`), keep a second copy of that file in a password manager, and set the public key it prints as a repo variable: `gh variable set D1_BACKUP_RECIPIENT --body "$(age-keygen -y ~/tastetrack-backup.key)"`. Without the variable every deploy stops before migrating. The private key is the only way into any backup, so a lost key means unreadable backups: to replace it, make a new pair and set the variable again; backups from then on use the new key.
 - **Worker secrets**, set with `wrangler secret put` as the README says: `TMDB_ACCESS_TOKEN` for film search and `OPEN_LIBRARY_CONTACT` for book search. Without the contact, book search answers that the catalog is unavailable.
 - **`RELEASE_PLEASE_TOKEN`** repo secret: a fine-grained personal access token for this repo with read and write access to contents and pull requests. Required checks never run on a PR opened with the default `GITHUB_TOKEN`, so without this token the release PR can't be merged until someone closes and reopens it. Without the token, also allow GitHub Actions to create pull requests (Settings → Actions → General).

@@ -32,7 +32,7 @@ pnpm dev                # builds the app, migrates local D1, serves on http://lo
 | `pnpm cf-typegen` | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
 | `pnpm operator create-user --env <env>` | Operator CLI: create a User in `local`, `staging` or `production` (see below) |
 | `pnpm operator reset-password --env <env>` | Operator CLI: give a User who forgot their password a Temporary Password (see below) |
-| `pnpm backup open <run-id>` | Download a deploy's encrypted D1 backup, decrypt it and restore it into a local D1 ([docs/production.md](docs/production.md)) |
+| `pnpm backup open <run-id>` | Download a deploy's or the weekly encrypted D1 backup, decrypt it and restore it into a local D1 ([docs/production.md](docs/production.md)) |
 
 The API serves its OpenAPI spec at `/api/openapi.json`.
 
@@ -122,6 +122,7 @@ Commit messages and PR titles follow [Conventional Commits](https://www.conventi
 - **Every PR** ([ci.yml](.github/workflows/ci.yml), [pr-title.yml](.github/workflows/pr-title.yml)): commitlint over the PR's commits and title, then three jobs side by side against local Wrangler: lint, type checks, unit tests and the API and smoke tests, with the CLI tests after them; the E2E tests in Chromium; and the mobile tests in WebKit. The required `Lint, types and tests` check passes only when all three pass.
 - **Every merge to `main`** ([staging.yml](.github/workflows/staging.yml)): backs up the staging database, encrypted, then applies D1 migrations to it, deploys the Worker with `--env staging` (test hooks on), then runs `pnpm test:deployed` against the deployed URL: only the tests tagged `@smoke`, since staging and production share one D1 write budget (ADR-0006). The full suite runs in CI against local D1.
 - **Every merge to `main`** ([release.yml](.github/workflows/release.yml)): release-please updates the release PR. Merging that PR tags a release, which deploys to production after manual approval ([production.yml](.github/workflows/production.yml)), then runs the smoke test against it. See [docs/production.md](docs/production.md), including the encrypted D1 backup every deploy takes before it migrates.
+- **Weekly** ([backup.yml](.github/workflows/backup.yml)): backs up the production database, encrypted, the same way a deploy does, without an approval. It never migrates or deploys.
 - **Weekly** ([dependabot.yml](.github/dependabot.yml)): Dependabot opens PRs for npm and GitHub Actions updates, grouping minor and patch bumps.
 
 Playwright keeps traces of failed attempts, including tests that passed only on retry. Every workflow uploads them with the HTML report as a `playwright-*` artifact. This repo's artifacts are public and staging's traces record the test hooks secret and test Users' logins, so staging's artifact is encrypted (ADR-0010). Read one with `pnpm test:report <run-id>`, the id being in the run's URL. It finds the key in `STAGING_REPORT_KEY` or, on macOS, in the Keychain. To make a new key, for reports from then on:
