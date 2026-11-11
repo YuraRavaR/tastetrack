@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.10.0](https://github.com/YuraRavaR/tastetrack/compare/v0.9.0...v0.10.0) (2026-11-11)
+
+
+### Features
+
+* **books:** add a book by hand, with its authors ([#190](https://github.com/YuraRavaR/tastetrack/issues/190)) ([72fa9dc](https://github.com/YuraRavaR/tastetrack/commit/72fa9dc7b399d5973755c118fc2a5618520f61c2))
+* **books:** find a book in Search and open its page ([#186](https://github.com/YuraRavaR/tastetrack/issues/186)) ([dfd378b](https://github.com/YuraRavaR/tastetrack/commit/dfd378bbe40c56e42e4e6c7a9364daaaae64a613))
+* **books:** gather books in Collections and share them by Share Link ([#191](https://github.com/YuraRavaR/tastetrack/issues/191)) ([06e2706](https://github.com/YuraRavaR/tastetrack/commit/06e27069e11694f7b0b1c4c2ac8bd5a733213f7f))
+* **books:** log a Reading of a book, and Reread it ([#189](https://github.com/YuraRavaR/tastetrack/issues/189)) ([7c54439](https://github.com/YuraRavaR/tastetrack/commit/7c5443973efe801a5c2d836eaaa97b51ccb5ec7a))
+* **books:** mark a book as Reading, and finish or stop it ([#192](https://github.com/YuraRavaR/tastetrack/issues/192)) ([63d86ce](https://github.com/YuraRavaR/tastetrack/commit/63d86ce02a209889fdf9a80c61f0c47bc014abc7))
+* **books:** put a book on the Reading list and see it in Saved ([#188](https://github.com/YuraRavaR/tastetrack/issues/188)) ([9d86b5c](https://github.com/YuraRavaR/tastetrack/commit/9d86b5cfd15a1ded3435eafc3b72d340daa962bd))
+
+
+### Bug Fixes
+
+* **lists:** make a User's missing Backlog when it is first needed ([#193](https://github.com/YuraRavaR/tastetrack/issues/193)) ([4355b6f](https://github.com/YuraRavaR/tastetrack/commit/4355b6f82432d628f6705658293b1d035cb62b7e))
+
 ## [0.9.0](https://github.com/YuraRavaR/tastetrack/compare/v0.8.0...v0.9.0) (2026-11-09)
 
 
