@@ -22,12 +22,14 @@ jobs:
     name: Back up the production D1
     runs-on: ubuntu-latest
     # Unlike `production`, no required reviewers: nobody is there to approve a run at night. It
-    # is limited to `main`, so only reviewed code runs with the Cloudflare secrets.
+    # is limited to `main`, so a run by hand runs `main`'s code too.
     environment: production-backup
-    # The deploys' group: a backup never runs while a deploy migrates, so its two exports see one
-    # schema, and waits for a deploy that is waiting for approval.
+    # Not the deploys' `production` group: there a newly queued run cancels the pending one, so a
+    # backup could cancel a queued release deploy, or a deploy cancel a backup without failing it.
+    # The price is that a deploy approved during the export's few seconds, at night, could migrate
+    # between its schema and its rows.
     concurrency:
-      group: production
+      group: production-backup
       cancel-in-progress: false
     timeout-minutes: 15
     env:
@@ -37,7 +39,7 @@ jobs:
       - name: Check the Cloudflare secrets
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets for the production-backup environment."
+            echo "::error::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets on the repo or the production-backup environment."
             exit 1
           fi
 
