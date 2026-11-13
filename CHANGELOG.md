@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/YuraRavaR/tastetrack/compare/v0.11.0...v0.12.0) (2026-11-11)
+
+
+### Features
+
+* **ops:** back up the production D1 every week on a schedule ([#200](https://github.com/YuraRavaR/tastetrack/issues/200)) ([d55d39e](https://github.com/YuraRavaR/tastetrack/commit/d55d39ed5abf3a5d5ea048a30107b21f9c1cf4d0))
+
 ## [0.11.0](https://github.com/YuraRavaR/tastetrack/compare/v0.10.0...v0.11.0) (2026-11-11)
 
 
