@@ -1,0 +1,23 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-13T12:00:00Z" },
+  "title": "Catalog details on the item page",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1270, "h": 1350, "title": "A · Under the title · phone", "is_interactive": true },
+    "BPhone.dc.html": { "x": 1350, "y": 0, "w": 1270, "h": 1350, "title": "B · About section after the actions · phone", "is_interactive": true },
+    "CPhone.dc.html": { "x": 2700, "y": 0, "w": 1270, "h": 1350, "title": "C · Tagline + About sheet · phone", "is_interactive": true },
+    "AWeb.dc.html": { "x": 0, "y": 1670, "w": 1280, "h": 1240, "title": "A · Under the title · web", "is_interactive": true },
+    "BWeb.dc.html": { "x": 1360, "y": 1670, "w": 1280, "h": 1240, "title": "B · About section · web", "is_interactive": true },
+    "CWeb.dc.html": { "x": 2720, "y": 1670, "w": 1280, "h": 1240, "title": "C · Tagline + About sheet · web", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "BPhone.dc.html", "CPhone.dc.html", "AWeb.dc.html", "BWeb.dc.html", "CWeb.dc.html"],
+  "notes": {
+    "t1": { "x": 0, "y": -300, "text": "Overview, credits and description: phone", "kind": "title1", "maxW": 3970 },
+    "t2": { "x": 0, "y": 1400, "text": "The same on the web", "kind": "title1", "maxW": 4000 },
+    "n1": { "x": 4060, "y": 0, "w": 380, "size": "m", "fill": "teal", "text": "Real data. Amélie: TMDB overview and tagline in English, with the Ukrainian ones from the same call; director and the first 5 cast from credits.\n\nHarry Potter: Open Library's description, two paragraphs, as it comes.\n\nVoroshilovgrad: Open Library's description is in Russian; shown as is, since we can't tell its language.\n\nMore / Less and the language switch work in Play." },
+    "n2": { "x": 4060, "y": 560, "w": 380, "size": "m", "fill": "orange", "text": "Not drawn: a book with no description (half of them). Every variant then shows nothing in its place, no empty box. A Manual Media Item has none either." }
+  },
+  "designSystems": []
+}
