@@ -128,6 +128,7 @@ export function mediaTypeOfSlug(slug: string | undefined): MediaType | null {
   return mediaType && offered(mediaType) ? mediaType : null;
 }
 
+// Whether Saved offers the Media Type as built, not as "Coming soon".
 function offered(mediaType: MediaType): boolean {
   return savedMediaTypes.some((choice) => {
     return choice.status === "built" && choice.mediaType === mediaType;

@@ -410,7 +410,7 @@ describe("a cron run", () => {
     });
   });
 
-  it("keeps a book's entry it couldn't refresh, however old: only a film's expires", async () => {
+  it("keeps a book's entry it couldn't refresh, however old: only TMDB's entries expire", async () => {
     // Neither fake knows these.
     await book("OL404404W", { in: "log", cached: { updated: daysAgo(400) } });
     await film("404404", { in: "log", cached: { updated: daysAgo(91) } });

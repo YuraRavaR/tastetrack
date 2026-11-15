@@ -73,9 +73,15 @@ interface TabParts {
 // What a planned Media Item says under its title: a film or a series its year, a book its authors,
 // in one line.
 function plannedMeta({ mediaItem }: LibraryItem): ReactNode {
-  if (mediaItem.mediaType !== "book") return mediaItem.metadata?.year;
-  const authors = mediaItem.metadata && authorNames(mediaItem.metadata.authors);
-  return authors && <span className="min-w-0 truncate">{authors}</span>;
+  switch (mediaItem.mediaType) {
+    case "film":
+    case "series":
+      return mediaItem.metadata?.year;
+    case "book": {
+      const authors = mediaItem.metadata && authorNames(mediaItem.metadata.authors);
+      return authors && <span className="min-w-0 truncate">{authors}</span>;
+    }
+  }
 }
 
 // When a Media Item In Progress was started, "Since Oct 12"; nothing without a start date.

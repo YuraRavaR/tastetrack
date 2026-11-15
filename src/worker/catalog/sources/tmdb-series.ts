@@ -85,6 +85,7 @@ function yearOf(date: string | null | undefined): number | null {
   return Number.isNaN(year) ? null : year;
 }
 
+// A calendar day, YYYY-MM-DD, or null for anything TMDB writes otherwise.
 function dayOf(date: string | null | undefined): string | null {
   return date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
 }
@@ -94,10 +95,13 @@ function titleOf(series: TmdbSeries): string {
   return series.name?.trim() || series.original_name;
 }
 
+// An overview, tagline or translated name: an empty one counts as none.
 function textOf(text: string | null | undefined): string | null {
   return text?.trim() || null;
 }
 
+// TMDB's statuses by the names it gives them. One it adds later reads as unknown, null, rather
+// than failing the details call.
 const statuses: Record<string, SeriesStatus> = {
   "Returning Series": "returning",
   "In Production": "in_production",
@@ -131,6 +135,7 @@ function lastAiredEpisode(
   return final ? { season: final.season, episode: final.episodeCount } : null;
 }
 
+// TMDB's last or next episode to air as a season and episode number, whichever season it is in.
 function episodeOf(episode: z.infer<typeof TmdbEpisode>): Episode | null {
   return episode ? { season: episode.season_number, episode: episode.episode_number } : null;
 }
@@ -204,6 +209,7 @@ async function seriesDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<
   };
 }
 
+// TMDB's series, under TMDB's 90-day expiry, each costing the cron one subrequest to refresh.
 export const tmdbSeries: CatalogSource<"series"> = {
   externalSource: "tmdb",
   mediaType: "series",

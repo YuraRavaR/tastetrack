@@ -13,11 +13,17 @@ import { Poster } from "./Poster";
 // year, "Іван Багряний · 1946", in one line. Nothing while the metadata is unknown.
 export function collectionMeta({ mediaType, metadata }: MediaItem, withYear = false): ReactNode {
   if (!metadata) return undefined;
-  if (mediaType !== "book") return metadata.year ?? undefined;
-  const author = metadata.authors[0] ? authorName(metadata.authors[0]) : null;
-  const year = withYear && metadata.year !== null ? String(metadata.year) : null;
-  const line = [author, year].filter(Boolean).join(" · ");
-  return line && <span className="min-w-0 truncate">{line}</span>;
+  switch (mediaType) {
+    case "film":
+    case "series":
+      return metadata.year ?? undefined;
+    case "book": {
+      const author = metadata.authors[0] ? authorName(metadata.authors[0]) : null;
+      const year = withYear && metadata.year !== null ? String(metadata.year) : null;
+      const line = [author, year].filter(Boolean).join(" · ");
+      return line && <span className="min-w-0 truncate">{line}</span>;
+    }
+  }
 }
 
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title
