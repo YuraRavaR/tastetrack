@@ -2,26 +2,30 @@ import { step } from "../../step";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { BasePage } from "./BasePage";
 
-// A film's tabs and a book's.
+// A film's tabs and a book's; a series has a film's.
 export type LibraryTab = "Watchlist" | "Watched" | "Reading list" | "Reading" | "Read";
 
 // The chips above the grid: the sort, then the filters; Genre only for films, Rating only on
 // Watched.
 export type LibraryChip = "Sort" | "Genre" | "Decade" | "Rating";
 
-const tabPaths: Record<LibraryTab, string> = {
-  Watchlist: "films/watchlist",
-  Watched: "films/watched",
-  "Reading list": "books/reading-list",
-  Reading: "books/reading",
-  Read: "books/read",
+// Each tab's word in the address, and the word of the Media Type it is on unless a series' tab is
+// asked for.
+const tabPaths: Record<LibraryTab, { slug: string; mediaType: "films" | "books" }> = {
+  Watchlist: { slug: "watchlist", mediaType: "films" },
+  Watched: { slug: "watched", mediaType: "films" },
+  "Reading list": { slug: "reading-list", mediaType: "books" },
+  Reading: { slug: "reading", mediaType: "books" },
+  Read: { slug: "read", mediaType: "books" },
 };
 
-// Saved for one Media Type: a film's Watchlist and Watched tabs and a book's Reading list, Reading
-// and Read, each a grid of covers.
-export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
-  path(tab: LibraryTab = "Watchlist") {
-    return `/saved/${tabPaths[tab]}`;
+// Saved for one Media Type: a film's Watchlist and Watched tabs, a book's Reading list, Reading
+// and Read, and a series' Watchlist and Watched, each a grid of covers. A film's tab and a
+// series' have one name, so a series' is named with its Media Type.
+export class LibraryPage extends BasePage<[tab?: LibraryTab, mediaType?: "series"]> {
+  path(tab: LibraryTab = "Watchlist", mediaType?: "series") {
+    const { slug, mediaType: tabMediaType } = tabPaths[tab];
+    return `/saved/${mediaType ?? tabMediaType}/${slug}`;
   }
 
   readonly heading = this.main.getByRole("heading", { level: 1 });
@@ -33,6 +37,7 @@ export class LibraryPage extends BasePage<[tab?: LibraryTab]> {
   // The buttons of an empty tab's quiet block.
   readonly findFilmLink = this.main.getByRole("link", { name: "Find a film" });
   readonly findBookLink = this.main.getByRole("link", { name: "Find a book" });
+  readonly findSeriesLink = this.main.getByRole("link", { name: "Find a series" });
   readonly goToWatchlistLink = this.main.getByRole("link", { name: "Go to Watchlist" });
   readonly chipsGroup = this.main.getByRole("group", { name: "Sort and filters" });
   readonly chips = this.chipsGroup.getByRole("button");

@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
 import { authorNames } from "../catalog/book-label";
 import { filmFacts, filmLabel } from "../catalog/film-label";
+import { seriesFacts } from "../catalog/series-label";
 import { mediaWord } from "../i18n/media-words";
 
 // A Media Item's label, "Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)", with its Ukrainian
@@ -38,8 +39,9 @@ export function FilmTitle({
 }
 
 // What a Media Item's page says under its title, as far as it is known: a film's runtime and
-// genres, "122 min · Comedy, Romance", a book's authors, "Сергій Жадан, Reilly Costigan-Humes +1".
-// Nothing while its metadata is missing or holds none of it.
+// genres, "122 min · Comedy, Romance", a book's authors, "Сергій Жадан, Reilly Costigan-Humes +1",
+// a series' years, seasons and status, "2008–2013 · 5 seasons · Ended". Nothing while its
+// metadata is missing or holds none of it.
 export function FilmFacts({ mediaItem }: { mediaItem: MediaItem }) {
   const facts = factsOf(mediaItem);
   return facts ? <p className="text-[13px] text-muted-foreground sm:text-[15px]">{facts}</p> : null;
@@ -52,8 +54,7 @@ function factsOf(mediaItem: MediaItem): string | null {
       return filmFacts(mediaItem.metadata);
     case "book":
       return authorNames(mediaItem.metadata.authors);
-    // A series' facts come with its UI.
     case "series":
-      return null;
+      return seriesFacts(mediaItem.metadata);
   }
 }

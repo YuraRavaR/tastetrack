@@ -21,13 +21,13 @@ export class UserMediaItemMatches extends ScopedComponent {
   }
 }
 
-// A Media Type chip's name: the two Search has, and Series, still to come.
+// A Media Type chip's name.
 type MediaTypeChip = "Films" | "Books" | "Series";
 
 // The Search section: the search of one Media Type, its results and what can be done with them.
-export class SearchPage extends BasePage<[query?: string, mediaType?: "book"]> {
+export class SearchPage extends BasePage<[query?: string, mediaType?: "book" | "series"]> {
   // With a query, Search opens on its results; with a Media Type, on that one's, else on films'.
-  path(query?: string, mediaType?: "book") {
+  path(query?: string, mediaType?: "book" | "series") {
     // Encoded as the app's URL has it, a space as "+", the query before the type.
     const params = new URLSearchParams({
       ...(query && { q: query }),
@@ -62,6 +62,7 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: "book"]> {
     name: /^From Open Library/,
   });
   readonly noBooksMessage = this.page.getByText(/^No books found for “.*”\.$/);
+  readonly noSeriesMessage = this.page.getByText(/^No series found for “.*”\.$/);
   readonly addManuallyButton = this.page.getByRole("button", { name: "Add manually" });
   readonly addManuallyDialog = new ManualMediaItemDialog(
     this.page.getByRole("dialog", { name: "Add a film manually" }),
@@ -69,22 +70,15 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: "book"]> {
   readonly addBookManuallyDialog = new ManualMediaItemDialog(
     this.page.getByRole("dialog", { name: "Add a book manually" }),
   );
+  readonly addSeriesManuallyDialog = new ManualMediaItemDialog(
+    this.page.getByRole("dialog", { name: "Add a series manually" }),
+  );
   readonly toast = new Toast(this.page.getByRole("status"));
   readonly errorMessage = this.page.getByRole("alert");
 
   // Any text on the page, such as a message that must be gone.
   text(content: string) {
     return this.page.getByText(content);
-  }
-
-  // What the chip of a Media Type still to come says: "Soon" on a phone, "Coming soon" where
-  // there is room. The first "Coming soon" is the one on show; the other is the chip's description.
-  get seriesSoonLabel() {
-    return this.mediaTypeChip("Series").getByText("Soon", { exact: true });
-  }
-
-  get seriesComingSoonLabel() {
-    return this.mediaTypeChip("Series").getByText("Coming soon").first();
   }
 
   // Every Media Type's chip.

@@ -4,16 +4,16 @@ import { coverOf } from "../catalog/cover";
 import { FilmFacts, FilmTitle } from "./FilmTitle";
 import { Poster } from "./Poster";
 
-// What opens a Media Item's page: a film's backdrop whole, at 16:9, fading into the page, with the
-// poster pulled up over its bottom edge and the title beside it. On a phone the picture runs edge
-// to edge under the header, out of the page's padding; from `sm` it fills the column. A film with
-// a poster and no backdrop, and every book with a cover, since a book has no backdrop, shows the
-// cover in the picture's place, blurred: scaled past the picture's edges, so the blur's soft
-// border is cropped away. Without either there is no picture, and the poster row starts at the
-// top. The picture's box and the poster's size are fixed, so the page doesn't move when the
-// images arrive.
+// What opens a Media Item's page: a film's or a series' backdrop whole, at 16:9, fading into the
+// page, with the poster pulled up over its bottom edge and the title beside it. On a phone the
+// picture runs edge to edge under the header, out of the page's padding; from `sm` it fills the
+// column. A film or a series with a poster and no backdrop, and every book with a cover, since a
+// book has no backdrop, shows the cover in the picture's place, blurred: scaled past the
+// picture's edges, so the blur's soft border is cropped away. Without either there is no picture,
+// and the poster row starts at the top. The picture's box and the poster's size are fixed, so the
+// page doesn't move when the images arrive.
 export function FilmBanner({ mediaItem }: { mediaItem: MediaItem }) {
-  const backdrop = mediaItem.mediaType === "film" ? mediaItem.metadata?.backdropUrls : null;
+  const backdrop = mediaItem.mediaType === "book" ? null : mediaItem.metadata?.backdropUrls;
   const posterUrl = coverOf(mediaItem, "large").url;
   const pictureImage = backdrop ? (
     <>

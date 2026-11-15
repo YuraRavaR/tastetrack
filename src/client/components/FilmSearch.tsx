@@ -82,7 +82,7 @@ const noMatchIcons: Record<MediaType, LucideIcon> = { film: SearchX, book: BookO
 // it is in the Log, and takes it off the Watchlist with an undo. Want to watch is a toggle, which
 // puts a result on the Watchlist or takes it off again, and any result can be added to or taken
 // off the User's Lists. Below the results, a film search doesn't find can be added by hand, and
-// then shows first. A Media Type offers only what it can do so far: a book, Want to read alone.
+// then shows first. A Media Type offers only what it can do (catalog/media-types.ts).
 export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
   const backlogName = mediaWord(mediaType, "backlog");

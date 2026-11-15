@@ -103,6 +103,8 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   // Only for a film the User added themselves.
   readonly editFilmButton = this.main.getByRole("button", { name: "Edit film" });
   readonly deleteFilmButton = this.main.getByRole("button", { name: "Delete film" });
+  // Only for a series the User added themselves.
+  readonly editSeriesButton = this.main.getByRole("button", { name: "Edit series" });
   // Only for a book the User added themselves.
   readonly editBookButton = this.main.getByRole("button", { name: "Edit book" });
   readonly deleteBookButton = this.main.getByRole("button", { name: "Delete book" });

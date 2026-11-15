@@ -1,13 +1,5 @@
 import { BookOpen, Clapperboard, type LucideIcon, Tv } from "lucide-react";
 import type { MediaType } from "../../shared/api";
-import type { MessageId } from "../i18n/t";
-
-// A Media Type as a section offers it: one the section has built, or one still to come, shown
-// disabled and labelled "Coming soon". One still to come carries its own name and icon, since it
-// may not be a MediaType yet.
-export type MediaTypeChoice =
-  | { status: "built"; mediaType: MediaType }
-  | { status: "comingSoon"; name: MessageId; icon: LucideIcon };
 
 // A new Media Type doesn't compile until it has an icon.
 const mediaTypeIcons: Record<MediaType, LucideIcon> = {
@@ -20,20 +12,11 @@ export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
   return mediaTypeIcons[mediaType];
 }
 
-const films: MediaTypeChoice = { status: "built", mediaType: "film" };
-const books: MediaTypeChoice = { status: "built", mediaType: "book" };
-// Series are in the API, and stay "Coming soon" until their UI. Music and Games stay out until each
-// has an ADR choosing its External Source.
-const seriesSoon: MediaTypeChoice = {
-  status: "comingSoon",
-  name: "mediaType.series.tab",
-  icon: Tv,
-};
-
-// The Media Types each section offers, in the one order they all keep.
-export const searchMediaTypes: readonly MediaTypeChoice[] = [films, books, seriesSoon];
-export const listsMediaTypes: readonly MediaTypeChoice[] = [films, books, seriesSoon];
-export const savedMediaTypes: readonly MediaTypeChoice[] = [films, books];
+// The Media Types each section offers, in the one order they all keep. Music and Games stay out
+// until each has an ADR choosing its External Source.
+export const searchMediaTypes: readonly MediaType[] = ["film", "book", "series"];
+export const listsMediaTypes: readonly MediaType[] = ["film", "book", "series"];
+export const savedMediaTypes: readonly MediaType[] = ["film", "book", "series"];
 
 // What a User does to keep a Media Item: marks it Planned, logs it, puts it in Collections, or
 // adds one by hand.
@@ -43,12 +26,20 @@ export type Keeping = "plan" | "log" | "collect" | "addByHand";
 const keepings: Record<MediaType, readonly Keeping[]> = {
   film: ["plan", "log", "collect", "addByHand"],
   book: ["plan", "log", "collect", "addByHand"],
-  // None until the series UI: no section offers series yet.
-  series: [],
+  series: ["plan", "log", "collect", "addByHand"],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {
   return keepings[mediaType].includes(keeping);
+}
+
+// Whether a new Log Entry for a Media Item the User has logged before starts as a Revisit. A film
+// or a book logged again is most often seen again from the start; a series most often goes on
+// with a new season, which is no Revisit (ADR-0005).
+const revisitsByDefault: Record<MediaType, boolean> = { film: true, book: true, series: false };
+
+export function startsAsRevisit(mediaType: MediaType): boolean {
+  return revisitsByDefault[mediaType];
 }
 
 // Which Media Types have In Progress is the Worker's rule too. A new one doesn't compile until the

@@ -122,17 +122,10 @@ export function libraryTabOfSlug(
   return tab && libraryTabsOf(mediaType).includes(tab) ? tab : null;
 }
 
-// The Media Type an address names, or null when Saved doesn't offer it yet.
+// The Media Type an address names, or null when Saved doesn't offer it.
 export function mediaTypeOfSlug(slug: string | undefined): MediaType | null {
   const mediaType = bySlug(typeSlugs, slug);
-  return mediaType && offered(mediaType) ? mediaType : null;
-}
-
-// Whether Saved offers the Media Type as built, not as "Coming soon".
-function offered(mediaType: MediaType): boolean {
-  return savedMediaTypes.some((choice) => {
-    return choice.status === "built" && choice.mediaType === mediaType;
-  });
+  return mediaType && savedMediaTypes.includes(mediaType) ? mediaType : null;
 }
 
 // A Media Type's word for one of its tabs, in addresses: "watched", "read". A tab the Media Type

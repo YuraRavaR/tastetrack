@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { MediaItem, MediaType } from "../../shared/api";
+import type { MediaItem, MediaType, NewManualMediaItemRequest } from "../../shared/api";
 import {
   earliestBookYear,
   earliestFilmYear,
@@ -31,9 +31,9 @@ import {
 // The item to edit, or the Media Type of a new one, which starts from a title.
 type Editing = { mediaItem: MediaItem } | { mediaType: MediaType; title?: string };
 
-// Adds a film or a book by hand as a Manual Media Item, or edits one, in a sheet on a phone and a
-// centred dialog from `md`. The dialog is open while `open` is set, and stays open until the item
-// is saved.
+// Adds a film, a book or a series by hand as a Manual Media Item, or edits one, in a sheet on a
+// phone and a centred dialog from `md`. The dialog is open while `open` is set, and stays open
+// until the item is saved.
 export function ManualMediaItemDialog({
   open,
   onClose,
@@ -74,6 +74,30 @@ function authorsOf(value: string): string[] {
     .map((name) => name.trim())
     .filter((name) => name !== "");
 }
+
+// The details a Media Type's item has, from the form's fields: a film's runtime and genres, a
+// book's authors, and only the titles and year for a series.
+function detailsOf(
+  mediaType: MediaType,
+  titles: { title: string; originalTitle: string | null; year: number | null },
+  fields: { runtime: number | null; genres: FilmGenre[]; authors: string[] },
+): NewManualMediaItemRequest {
+  switch (mediaType) {
+    case "film":
+      return { mediaType, ...titles, runtime: fields.runtime, genres: fields.genres };
+    case "book":
+      return { mediaType, ...titles, authors: fields.authors };
+    case "series":
+      return { mediaType, ...titles };
+  }
+}
+
+// The earliest year each Media Type's item can have: a series' is a film's.
+const earliestYears: Record<MediaType, number> = {
+  film: earliestFilmYear,
+  book: earliestBookYear,
+  series: earliestFilmYear,
+};
 
 // A number field's value, or null when it is empty.
 function numberOf(value: string): number | null {
@@ -136,15 +160,11 @@ function ManualMediaItemForm({
       originalTitle: originalTitle.trim() || null,
       year: numberOf(year),
     };
-    const details =
-      mediaType === "film"
-        ? {
-            mediaType,
-            ...titles,
-            runtime: numberOf(runtime),
-            genres: filmGenres.filter((genre) => genres.has(genre)),
-          }
-        : { mediaType, ...titles, authors: authorsOf(authors) };
+    const details = detailsOf(mediaType, titles, {
+      runtime: numberOf(runtime),
+      genres: filmGenres.filter((genre) => genres.has(genre)),
+      authors: authorsOf(authors),
+    });
     // An edit can't change the Media Type, so it doesn't name it.
     const { mediaType: _mediaType, ...fields } = details;
     const saved = mediaItem
@@ -221,7 +241,7 @@ function ManualMediaItemForm({
               id={ids.year}
               type="number"
               inputMode="numeric"
-              min={mediaType === "film" ? earliestFilmYear : earliestBookYear}
+              min={earliestYears[mediaType]}
               max={latestFilmYear(new Date())}
               step={1}
               value={year}

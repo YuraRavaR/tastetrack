@@ -1,19 +1,15 @@
 import { useSearchParams } from "react-router";
 import type { MediaType } from "../../shared/api";
-import type { MediaTypeChoice } from "./media-types";
 
 // The Media Type a section is on, kept in the URL as `?type=`, so reloading, going Back or sharing
-// the link keeps it. Without one, or with one the section hasn't built, it is on films, and
+// the link keeps it. Without one, or with one the section doesn't offer, it is on films, and
 // choosing films leaves the URL without `type`. A change replaces the history entry and keeps the
 // URL's other parameters.
 export function useMediaTypeParam(
-  choices: readonly MediaTypeChoice[],
+  offered: readonly MediaType[],
 ): [MediaType, (mediaType: MediaType) => void] {
   const [params, setParams] = useSearchParams();
   const asked = params.get("type");
-  const offered = choices.flatMap((choice) =>
-    choice.status === "built" ? [choice.mediaType] : [],
-  );
   const mediaType = offered.find((each) => each === asked) ?? defaultMediaType;
   const setMediaType = (chosen: MediaType) => {
     setParams(withParam(params, "type", chosen === defaultMediaType ? "" : chosen), {
