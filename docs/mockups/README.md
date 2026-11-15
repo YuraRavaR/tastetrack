@@ -49,3 +49,4 @@ Shoots every `.html` in the folder at 390 and 1440 px, in light and dark, with t
 | [`film-banner/`](film-banner/) | The top of the film's page: the whole backdrop, the poster over it | none yet | Variant B, cinematic hero (web v3) |
 | [`books/`](books/) | Every screen books change: Media Type chips, Search, a book's page, Saved, Collections, adding by hand, the Open Library credit | #174 | Chips C (segmented), covers cropped to 2:3, a typeset cover when there is none |
 | [`catalog-details/`](catalog-details/) | A film's and a book's page: overview, tagline, director and cast, a book's description | #203 | Variant A, under the title |
+| [`series-progress/`](series-progress/) | A series' Progress: the "Watching now" row on Saved, a series' page, the Watch more choice, the Watching tab | #211 | Row A (a bar and a round check), page A (a Watching card with two steppers) |

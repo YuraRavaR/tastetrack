@@ -1,0 +1,33 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-15T12:05:00Z" },
+  "title": "TasteTrack series Progress",
+  "launch": { "view": "canvas", "page": "r2" },
+  "pages": [
+    { "id": "r1", "name": "Round 1 · The row and the page" },
+    { "id": "r2", "name": "Round 2 · States, Watch more, the Watching tab" }
+  ],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1290, "h": 1530, "page": "r1", "title": "Watching now on Saved · phone · A bar and check · B labelled button · C pie" },
+    "SavedWeb.dc.html": { "x": 1370, "y": 0, "w": 1440, "h": 1840, "page": "r1", "title": "Watching now on Saved · web · A, B, C" },
+    "SeriesPhone.dc.html": { "x": 0, "y": 2400, "w": 1290, "h": 1290, "page": "r1", "title": "A series' page, Watching · phone · A steppers · B episode list · C compact" },
+    "SeriesWeb.dc.html": { "x": 1370, "y": 2400, "w": 1280, "h": 1560, "page": "r1", "title": "A series' page, Watching · web · the Progress block A, B, C" },
+    "R2Page.dc.html": { "x": 0, "y": 0, "w": 1740, "h": 1180, "page": "r2", "title": "A series' page · not started · Caught up · rated before · added by hand" },
+    "R2WatchMore.dc.html": { "x": 0, "y": 1600, "w": 1930, "h": 900, "page": "r2", "title": "Watch more · from season 5 · your own episode · a series added by hand · on the web" },
+    "R2Tab.dc.html": { "x": 0, "y": 2920, "w": 1730, "h": 900, "page": "r2", "title": "Series · the Watching tab · phone and web" }
+  },
+  "order": ["Main.dc.html", "SavedWeb.dc.html", "SeriesPhone.dc.html", "SeriesWeb.dc.html", "R2Page.dc.html", "R2WatchMore.dc.html", "R2Tab.dc.html"],
+  "notes": {
+    "t1": { "kind": "title1", "page": "r1", "x": 0, "y": -300, "maxW": 2810, "text": "The Watching now row on Saved" },
+    "t2": { "kind": "title1", "page": "r1", "x": 0, "y": 2100, "maxW": 2650, "text": "A series' page while Watching" },
+    "n1": { "page": "r1", "x": 2900, "y": 0, "w": 400, "size": "m", "fill": "teal", "text": "Real TMDB data, checked 2026-11-15.\n\nBreaking Bad: ended, 62 episodes. Next S2 · E9 means 7 + 8 = 15 watched.\nSilo: caught up; TMDB gives S4 · E1 for 8 July 2027 and already lists it, so the bar says 30 of 31.\nSlow Horses: caught up, no next date.\nЛеся + Рома: added by hand, so no bar and never Caught up.\nSeverance: just started.\n\nTweaks switches every board between dark and light." },
+    "picks": { "page": "r1", "x": 2900, "y": 640, "w": 400, "size": "m", "fill": "green", "text": "Picked 2026-11-15:\nThe row: A (a bar in the row, a round check behind a divider, the air date in the status line).\nThe series' page: A (a Watching card, a round check, two steppers)." },
+    "r2t1": { "kind": "title1", "page": "r2", "x": 0, "y": -300, "maxW": 1740, "text": "A series' page in its other states" },
+    "r2t2": { "kind": "title1", "page": "r2", "x": 0, "y": 1300, "maxW": 1930, "text": "The Watch more choice" },
+    "r2t3": { "kind": "title1", "page": "r2", "x": 0, "y": 2620, "maxW": 1730, "text": "The Watching tab" },
+    "r2n1": { "page": "r2", "x": 1840, "y": 0, "w": 400, "size": "m", "fill": "teal", "text": "Built from the round 1 picks (A and A).\n\nNot started: Start watching sits in the action row and opens no dialog.\nCaught up: no check, since nothing has aired; the steppers still move, so an episode TMDB lacks can be set.\nRated before: Watch more takes Start watching's place.\nBy hand: no bar, no \"of 13\", and the steppers have no upper end." },
+    "r2n2": { "page": "r2", "x": 2030, "y": 1600, "w": 400, "size": "m", "fill": "teal", "text": "A bottom sheet on a phone, a centred dialog on the web, as the Watched dialog is.\n\n\"From season 5\" is the latest season TMDB lists and is chosen when the sheet opens, so the usual case is one tap on Start watching.\n\nThe steppers show only under \"Choose where you are\"." },
+    "r2n3": { "page": "r2", "x": 1830, "y": 2920, "w": 400, "size": "m", "fill": "orange", "text": "To confirm: the Watching tab lists the same rows as Saved (one column on a phone, two on the web) and not the poster grid the other tabs have. A poster a third of a phone wide has no room for the bar and a thumb-sized check.\n\nThe row has no sort or filter chips: the latest started comes first." }
+  },
+  "designSystems": []
+}

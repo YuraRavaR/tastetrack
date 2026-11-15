@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A series' page in its other states · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1140px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic22{width:22px;height:22px}
+.ic26{width:26px;height:26px;stroke-width:2.4}
+.star{width:14px;height:14px;fill:currentColor;flex:none;color:var(--primary)}
+.pic{position:relative;height:219px;overflow:hidden;background:var(--muted)}
+.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.pic::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,var(--background) 100%)}
+.head{position:relative;display:flex;align-items:flex-end;gap:14px;margin-top:-72px;padding:0 16px}
+.art{width:104px;height:156px;border-radius:10px;object-fit:cover;border:1px solid var(--border);box-shadow:0 8px 24px oklch(0 0 0 / 35%);flex:none;box-sizing:border-box}
+.np{background:var(--primary-soft);color:var(--primary-strong);display:grid;place-items:center}
+.titles{display:flex;flex-direction:column;gap:3px;min-width:0;padding-bottom:2px}
+.h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-0.01em;line-height:1.15}
+.uk{margin:0;font-size:14px;font-weight:600;color:var(--muted-foreground)}
+.facts{margin:2px 0 0;font-size:13px;color:var(--muted-foreground)}
+.body{display:flex;flex-direction:column;gap:18px;padding:18px 16px 0}
+.btn{height:48px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:var(--card);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.btn.pr{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.btn.pl{background:transparent;height:44px}
+.inp{border:1px solid var(--primary-strong);background:var(--primary-soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;gap:12px;align-items:center}
+.mark{width:40px;height:40px;border-radius:12px;background:var(--card);color:var(--primary-strong);display:grid;place-items:center;flex:none}
+.ib{width:44px;height:44px;border:0;border-radius:10px;background:none;color:var(--muted-foreground);display:grid;place-items:center;margin-left:auto;cursor:pointer}
+.sm{font-size:14px;color:var(--muted-foreground)}
+.lbl{font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.nx{display:flex;align-items:center;gap:12px}
+.big{font-size:19px;font-weight:700;letter-spacing:-0.01em}
+.ckf{width:52px;height:52px;border-radius:999px;border:0;background:var(--primary);color:var(--primary-foreground);display:grid;place-items:center;flex:none;margin-left:auto;cursor:pointer}
+.br{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted-foreground);white-space:nowrap}
+.bar{flex:1;height:6px;border-radius:999px;background:var(--muted);overflow:hidden;display:block}
+.bar i{display:block;height:100%;background:var(--primary-strong);border-radius:999px}
+.st{display:flex;align-items:center;gap:10px;font-size:15px}
+.stp{margin-left:auto;display:flex;align-items:center;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--background)}
+.stp button{width:44px;height:44px;border:0;background:none;color:inherit;display:grid;place-items:center;cursor:pointer}
+.stp output{min-width:40px;text-align:center;font-weight:700;font-size:16px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.h2{font-size:18px;font-weight:600;margin:6px 0 -6px}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:20px 16px;font-size:14px;color:var(--muted-foreground);text-align:center}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:9px 11px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tl{font-size:12px;color:var(--muted-foreground)}
+.tv{font-size:17px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.vr{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:10px;font-size:15px}
+.rv{margin:-10px 0 0;padding:0 16px;font-size:14px;line-height:1.45;color:var(--muted-foreground)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1740px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{s.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pic"><sc-if value="{{s.back}}" hint-placeholder-val="{{true}}"><img src="{{s.back}}" alt=""></sc-if></div>
+<div class="head">
+<sc-if value="{{s.poster}}" hint-placeholder-val="{{true}}"><img class="art" src="{{s.poster}}" alt="{{s.alt}}"></sc-if>
+<sc-if value="{{s.manual}}" hint-placeholder-val="{{false}}"><span class="art np" role="img" aria-label="No poster"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 36px; height: 36px"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span></sc-if>
+<div class="titles"><h1 class="h1">{{s.title}}</h1><sc-if value="{{s.uk}}" hint-placeholder-val="{{true}}"><p class="uk">{{s.uk}}</p></sc-if><sc-if value="{{s.facts}}" hint-placeholder-val="{{true}}"><p class="facts">{{s.facts}}</p></sc-if></div>
+</div>
+<div class="body">
+
+<sc-if value="{{s.notStarted}}" hint-placeholder-val="{{true}}">
+<div class="acts"><button class="btn pr" style="height: 44px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Watched</button><button class="btn pl" aria-pressed="true" style="background: var(--primary-soft); border-color: transparent"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" style="fill: currentColor"></path></svg>Want to watch</button><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg>Start watching</button><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+<div class="h2">Viewings</div>
+<div class="empty">Not watched yet</div>
+</sc-if>
+
+<sc-if value="{{s.caught}}" hint-placeholder-val="{{false}}">
+<section class="inp" aria-label="Watching">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Watching</div><div class="sm">Since 4 September 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="panel">
+<div><div class="big">Caught up</div><div class="sm">S4 · E1 airs 8 July 2027</div></div>
+<div class="br"><span class="bar"><i style="width: 97%"></i></span>30 of 31</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="lbl">Last watched</div>
+<div class="st"><span>Season</span><span class="stp"><button aria-label="Previous season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>3</output><button aria-label="Next season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+<div class="st"><span>Episode</span><span class="stp"><button aria-label="Previous episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>10</output><button aria-label="Next episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+</div>
+<div class="two"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop watching</button></div>
+</section>
+<div class="acts"><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+<div class="h2">Viewings</div>
+<div class="empty">Not watched yet</div>
+</sc-if>
+
+<sc-if value="{{s.rated}}" hint-placeholder-val="{{false}}">
+<div class="tiles"><div class="tile"><span class="tl">Watched</span><span class="tv">Once</span></div><div class="tile"><span class="tl">Your rating</span><span class="tv"><svg class="star" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>4.5</span></div><div class="tile"><span class="tl">First watched</span><span class="tv">2025</span></div></div>
+<div class="acts"><button class="btn pr" style="height: 44px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Watched again</button><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Want to watch</button><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg>Watch more</button><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+<div class="h2">Viewings</div>
+<div class="vr"><span style="font-weight: 500">3 August 2025</span><span style="display: flex; align-items: center; gap: 4px; color: var(--muted-foreground)"><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>4.5</span><button class="ib" aria-label="Actions for 3 August 2025"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></button></div>
+<p class="rv">Four seasons in and it is still the tensest kitchen on television.</p>
+</sc-if>
+
+<sc-if value="{{s.manual}}" hint-placeholder-val="{{false}}">
+<section class="inp" aria-label="Watching">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Watching</div><div class="sm">Since 9 November 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="panel">
+<div class="nx"><div><div class="lbl">Next</div><div class="big">S1 · E4</div><div class="sm">Season 1, episode 4</div></div><button class="ckf" aria-label="Mark S1 · E4 watched"><svg class="ic ic26" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></button></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="lbl">Last watched</div>
+<div class="st"><span>Season</span><span class="stp"><button aria-label="Previous season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>1</output><button aria-label="Next season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+<div class="st"><span>Episode</span><span class="stp"><button aria-label="Previous episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>3</output><button aria-label="Next episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+</div>
+<div class="two"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop watching</button></div>
+</section>
+<div class="acts"><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+<div class="h2">Viewings</div>
+<div class="empty">Not watched yet</div>
+</sc-if>
+
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1740,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+theme: this.props.theme ?? 'dark',
+screens: [
+{ cap: 'Not started, on the Watchlist', notStarted: true, back: '/_blob/93bc9e84e3edfdd95560e7952ccbf45f', poster: '/_blob/308823d1f35d7db27798fd84bd3aa2bd', alt: 'Severance poster', title: 'Severance (2022)', uk: 'Розрив', facts: '2022– · 2 seasons · Returning' },
+{ cap: 'Watching · Caught up, with the next air date', caught: true, back: '/_blob/4f0557948999b0e444000a5a3e89692a', poster: '/_blob/24c096800f23ce04e82549415867d198', alt: 'Silo poster', title: 'Silo (2023)', uk: 'Таємниця бункера', facts: '2023– · 4 seasons · Returning' },
+{ cap: 'Rated before · Watch more', rated: true, back: '/_blob/81c1e1311a4a7f993a2c7f655f398424', poster: '/_blob/736eb79247f560db88169bbacf6ad4e9', alt: 'The Bear poster', title: 'The Bear (2022)', uk: 'Ведмідь', facts: '2022–2026 · 5 seasons · Ended' },
+{ cap: 'Watching · added by hand', manual: true, back: '', poster: '', alt: '', title: 'Леся + Рома (2005)', uk: '', facts: '' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

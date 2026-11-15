@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Series Progress · The Watching tab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87); --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75); --input: oklch(0.85 0.015 75); --overlay: oklch(0.2 0.01 50 / 50%); --ink: oklch(0.22 0.02 60);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85); --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%); --input: oklch(1 0 0 / 15%); --overlay: oklch(0 0 0 / 60%); --ink: #fff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic22 { width: 22px; height: 22px; }
+.star { width: 14px; height: 14px; fill: currentColor; flex: none; color: var(--primary); }
+[data-for] { display: none; }
+[data-for].shown { display: block; }
+
+/* Header, bottom tab bar and footer, as on every page. */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo svg { width: 34px; height: 34px; color: var(--ink); }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.nav { display: none; gap: 4px; }
+.nav a { height: 36px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); }
+.account { margin-left: auto; width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); display: grid; place-items: center; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border); z-index: 5; }
+.tabbar a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.tabbar .ic { width: 24px; height: 24px; }
+footer { border-top: 1px solid var(--border); margin-top: 40px; }
+.foot { max-width: 1152px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; line-height: 1.45; color: var(--muted-foreground); }
+.tmdb { align-self: flex-start; font-weight: 800; font-size: 11px; letter-spacing: 0.02em; padding: 1px 6px; border-radius: 4px; background: var(--foreground); color: var(--background); }
+
+/* Buttons. */
+.btn { height: 44px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; font-weight: 600; border: 1px solid var(--border); background: transparent; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.btn.on { background: var(--primary-soft); border-color: transparent; }
+.btn.on .fill { fill: currentColor; }
+
+/* The stepper: minus, the number, plus. 44 px buttons on a phone, 40 px from md. */
+.stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--background); }
+.stepper button { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; }
+.stepper output { min-width: 40px; text-align: center; font-weight: 700; font-size: 16px; }
+.step-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 15px; }
+.label { font-size: 13px; font-weight: 600; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  body { padding-bottom: 0; }
+  .bar { padding: 0 24px; height: 64px; }
+  .logo svg { width: 36px; height: 36px; }
+  .wm { font-size: 17px; }
+  .nav { display: flex; }
+  .tabbar { display: none; }
+  .foot { padding: 16px 24px; flex-direction: row; align-items: center; gap: 16px; }
+  .foot .version { margin-left: auto; }
+  .stepper button { width: 40px; height: 40px; }
+}
+
+/* The row: a link (poster, title, status, bar) and, behind a divider, the check or Finished. */
+.rows { display: grid; gap: 10px; }
+.row { display: flex; align-items: stretch; border: 1px solid var(--border); background: var(--card); border-radius: 16px; overflow: hidden; }
+.row .open { display: flex; gap: 12px; align-items: center; padding: 10px 6px 10px 10px; flex: 1; min-width: 0; }
+.row .poster { width: 48px; height: 72px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); flex: none; }
+.row .poster.none { background: var(--primary-soft); color: var(--primary-strong); display: grid; place-items: center; }
+.row .text { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.row .title { font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .status { font-size: 13px; line-height: 1.3; color: var(--muted-foreground); }
+.row .status b { color: var(--foreground); font-weight: 600; }
+.row .progress { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+.meter { flex: 1; height: 5px; border-radius: 999px; background: var(--muted); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--primary-strong); border-radius: 999px; }
+.row .act { flex: none; display: flex; align-items: center; justify-content: center; min-width: 64px; padding: 0 10px; background: none; border: 0; border-left: 1px solid var(--border); }
+.row .check { width: 40px; height: 40px; border-radius: 999px; border: 1.5px solid var(--primary-strong); color: var(--primary-strong); display: grid; place-items: center; }
+.row .finished { height: 36px; padding: 0 14px; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); font-size: 14px; font-weight: 600; display: flex; align-items: center; }
+.row .go { flex: none; width: 44px; display: grid; place-items: center; color: var(--muted-foreground); }
+@media (min-width: 768px) {
+  .rows { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .row .open { gap: 14px; padding-right: 8px; }
+  .row .status { font-size: 14px; }
+  .row .progress { font-size: 13px; gap: 10px; max-width: 340px; }
+  .row .act { min-width: 68px; padding: 0 14px; }
+}
+
+.wide { max-width: 1152px; margin: 0 auto; padding: 12px 16px 0; display: flex; flex-direction: column; gap: 14px; }
+.back { display: flex; align-items: center; gap: 4px; font-size: 15px; color: var(--muted-foreground); height: 32px; }
+h1 { margin: -6px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+.status-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; background: var(--muted); border-radius: 14px; padding: 4px; }
+.status-tabs button { height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 14px; font-weight: 500; border: 0; background: none; white-space: nowrap; }
+.status-tabs span { color: var(--muted-foreground); }
+.status-tabs [aria-selected="true"] { background: var(--card); font-weight: 600; box-shadow: 0 1px 3px oklch(0 0 0 / 18%); }
+@media (min-width: 768px) {
+  .wide { padding: 24px 24px 0; gap: 18px; }
+  h1 { font-size: 34px; letter-spacing: -0.02em; }
+  .status-tabs { width: 420px; }
+}
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="logo" href="#" aria-label="TasteTrack"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span></a><nav class="nav" aria-label="Sections"><a href="#" aria-current="page">Saved</a><a href="#">Collections</a><a href="#">Search</a></nav><button class="account" aria-label="Account menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></button></div></header>
+<main class="wide">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Saved</a>
+<h1>Series</h1>
+<div class="status-tabs" role="tablist" aria-label="Status"><button role="tab" aria-selected="false">Watchlist<span>3</span></button><button role="tab" aria-selected="true">Watching<span>5</span></button><button role="tab" aria-selected="false">Watched<span>9</span></button></div>
+<ul class="rows" style="list-style: none; margin: 0; padding: 0"><li class="row"><a class="open" href="#"><img class="poster" src="https://image.tmdb.org/t/p/w342/anFx9aTOOYqgS3v7x3R84Kz67ly.jpg" alt=""><span class="text"><span class="title">Breaking Bad</span><span class="status">Next: <b>S2 · E9</b></span><span class="progress"><span class="meter" role="img" aria-label="15 of 62 episodes watched"><i style="width: 24%"></i></span>15 of 62</span></span></a><button class="act" aria-label="Mark S2 · E9 of Breaking Bad watched"><span class="check"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></li><li class="row"><a class="open" href="#"><img class="poster" src="https://image.tmdb.org/t/p/w342/r2QXomqKjkKHVtYGGtkf2l2Y7go.jpg" alt=""><span class="text"><span class="title">Silo</span><span class="status"><b>Caught up</b> · S4 · E1 on 8 Jul 2027</span><span class="progress"><span class="meter" role="img" aria-label="30 of 31 episodes watched"><i style="width: 97%"></i></span>30 of 31</span></span></a><button class="act"><span class="finished">Finished</span></button></li><li class="row"><a class="open" href="#"><img class="poster" src="https://image.tmdb.org/t/p/w342/AdYr4DjOgXvDUMwu6vEhZy1Rnxk.jpg" alt=""><span class="text"><span class="title">Slow Horses</span><span class="status"><b>Caught up</b></span><span class="progress"><span class="meter" role="img" aria-label="36 of 36 episodes watched"><i style="width: 100%"></i></span>36 of 36</span></span></a><button class="act"><span class="finished">Finished</span></button></li><li class="row"><a class="open" href="#"><span class="poster none" role="img" aria-label="No poster"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span><span class="text"><span class="title">Леся + Рома</span><span class="status">Next: <b>S1 · E4</b></span></span></a><button class="act" aria-label="Mark S1 · E4 of Леся + Рома watched"><span class="check"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></li><li class="row"><a class="open" href="#"><img class="poster" src="https://image.tmdb.org/t/p/w342/pPHpeI2X1qEd1CS1SeyrdhZ4qnT.jpg" alt=""><span class="text"><span class="title">Severance</span><span class="status">Next: <b>S1 · E1</b></span><span class="progress"><span class="meter" role="img" aria-label="0 of 19 episodes watched"><i style="width: 0%"></i></span>0 of 19</span></span></a><button class="act" aria-label="Mark S1 · E1 of Severance watched"><span class="check"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></li></ul>
+</main>
+<footer><div class="foot"><span class="tmdb">TMDB</span><span>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</span><span class="version">v0.12.0</span></div></footer>
+<nav class="tabbar" aria-label="Sections"><a href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+
+</body>
+</html>

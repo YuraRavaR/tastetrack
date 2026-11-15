@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Watch more choice</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--overlay:oklch(0 0 0 / 60%);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--overlay:oklch(0.2 0.01 50 / 50%)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:844px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.web{width:580px;height:844px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.bg{position:absolute;inset:0}
+.bg img{width:100%;height:219px;object-fit:cover;display:block}
+.dim{position:absolute;inset:0;background:var(--overlay)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:28px 28px 0 0;display:flex;flex-direction:column}
+.dlg{position:absolute;left:40px;right:40px;top:150px;background:var(--card);border:1px solid var(--border);border-radius:18px;display:flex;flex-direction:column;box-shadow:0 20px 50px oklch(0 0 0 / 30%)}
+.sh{display:flex;align-items:flex-start;gap:12px;padding:18px 10px 4px 20px}
+.st1{font-size:20px;font-weight:700;letter-spacing:-0.01em;line-height:1.2}
+.sm{font-size:14px;color:var(--muted-foreground)}
+.x{margin-left:auto;width:44px;height:44px;border:0;border-radius:999px;background:none;color:var(--muted-foreground);display:grid;place-items:center;cursor:pointer}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.opts{display:flex;flex-direction:column;gap:8px;padding:14px 20px 20px;border:0;margin:0;min-width:0}
+.opt{display:flex;align-items:center;gap:12px;min-height:60px;padding:8px 14px;border:1px solid var(--border);border-radius:14px;box-sizing:border-box;cursor:pointer}
+.opt.on{border-color:var(--primary-strong);background:var(--primary-soft)}
+.opt input{width:20px;height:20px;margin:0;accent-color:var(--primary-strong);flex:none}
+.ot{display:flex;flex-direction:column;gap:1px;font-size:16px;font-weight:600}
+.ot span{font-size:13px;font-weight:400;color:var(--muted-foreground)}
+.pick{display:flex;flex-direction:column;gap:8px;padding:4px 2px 4px 2px}
+.lbl{font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.row{display:flex;align-items:center;gap:10px;font-size:15px}
+.stp{margin-left:auto;display:flex;align-items:center;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--background)}
+.stp button{width:44px;height:44px;border:0;background:none;color:inherit;display:grid;place-items:center;cursor:pointer}
+.stp output{min-width:40px;text-align:center;font-weight:700;font-size:16px}
+.ft{border-top:1px solid var(--border);padding:12px 20px 34px;display:flex;flex-direction:column}
+.ftw{border-top:1px solid var(--border);padding:16px 20px;display:flex;justify-content:flex-end;gap:12px}
+.btn{height:50px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:16px;font-weight:600;border:1px solid var(--border);background:var(--card);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.btn.pr{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.btn.w{height:40px;font-size:14px}
+</style>
+</helmet>
+<div style="width: 1930px; display: flex; gap: 60px; align-items: flex-start">
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">As it opens: the latest season is chosen</div>
+<div class="tt ph" data-theme="{{theme}}">
+<div class="bg" aria-hidden="true"><img src="/_blob/81c1e1311a4a7f993a2c7f655f398424" alt=""></div><div class="dim"></div>
+<div class="sheet">
+<div class="sh"><div><div class="st1">Watch more</div><div class="sm">The Bear</div></div><button class="x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset class="opts" aria-label="Where to start">
+<label class="opt on"><input type="radio" name="wm1" checked><span class="ot">From season 5<span>Next: S5 · E1</span></span></label>
+<label class="opt"><input type="radio" name="wm1"><span class="ot">From the start<span>Next: S1 · E1</span></span></label>
+<label class="opt"><input type="radio" name="wm1"><span class="ot">Choose where you are<span>Set the last episode you watched</span></span></label>
+</fieldset>
+<div class="ft"><button class="btn pr">Start watching</button></div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">The User's own season and episode</div>
+<div class="tt ph" data-theme="{{theme}}">
+<div class="bg" aria-hidden="true"><img src="/_blob/81c1e1311a4a7f993a2c7f655f398424" alt=""></div><div class="dim"></div>
+<div class="sheet">
+<div class="sh"><div><div class="st1">Watch more</div><div class="sm">The Bear</div></div><button class="x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset class="opts" aria-label="Where to start">
+<label class="opt"><input type="radio" name="wm2"><span class="ot">From season 5<span>Next: S5 · E1</span></span></label>
+<label class="opt"><input type="radio" name="wm2"><span class="ot">From the start<span>Next: S1 · E1</span></span></label>
+<label class="opt on"><input type="radio" name="wm2" checked><span class="ot">Choose where you are<span>Next: S3 · E5</span></span></label>
+<div class="pick">
+<div class="lbl">Last watched</div>
+<div class="row"><span>Season</span><span class="stp"><button aria-label="Previous season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>3</output><button aria-label="Next season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+<div class="row"><span>Episode</span><span class="stp"><button aria-label="Previous episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>4</output><button aria-label="Next episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+</div>
+</fieldset>
+<div class="ft"><button class="btn pr">Start watching</button></div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">A series added by hand: two choices</div>
+<div class="tt ph" data-theme="{{theme}}">
+<div class="bg" aria-hidden="true"></div><div class="dim"></div>
+<div class="sheet">
+<div class="sh"><div><div class="st1">Watch more</div><div class="sm">Леся + Рома</div></div><button class="x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset class="opts" aria-label="Where to start">
+<label class="opt on"><input type="radio" name="wm3" checked><span class="ot">From the start<span>Next: S1 · E1</span></span></label>
+<label class="opt"><input type="radio" name="wm3"><span class="ot">Choose where you are<span>Set the last episode you watched</span></span></label>
+</fieldset>
+<div class="ft"><button class="btn pr">Start watching</button></div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">On the web: a centred dialog</div>
+<div class="tt web" data-theme="{{webTheme}}">
+<div class="dim"></div>
+<div class="dlg">
+<div class="sh" style="padding: 20px 12px 4px 24px"><div><div class="st1">Watch more</div><div class="sm">The Bear</div></div><button class="x" style="width: 40px; height: 40px; border-radius: 10px" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset class="opts" style="padding: 14px 24px 22px" aria-label="Where to start">
+<label class="opt on" style="min-height: 56px"><input type="radio" name="wm4" checked><span class="ot">From season 5<span>Next: S5 · E1</span></span></label>
+<label class="opt" style="min-height: 56px"><input type="radio" name="wm4"><span class="ot">From the start<span>Next: S1 · E1</span></span></label>
+<label class="opt" style="min-height: 56px"><input type="radio" name="wm4"><span class="ot">Choose where you are<span>Set the last episode you watched</span></span></label>
+</fieldset>
+<div class="ftw"><button class="btn w">Cancel</button><button class="btn pr w">Start watching</button></div>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"webTheme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1930,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return { theme: this.props.theme ?? 'dark', webTheme: this.props.webTheme ?? 'light' };
+}
+}
+</script>
+</body>
+</html>
