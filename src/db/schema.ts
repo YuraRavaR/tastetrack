@@ -9,6 +9,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
+import type { SeriesStatus } from "../shared/api";
 import { visibilities } from "../shared/lists";
 
 // Deployment-wide settings as key/value pairs. The health check reads it to
@@ -113,7 +114,7 @@ export const mediaItems = sqliteTable(
   "media_items",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    mediaType: text("media_type", { enum: ["film", "book"] }).notNull(),
+    mediaType: text("media_type", { enum: ["film", "book", "series"] }).notNull(),
     externalSource: text("external_source", { enum: ["tmdb", "openlibrary"] }),
     externalId: text("external_id"),
     ownerId: integer("owner_id").references(() => users.id, { onDelete: "cascade" }),
@@ -157,10 +158,31 @@ export interface BookCacheExtra {
   authors: string[];
 }
 
+// What only a series' cache entry has, from its one details call (ADR-0004). Seasons leave out
+// season 0, TMDB's specials. lastAiredEpisode is the last regular episode that has aired, and
+// nextAirDate the day the next one airs, YYYY-MM-DD, when TMDB knows it. The overviews, taglines,
+// creators and cast are for a series' About block. A row filled from a search result alone has
+// none of these.
+export interface SeriesCacheExtra {
+  backdropPath: string | null;
+  firstAirYear: number | null;
+  lastAirYear: number | null;
+  status: SeriesStatus | null;
+  seasons: { season: number; episodeCount: number }[];
+  lastAiredEpisode: { season: number; episode: number } | null;
+  nextAirDate: string | null;
+  overview: { en: string | null; uk: string | null };
+  tagline: { en: string | null; uk: string | null };
+  creators: string[];
+  // The first 5 cast members' names, in TMDB's order.
+  cast: string[];
+}
+
 // What a cache entry's `extra` holds, by its Media Type.
 export interface CacheExtras {
   film: FilmCacheExtra;
   book: BookCacheExtra;
+  series: SeriesCacheExtra;
 }
 
 export type CacheExtra = CacheExtras[keyof CacheExtras];
@@ -178,7 +200,7 @@ export const catalogCache = sqliteTable(
   "catalog_cache",
   {
     externalSource: text("external_source", { enum: ["tmdb", "openlibrary"] }).notNull(),
-    mediaType: text("media_type", { enum: ["film", "book"] }).notNull(),
+    mediaType: text("media_type", { enum: ["film", "book", "series"] }).notNull(),
     externalId: text("external_id").notNull(),
     englishTitle: text("english_title"),
     ukrainianTitle: text("ukrainian_title"),
@@ -257,7 +279,7 @@ export const lists = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     kind: text("kind", { enum: ["backlog", "list"] }).notNull(),
-    mediaType: text("media_type", { enum: ["film", "book"] }).notNull(),
+    mediaType: text("media_type", { enum: ["film", "book", "series"] }).notNull(),
     name: text("name"),
     nameKey: text("name_key"),
     description: text("description"),

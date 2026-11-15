@@ -4,7 +4,7 @@
 // list", "Reading" and "Read", and so do their addresses.
 import type { LibraryItem, MediaItem, MediaType } from "../../shared/api";
 import { inLogOrder } from "../../shared/log";
-import { can, canProgress, type ProgressMediaType } from "../catalog/media-types";
+import { can, canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
 
 export type LibraryTab = "backlog" | "inProgress" | "experienced";
 
@@ -95,11 +95,12 @@ export function libraryTile(items: readonly LibraryItem[]): LibraryTile {
 
 // Each Media Type's word in Saved's addresses, and its tabs' words. A new Media Type doesn't
 // compile until it has them; the In Progress tab's only if the type has one.
-const typeSlugs: Record<MediaType, string> = { film: "films", book: "books" };
+const typeSlugs: Record<MediaType, string> = { film: "films", book: "books", series: "series" };
 const tabSlugs: Record<MediaType, Record<Exclude<LibraryTab, "inProgress">, string>> &
   Record<ProgressMediaType, Record<LibraryTab, string>> = {
   film: { backlog: "watchlist", experienced: "watched" },
   book: { backlog: "reading-list", inProgress: "reading", experienced: "read" },
+  series: { backlog: "watchlist", experienced: "watched" },
 };
 
 // A Media Type's tabs' words: none for a tab it doesn't have.
@@ -121,8 +122,16 @@ export function libraryTabOfSlug(
   return tab && libraryTabsOf(mediaType).includes(tab) ? tab : null;
 }
 
+// The Media Type an address names, or null when Saved doesn't offer it yet.
 export function mediaTypeOfSlug(slug: string | undefined): MediaType | null {
-  return bySlug(typeSlugs, slug);
+  const mediaType = bySlug(typeSlugs, slug);
+  return mediaType && offered(mediaType) ? mediaType : null;
+}
+
+function offered(mediaType: MediaType): boolean {
+  return savedMediaTypes.some((choice) => {
+    return choice.status === "built" && choice.mediaType === mediaType;
+  });
 }
 
 // A Media Type's word for one of its tabs, in addresses: "watched", "read". A tab the Media Type

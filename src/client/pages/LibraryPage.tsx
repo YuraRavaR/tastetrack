@@ -70,10 +70,10 @@ interface TabParts {
   mark(item: LibraryItem): string | undefined;
 }
 
-// What a planned Media Item says under its title: a film its year, a book its authors, in one
-// line.
+// What a planned Media Item says under its title: a film or a series its year, a book its authors,
+// in one line.
 function plannedMeta({ mediaItem }: LibraryItem): ReactNode {
-  if (mediaItem.mediaType === "film") return mediaItem.metadata?.year;
+  if (mediaItem.mediaType !== "book") return mediaItem.metadata?.year;
   const authors = mediaItem.metadata && authorNames(mediaItem.metadata.authors);
   return authors && <span className="min-w-0 truncate">{authors}</span>;
 }

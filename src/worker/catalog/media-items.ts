@@ -106,6 +106,18 @@ function fromManual(
       };
     case "book":
       return { ...titles, coverUrls: null, authors: manual.authors ?? [] };
+    case "series":
+      return {
+        ...titles,
+        posterUrls: null,
+        backdropUrls: null,
+        firstAirYear: manual.year,
+        lastAirYear: null,
+        status: null,
+        seasons: [],
+        lastAiredEpisode: null,
+        nextAirDate: null,
+      };
   }
 }
 

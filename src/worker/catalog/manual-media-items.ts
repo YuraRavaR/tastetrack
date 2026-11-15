@@ -39,8 +39,8 @@ function manualColumns(fields: ManualMediaItemEditRequest) {
 }
 
 // Whether `fields` are details a Media Item of the type can have: a year no more than five years
-// from now, and none before films for a film; a runtime and genres only for a film, and authors
-// only for a book.
+// from now, and none before films for a film or a series; a runtime and genres only for a film,
+// and authors only for a book.
 function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest, now: Date) {
   const { year } = fields;
   if (year != null && year > latestFilmYear(now)) return false;
@@ -49,6 +49,13 @@ function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest,
       return fields.authors === undefined && (year == null || year >= earliestFilmYear);
     case "book":
       return fields.runtime === undefined && fields.genres === undefined;
+    case "series":
+      return (
+        fields.runtime === undefined &&
+        fields.genres === undefined &&
+        fields.authors === undefined &&
+        (year == null || year >= earliestFilmYear)
+      );
   }
 }
 

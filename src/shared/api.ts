@@ -163,9 +163,9 @@ export const InviteCodesResponse = z
 
 export type InviteCodesResponse = z.infer<typeof InviteCodesResponse>;
 
-// The catalog is searched through the External Source of each Media Type: TMDB for films, Open
-// Library for books.
-export const MediaType = z.enum(["film", "book"]).openapi({ example: "film" });
+// The catalog is searched through the External Source of each Media Type: TMDB for films and
+// series, Open Library for books.
+export const MediaType = z.enum(["film", "book", "series"]).openapi({ example: "film" });
 
 export type MediaType = z.infer<typeof MediaType>;
 
@@ -253,7 +253,7 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
   lists: true,
 })
   .extend({
-    externalReference: z.discriminatedUnion("source", [
+    externalReference: z.discriminatedUnion("mediaType", [
       z.object({
         source: z.literal("tmdb"),
         mediaType: z.literal("film"),
@@ -269,6 +269,14 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
           .string()
           .regex(/^OL\d{1,12}W$/)
           .openapi({ example: "OL2094429W" }),
+      }),
+      z.object({
+        source: z.literal("tmdb"),
+        mediaType: z.literal("series"),
+        id: z
+          .string()
+          .regex(/^\d{1,12}$/)
+          .openapi({ example: "87108" }),
       }),
     ]),
     title: z.string().trim().min(1).max(500).openapi({ example: "Чужий" }),
@@ -348,6 +356,59 @@ export const BookMetadata = z
 
 export type BookMetadata = z.infer<typeof BookMetadata>;
 
+// How far a series has got on TMDB: still running, ended for good, or not yet aired.
+export const SeriesStatus = z
+  .enum(["returning", "in_production", "planned", "pilot", "ended", "canceled"])
+  .openapi({ example: "ended" });
+
+export type SeriesStatus = z.infer<typeof SeriesStatus>;
+
+// One episode of a series, by its season and its number in that season.
+export const SeriesEpisode = z
+  .object({
+    season: z.int().min(1).openapi({ example: 5 }),
+    episode: z.int().min(1).openapi({ example: 16 }),
+  })
+  .openapi("SeriesEpisode");
+
+export type SeriesEpisode = z.infer<typeof SeriesEpisode>;
+
+// A series' metadata from the External Source, where a series is the whole show (ADR-0004). The
+// titles, poster and backdrop follow a film's rules, and the year is the year it first aired.
+// firstAirYear and lastAirYear are the years it first and last aired; status says whether more is
+// coming. seasons are its regular seasons in order, each with its number and episode count, and
+// never season 0, the specials. lastAiredEpisode is the last regular episode that has aired, and
+// nextAirDate the day the next one airs, when TMDB knows it. A season lists episodes before they
+// air, so whether a User is caught up is measured against lastAiredEpisode. All but the titles,
+// the year and the poster are unknown until the details call succeeds.
+export const SeriesMetadata = FilmMetadata.pick({ posterUrls: true, backdropUrls: true })
+  .extend({
+    title: z.string().openapi({ example: "Chernobyl" }),
+    originalTitle: z.string().openapi({ example: "Chernobyl" }),
+    ukrainianTitle: z.string().nullable().openapi({ example: "Чорнобиль" }),
+    year: z.int().nullable().openapi({ example: 2019 }),
+    firstAirYear: z.int().nullable().openapi({ example: 2019 }),
+    lastAirYear: z.int().nullable().openapi({ example: 2019 }),
+    status: SeriesStatus.nullable(),
+    seasons: z
+      .array(
+        z.object({
+          season: z.int().min(1).openapi({ example: 1 }),
+          episodeCount: z.int().min(0).openapi({ example: 5 }),
+        }),
+      )
+      .openapi({ example: [{ season: 1, episodeCount: 5 }] }),
+    lastAiredEpisode: SeriesEpisode.nullable(),
+    nextAirDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable()
+      .openapi({ example: null, description: "A calendar day, YYYY-MM-DD" }),
+  })
+  .openapi("SeriesMetadata");
+
+export type SeriesMetadata = z.infer<typeof SeriesMetadata>;
+
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
 // metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
@@ -371,8 +432,17 @@ export const BookMediaItem = z
   })
   .openapi("BookMediaItem");
 
+export const SeriesMediaItem = z
+  .object({
+    id: z.int().openapi({ example: 44 }),
+    mediaType: z.literal("series"),
+    externalReference: ExternalReference.nullable(),
+    metadata: SeriesMetadata.nullable(),
+  })
+  .openapi("SeriesMediaItem");
+
 export const MediaItem = z
-  .discriminatedUnion("mediaType", [FilmMediaItem, BookMediaItem])
+  .discriminatedUnion("mediaType", [FilmMediaItem, BookMediaItem, SeriesMediaItem])
   .openapi("MediaItem");
 
 export type MediaItem = z.infer<typeof MediaItem>;
@@ -496,8 +566,27 @@ export const NewManualBookRequest = z
 
 export type NewManualBookRequest = z.input<typeof NewManualBookRequest>;
 
+// A series has no details beyond its titles and year: a User's seasons and episodes are their
+// Progress, not the series' metadata.
+export const NewManualSeriesRequest = z
+  .object({
+    mediaType: z.literal("series"),
+    title: ManualTitle,
+    originalTitle: ManualOriginalTitle.default(null),
+    year: ManualFilmYear.default(null),
+    allowDuplicate: z.boolean().default(false),
+  })
+  .strict()
+  .openapi("NewManualSeriesRequest");
+
+export type NewManualSeriesRequest = z.input<typeof NewManualSeriesRequest>;
+
 export const NewManualMediaItemRequest = z
-  .discriminatedUnion("mediaType", [NewManualFilmRequest, NewManualBookRequest])
+  .discriminatedUnion("mediaType", [
+    NewManualFilmRequest,
+    NewManualBookRequest,
+    NewManualSeriesRequest,
+  ])
   .openapi("NewManualMediaItemRequest");
 
 export type NewManualMediaItemRequest = z.input<typeof NewManualMediaItemRequest>;
@@ -506,8 +595,8 @@ export type NewManualMediaItem = z.output<typeof NewManualMediaItemRequest>;
 
 // Only the fields given change, by the same rules as a new one; a null or empty Original Title,
 // or a null year or runtime, clears it. The Media Type can't change, and the Worker refuses the
-// details of another Media Type: a book's runtime or genres, a film's authors, or a film's year
-// before films.
+// details of another Media Type: a book's runtime or genres, a film's or a series' authors, a
+// series' runtime or genres, or a film's or a series' year before films.
 export const ManualMediaItemEditRequest = z
   .object({
     title: ManualTitle.optional(),

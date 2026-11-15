@@ -1,5 +1,6 @@
-// The TMDB catalog source (ADR-0004): turns a search or a film's details into one TMDB call each,
-// and TMDB's responses into catalog values. Everything TMDB-shaped stays in this file.
+// The TMDB catalog source of films (ADR-0004): turns a search or a film's details into one TMDB
+// call each, and TMDB's responses into catalog values. Everything TMDB-shaped stays in this file
+// and in its series counterpart, ./tmdb-series.ts, which shares the calls and images below.
 import { z } from "zod";
 import type { FilmCacheExtra } from "../../../db/schema";
 import type { CoverUrls, FilmMetadata } from "../../../shared/api";
@@ -20,26 +21,26 @@ const imageBaseUrl = "https://image.tmdb.org/t/p";
 // thumbnail's size. Search results come in this size only.
 const posterBaseUrl = `${imageBaseUrl}/w92`;
 
-function posterUrl(posterPath: string | null): string | null {
+export function posterUrl(posterPath: string | null): string | null {
   return posterPath ? `${posterBaseUrl}${posterPath}` : null;
 }
 
 // Posters as a thumbnail and as large as a poster grid draws them: the widest cell, two columns on
 // a phone, is about 160 CSS pixels, some 480 device pixels on a 3x screen.
-function posterUrls(posterPath: string | null): CoverUrls | null {
+export function posterUrls(posterPath: string | null): CoverUrls | null {
   if (!posterPath) return null;
   return { small: `${posterBaseUrl}${posterPath}`, large: `${imageBaseUrl}/w500${posterPath}` };
 }
 
 // The poster path back out of a poster URL this module made, or null for any other URL.
-function posterPathOf(url: string | null): string | null {
+export function posterPathOf(url: string | null): string | null {
   const match = url && /^https:\/\/image\.tmdb\.org\/t\/p\/w92(\/[\w-]+\.\w+)$/.exec(url);
   return match ? (match[1] ?? null) : null;
 }
 
 // Backdrops, wide enough for a phone's banner and for a larger screen's. TMDB serves no size
 // between them.
-function backdropUrls(backdropPath: string | null): FilmMetadata["backdropUrls"] {
+export function backdropUrls(backdropPath: string | null): FilmMetadata["backdropUrls"] {
   if (!backdropPath) return null;
   return {
     small: `${imageBaseUrl}/w780${backdropPath}`,
@@ -89,13 +90,13 @@ function titleOf(film: TmdbFilm): string {
 
 // TMDB takes a key, so a 401 or 403 means ours is wrong or revoked; a 404 is a film it no longer
 // has. Anything else, such as a 429 or a 5xx, is worth trying again.
-function classifyFailure(status: number): SourceFailure {
+export function classifyFailure(status: number): SourceFailure {
   if (status === 404) return "gone";
   if (status === 401 || status === 403) return "access";
   return "temporary";
 }
 
-async function get(env: CatalogEnv, path: string, params: Record<string, string>) {
+export async function get(env: CatalogEnv, path: string, params: Record<string, string>) {
   if (!env.TMDB_ACCESS_TOKEN) {
     throw new SourceUnavailable("TMDB_ACCESS_TOKEN is not set", "access");
   }
@@ -170,7 +171,7 @@ async function filmDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"f
 }
 
 // The 90 days are ours: TMDB allows caching for 6 months (ADR-0004).
-const maxEntryAge = 90 * 24 * 60 * 60 * 1000;
+export const maxEntryAge = 90 * 24 * 60 * 60 * 1000;
 
 export const tmdbFilms: CatalogSource<"film"> = {
   externalSource: "tmdb",

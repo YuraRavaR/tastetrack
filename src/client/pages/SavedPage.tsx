@@ -64,6 +64,7 @@ function useTiles(): Record<MediaType, TileState> {
   const [tiles, setTiles] = useState<Record<MediaType, TileState>>({
     film: loading,
     book: loading,
+    series: loading,
   });
 
   useEffect(() => {
