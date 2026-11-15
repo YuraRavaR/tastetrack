@@ -21,12 +21,12 @@ export function t(id: MessageId, values?: Record<string, PrimitiveType>): string
 }
 
 // A message with markup in it, such as a link inside a sentence: each `<tag>…</tag>` becomes what
-// the function of that name makes of its text.
+// the function of that name makes of its text, and each `{value}` the value of that name.
 export function tRich(
   id: MessageId,
-  tags: Record<string, (text: ReactNode[]) => ReactNode>,
+  values: Record<string, PrimitiveType | ((text: ReactNode[]) => ReactNode)>,
 ): ReactNode {
-  return formatOf(id).format<ReactNode>(tags);
+  return formatOf(id).format<ReactNode>(values);
 }
 
 // US English: the three-letter month, then the day and year, "Oct 26, 2026".
@@ -55,4 +55,11 @@ const dayAndMonthFormat = new Intl.DateTimeFormat(locale, {
 // when a book still being read was started: "Oct 12".
 export function formatCalendarDayAndMonth(date: string): string {
   return dayAndMonthFormat.format(new Date(`${date}T00:00:00Z`));
+}
+
+// A calendar day near `today`, both written YYYY-MM-DD, such as the day a series' next episode
+// airs: without its year when that is today's, "Nov 20", and with it otherwise, "Jul 8, 2027".
+export function formatNearCalendarDate(date: string, today: string): string {
+  const sameYear = date.slice(0, 4) === today.slice(0, 4);
+  return sameYear ? formatCalendarDayAndMonth(date) : formatCalendarDate(date);
 }

@@ -44,9 +44,12 @@ export function startsAsRevisit(mediaType: MediaType): boolean {
 }
 
 // The Media Types the client lets a User start, among those the Worker gives In Progress
-// (src/shared/catalog.ts). A series joins once it has its Watching screens (#213). A new one
-// doesn't compile until the catalogue has its In Progress words (progressWord).
-const startableMediaTypes = ["book"] as const satisfies readonly WorkerProgressMediaType[];
+// (src/shared/catalog.ts). A new one doesn't compile until the catalogue has its In Progress words
+// (progressWord).
+const startableMediaTypes = [
+  "book",
+  "series",
+] as const satisfies readonly WorkerProgressMediaType[];
 
 export type ProgressMediaType = (typeof startableMediaTypes)[number];
 

@@ -55,6 +55,7 @@ import type {
   UserResponse,
 } from "../shared/api";
 import type { LogDateProblem } from "../shared/log";
+import type { Progress } from "../shared/progress";
 
 // The logged-in User, null without a live session, or "password_change_required" for a session
 // from a Temporary Password, which can only set a new one.
@@ -438,6 +439,36 @@ export function changeStartDate(
   return sendLogEntry<InProgressResponse>(`/api/in-progress/${mediaItemId}`, "PATCH", edit);
 }
 
+// The Progress saves on their way. A page the User opens in that moment waits for them before it
+// reads what it shows Progress from, so it never shows the Progress from before the save.
+const progressSaves = new Set<Promise<boolean>>();
+
+async function progressSaved(): Promise<void> {
+  await Promise.all(progressSaves);
+}
+
+// Sets the Progress of a Media Item In Progress, whole, so sending it twice changes nothing; null
+// clears it. True once it is saved.
+export function changeProgress(mediaItemId: number, progress: Progress | null): Promise<boolean> {
+  const save = sendProgress(mediaItemId, progress);
+  progressSaves.add(save);
+  void save.then(() => progressSaves.delete(save));
+  return save;
+}
+
+async function sendProgress(mediaItemId: number, progress: Progress | null): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/in-progress/${mediaItemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ progress } satisfies InProgressEditRequest),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 // Finishes a Media Item In Progress, recording a Log Entry as logging does.
 export function finishInProgress(
   mediaItemId: number,
@@ -463,6 +494,7 @@ export async function stopInProgress(mediaItemId: number): Promise<boolean> {
 
 // A Media Item's Item History, or null when there is no such Media Item.
 export async function fetchItemHistory(mediaItemId: number): Promise<ItemHistoryResponse | null> {
+  await progressSaved();
   const response = await fetch(`/api/catalog/items/${mediaItemId}/history`);
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Loading the Item History failed: ${response.status}`);
@@ -471,6 +503,7 @@ export async function fetchItemHistory(mediaItemId: number): Promise<ItemHistory
 
 // The User's Library of the Media Type, each Media Item once, in no particular order.
 export async function fetchLibrary(mediaType: MediaType): Promise<LibraryItem[]> {
+  await progressSaved();
   const response = await fetch(`/api/library?mediaType=${mediaType}`);
   if (!response.ok) throw new Error(`Loading the Library failed: ${response.status}`);
   return ((await response.json()) as LibraryResponse).items;

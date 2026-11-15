@@ -1,4 +1,4 @@
-import { Bookmark, BookOpen, Check, ListPlus } from "lucide-react";
+import { Bookmark, Check, ListPlus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -6,24 +6,26 @@ import type { ItemHistoryResponse, RemovedListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
-import { can, canProgress } from "../catalog/media-types";
+import { can, canProgress, mediaTypeIcon } from "../catalog/media-types";
 import { mediaWord, progressWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { userTimeZone, userToday } from "../log/user-day";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { InProgressCard } from "./InProgressCard";
 import { MediaItemLogEntryDialog } from "./LogEntryDialog";
+import { SeriesProgressPanel } from "./SeriesProgress";
 import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
 type PlanError = "backlog_full" | "unavailable";
 
 // What failed of the User's last action, which the page says under its buttons.
-type ActionError = PlanError | "startFailed" | "stopFailed";
+type ActionError = PlanError | "startFailed" | "stopFailed" | "progressFailed";
 
 // What the User can do with a Media Item from its page: mark it Experienced, or again once it has
 // Log Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type that
-// has In Progress can be started too; while it is, a card says since when, and finishing it or
-// stopping it take the place of marking it Experienced, Planned or started. `onChanged` reloads the
+// has In Progress can be started too; while it is, a card says since when, and for a series
+// holds its Progress, and finishing it or stopping it take the place of marking it Experienced,
+// Planned or started. `onChanged` reloads the
 // page for a new Log Entry or a change to In Progress, and `onPlanned` tells it whether the Media
 // Item is on the Backlog now.
 export function FilmActions({
@@ -43,6 +45,7 @@ export function FilmActions({
   const loggable = can(mediaType, "log");
   const progressable = canProgress(mediaType);
   const started = progressable && inProgress !== null;
+  const StartIcon = mediaTypeIcon(mediaType);
   const [logging, setLogging] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [stopping, setStopping] = useState(false);
@@ -155,6 +158,16 @@ export function FilmActions({
           mediaItemId={mediaItem.id}
           inProgress={inProgress}
           stopping={stopping}
+          progress={
+            mediaItem.mediaType === "series" && (
+              <SeriesProgressPanel
+                series={mediaItem}
+                inProgress={inProgress}
+                onChange={() => setActionError(null)}
+                onFailed={() => setActionError("progressFailed")}
+              />
+            )
+          }
           onFinish={() => setFinishing(true)}
           onStop={stop}
           onChanged={onChanged}
@@ -193,7 +206,7 @@ export function FilmActions({
             disabled={planning}
             onClick={start}
           >
-            <BookOpen aria-hidden />
+            <StartIcon aria-hidden />
             {progressWord(mediaType, experienced ? "startAgain" : "start")}
           </Button>
         )}
@@ -246,6 +259,7 @@ export function FilmActions({
 
   function actionErrorMessage(error: ActionError): string {
     if (error === "backlog_full") return mediaWord(mediaType, "backlogFull", { max: maxListItems });
+    if (error === "progressFailed") return t("progress.saveFailed", { film });
     if ((error === "startFailed" || error === "stopFailed") && progressable) {
       return progressWord(mediaType, error);
     }

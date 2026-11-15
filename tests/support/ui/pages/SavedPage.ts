@@ -1,4 +1,7 @@
+import { LogEntryDialog } from "../components/LogEntryDialog";
 import { ScopedComponent } from "../components/ScopedComponent";
+import { Toast } from "../components/Toast";
+import { WatchingRow } from "../components/WatchingRow";
 import { BasePage } from "./BasePage";
 
 // The Media Types Saved has a tile for.
@@ -34,6 +37,21 @@ export class SavedPage extends BasePage {
   // What the User is reading, one row per book, each a link to its page.
   readonly readingNow = this.main.getByRole("region", { name: "Reading now" });
   readonly readingNowRows = this.readingNow.getByRole("listitem");
+
+  // The series the User is watching, one row each.
+  readonly watchingNow = this.main.getByRole("region", { name: "Watching now" });
+  readonly watchingNowRows = this.watchingNow.getByRole("listitem");
+  readonly toast = new Toast(this.page.getByRole("status"));
+
+  // A row of Watching now, by its series' title.
+  watchingNowRow(title: string) {
+    return new WatchingRow(this.watchingNowRows.filter({ hasText: title }));
+  }
+
+  // The dialog Finished opens, named after its series.
+  logEntryDialog(name: string) {
+    return new LogEntryDialog(this.page.getByRole("dialog", { name, exact: true }));
+  }
 
   // A row of Reading now, by its book's title.
   readingNowRow(title: string) {

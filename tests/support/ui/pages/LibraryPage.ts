@@ -1,9 +1,12 @@
 import { step } from "../../step";
+import { LogEntryDialog } from "../components/LogEntryDialog";
 import { PosterGridItem } from "../components/PosterGridItem";
+import { Toast } from "../components/Toast";
+import { WatchingRow } from "../components/WatchingRow";
 import { BasePage } from "./BasePage";
 
-// A film's tabs and a book's; a series has a film's.
-export type LibraryTab = "Watchlist" | "Watched" | "Reading list" | "Reading" | "Read";
+// A film's tabs and a book's; a series has a film's, and Watching between them.
+export type LibraryTab = "Watchlist" | "Watching" | "Watched" | "Reading list" | "Reading" | "Read";
 
 // The chips above the grid: the sort, then the filters; Genre only for films, Rating only on
 // Watched.
@@ -11,8 +14,9 @@ export type LibraryChip = "Sort" | "Genre" | "Decade" | "Rating";
 
 // Each tab's word in the address, and the word of the Media Type it is on unless a series' tab is
 // asked for.
-const tabPaths: Record<LibraryTab, { slug: string; mediaType: "films" | "books" }> = {
+const tabPaths: Record<LibraryTab, { slug: string; mediaType: "films" | "books" | "series" }> = {
   Watchlist: { slug: "watchlist", mediaType: "films" },
+  Watching: { slug: "watching", mediaType: "series" },
   Watched: { slug: "watched", mediaType: "films" },
   "Reading list": { slug: "reading-list", mediaType: "books" },
   Reading: { slug: "reading", mediaType: "books" },
@@ -20,8 +24,9 @@ const tabPaths: Record<LibraryTab, { slug: string; mediaType: "films" | "books" 
 };
 
 // Saved for one Media Type: a film's Watchlist and Watched tabs, a book's Reading list, Reading
-// and Read, and a series' Watchlist and Watched, each a grid of covers. A film's tab and a
-// series' have one name, so a series' is named with its Media Type.
+// and Read, and a series' Watchlist and Watched, each a grid of covers, and a series' Watching, a
+// list of rows. A film's tab and a series' have one name, so a series' is named with its Media
+// Type.
 export class LibraryPage extends BasePage<[tab?: LibraryTab, mediaType?: "series"]> {
   path(tab: LibraryTab = "Watchlist", mediaType?: "series") {
     const { slug, mediaType: tabMediaType } = tabPaths[tab];
@@ -45,6 +50,17 @@ export class LibraryPage extends BasePage<[tab?: LibraryTab, mediaType?: "series
   readonly menu = this.page.getByRole("menu");
   readonly choices = this.menu.getByRole("menuitemradio");
   readonly clearFiltersButton = this.main.getByRole("button", { name: "Clear filters" });
+  readonly toast = new Toast(this.page.getByRole("status"));
+
+  // A row of the Watching tab, by its series' title.
+  watchingRow(title: string) {
+    return new WatchingRow(this.posters("Watching").filter({ hasText: title }));
+  }
+
+  // The dialog Finished opens, named after its series.
+  logEntryDialog(name: string) {
+    return new LogEntryDialog(this.page.getByRole("dialog", { name, exact: true }));
+  }
 
   // Any text on the page, such as an empty tab's line.
   text(content: string) {

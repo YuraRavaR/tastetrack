@@ -99,7 +99,12 @@ test("a series found in Search opens its page, with its titles, years, seasons a
     filmPage.posterImage(posterUrl("/anFx9aTOOYqgS3v7x3R84Kz67ly.jpg", "w500")),
   ).toBeVisible();
   // Before a first Viewing: Watched, Want to watch and Add to collection, and empty Viewings.
-  await expect(filmPage.buttons).toHaveText(["Watched", "Want to watch", "Add to collection"]);
+  await expect(filmPage.buttons).toHaveText([
+    "Watched",
+    "Want to watch",
+    "Start watching",
+    "Add to collection",
+  ]);
   await expect(filmPage.sectionHeadings).toHaveText(["Viewings"]);
   await expect(filmPage.main).not.toContainText(otherWording);
 });
@@ -231,7 +236,7 @@ test("the Series tile counts its tabs and fans out the Watchlist, and the tabs s
   await expect(page).toHaveURL(libraryPage.path("Watchlist", "series"));
   await expect(page).toHaveTitle("Watchlist · Series · TasteTrack");
   await expect(libraryPage.heading).toHaveText("Series");
-  await expect(libraryPage.tabs).toHaveText(["Watchlist2", "Watched1"]);
+  await expect(libraryPage.tabs).toHaveText(["Watchlist2", "Watching0", "Watched1"]);
   // The latest added first, until sorted by the year each first aired, the latest first.
   await expect(libraryPage.posters("Watchlist")).toHaveText([
     /^Chernobyl\s*2019$/,

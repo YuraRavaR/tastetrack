@@ -1,5 +1,5 @@
-import { BookOpen, Check, Pencil, X } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { Check, Pencil, X } from "lucide-react";
+import { type FormEvent, type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,9 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import type { InProgress } from "../../shared/api";
 import * as api from "../api";
-import type { ProgressMediaType } from "../catalog/media-types";
+import { mediaTypeIcon, type ProgressMediaType } from "../catalog/media-types";
 import { progressWord } from "../i18n/media-words";
 import { formatCalendarDate, t } from "../i18n/t";
 import { userTimeZone, userToday } from "../log/user-day";
@@ -22,12 +23,15 @@ import { sheetClasses } from "./sheet";
 // The card a Media Item's page shows while the User has it In Progress (`docs/mockups/books/`):
 // since when, with a button that changes the start date, then Finished, which `onFinish` takes
 // to the Log Entry dialog, and Stop reading, which `onStop` handles. `onChanged` reloads the page
-// after a new start date.
+// after a new start date. A Media Type with Progress puts it in `progress`, between the heading
+// and the buttons, which from `sm` then sit beside the heading
+// (`docs/mockups/series-progress/`).
 export function InProgressCard({
   mediaType,
   mediaItemId,
   inProgress,
   stopping,
+  progress,
   onFinish,
   onStop,
   onChanged,
@@ -36,20 +40,25 @@ export function InProgressCard({
   mediaItemId: number;
   inProgress: InProgress;
   stopping: boolean;
+  progress?: ReactNode;
   onFinish: () => void;
   onStop: () => void;
   onChanged: () => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const name = progressWord(mediaType, "inProgress");
+  const Icon = mediaTypeIcon(mediaType);
   return (
     <section
       aria-label={name}
-      className="flex flex-col gap-3.5 rounded-xl border border-primary-strong bg-primary-soft p-3.5 sm:gap-4 sm:p-4"
+      className={cn(
+        "grid gap-3.5 rounded-xl border border-primary-strong bg-primary-soft p-3.5 sm:gap-4 sm:p-4",
+        progress && "sm:grid-cols-[minmax(0,1fr)_auto]",
+      )}
     >
       <div className="flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-card text-primary-strong">
-          <BookOpen aria-hidden className="size-5.5" />
+          <Icon aria-hidden className="size-5.5" />
         </span>
         <div className="flex min-w-0 flex-col">
           <p className="font-bold">{name}</p>
@@ -62,7 +71,7 @@ export function InProgressCard({
         <Button
           variant="ghost"
           size="icon"
-          className="size-11 text-muted-foreground sm:size-9"
+          className={cn("size-11 text-muted-foreground sm:size-9", progress && "ml-auto sm:ml-0")}
           aria-label={t("inProgress.changeStartDate")}
           title={t("inProgress.changeStartDate")}
           onClick={() => setEditing(true)}
@@ -70,7 +79,13 @@ export function InProgressCard({
           <Pencil aria-hidden />
         </Button>
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:flex">
+      {progress && <div className="sm:col-span-2 sm:row-start-2">{progress}</div>}
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-2 sm:flex",
+          progress && "sm:col-start-2 sm:row-start-1 sm:items-center",
+        )}
+      >
         <Button className="h-12 font-semibold text-base sm:h-10 sm:text-sm" onClick={onFinish}>
           <Check aria-hidden />
           {progressWord(mediaType, "finish")}
