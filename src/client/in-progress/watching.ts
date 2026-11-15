@@ -52,6 +52,23 @@ export function watchingOf({ metadata }: Series, progress: SeriesProgress | null
   };
 }
 
+// The episode a series starts at from this Progress, whether it has aired or not, so Watch more can
+// say where each choice starts; null past all the series lists.
+export function nextEpisodeOf(
+  { metadata }: Series,
+  progress: SeriesProgress | null,
+): Episode | null {
+  return seriesOutlook(progress, metadata ?? unknownLength).nextEpisode;
+}
+
+// The latest season the series lists episodes for, where Watch more starts by default; null when
+// it lists none, as for a manual series, or only its first, which "From the start" already covers.
+export function latestSeason({ metadata }: Series): number | null {
+  const listed = metadata?.seasons.filter(({ episodeCount }) => episodeCount > 0) ?? [];
+  const latest = listed.at(-1)?.season;
+  return latest !== undefined && latest > firstSeason ? latest : null;
+}
+
 // The last episode watched, as the picker shows it: none of the first season before any Progress.
 export function lastWatched(progress: SeriesProgress | null): Episode {
   return progress ?? { season: firstSeason, episode: 0 };

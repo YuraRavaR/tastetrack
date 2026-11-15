@@ -219,8 +219,8 @@ export const en = {
   "mediaType.book.stopFailed": "Couldn't stop reading. Please try again.",
   "mediaType.series.inProgress": "Watching",
   "mediaType.series.start": "Start watching",
-  // Until "Watch more" (#214), a series the User has logged starts from its first episode too.
-  "mediaType.series.startAgain": "Start watching",
+  // A series the User has logged opens a choice of where to start (watchMore.*).
+  "mediaType.series.startAgain": "Watch more",
   "mediaType.series.finish": "Finished",
   "mediaType.series.stop": "Stop watching",
   "mediaType.series.inProgressNow": "Watching now",
@@ -574,6 +574,16 @@ export const en = {
   "progress.previousEpisode": "Previous episode",
   "progress.nextEpisodeNumber": "Next episode",
   "progress.saveFailed": "Couldn't save your episode of {film}. Please try again.",
+  // Where Watch more starts a series already logged: its latest season, its first, or the User's
+  // own last episode watched, each with the next episode it starts at.
+  "watchMore.title": "Watch more",
+  "watchMore.where": "Where to start",
+  "watchMore.fromSeason": "From season {season}",
+  "watchMore.fromStart": "From the start",
+  "watchMore.own": "Choose where you are",
+  "watchMore.ownHint": "Set the last episode you watched",
+  "watchMore.next": "Next: {episode}",
+  "watchMore.start": "Start watching",
   "series.status.returning": "Returning",
   "series.status.in_production": "In production",
   // Not "Planned", which is a User's word for their Backlog.

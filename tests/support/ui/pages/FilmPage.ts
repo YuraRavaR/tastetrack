@@ -39,6 +39,27 @@ class InProgressCard extends ScopedComponent {
   }
 }
 
+// Watch more's choices of where to start a series already rated. "From season 5" names the
+// latest season the series lists.
+type WatchMoreChoice = `From season ${number}` | "From the start" | "Choose where you are";
+
+// The choice Watch more opens: a radio per place to start, each described by the next episode it
+// starts at, and the steppers of the User's own last episode watched.
+class WatchMoreDialog extends ScopedComponent {
+  readonly choices = this.root.getByRole("radio");
+  readonly lastWatched = this.root.getByRole("group", { name: "Last watched" });
+  readonly season = this.lastWatched.getByRole("status", { name: "Season" });
+  readonly episode = this.lastWatched.getByRole("status", { name: "Episode" });
+  readonly nextSeasonButton = this.lastWatched.getByRole("button", { name: "Next season" });
+  readonly nextEpisodeButton = this.lastWatched.getByRole("button", { name: "Next episode" });
+  readonly closeButton = this.root.getByRole("button", { name: "Close" });
+  readonly startWatchingButton = this.root.getByRole("button", { name: "Start watching" });
+
+  choice(name: WatchMoreChoice) {
+    return this.root.getByRole("radio", { name, exact: true });
+  }
+}
+
 type DateChip = "Today" | "Yesterday" | "Other date" | "No date";
 
 // The dialog that changes when a Media Item In Progress was started, with a Log Entry's date chips.
@@ -112,6 +133,13 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   );
   // A series' actions.
   readonly startWatchingButton = this.main.getByRole("button", { name: "Start watching" });
+  // In Start watching's place once the series has a Log Entry.
+  readonly watchMoreButton = this.main.getByRole("button", { name: "Watch more" });
+  readonly watchMoreDialog = new WatchMoreDialog(
+    this.page.getByRole("dialog", { name: "Watch more" }),
+  );
+  // Any dialog, for a test that checks none opened.
+  readonly dialogs = this.page.getByRole("dialog");
   readonly watchingCard = new InProgressCard(
     this.main.getByRole("region", { name: "Watching", exact: true }),
   );

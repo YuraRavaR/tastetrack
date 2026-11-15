@@ -2,7 +2,7 @@ import { Check, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { InProgress } from "../../shared/api";
-import type { Episode } from "../../shared/progress";
+import { type Episode, firstSeason, type SeriesProgress } from "../../shared/progress";
 import { formatCalendarDate, t } from "../i18n/t";
 import { useSeriesProgress } from "../in-progress/use-series-progress";
 import {
@@ -81,7 +81,6 @@ export function SeriesProgressPanel({
   const saved = inProgress.progress ?? null;
   const { progress, change, markWatched } = useSeriesProgress(series.id, saved, onFailed);
   const { next, airs, meter } = watchingOf(series, progress);
-  const last = lastWatched(progress);
   return (
     <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-4">
       <div className="flex flex-col justify-center gap-2.5 rounded-xl border bg-card p-3 sm:p-3.5">
@@ -128,34 +127,53 @@ export function SeriesProgressPanel({
         )}
         {meter && <EpisodeMeter {...meter} size="card" />}
       </div>
-      <fieldset className="flex min-w-0 flex-col justify-center gap-2">
-        <legend className="mb-2 font-semibold text-[0.8125rem] text-muted-foreground">
-          {t("progress.lastWatched")}
-        </legend>
-        <Stepper
-          name={t("progress.season")}
-          value={last.season}
-          atStart={last.season <= 1}
-          previous={t("progress.previousSeason")}
-          next={t("progress.nextSeason")}
-          onStep={(by) => {
-            onChange();
-            change(stepSeason(progress, by), pickerDelay);
-          }}
-        />
-        <Stepper
-          name={t("progress.episodeNumber")}
-          value={last.episode}
-          atStart={last.episode <= 0}
-          previous={t("progress.previousEpisode")}
-          next={t("progress.nextEpisodeNumber")}
-          onStep={(by) => {
-            onChange();
-            change(stepEpisode(progress, by), pickerDelay);
-          }}
-        />
-      </fieldset>
+      <LastWatchedPicker
+        className="justify-center"
+        progress={progress}
+        onChange={(next) => {
+          onChange();
+          change(next, pickerDelay);
+        }}
+      />
     </div>
+  );
+}
+
+// The picker: two steppers that set the last episode watched, on a series' Watching card and in
+// Watch more. Season starts at 1 and Episode at 0, none of that season watched; neither has an
+// upper end.
+export function LastWatchedPicker({
+  progress,
+  className,
+  onChange,
+}: {
+  progress: SeriesProgress | null;
+  className?: string;
+  onChange: (progress: SeriesProgress) => void;
+}) {
+  const last = lastWatched(progress);
+  return (
+    <fieldset className={cn("flex min-w-0 flex-col gap-2", className)}>
+      <legend className="mb-2 font-semibold text-[0.8125rem] text-muted-foreground">
+        {t("progress.lastWatched")}
+      </legend>
+      <Stepper
+        name={t("progress.season")}
+        value={last.season}
+        atStart={last.season <= firstSeason}
+        previous={t("progress.previousSeason")}
+        next={t("progress.nextSeason")}
+        onStep={(by) => onChange(stepSeason(progress, by))}
+      />
+      <Stepper
+        name={t("progress.episodeNumber")}
+        value={last.episode}
+        atStart={last.episode <= 0}
+        previous={t("progress.previousEpisode")}
+        next={t("progress.nextEpisodeNumber")}
+        onStep={(by) => onChange(stepEpisode(progress, by))}
+      />
+    </fieldset>
   );
 }
 
@@ -180,6 +198,7 @@ function Stepper({
       <span>{name}</span>
       <span className="flex items-center overflow-hidden rounded-xl border bg-background">
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className="size-11 rounded-none sm:size-10"
@@ -194,6 +213,7 @@ function Stepper({
           {value}
         </output>
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className="size-11 rounded-none sm:size-10"
