@@ -1,6 +1,6 @@
 # Media-agnostic domain model from day one
 
-Only films ship in the MVP, yet the domain model is built around a generic Media Item with a Media Type, not around "Film". Books follow films (ADR-0011), then series, albums and games, each with its own External Source, and retrofitting a film-shaped schema and vocabulary later would mean a data migration and a rename across the whole codebase. (Revised 2026-11-09, when books were specified.)
+Only films ship in the MVP, yet the domain model is built around a generic Media Item with a Media Type, not around "Film". Books follow films (ADR-0011), then series (ADR-0004), then albums and games, each with its own External Source, and retrofitting a film-shaped schema and vocabulary later would mean a data migration and a rename across the whole codebase. (Revised 2026-11-09, when books were specified, and 2026-11-15, when series were.)
 
 ## Consequences
 
@@ -8,6 +8,7 @@ Only films ship in the MVP, yet the domain model is built around a generic Media
 - A Media Item does not have to come from an External Source: Manual Media Items have no External Reference and belong to the User who created it.
 - Each List and each Backlog has one Media Type. Mixed-type Lists may come later, so nothing should assume a List's type is fixed forever at the data level.
 - A catalog-backed Media Item is a work, not an edition: a translation or another edition of a work is the same Media Item.
-- In Progress is a state of its own, shared by every Media Type that needs one, separate from Log Entries and the Backlog. How far along a User is comes later, decided per Media Type.
+- In Progress is a state of its own, shared by every Media Type that needs one, separate from Log Entries and the Backlog.
+- How far along a User is, their Progress, is one optional value on In Progress, shaped by Media Type: for a series, the last episode watched; a book's shape comes with #204, and a Media Type with no shape has no Progress. Only the latest value is kept, with no history of changes. Finishing or abandoning a Media Item ends its In Progress, and the Progress goes with it; a Log Entry never carries Progress. The server checks a Progress only for its shape and range, never against the cache, which is disposable (ADR-0004) and can lag behind what has been released.
 - Each External Source sits behind one catalog source module. Shared code reaches metadata only through the shared cache and the registry that maps each Media Type to its source, never by calling a source directly.
 - Some MVP code is more general than films alone require; that is deliberate.
