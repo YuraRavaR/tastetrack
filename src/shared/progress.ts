@@ -17,8 +17,10 @@ export interface SeriesProgress {
 // book's shape comes with #204.
 export type Progress = SeriesProgress;
 
+// The first regular season; season 0 holds the specials.
 export const firstSeason = 1;
 
+// Why a Progress is refused.
 export type ProgressProblem = "invalid_progress" | "progress_mismatch";
 
 // Why `progress` can't be kept for a Media Item of `mediaType`, or null when it can: it is for
@@ -66,6 +68,7 @@ function isAtOrAfter(a: Episode, b: Episode): boolean {
   return a.season > b.season || (a.season === b.season && a.episode >= b.episode);
 }
 
+// What follows from a series' Progress, or from none, and the seasons it lists (SeriesOutlook).
 export function seriesOutlook(
   progress: SeriesProgress | null,
   { seasons, lastAiredEpisode }: SeriesLength,

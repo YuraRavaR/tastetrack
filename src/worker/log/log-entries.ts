@@ -139,6 +139,7 @@ export const inProgressColumns = {
   progress: inProgress.progress,
 };
 
+// An In Progress as inProgressColumns read it.
 export interface InProgressRow {
   startDate: string | null;
   createdAt: Date;
