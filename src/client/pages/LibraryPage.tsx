@@ -198,7 +198,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
   const visible = showLibrary(filled, view);
   // The series being watched are rows with their Progress, not a grid of posters, which has no
   // room for the bar and the check (`docs/mockups/series-progress/`).
-  const rows = tab === "inProgress" && mediaType === "series";
+  const asRows = tab === "inProgress" && mediaType === "series";
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
@@ -272,10 +272,10 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
           </Button>
         </div>
       )}
-      {rows && state.status === "loaded" && (
+      {asRows && state.status === "loaded" && (
         <WatchingRows items={visible} label={open.name} onChanged={reload} />
       )}
-      {visible.length > 0 && !rows && (
+      {visible.length > 0 && !asRows && (
         <ul
           aria-label={open.name}
           className="grid grid-cols-3 gap-x-3 gap-y-4.5 md:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:gap-x-5 md:gap-y-6"

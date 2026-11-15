@@ -242,27 +242,97 @@ test("the picker sets the season and episode in one save, and the row follows", 
   await expect(row.bar).toHaveAccessibleName("10 of 62 episodes watched");
 });
 
-test("the picker sets an episode the series doesn't list, and leaving the page saves it", async ({
+test("leaving the page before the picker's pause is over saves the episode, and Saved shows it", async ({
+  page,
   api,
   loggedInUi: ui,
 }) => {
   const series = await chernobyl(api);
-  await watch(api, series.id, [1, 5]);
+  await watch(api, series.id, [1, 1]);
+  // A slow save, which Saved's own request for the Library would overtake.
+  await page.route("**/api/in-progress/*", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.continue();
+  });
   const { filmPage, savedPage } = ui;
   const { watchingCard } = filmPage;
   await filmPage.goto(series.id);
-  await expect(watchingCard.episode).toHaveText("5");
+  await expect(watchingCard.episode).toHaveText("1");
 
   await watchingCard.nextEpisodeButton.click();
-  await expect(watchingCard.episode).toHaveText("6");
-  // Before the picker's pause is over.
+  await expect(watchingCard.episode).toHaveText("2");
   await filmPage.mainNav.link("Saved").click();
 
-  await expect(savedPage.watchingNowRow("Chernobyl").link).toContainText("Caught up");
-  await expect(async () => {
-    const history = await expectBody(api.catalog.getMediaItemHistory(series.id));
-    expect(history.inProgress.progress).toEqual({ mediaType: "series", season: 1, episode: 6 });
-  }).toPass();
+  const row = savedPage.watchingNowRow("Chernobyl");
+  await expect(row.link).toContainText("Next: S1 · E3");
+  await expect(savedPage.toast.root).toBeHidden();
+  const history = await expectBody(api.catalog.getMediaItemHistory(series.id));
+  expect(history.inProgress.progress).toEqual({ mediaType: "series", season: 1, episode: 2 });
+});
+
+test("the picker sets an episode the series doesn't list yet, and the day the next one airs goes with that one alone", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  // The second season's first 2 episodes have aired, and its third airs in 2099.
+  const { mediaItem, title } = await newSeries(api);
+  await watch(api, mediaItem.id, [2, 2]);
+  const { filmPage, savedPage } = ui;
+  const { watchingCard } = filmPage;
+  await filmPage.goto(mediaItem.id);
+  await expect(watchingCard.root).toContainText("Caught upS2 · E3 airs Jul 8, 2099");
+
+  // Ahead of what has aired, as when TMDB lags, and then past all the series lists.
+  await watchingCard.nextEpisodeButton.click();
+  await expect(watchingCard.root).toContainText("Caught up");
+  await expect(watchingCard.root).not.toContainText("airs");
+  await watchingCard.nextEpisodeButton.click();
+  await watchingCard.nextEpisodeButton.click();
+  await watchingCard.nextEpisodeButton.click();
+  await expect(watchingCard.episode).toHaveText("6");
+  await expect(watchingCard.root).toContainText("Caught up");
+  await filmPage.mainNav.link("Saved").click();
+
+  const row = savedPage.watchingNowRow(title);
+  await expect(row.link).toContainText("Caught up");
+  await expect(row.link).not.toContainText(" on ");
+  await expect(row.bar).toHaveAccessibleName("7 of 7 episodes watched");
+});
+
+test("stopping a series right after a step of the picker shows no error", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const series = await chernobyl(api);
+  await watch(api, series.id, [1, 1]);
+  const { filmPage } = ui;
+  await filmPage.goto(series.id);
+
+  await filmPage.watchingCard.nextEpisodeButton.click();
+  await filmPage.watchingCard.stopWatchingButton.click();
+
+  await expect(filmPage.toast.message("Stopped watching Chernobyl (2019).")).toBeVisible();
+  await expect(filmPage.startWatchingButton).toBeVisible();
+  await expect(filmPage.errorMessage).toHaveCount(0);
+});
+
+test("a series already rated offers Start watching from its first episode", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const series = await chernobyl(api);
+  await expectBody(
+    api.log.createLogEntry({ mediaItemId: series.id, rating: 4, date: null, revisit: false }),
+    201,
+  );
+  const { filmPage } = ui;
+  await filmPage.goto(series.id);
+  await expect(filmPage.watchedAgainButton).toBeVisible();
+
+  await filmPage.startWatchingButton.click();
+
+  await expect(filmPage.watchingCard.root).toContainText("NextS1 · E1Season 1, episode 1 of 5");
+  await expect(filmPage.viewings).toHaveCount(1);
 });
 
 test("a series whose aired episodes are all watched says Caught up and offers Finished, and shows Next again once a newer episode has aired", async ({
@@ -297,7 +367,8 @@ test("a series whose aired episodes are all watched says Caught up and offers Fi
   await expect(watchingCard.episode).toHaveText("2");
   await expect(watchingCard.nextEpisodeButton).toBeEnabled();
 
-  await api.testHooks.airEpisode(reference, { season: 2, episode: 3 });
+  const aired = await api.testHooks.airEpisode(reference, { season: 2, episode: 3 });
+  expect(aired.status()).toBe(204);
 
   await savedPage.goto();
   await expect(row.link).toContainText("Next: S2 · E3");
@@ -452,6 +523,11 @@ test("a save that fails puts the row back and says so", async ({ page, api, logg
   );
   await expect(watchingCard.episode).toHaveText("2");
   await expect(watchingCard.root).toContainText("NextS1 · E3");
+  // The next change takes the message away.
+  await watchingCard.previousEpisodeButton.click();
+  await expect(filmPage.errorMessage).toHaveCount(0);
+  await expect(filmPage.errorMessage).toHaveCount(1);
+  await expect(watchingCard.episode).toHaveText("2");
   const history = await expectBody(api.catalog.getMediaItemHistory(series.id));
   expect(history.inProgress.progress).toEqual({ mediaType: "series", season: 1, episode: 2 });
 });

@@ -16,13 +16,13 @@ const unknownLength: SeriesLength = { seasons: [], lastAiredEpisode: null };
 
 // What a series' row and card say. `next` is the episode the check marks watched, with how many
 // episodes its season lists, when the series lists them; null once the User is caught up, or has
-// watched all it lists. `airs` is then the next episode and its day, when TMDB gives it. `watched`
-// of `count` is the bar; both null for a series that lists no seasons.
+// watched all it lists. `airs` is then the next episode and its day, when TMDB gives it and the
+// User has watched exactly up to the last aired one: the day is that of the episode after it. `meter`
+// is the bar, the episodes watched of all it lists; null for a series that lists no seasons.
 export interface Watching {
   next: (Episode & { seasonLength: number | null }) | null;
   airs: { episode: Episode; date: string } | null;
-  watched: number | null;
-  count: number | null;
+  meter: { watched: number; count: number } | null;
 }
 
 export function watchingOf({ metadata }: Series, progress: SeriesProgress | null): Watching {
@@ -32,20 +32,24 @@ export function watchingOf({ metadata }: Series, progress: SeriesProgress | null
     return metadata?.seasons.find(({ season }) => season === episode.season)?.episodeCount ?? null;
   };
   const caughtUp = outlook.caughtUp || nextEpisode === null;
+  // The next episode to air: the one after the last that has, or the first when none has.
+  const aired = metadata?.lastAiredEpisode;
+  const airsNext =
+    metadata &&
+    seriesOutlook(aired ? { mediaType: "series", ...aired } : null, metadata).nextEpisode;
+  const awaited =
+    nextEpisode?.season === airsNext?.season && nextEpisode?.episode === airsNext?.episode;
   return {
     next: caughtUp || !nextEpisode ? null : { ...nextEpisode, seasonLength: seasonOf(nextEpisode) },
     airs:
-      caughtUp && nextEpisode && metadata?.nextAirDate
+      caughtUp && nextEpisode && awaited && metadata?.nextAirDate
         ? { episode: nextEpisode, date: metadata.nextAirDate }
         : null,
-    watched: outlook.watchedEpisodes,
-    count: outlook.episodeCount,
+    meter:
+      outlook.watchedEpisodes !== null && outlook.episodeCount !== null
+        ? { watched: outlook.watchedEpisodes, count: outlook.episodeCount }
+        : null,
   };
-}
-
-// The Progress after the check: `episode` is the last one watched.
-export function watched(episode: Episode): SeriesProgress {
-  return { mediaType: "series", season: episode.season, episode: episode.episode };
 }
 
 // The last episode watched, as the picker shows it: none of the first season before any Progress.

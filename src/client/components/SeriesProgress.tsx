@@ -10,7 +10,6 @@ import {
   type Series,
   stepEpisode,
   stepSeason,
-  watched,
   watchingOf,
 } from "../in-progress/watching";
 
@@ -28,7 +27,7 @@ const meterSizes = {
 // How much of a series is watched: a bar, then the count, "15 of 62". The bar reads out as "15 of
 // 62 episodes watched", so the count beside it is hidden from a screen reader.
 export function EpisodeMeter({
-  watched: watchedCount,
+  watched,
   count,
   size,
 }: {
@@ -36,7 +35,7 @@ export function EpisodeMeter({
   count: number;
   size: keyof typeof meterSizes;
 }) {
-  const share = count > 0 ? Math.min(100, Math.round((watchedCount / count) * 100)) : 0;
+  const share = count > 0 ? Math.min(100, Math.round((watched / count) * 100)) : 0;
   return (
     <span
       className={cn(
@@ -46,7 +45,7 @@ export function EpisodeMeter({
     >
       <span
         role="img"
-        aria-label={t("progress.watchedEpisodes", { watched: watchedCount, count })}
+        aria-label={t("progress.watchedEpisodes", { watched, count })}
         className={cn("min-w-0 flex-1 overflow-hidden rounded-full bg-muted", meterSizes[size].bar)}
       >
         <span
@@ -54,7 +53,7 @@ export function EpisodeMeter({
           style={{ width: `${share}%` }}
         />
       </span>
-      <span aria-hidden>{t("progress.watched", { watched: watchedCount, count })}</span>
+      <span aria-hidden>{t("progress.watched", { watched, count })}</span>
     </span>
   );
 }
@@ -66,20 +65,22 @@ const pickerDelay = 1000;
 // What a series' Watching card holds between its heading and its buttons
 // (`docs/mockups/series-progress/`): the next episode with the check that marks it watched, or
 // "Caught up" with the day the next one airs, over the bar; and the picker, two steppers that set
-// the last episode watched by hand. `onFailed` tells the page a save failed, after which the
-// card shows what was last saved.
+// the last episode watched by hand. `onChange` tells the page the User changed their Progress,
+// and `onFailed` that saving it failed, after which the card shows what was last saved.
 export function SeriesProgressPanel({
   series,
   inProgress,
+  onChange,
   onFailed,
 }: {
   series: Series;
   inProgress: InProgress;
+  onChange: () => void;
   onFailed: () => void;
 }) {
   const saved = inProgress.progress ?? null;
-  const { progress, saving, change } = useSeriesProgress(series.id, saved, onFailed);
-  const { next, airs, watched: watchedCount, count } = watchingOf(series, progress);
+  const { progress, change, markWatched } = useSeriesProgress(series.id, saved, onFailed);
+  const { next, airs, meter } = watchingOf(series, progress);
   const last = lastWatched(progress);
   return (
     <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-4">
@@ -87,9 +88,7 @@ export function SeriesProgressPanel({
         {next ? (
           <div className="flex items-center gap-3">
             <div className="flex min-w-0 flex-col">
-              <span className="font-semibold text-[0.8125rem] text-muted-foreground">
-                {t("progress.next")}
-              </span>
+              <span className="text-[0.8125rem] text-muted-foreground">{t("progress.next")}</span>
               <span className="font-bold text-[1.1875rem] tracking-tight sm:text-xl">
                 {episodeLabel(next)}
               </span>
@@ -104,8 +103,10 @@ export function SeriesProgressPanel({
               className="ml-auto size-13 rounded-full sm:size-12"
               aria-label={t("progress.markWatched", { episode: episodeLabel(next) })}
               title={t("progress.markWatched", { episode: episodeLabel(next) })}
-              // A tap while the last one is being saved would skip an episode.
-              onClick={() => !saving && change(watched(next))}
+              onClick={() => {
+                onChange();
+                markWatched(next);
+              }}
             >
               <Check aria-hidden className="size-6.5" strokeWidth={2.4} />
             </Button>
@@ -125,9 +126,7 @@ export function SeriesProgressPanel({
             )}
           </div>
         )}
-        {watchedCount !== null && count !== null && (
-          <EpisodeMeter watched={watchedCount} count={count} size="card" />
-        )}
+        {meter && <EpisodeMeter {...meter} size="card" />}
       </div>
       <fieldset className="flex min-w-0 flex-col justify-center gap-2">
         <legend className="mb-2 font-semibold text-[0.8125rem] text-muted-foreground">
@@ -139,7 +138,10 @@ export function SeriesProgressPanel({
           atStart={last.season <= 1}
           previous={t("progress.previousSeason")}
           next={t("progress.nextSeason")}
-          onStep={(by) => change(stepSeason(progress, by), pickerDelay)}
+          onStep={(by) => {
+            onChange();
+            change(stepSeason(progress, by), pickerDelay);
+          }}
         />
         <Stepper
           name={t("progress.episodeNumber")}
@@ -147,7 +149,10 @@ export function SeriesProgressPanel({
           atStart={last.episode <= 0}
           previous={t("progress.previousEpisode")}
           next={t("progress.nextEpisodeNumber")}
-          onStep={(by) => change(stepEpisode(progress, by), pickerDelay)}
+          onStep={(by) => {
+            onChange();
+            change(stepEpisode(progress, by), pickerDelay);
+          }}
         />
       </fieldset>
     </div>

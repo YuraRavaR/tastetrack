@@ -8,7 +8,7 @@ import { filmLabel } from "../catalog/film-label";
 import { mediaWord, progressWord } from "../i18n/media-words";
 import { formatNearCalendarDate, t, tRich } from "../i18n/t";
 import { useSeriesProgress } from "../in-progress/use-series-progress";
-import { type Series, watched, watchingOf } from "../in-progress/watching";
+import { type Series, watchingOf } from "../in-progress/watching";
 import { userToday } from "../log/user-day";
 import { itemPath } from "../navigation/paths";
 import { MediaItemLogEntryDialog } from "./LogEntryDialog";
@@ -16,10 +16,10 @@ import { Poster } from "./Poster";
 import { EpisodeMeter, episodeLabel } from "./SeriesProgress";
 import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
-// A series the User is watching, with its Library item.
-type WatchedSeries = LibraryItem & { mediaItem: Series };
+// A series' Library item.
+type SeriesInProgress = LibraryItem & { mediaItem: Series };
 
-function isSeries(item: LibraryItem): item is WatchedSeries {
+function isSeries(item: LibraryItem): item is SeriesInProgress {
   return item.mediaItem.mediaType === "series";
 }
 
@@ -28,7 +28,10 @@ function labelOf({ metadata }: Series): string {
 }
 
 // What the toast under the rows says: a save that failed, or what followed from Finished.
-type Said = { series: Series } & ({ kind: "saveFailed" } | { kind: "action"; action: FilmAction });
+type ToastContent = { series: Series } & (
+  | { kind: "saveFailed" }
+  | { kind: "action"; action: FilmAction }
+);
 
 // The series a User is watching, one row each (`docs/mockups/series-progress/`), on Saved under
 // the `heading` "Watching now" and on the Watching tab, as the list named `label`: one column on a
@@ -47,10 +50,10 @@ export function WatchingRows({
   onChanged: () => Promise<void>;
 }) {
   const headingId = useId();
-  const [finishing, setFinishing] = useState<WatchedSeries | null>(null);
-  const [said, setSaid] = useState<Said | null>(null);
+  const [finishing, setFinishing] = useState<SeriesInProgress | null>(null);
+  const [said, setSaid] = useState<ToastContent | null>(null);
 
-  async function logged(item: WatchedSeries, saved: api.SavedLogEntry) {
+  async function logged(item: SeriesInProgress, saved: api.SavedLogEntry) {
     setFinishing(null);
     await onChanged();
     const { removedFromBacklog } = saved;
@@ -136,14 +139,16 @@ function WatchingRow({
   onFinish,
   onFailed,
 }: {
-  item: WatchedSeries;
+  item: SeriesInProgress;
   onFinish: () => void;
   onFailed: () => void;
 }) {
   const { mediaItem, inProgress } = item;
   const saved = inProgress?.progress ?? null;
-  const { progress, saving, change } = useSeriesProgress(mediaItem.id, saved, onFailed);
-  const { next, airs, watched: watchedCount, count } = watchingOf(mediaItem, progress);
+  const { progress, markWatched } = useSeriesProgress(mediaItem.id, saved, onFailed);
+  const { next, airs, meter } = watchingOf(mediaItem, progress);
+  // The zone behind the divider, as tall as the row.
+  const zone = "h-auto min-w-16 rounded-none border-l px-2.5 md:min-w-17 md:px-3.5";
   const title = mediaItem.metadata?.title ?? mediaWord("series", "unknown");
   return (
     <li className="flex items-stretch overflow-hidden rounded-xl border bg-card has-[a:hover]:border-muted-foreground">
@@ -165,19 +170,16 @@ function WatchingRow({
                 b: strong,
               })}
           </span>
-          {watchedCount !== null && count !== null && (
-            <EpisodeMeter watched={watchedCount} count={count} size="row" />
-          )}
+          {meter && <EpisodeMeter {...meter} size="row" />}
         </span>
       </Link>
       {next ? (
         <Button
           variant="ghost"
-          className="h-auto min-w-16 rounded-none border-l px-2.5 md:min-w-17 md:px-3.5"
+          className={zone}
           aria-label={t("progress.markFilmWatched", { episode: episodeLabel(next), film: title })}
           title={t("progress.markWatched", { episode: episodeLabel(next) })}
-          // A tap while the last one is being saved would skip an episode.
-          onClick={() => !saving && change(watched(next))}
+          onClick={() => markWatched(next)}
         >
           <span className="flex size-10 items-center justify-center rounded-full border-[1.5px] border-primary-strong text-primary-strong">
             <Check aria-hidden className="size-5.5" />
@@ -186,7 +188,7 @@ function WatchingRow({
       ) : (
         <Button
           variant="ghost"
-          className="h-auto min-w-16 rounded-none border-l px-2.5 md:min-w-17 md:px-3.5"
+          className={zone}
           aria-label={t("progress.finishFilm", { film: title })}
           onClick={onFinish}
         >

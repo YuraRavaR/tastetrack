@@ -1,4 +1,4 @@
-import type { ExternalReference, MediaType } from "@shared/api";
+import type { ExternalReference, MediaType, SeriesEpisode } from "@shared/api";
 import { testHooksHeaders } from "../../test-hooks-secret";
 import { endpoints } from "../endpoints";
 import { BaseController, type RequestOptions } from "./BaseController";
@@ -58,11 +58,7 @@ export class TestHooksController extends BaseController {
   }
 
   // Tells a series' cache entry that a later episode has aired, as the cron's refresh does.
-  airEpisode(
-    reference: ExternalReference,
-    episode: { season: number; episode: number },
-    options?: RequestOptions,
-  ) {
+  airEpisode(reference: ExternalReference, episode: SeriesEpisode, options?: RequestOptions) {
     return this.requestContext.put(endpoints.testHooks.lastAiredEpisode(reference), {
       ...withSecret(options),
       data: episode,

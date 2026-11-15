@@ -163,6 +163,7 @@ export function FilmActions({
               <SeriesProgressPanel
                 series={mediaItem}
                 inProgress={inProgress}
+                onChange={() => setActionError(null)}
                 onFailed={() => setActionError("progressFailed")}
               />
             )
