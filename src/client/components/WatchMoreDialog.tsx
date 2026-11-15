@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { firstSeason, type SeriesProgress } from "../../shared/progress";
+import type { SeriesProgress } from "../../shared/progress";
 import { filmName } from "../catalog/film-label";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
-import { latestSeason, nextEpisodeOf, type Series } from "../in-progress/watching";
+import { latestSeason, nextEpisodeOf, type Series, startOfSeason } from "../in-progress/watching";
 import { episodeLabel, LastWatchedPicker } from "./SeriesProgress";
 import {
   SheetHeader,
@@ -17,7 +17,8 @@ import {
   sheetSafeBottomClasses,
 } from "./sheet";
 
-type Choice = "latest" | "start" | "own";
+// Where to start: the latest season, the first, or the User's own last episode watched.
+type WatchMoreChoice = "latest" | "start" | "own";
 
 // Where Watch more starts a series the User has already logged (`docs/mockups/series-progress/`):
 // from its latest season, chosen when it opens, from the start, or from the User's own last
@@ -51,17 +52,17 @@ function WatchMoreForm({
   onStart: (progress: SeriesProgress | null) => void;
 }) {
   const latest = latestSeason(series);
-  const [choice, setChoice] = useState<Choice>(latest === null ? "start" : "latest");
-  const [own, setOwn] = useState<SeriesProgress | null>(null);
+  const [choice, setChoice] = useState<WatchMoreChoice>(latest === null ? "start" : "latest");
+  const [ownProgress, setOwnProgress] = useState<SeriesProgress | null>(null);
 
-  const progressOf: Record<Choice, SeriesProgress | null> = {
-    latest: latest === null ? null : { mediaType: "series", season: latest, episode: 0 },
+  const progressOf: Record<WatchMoreChoice, SeriesProgress | null> = {
+    latest: latest === null ? null : startOfSeason(latest),
     start: null,
-    own,
+    own: ownProgress,
   };
 
   // What a choice says it starts at: its next episode, or Caught up past all the series lists.
-  function hintOf(progress: SeriesProgress | null): string {
+  function startsAt(progress: SeriesProgress | null): string {
     const next = nextEpisodeOf(series, progress);
     return next ? t("watchMore.next", { episode: episodeLabel(next) }) : t("progress.caughtUp");
   }
@@ -81,7 +82,7 @@ function WatchMoreForm({
         <RadioGroup
           aria-label={t("watchMore.where")}
           value={choice}
-          onValueChange={(value) => setChoice(value as Choice)}
+          onValueChange={(value) => setChoice(value as WatchMoreChoice)}
           className="gap-2"
         >
           {latest !== null && (
@@ -89,27 +90,27 @@ function WatchMoreForm({
               value="latest"
               chosen={choice}
               label={t("watchMore.fromSeason", { season: latest })}
-              hint={hintOf(progressOf.latest)}
+              hint={startsAt(progressOf.latest)}
             />
           )}
           <WatchMoreOption
             value="start"
             chosen={choice}
             label={t("watchMore.fromStart")}
-            hint={hintOf(null)}
+            hint={startsAt(null)}
           />
           <WatchMoreOption
             value="own"
             chosen={choice}
             label={t("watchMore.own")}
-            hint={choice === "own" ? hintOf(own) : t("watchMore.ownHint")}
+            hint={choice === "own" ? startsAt(ownProgress) : t("watchMore.ownHint")}
           />
         </RadioGroup>
         {choice === "own" && (
           <LastWatchedPicker
             className="mt-3 px-0.5"
-            progress={own ?? { mediaType: "series", season: firstSeason, episode: 0 }}
-            onChange={setOwn}
+            progress={ownProgress}
+            onChange={setOwnProgress}
           />
         )}
       </div>
@@ -144,8 +145,8 @@ function WatchMoreOption({
   label,
   hint,
 }: {
-  value: Choice;
-  chosen: Choice;
+  value: WatchMoreChoice;
+  chosen: WatchMoreChoice;
   label: string;
   hint: string;
 }) {

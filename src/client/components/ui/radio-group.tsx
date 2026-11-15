@@ -3,6 +3,7 @@ import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
+// A set of choices of which one is chosen, each a RadioGroupItem.
 function RadioGroup({
   className,
   ...props

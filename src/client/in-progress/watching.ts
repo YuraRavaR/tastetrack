@@ -69,16 +69,20 @@ export function latestSeason({ metadata }: Series): number | null {
   return latest !== undefined && latest > firstSeason ? latest : null;
 }
 
+// The Progress of a series started at `season`, none of it watched yet.
+export function startOfSeason(season: number): SeriesProgress {
+  return { mediaType: "series", season, episode: 0 };
+}
+
 // The last episode watched, as the picker shows it: none of the first season before any Progress.
 export function lastWatched(progress: SeriesProgress | null): Episode {
-  return progress ?? { season: firstSeason, episode: 0 };
+  return progress ?? startOfSeason(firstSeason);
 }
 
 // The picker's steps. Another season starts with none of it watched, which is how a User moves a
 // manual series on to its next season. Neither has an upper end: TMDB can lag behind what aired.
 export function stepSeason(progress: SeriesProgress | null, by: 1 | -1): SeriesProgress {
-  const season = Math.max(firstSeason, lastWatched(progress).season + by);
-  return { mediaType: "series", season, episode: 0 };
+  return startOfSeason(Math.max(firstSeason, lastWatched(progress).season + by));
 }
 
 export function stepEpisode(progress: SeriesProgress | null, by: 1 | -1): SeriesProgress {

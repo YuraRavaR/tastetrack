@@ -27,9 +27,9 @@ type ActionError = PlanError | "startFailed" | "stopFailed" | "progressFailed";
 // Log Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type that
 // has In Progress can be started too; while it is, a card says since when, and for a series
 // holds its Progress, and finishing it or stopping it take the place of marking it Experienced,
-// Planned or started. A series already logged starts from where Watch more says. `onChanged` reloads the
-// page for a new Log Entry or a change to In Progress, and `onPlanned` tells it whether the Media
-// Item is on the Backlog now.
+// Planned or started. A series already logged starts where the User picks in Watch more.
+// `onChanged` reloads the page for a new Log Entry or a change to In Progress, and `onPlanned`
+// tells it whether the Media Item is on the Backlog now.
 export function FilmActions({
   history,
   onChanged,

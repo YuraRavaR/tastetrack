@@ -384,22 +384,30 @@ for (const [device, viewport] of [
   });
 }
 
-test("Watch more from the start starts a series already rated at its first episode", async ({
+test("Watch more from the start starts a series already rated at its first episode, and undo puts it back on the Watchlist", async ({
   api,
   loggedInUi: ui,
 }) => {
   const series = await breakingBad(api);
   await rate(api, series.id);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId: series.id }), 201);
   const { filmPage } = ui;
-  const { watchMoreDialog: dialog } = filmPage;
+  const { watchMoreDialog: dialog, watchingCard, toast } = filmPage;
   await filmPage.goto(series.id);
   await filmPage.watchMoreButton.click();
 
   await dialog.choice("From the start").click();
   await dialog.startWatchingButton.click();
 
-  await expect(filmPage.watchingCard.root).toContainText("NextS1 · E1Season 1, episode 1 of 7");
-  await expect(filmPage.watchingCard.bar).toHaveAccessibleName("0 of 62 episodes watched");
+  await expect(watchingCard.root).toContainText("NextS1 · E1Season 1, episode 1 of 7");
+  await expect(watchingCard.bar).toHaveAccessibleName("0 of 62 episodes watched");
+
+  await toast.undo();
+
+  await expect(watchingCard.root).toBeHidden();
+  await expect(filmPage.onWatchlistButton).toBeVisible();
+  await expect(filmPage.watchMoreButton).toBeVisible();
+  await expect(toast.message("Put Breaking Bad (2008) back on your Watchlist.")).toBeVisible();
 });
 
 test("Watch more from where the User is follows their own season and episode", async ({
