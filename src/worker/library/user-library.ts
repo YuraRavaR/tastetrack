@@ -47,6 +47,7 @@ export async function userLibrary(
         addedAt: listItems.createdAt,
         startDate: inProgress.startDate,
         startedAt: inProgress.createdAt,
+        progress: inProgress.progress,
       })
       .from(mediaItems)
       .leftJoin(catalogCache, cacheOfMediaItem(now))
@@ -76,13 +77,17 @@ export async function userLibrary(
 
   return rows.map((row) => {
     const last = lastEntries.get(row.mediaItemId);
+    const mediaItem = toMediaItem(row);
     return {
-      mediaItem: toMediaItem(row),
+      mediaItem,
       backlog: row.addedAt === null ? null : { addedAt: row.addedAt.toISOString() },
       inProgress:
         row.startedAt === null
           ? null
-          : toInProgress({ startDate: row.startDate, createdAt: row.startedAt }),
+          : toInProgress(
+              { startDate: row.startDate, createdAt: row.startedAt, progress: row.progress },
+              mediaItem,
+            ),
       log: last
         ? {
             currentRating: toStars(last.rating),

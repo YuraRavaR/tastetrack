@@ -1,5 +1,5 @@
-// The logged-in User's In Progress: starting a Media Item, changing when they started it, finishing
-// it with a Log Entry and stopping it.
+// The logged-in User's In Progress: starting a Media Item, changing when they started it and their
+// Progress, finishing it with a Log Entry and stopping it.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   ErrorResponse,
@@ -13,11 +13,16 @@ import {
 } from "../shared/api";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
-import { changeStartDate, finish, start, stop } from "./log/in-progress";
+import { changeInProgress, finish, start, stop } from "./log/in-progress";
 
 const dateRules =
   "the start date isn't a calendar date, is before 1900-01-01 or after today in the User's time " +
   "zone (`invalid_date`, `date_too_early`, `date_in_future`)";
+
+const progressRules =
+  "the Progress is of another Media Type, or the Media Item's Media Type has none, as a book has " +
+  "none yet (`progress_mismatch`), or a series' season isn't a whole number from 1 or its " +
+  "episode a whole number from 0 (`invalid_progress`)";
 
 const notInProgressResponse = {
   content: { "application/json": { schema: ErrorResponse } },
@@ -30,8 +35,11 @@ const startRoute = createRoute({
   summary: "Start a Media Item, marking it In Progress",
   description:
     "Also takes the Media Item off the User's Backlog, and says where it was and its Note, so " +
-    "that marking it Planned at that position with that Note undoes it. Only a book can be " +
-    "started, and not while it is In Progress already.",
+    "that marking it Planned at that position with that Note undoes it. A book or a series can " +
+    "be started, not a film, and not while it is In Progress already. A Progress starts it part " +
+    "way, as from a season of a series; without one, a series is not started yet, so its next " +
+    "episode is the first. Only the Progress's shape and range are checked, never what the " +
+    "catalog lists, which can lag behind what has aired.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -47,7 +55,7 @@ const startRoute = createRoute({
       description:
         "The request body is malformed, the Media Item doesn't exist, or its Media Type has no " +
         "In Progress, as a film has none (`invalid_request`, `unknown_media_item`, " +
-        `\`not_progressable\`), or ${dateRules}`,
+        `\`not_progressable\`), or ${dateRules}, or ${progressRules}`,
     },
     401: unauthenticatedResponse,
     409: {
@@ -60,8 +68,12 @@ const startRoute = createRoute({
 const editRoute = createRoute({
   method: "patch",
   path: "/in-progress/{mediaItemId}",
-  summary: "Change when the User started a Media Item In Progress",
-  description: "A null start date clears it.",
+  summary: "Change when the User started a Media Item In Progress, or their Progress",
+  description:
+    "Changes the start date, the Progress or both, leaving what the request leaves out as it " +
+    "is; null clears either. A Progress is sent whole, as the last episode watched, so sending " +
+    "the same one twice changes nothing. Only its shape and range are checked, never what the " +
+    "catalog lists, so an episode TMDB doesn't list yet is kept.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -71,11 +83,13 @@ const editRoute = createRoute({
   responses: {
     200: {
       content: { "application/json": { schema: InProgressResponse } },
-      description: "The In Progress with its new start date",
+      description: "The In Progress with its new start date and Progress",
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
-      description: `The request is malformed (\`invalid_request\`), or ${dateRules}`,
+      description:
+        "The request is malformed or changes nothing (`invalid_request`), or " +
+        `${dateRules}, or ${progressRules}`,
     },
     401: unauthenticatedResponse,
     404: notInProgressResponse,
@@ -88,7 +102,8 @@ const finishRoute = createRoute({
   summary: "Finish a Media Item In Progress, recording a Log Entry",
   description:
     "Records a Log Entry by the rules of marking a Media Item Experienced, and ends In Progress " +
-    "in the same batch. Answers as marking it Experienced does.",
+    "in the same batch, the Progress with it: a Log Entry never carries Progress. Answers as " +
+    "marking it Experienced does.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -118,7 +133,8 @@ const stopRoute = createRoute({
   method: "delete",
   path: "/in-progress/{mediaItemId}",
   summary: "Stop a Media Item In Progress without a Log Entry",
-  description: "Ends In Progress and leaves no trace of it: no Log Entry, and no Backlog item.",
+  description:
+    "Ends In Progress and leaves no trace of it: no Log Entry, no Backlog item, and no Progress.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: { params: MediaItemParams },
@@ -148,7 +164,7 @@ inProgressRoutes.openapi(startRoute, async (c) => {
 inProgressRoutes.openapi(editRoute, async (c) => {
   const { mediaItemId } = c.req.valid("param");
   const edit = c.req.valid("json");
-  const changed = await changeStartDate(c.var.db, c.var.userId, mediaItemId, edit, c.var.now);
+  const changed = await changeInProgress(c.var.db, c.var.userId, mediaItemId, edit, c.var.now);
   if (changed.ok) return c.json({ inProgress: changed.inProgress }, 200);
   if (changed.error === "not_in_progress") return c.json({ error: changed.error }, 404);
   return c.json({ error: changed.error }, 400);

@@ -1,5 +1,6 @@
 import { BookOpen, Clapperboard, type LucideIcon, Tv } from "lucide-react";
 import type { MediaType } from "../../shared/api";
+import type { ProgressMediaType as WorkerProgressMediaType } from "../../shared/catalog";
 
 // A new Media Type doesn't compile until it has an icon.
 const mediaTypeIcons: Record<MediaType, LucideIcon> = {
@@ -42,6 +43,13 @@ export function startsAsRevisit(mediaType: MediaType): boolean {
   return revisitsByDefault[mediaType];
 }
 
-// Which Media Types have In Progress is the Worker's rule too. A new one doesn't compile until the
-// catalogue has its In Progress words (progressWord).
-export { canProgress, type ProgressMediaType } from "../../shared/catalog";
+// The Media Types the client lets a User start, among those the Worker gives In Progress
+// (src/shared/catalog.ts). A series joins once it has its Watching screens (#213). A new one
+// doesn't compile until the catalogue has its In Progress words (progressWord).
+const startableMediaTypes = ["book"] as const satisfies readonly WorkerProgressMediaType[];
+
+export type ProgressMediaType = (typeof startableMediaTypes)[number];
+
+export function canProgress(mediaType: MediaType): mediaType is ProgressMediaType {
+  return (startableMediaTypes as readonly MediaType[]).includes(mediaType);
+}
