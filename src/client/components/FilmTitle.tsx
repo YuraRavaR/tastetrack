@@ -52,5 +52,8 @@ function factsOf(mediaItem: MediaItem): string | null {
       return filmFacts(mediaItem.metadata);
     case "book":
       return authorNames(mediaItem.metadata.authors);
+    // A series' facts come with its UI.
+    case "series":
+      return null;
   }
 }

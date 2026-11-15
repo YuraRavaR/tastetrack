@@ -30,7 +30,7 @@ let database: TestDatabase;
 let db: DrizzleD1Database;
 let userId: number;
 // A List of each Media Type.
-let listIds: { film: number; book: number };
+let listIds: { film: number; book: number; series: number };
 
 beforeAll(async () => {
   database = await openTestDatabase();
@@ -59,15 +59,16 @@ beforeEach(async () => {
     .returning();
   if (!user) throw new Error("no user");
   userId = user.id;
-  const [films, books] = await db
+  const [films, books, series] = await db
     .insert(lists)
     .values([
       { userId, kind: "list", mediaType: "film", name: "F", nameKey: "f", createdAt: now },
       { userId, kind: "list", mediaType: "book", name: "B", nameKey: "b", createdAt: now },
+      { userId, kind: "list", mediaType: "series", name: "S", nameKey: "s", createdAt: now },
     ])
     .returning();
-  if (!films || !books) throw new Error("no lists");
-  listIds = { film: films.id, book: books.id };
+  if (!films || !books || !series) throw new Error("no lists");
+  listIds = { film: films.id, book: books.id, series: series.id };
 });
 
 interface Work {
@@ -132,6 +133,24 @@ async function book(id: string, options: Work = {}): Promise<void> {
     { authors: [] },
     options,
   );
+}
+
+// Adds a catalog-backed series with TMDB id `id`.
+async function series(id: string, options: Work = {}): Promise<void> {
+  const extra = {
+    backdropPath: null,
+    firstAirYear: null,
+    lastAirYear: null,
+    status: null,
+    seasons: [],
+    lastAiredEpisode: null,
+    nextAirDate: null,
+    overview: { en: null, uk: null },
+    tagline: { en: null, uk: null },
+    creators: [],
+    cast: [],
+  };
+  await work({ source: "tmdb", mediaType: "series", id }, `Series ${id}`, extra, options);
 }
 
 // A film's metadata, of a Media Item that should be one.
@@ -367,7 +386,31 @@ describe("a cron run", () => {
     });
   });
 
-  it("keeps a book's entry it couldn't refresh, however old: only a film's expires", async () => {
+  it("refreshes series beside films and books, one subrequest each, within 40", async () => {
+    // The three oldest are works the fakes know; the rest, which no fake knows, come a series and
+    // then a book, on and on.
+    await series("87108", { in: "list", cached: { updated: daysAgo(89) } });
+    await film("348", { in: "log", cached: { updated: daysAgo(88.5) } });
+    await book("OL2094429W", { in: "log", cached: { updated: daysAgo(88) } });
+    for (let n = 1; n <= 20; n++) {
+      await series(`404${n}`, { in: "list", cached: { updated: daysAgo(80 - n) } });
+      await book(`OL404${n}W`, { in: "list", cached: { updated: daysAgo(79.5 - n) } });
+    }
+
+    // Four for the three, then twelve series and twelve books, three a pair.
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 3, failed: 24, deleted: 0 });
+    expect(subrequests).toBe(40);
+    const [chernobyl] = await catalogMediaItems(db, env, [1], now);
+    expect(chernobyl?.metadata).toMatchObject({
+      title: "Chernobyl",
+      ukrainianTitle: "Чорнобиль",
+      status: "ended",
+      seasons: [{ season: 1, episodeCount: 5 }],
+      lastAiredEpisode: { season: 1, episode: 5 },
+    });
+  });
+
+  it("keeps a book's entry it couldn't refresh, however old: only TMDB's entries expire", async () => {
     // Neither fake knows these.
     await book("OL404404W", { in: "log", cached: { updated: daysAgo(400) } });
     await film("404404", { in: "log", cached: { updated: daysAgo(91) } });
@@ -454,6 +497,34 @@ describe("a read", () => {
     expect(item?.metadata?.title).toBe("Alien");
     expect(await loggedTitles()).toEqual(["Alien"]);
     expect(await due()).toEqual([]);
+  });
+
+  it("adds a series from search with one subrequest, its details holding its seasons", async () => {
+    const added = await addFromSearch(
+      db,
+      env,
+      {
+        externalReference: { source: "tmdb", mediaType: "series", id: "1396" },
+        title: "Breaking Bad",
+        originalTitle: "Breaking Bad",
+        year: 2008,
+        posterUrl: null,
+        titleLanguage: "en",
+      },
+      now,
+    );
+
+    expect(subrequests).toBe(1);
+    expect(added.mediaItem.metadata).toMatchObject({
+      title: "Breaking Bad",
+      seasons: [
+        { season: 1, episodeCount: 7 },
+        { season: 2, episodeCount: 13 },
+        { season: 3, episodeCount: 13 },
+        { season: 4, episodeCount: 13 },
+        { season: 5, episodeCount: 16 },
+      ],
+    });
   });
 
   it("refetches an expired entry when its film is added from search again", async () => {

@@ -82,7 +82,7 @@ test("implausible values are refused: a title of 1–200 characters, a year from
     { title: "Film", runtime: 1001 },
     { title: "Film", genres: ["Drama", "Drama"] },
     { title: "Film", genres: ["Cooking"] },
-    { title: "Film", mediaType: "series" },
+    { title: "Film", mediaType: "album" },
     { title: "Film", authors: ["Someone"] },
   ]) {
     const response = await loggedInApi.catalog.addManualMediaItem(

@@ -7,6 +7,7 @@ import {
   RotateCw,
   SearchX,
   Star,
+  Tv,
 } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Link, useNavigate } from "react-router";
@@ -65,7 +66,7 @@ type RowLog = { currentRating: number | null; logEntryCount: number };
 const maxListChips = 2;
 
 // What Search says when it finds nothing, by Media Type.
-const noMatchIcons: Record<MediaType, LucideIcon> = { film: SearchX, book: BookOpen };
+const noMatchIcons: Record<MediaType, LucideIcon> = { film: SearchX, book: BookOpen, series: Tv };
 
 // What Search finds of one Media Type as the User types, with no button, for the query in the URL.
 // The User's Media Items that match, those in their Library or on their Lists, come first, "In

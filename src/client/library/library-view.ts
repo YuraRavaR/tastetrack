@@ -35,8 +35,8 @@ function sortSlug(mediaType: MediaType, sort: LibrarySort): string {
 }
 
 // Whether Media Items of the type have genres to filter by. A book has none, since Open Library's
-// subjects aren't kept.
-const genred: Record<MediaType, boolean> = { film: true, book: false };
+// subjects aren't kept, nor has a series, whose TMDB genres aren't kept.
+const genred: Record<MediaType, boolean> = { film: true, book: false, series: false };
 
 export function hasGenres(mediaType: MediaType): boolean {
   return genred[mediaType];

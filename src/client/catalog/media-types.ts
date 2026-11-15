@@ -10,7 +10,11 @@ export type MediaTypeChoice =
   | { status: "comingSoon"; name: MessageId; icon: LucideIcon };
 
 // A new Media Type doesn't compile until it has an icon.
-const mediaTypeIcons: Record<MediaType, LucideIcon> = { film: Clapperboard, book: BookOpen };
+const mediaTypeIcons: Record<MediaType, LucideIcon> = {
+  film: Clapperboard,
+  book: BookOpen,
+  series: Tv,
+};
 
 export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
   return mediaTypeIcons[mediaType];
@@ -18,8 +22,8 @@ export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
 
 const films: MediaTypeChoice = { status: "built", mediaType: "film" };
 const books: MediaTypeChoice = { status: "built", mediaType: "book" };
-// Series come after books. Music and Games stay out until each has an ADR choosing its External
-// Source.
+// Series are in the API, and stay "Coming soon" until their UI. Music and Games stay out until each
+// has an ADR choosing its External Source.
 const seriesSoon: MediaTypeChoice = {
   status: "comingSoon",
   name: "mediaType.series.tab",
@@ -39,6 +43,8 @@ export type Keeping = "plan" | "log" | "collect" | "addByHand";
 const keepings: Record<MediaType, readonly Keeping[]> = {
   film: ["plan", "log", "collect", "addByHand"],
   book: ["plan", "log", "collect", "addByHand"],
+  // None until the series UI: no section offers series yet.
+  series: [],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {

@@ -6,11 +6,13 @@ import type { MediaItem, MediaType } from "../../shared/api";
 import type { AnyCatalogSource, CatalogEntry, CatalogSource } from "./source";
 import { openLibraryBooks } from "./sources/open-library";
 import { tmdbFilms } from "./sources/tmdb";
+import { tmdbSeries } from "./sources/tmdb-series";
 
 // A new Media Type doesn't compile until it has a source.
 const sources: { [M in MediaType]: CatalogSource<M> } = {
   film: tmdbFilms,
   book: openLibraryBooks,
+  series: tmdbSeries,
 };
 
 // The source of a Media Type's catalog-backed Media Items.
