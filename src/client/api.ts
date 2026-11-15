@@ -55,6 +55,7 @@ import type {
   UserResponse,
 } from "../shared/api";
 import type { LogDateProblem } from "../shared/log";
+import type { Progress } from "../shared/progress";
 
 // The logged-in User, null without a live session, or "password_change_required" for a session
 // from a Temporary Password, which can only set a new one.
@@ -436,6 +437,24 @@ export function changeStartDate(
   edit: InProgressEditRequest,
 ): Promise<SaveLogEntryResult<InProgressResponse>> {
   return sendLogEntry<InProgressResponse>(`/api/in-progress/${mediaItemId}`, "PATCH", edit);
+}
+
+// Sets the Progress of a Media Item In Progress, whole, so sending it twice changes nothing; null
+// clears it. True once it is saved.
+export async function changeProgress(
+  mediaItemId: number,
+  progress: Progress | null,
+): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/in-progress/${mediaItemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ progress } satisfies InProgressEditRequest),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 // Finishes a Media Item In Progress, recording a Log Entry as logging does.

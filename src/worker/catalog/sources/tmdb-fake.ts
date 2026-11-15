@@ -339,6 +339,30 @@ const series: FakeSeries[] = [
   },
 ];
 
+// Searching for this and a number finds a series of that id that isn't in `series`, and its
+// details answer too, so a test can have a series, and so a cache entry, no other test reads.
+// It is still running: its second season lists 4 episodes, 2 of which have aired.
+const newSeriesQuery = /^tmdb fake new series (\d+)$/;
+const firstNewSeriesId = 999_100_000;
+
+function newSeries(id: number): FakeSeries {
+  return {
+    id,
+    original_name: `New series ${id}`,
+    first_air_date: "2025-01-10",
+    last_air_date: "2026-11-13",
+    status: "Returning Series",
+    poster_path: null,
+    backdrop_path: null,
+    translations: {},
+    seasons: { 1: 3, 2: 4 },
+    last_episode_to_air: { season_number: 2, episode_number: 2, air_date: "2026-11-13" },
+    next_episode_to_air: { season_number: 2, episode_number: 3, air_date: "2099-07-08" },
+    created_by: [],
+    cast: [],
+  };
+}
+
 function languageOf(language: string | undefined): SearchLanguage {
   return language === "uk-UA" ? "uk-UA" : "en-US";
 }
@@ -351,13 +375,17 @@ tmdbFake.get("/3/search/tv", (c) => {
   if (c.req.query("query") === failingQuery) {
     return c.json(serviceOffline, 503);
   }
-  const query = fold(c.req.query("query") ?? "");
+  const asked = c.req.query("query") ?? "";
+  const newSeriesId = newSeriesQuery.exec(asked)?.[1];
+  const query = fold(asked);
   const language = languageOf(c.req.query("language"));
-  const matches = series.filter((show) =>
-    [show.original_name, ...Object.values(show.translations).map((t) => t.name)].some((name) =>
-      query ? fold(name).includes(query) : false,
-    ),
-  );
+  const matches = newSeriesId
+    ? [newSeries(Number(newSeriesId))]
+    : series.filter((show) =>
+        [show.original_name, ...Object.values(show.translations).map((t) => t.name)].some((name) =>
+          query ? fold(name).includes(query) : false,
+        ),
+      );
   const results = matches.map((show) => ({
     id: show.id,
     name: nameOf(show, language),
@@ -374,7 +402,8 @@ tmdbFake.get("/3/search/tv", (c) => {
 // and the appended translations list only the languages the series really has one in. Seasons
 // come in number order, season 0 first.
 tmdbFake.get("/3/tv/:id", (c) => {
-  const show = series.find((s) => String(s.id) === c.req.param("id"));
+  const id = Number(c.req.param("id"));
+  const show = series.find((s) => s.id === id) ?? (id >= firstNewSeriesId ? newSeries(id) : null);
   if (!show) {
     return c.json(
       { success: false, status_code: 34, status_message: "The resource could not be found." },

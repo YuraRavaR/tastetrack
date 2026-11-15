@@ -60,6 +60,8 @@ export const endpoints = {
     records: "/api/test/records",
     catalogCacheEntry: ({ source, mediaType, id }: ExternalReference) =>
       `/api/test/catalog-cache/${source}/${mediaType}/${id}`,
+    lastAiredEpisode: ({ source, id }: ExternalReference) =>
+      `/api/test/catalog-cache/${source}/series/${id}/last-aired-episode`,
     tmdbFakeSearch: "/api/test/tmdb/3/search/movie?query=alien",
     openLibraryFakeSearch: "/api/test/openlibrary/search.json?q=alien",
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,

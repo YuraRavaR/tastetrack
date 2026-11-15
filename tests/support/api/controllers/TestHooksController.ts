@@ -57,6 +57,18 @@ export class TestHooksController extends BaseController {
     );
   }
 
+  // Tells a series' cache entry that a later episode has aired, as the cron's refresh does.
+  airEpisode(
+    reference: ExternalReference,
+    episode: { season: number; episode: number },
+    options?: RequestOptions,
+  ) {
+    return this.requestContext.put(endpoints.testHooks.lastAiredEpisode(reference), {
+      ...withSecret(options),
+      data: episode,
+    });
+  }
+
   fillBacklog(username: string, count: number, options?: RequestOptions) {
     return this.requestContext.post(endpoints.testHooks.backlog(username), {
       ...withSecret(options),

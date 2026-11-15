@@ -4,7 +4,7 @@ import { z } from "@hono/zod-openapi";
 import { inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { catalogCache, listItems, lists, logEntries, mediaItems } from "../db/schema";
-import { type ErrorResponse, MediaType, Password, Username } from "../shared/api";
+import { type ErrorResponse, MediaType, Password, SeriesEpisode, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
 import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
@@ -162,5 +162,28 @@ testHooks.delete("/catalog-cache/:source/:mediaType/:externalId", async (c) => {
       externalId,
     }),
   );
+  return c.body(null, 204);
+});
+
+// Moves a series' cache entry on to a later last aired episode, as the cron's refresh does once
+// TMDB says one has aired, so tests can see a series a User had caught up with offer it. The cron
+// runs in production only (ADR-0006).
+testHooks.put("/catalog-cache/:source/series/:externalId/last-aired-episode", async (c) => {
+  const source = sourceNamed(c.req.param("source"), "series");
+  const body = SeriesEpisode.safeParse(await c.req.json().catch(() => undefined));
+  if (!body.success) return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
+  if (!source) return c.notFound();
+  const key = byCacheKey({
+    externalSource: source.externalSource,
+    mediaType: source.mediaType,
+    externalId: c.req.param("externalId"),
+  });
+  const [entry] = await c.var.db
+    .select({ extra: catalogCache.extra })
+    .from(catalogCache)
+    .where(key);
+  if (!entry) return c.notFound();
+  const extra = { ...entry.extra, lastAiredEpisode: body.data };
+  await c.var.db.update(catalogCache).set({ extra }).where(key);
   return c.body(null, 204);
 });

@@ -10,14 +10,29 @@ import { BasePage } from "./BasePage";
 
 type EntryAction = "Edit" | "Delete";
 
-// The card a Media Item's page shows while it is In Progress, which a book calls "Reading": since
-// when, the button that changes that, and Finished and Stop reading.
+// The card a Media Item's page shows while it is In Progress, which a book calls "Reading" and a
+// series "Watching": since when, the button that changes that, and Finished and Stop reading or
+// Stop watching. A series' also holds its Progress: the next episode with the check that marks it
+// watched, the bar, and the steppers that set the last episode watched.
 class InProgressCard extends ScopedComponent {
   readonly changeStartDateButton = this.root.getByRole("button", {
     name: "Change the start date",
   });
   readonly finishedButton = this.root.getByRole("button", { name: "Finished" });
   readonly stopReadingButton = this.root.getByRole("button", { name: "Stop reading" });
+  readonly stopWatchingButton = this.root.getByRole("button", { name: "Stop watching" });
+  readonly checkButton = this.root.getByRole("button", { name: /^Mark S\d+ · E\d+ watched$/ });
+  // Named with its count, such as "15 of 62 episodes watched".
+  readonly bar = this.root.getByRole("img", { name: /episodes watched$/ });
+  readonly lastWatched = this.root.getByRole("group", { name: "Last watched" });
+  readonly season = this.lastWatched.getByRole("status", { name: "Season" });
+  readonly episode = this.lastWatched.getByRole("status", { name: "Episode" });
+  readonly previousSeasonButton = this.lastWatched.getByRole("button", { name: "Previous season" });
+  readonly nextSeasonButton = this.lastWatched.getByRole("button", { name: "Next season" });
+  readonly previousEpisodeButton = this.lastWatched.getByRole("button", {
+    name: "Previous episode",
+  });
+  readonly nextEpisodeButton = this.lastWatched.getByRole("button", { name: "Next episode" });
 
   text(content: string | RegExp) {
     return this.root.getByText(content);
@@ -94,6 +109,11 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly startButtons = this.main.getByRole("button", { name: /^Start/ });
   readonly readingCard = new InProgressCard(
     this.main.getByRole("region", { name: "Reading", exact: true }),
+  );
+  // A series' actions.
+  readonly startWatchingButton = this.main.getByRole("button", { name: "Start watching" });
+  readonly watchingCard = new InProgressCard(
+    this.main.getByRole("region", { name: "Watching", exact: true }),
   );
   readonly startDateDialog = new StartDateDialog(
     this.page.getByRole("dialog", { name: "Change the start date" }),

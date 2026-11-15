@@ -58,6 +58,14 @@ export const noPosterSeries = (client: ApiClient) => {
   return series(client, "tmdb fake no poster series", noPosterSeriesId);
 };
 
+// A running series no other test has, so a test can change what its cache entry says has aired:
+// 3 episodes, then 4 of which 2 have aired, the third on 2099-07-08. Only the TMDB fake has it.
+export async function newSeries(client: ApiClient) {
+  const id = String(999_100_000 + Math.floor(Math.random() * 100_000_000));
+  const mediaItem = await series(client, `tmdb fake new series ${id}`, id);
+  return { mediaItem, reference: seriesReference(id), title: `New series ${id}` };
+}
+
 export function posterUrl(path: string, size: "w92" | "w500") {
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }

@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { Link } from "react-router";
 import type { LibraryItem, MediaType } from "../../shared/api";
 import * as api from "../api";
@@ -7,6 +7,7 @@ import { authorName } from "../catalog/book-label";
 import { canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
 import { MediaTypeTile, type TileState } from "../components/MediaTypeTile";
 import { Poster } from "../components/Poster";
+import { WatchingRows } from "../components/WatchingRows";
 import { mediaWord, progressWord } from "../i18n/media-words";
 import { formatCalendarDayAndMonth, t } from "../i18n/t";
 import { libraryTile } from "../library/library-tabs";
@@ -15,12 +16,13 @@ import { itemPath } from "../navigation/paths";
 
 // Saved at "/": one tile per Media Type Saved offers, in the order every section keeps, each opening
 // its tabs. The heading names the list of tiles. Under them, for each Media Type that has In
-// Progress, what the User has In Progress, if anything (`docs/mockups/books/`). Being the home
+// Progress, what the User has In Progress, if anything (`docs/mockups/books/`,
+// `docs/mockups/series-progress/`). Being the home
 // page, its title is the app's name alone.
 export function SavedPage() {
   const headingId = useId();
   usePageTitle([]);
-  const tiles = useTiles();
+  const [tiles, reload] = useTiles();
   return (
     <div className="flex flex-col gap-5 md:gap-6">
       <h1 id={headingId} className="font-bold text-3xl tracking-tight md:text-4xl">
@@ -35,11 +37,19 @@ export function SavedPage() {
       </ul>
       {savedMediaTypes.filter(canProgress).map((mediaType) => {
         const tile = tiles[mediaType];
-        return (
-          tile.status === "loaded" &&
-          tile.tile.inProgress.length > 0 && (
-            <InProgressNow key={mediaType} mediaType={mediaType} items={tile.tile.inProgress} />
-          )
+        if (tile.status !== "loaded") return null;
+        const items = tile.tile.inProgress;
+        // A series' row carries its Progress; the rows stay on the page with none, for the toast
+        // that follows the last one out.
+        return mediaType === "series" ? (
+          <WatchingRows
+            key={mediaType}
+            items={items}
+            heading={progressWord(mediaType, "inProgressNow")}
+            onChanged={() => reload(mediaType)}
+          />
+        ) : (
+          items.length > 0 && <InProgressNow key={mediaType} mediaType={mediaType} items={items} />
         );
       })}
     </div>
@@ -48,8 +58,9 @@ export function SavedPage() {
 
 const loading: TileState = { status: "loading" };
 
-// Each Media Type's tile, read from the same Library its page reads, one request each.
-function useTiles(): Record<MediaType, TileState> {
+// Each Media Type's tile, read from the same Library its page reads, one request each, and a way
+// to read one again after a change to it. A reload that fails leaves the tile as it was.
+function useTiles(): [Record<MediaType, TileState>, (mediaType: MediaType) => Promise<void>] {
   const [tiles, setTiles] = useState<Record<MediaType, TileState>>({
     film: loading,
     book: loading,
@@ -72,7 +83,15 @@ function useTiles(): Record<MediaType, TileState> {
     };
   }, []);
 
-  return tiles;
+  const reload = useCallback(async (mediaType: MediaType) => {
+    const items = await api.fetchLibrary(mediaType).catch(() => null);
+    if (items) {
+      const state: TileState = { status: "loaded", tile: libraryTile(items) };
+      setTiles((current) => ({ ...current, [mediaType]: state }));
+    }
+  }, []);
+
+  return [tiles, reload];
 }
 
 // "Reading now": one row per Media Item In Progress, the latest started first, each opening its

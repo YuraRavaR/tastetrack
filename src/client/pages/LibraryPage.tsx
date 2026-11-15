@@ -1,12 +1,4 @@
-import {
-  ArrowDownUp,
-  Bookmark,
-  BookOpen,
-  ChevronLeft,
-  Eye,
-  type LucideIcon,
-  Search,
-} from "lucide-react";
+import { ArrowDownUp, Bookmark, ChevronLeft, Eye, type LucideIcon, Search } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router";
 import {
@@ -22,13 +14,14 @@ import type { LibraryItem, MediaType } from "../../shared/api";
 import { ratingStars } from "../../shared/log";
 import * as api from "../api";
 import { authorNames } from "../catalog/book-label";
-import { canProgress, type ProgressMediaType } from "../catalog/media-types";
+import { canProgress, mediaTypeIcon, type ProgressMediaType } from "../catalog/media-types";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { type Choice, ChoiceChip } from "../components/ChoiceChip";
 import { EmptyState } from "../components/EmptyState";
 import { PosterGridItem } from "../components/PosterGridItem";
 import { RatingValue } from "../components/Rating";
 import { SegmentedLinks } from "../components/SegmentedLinks";
+import { WatchingRows } from "../components/WatchingRows";
 import { mediaWord, progressWord } from "../i18n/media-words";
 import { formatCalendarDayAndMonth, t } from "../i18n/t";
 import {
@@ -95,7 +88,7 @@ function inProgressParts(mediaType: ProgressMediaType): TabParts {
   return {
     name: progressWord(mediaType, "inProgress"),
     empty: {
-      icon: BookOpen,
+      icon: mediaTypeIcon(mediaType),
       message: progressWord(mediaType, "inProgressEmpty"),
       action: {
         label: t("saved.goTo", { tab: mediaWord(mediaType, "backlog") }),
@@ -157,7 +150,7 @@ export function LibraryPage() {
 }
 
 // The Media Type's heading, the way back up to Saved, its tabs with their counts, and the open
-// tab's grid of covers under its sort and filter chips. The Library loads once for every tab; the
+// tab's grid of covers under its sort and filter chips, or a series' Watching tab's rows. The Library loads once for every tab; the
 // open tab's view lives in the address.
 function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab }) {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
@@ -192,11 +185,20 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
     };
   }, [mediaType]);
 
+  // Reads the Library again after a change made on this page; a failure leaves it as it was.
+  async function reload() {
+    const items = await api.fetchLibrary(mediaType).catch(() => null);
+    if (items) setState({ status: "loaded", tabs: libraryTabItems(items) });
+  }
+
   const tabItems = state.status === "loaded" ? state.tabs[tab] : [];
   const fill = useMetadataFill(tabItems.map((item) => item.mediaItem));
   // Sorts and filters read the metadata follow-ups found, too.
   const filled = tabItems.map((item) => ({ ...item, mediaItem: fill.filled(item.mediaItem) }));
   const visible = showLibrary(filled, view);
+  // The series being watched are rows with their Progress, not a grid of posters, which has no
+  // room for the bar and the check (`docs/mockups/series-progress/`).
+  const rows = tab === "inProgress" && mediaType === "series";
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
@@ -270,7 +272,10 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
           </Button>
         </div>
       )}
-      {visible.length > 0 && (
+      {rows && state.status === "loaded" && (
+        <WatchingRows items={visible} label={open.name} onChanged={reload} />
+      )}
+      {visible.length > 0 && !rows && (
         <ul
           aria-label={open.name}
           className="grid grid-cols-3 gap-x-3 gap-y-4.5 md:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:gap-x-5 md:gap-y-6"
