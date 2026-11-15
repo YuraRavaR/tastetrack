@@ -10,6 +10,7 @@ export class LogEntryDialog extends ScopedComponent {
   readonly cancelButton = this.root.getByRole("button", { name: "Cancel" });
   readonly deleteButton = this.root.getByRole("button", { name: "Delete" });
   readonly revisitSwitch = this.root.getByRole("switch", { name: "Rewatch" });
+  readonly seriesRevisitHint = this.root.getByText("You've watched it from the start before");
   // A book's, which the UI calls a Reread.
   readonly bookRevisitSwitch = this.root.getByRole("switch", { name: "Reread" });
   readonly reviewInput = this.root.getByLabel("Review");

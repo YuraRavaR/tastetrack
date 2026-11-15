@@ -148,7 +148,7 @@ test("a film planned from TMDB's results moves to In your Saved once the query c
   await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toHaveCount(0);
 });
 
-test("an empty field shows the hint and the Media Type chips, on Films, Series still to come", async ({
+test("an empty field shows the hint and the Media Type chips, on Films", async ({
   loggedInUi: ui,
 }) => {
   const { searchPage } = ui;
@@ -160,10 +160,7 @@ test("an empty field shows the hint and the Media Type chips, on Films, Series s
     "Title in English or Ukrainian",
   );
   await expect(searchPage.currentChip("Films")).toBeVisible();
-  await expect(searchPage.mediaTypeChip("Books")).toBeEnabled();
-  await expect(searchPage.mediaTypeChip("Series")).toBeDisabled();
-  await expect(searchPage.mediaTypeChip("Series")).toHaveAccessibleDescription("Coming soon");
-  await expect(searchPage.mediaTypeChipButtons).toHaveCount(3);
+  await expect(searchPage.mediaTypeChipButtons).toHaveText(["Films", "Books", "Series"]);
 
   await searchPage.search("alien");
   await expect(searchPage.text(hint)).toHaveCount(0);

@@ -64,7 +64,7 @@ test("an address with a Media Type Search doesn't have opens on Films", async ({
 }) => {
   const { searchPage } = ui;
 
-  await ui.goto("/search?q=alien&type=series");
+  await ui.goto("/search?q=alien&type=album");
 
   await expect(searchPage.currentChip("Films")).toBeVisible();
   await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
@@ -263,12 +263,7 @@ test("the chips are one control the width of the field, with equal thumb-sized s
     expect(segment.height).toBe(56);
     expect(segment.width).toBeCloseTo(segments[0]?.width ?? 0, 0);
   }
-  // Series says "Soon" on a phone, "Coming soon" where there is room.
-  await expect(searchPage.seriesSoonLabel).toBeVisible();
-  await expect(searchPage.seriesComingSoonLabel).toBeHidden();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(searchPage.seriesComingSoonLabel).toBeVisible();
-  await expect(searchPage.seriesSoonLabel).toBeHidden();
   expect((await box(searchPage.mediaTypeChips)).width).toBe(
     (await box(searchPage.searchBox)).width,
   );

@@ -7,7 +7,7 @@ export class SearchResultRow extends ScopedComponent {
   readonly noPosterPlaceholder = this.root.getByRole("img", { name: "No poster" });
   // A book's, set in type: its title and first author.
   readonly noCoverPlaceholder = this.root.getByRole("img", { name: "No cover" });
-  // Every control but the title: on a book's row, Want to read alone so far.
+  // Every control but the title.
   readonly actionButtons = this.root.getByRole("button", {
     name: /^(Mark|Watched|Read|Want to|Add to)/,
   });

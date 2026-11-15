@@ -75,7 +75,6 @@ export const en = {
   "mediaType.film.collectionTick":
     "Tick a Collection to add the film, untick it to take the film off.",
   "mediaType.film.sharedEmpty": "There are no films here yet.",
-  // Series stay a "Coming soon" stub where a section offers the Media Types until their UI.
   "mediaType.series.experienced": "Watched",
   "mediaType.series.experiencedAgain": "Watched again",
   "mediaType.series.markExperienced": "Mark watched",
@@ -534,6 +533,16 @@ export const en = {
   "film.runtime": "{minutes} min",
   "film.yearAndRuntime": "{year} · {runtime}",
   "film.runtimeAndGenres": "{runtime} · {genres}",
+  // A series' facts on its page: the years it aired, its seasons and whether more are coming.
+  "series.yearsRange": "{first}–{last}",
+  "series.yearsRunning": "{first}–",
+  "series.seasons": "{count, plural, one {# season} other {# seasons}}",
+  "series.status.returning": "Returning",
+  "series.status.in_production": "In production",
+  "series.status.planned": "Planned",
+  "series.status.pilot": "Pilot",
+  "series.status.ended": "Ended",
+  "series.status.canceled": "Canceled",
   "saved.nav": "Saved",
   "saved.title": "Saved",
   "saved.breadcrumb": "Breadcrumb",
@@ -559,10 +568,7 @@ export const en = {
   "saved.clearFilters": "Clear filters",
   "saved.nothingYet": "Nothing saved yet.",
   "saved.sort.started": "Started",
-  "saved.comingSoon": "Coming soon",
   "mediaTypeChips.label": "Category",
-  // "Coming soon" where a chip has no room for it.
-  "mediaTypeChips.soon": "Soon",
   // What a book's row or page says of who wrote it: its first authors, then how many more.
   "book.authorsAndMore": "{authors} +{more, number}",
   "book.authorsAndYear": "{authors} · {year}",

@@ -40,7 +40,7 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   await savedPage.goto();
 
   await expect(savedPage.heading).toHaveText("Saved");
-  await expect(savedPage.tiles).toHaveCount(2);
+  await expect(savedPage.tiles).toHaveCount(3);
   const films = savedPage.tile("Films");
   await expect(films.root).toContainText("4 to watch · 1 watched");
   await expect(films.link).toHaveAccessibleDescription("4 to watch · 1 watched");
@@ -55,8 +55,9 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   await expect(films.coverPlaceholders).toHaveCount(0);
   await expect(films.findFilmLink).toHaveCount(0);
 
-  // Films planned don't count as books.
+  // Films planned don't count as books or series.
   await expect(savedPage.tile("Books").root).toContainText("Nothing saved yet.");
+  await expect(savedPage.tile("Series").root).toContainText("Nothing saved yet.");
 
   await films.link.click();
   await expect(page).toHaveURL(libraryPage.path("Watchlist"));
@@ -65,7 +66,7 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   // Saved in the nav comes back up to the tiles.
   await libraryPage.mainNav.link("Saved").click();
   await expect(page).toHaveURL(savedPage.path());
-  await expect(savedPage.tiles).toHaveCount(2);
+  await expect(savedPage.tiles).toHaveCount(3);
 });
 
 test("a new User's Films tile has empty slots and a way to find a film, and still opens its empty tabs", async ({
@@ -97,7 +98,7 @@ test("the tiles stack on a phone and sit side by side from md", async ({
   const { savedPage } = ui;
   await page.setViewportSize({ width: 402, height: 874 });
   await savedPage.goto();
-  const [films, books] = [savedPage.tiles.first(), savedPage.tiles.last()];
+  const [films, books] = [savedPage.tiles.nth(0), savedPage.tiles.nth(1)];
   await expect(savedPage.tile("Films").root).toContainText("Nothing saved yet.");
 
   expect(await topOf(books)).toBeGreaterThan(await topOf(films));

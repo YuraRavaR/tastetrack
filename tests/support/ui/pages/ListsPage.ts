@@ -18,8 +18,8 @@ export class ListCard extends ScopedComponent {
 
 // Collections: the User's Lists of one Media Type as cards, under the Media Type chips. `?type=`
 // names the Media Type, unless it is films.
-export class ListsPage extends BasePage<[mediaType?: "book"]> {
-  path(mediaType?: "book") {
+export class ListsPage extends BasePage<[mediaType?: "book" | "series"]> {
+  path(mediaType?: "book" | "series") {
     return mediaType ? `/collections?type=${mediaType}` : "/collections";
   }
 
@@ -27,9 +27,9 @@ export class ListsPage extends BasePage<[mediaType?: "book"]> {
   readonly mediaTypeChips = this.main.getByRole("group", { name: "Category" });
   readonly filmsChip = this.mediaTypeChips.getByRole("button", { name: "Films" });
   readonly booksChip = this.mediaTypeChips.getByRole("button", { name: "Books" });
+  readonly seriesChip = this.mediaTypeChips.getByRole("button", { name: "Series" });
   // The chip of the Media Type Collections is on.
   readonly pressedChip = this.mediaTypeChips.getByRole("button", { pressed: true });
-  readonly seriesChip = this.mediaTypeChips.getByRole("button", { name: "Series" });
   readonly emptyMessage = this.main.getByText("No collections yet.");
   // The button in the heading. With no Lists the empty state has its own, after it.
   readonly newListButton = this.main.getByRole("button", { name: "New collection" }).first();

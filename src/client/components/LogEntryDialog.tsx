@@ -26,6 +26,7 @@ import {
   mediaItemOf,
   mediaItemYearAndRuntime,
 } from "../catalog/found";
+import { startsAsRevisit } from "../catalog/media-types";
 import { mediaWord } from "../i18n/media-words";
 import { formatCalendarDate, t } from "../i18n/t";
 import { userTimeZone, userToday } from "../log/user-day";
@@ -34,12 +35,13 @@ import { Poster } from "./Poster";
 import { RatingInput } from "./Rating";
 import { sheetClasses } from "./sheet";
 
-// A new Log Entry's form: a Revisit when the User already has a Log Entry for the film.
-const newEntry = (inLog: boolean): FormValues => ({
+// A new Log Entry's form. When the User already has a Log Entry for the Media Item, it starts as
+// a Revisit if its Media Type says so.
+const newEntry = (mediaType: MediaType, inLog: boolean): FormValues => ({
   rating: null,
   date: userToday(),
   review: "",
-  revisit: inLog,
+  revisit: inLog && startsAsRevisit(mediaType),
 });
 
 // What the form warns of when saving takes the film off the Backlog.
@@ -87,8 +89,8 @@ function LastTime({ entry }: { entry: LogEntry }) {
 // Marks a film search found Experienced: asks for a Rating, and optionally a date, a Review and
 // whether it is a Revisit, then adds a source's result to the catalog and records the Log Entry,
 // which takes the film off the Backlog. `found` is the film to log; the dialog is open while it is
-// set. For a film in the Log, with its Media Item as `mediaItemId`, Revisit starts on and the form
-// says what the User gave it last time.
+// set. For a film in the Log, with its Media Item as `mediaItemId`, Revisit starts on (off for a
+// series) and the form says what the User gave it last time.
 export function LogEntryDialog({
   found,
   mediaItemId,
@@ -121,7 +123,7 @@ export function LogEntryDialog({
             mediaType={foundMediaType(found)}
             title={foundName(found)}
             yearAndRuntime={foundYearAndRuntime(found)}
-            initial={newEntry(inLog)}
+            initial={newEntry(foundMediaType(found), inLog)}
             loggedMediaItemId={inLog ? mediaItemId : null}
             hint={backlogHint(foundMediaType(found), inBacklog)}
             save={save}
@@ -162,7 +164,7 @@ export function MediaItemLogEntryDialog({
           mediaType={mediaType}
           title={metadata ? filmName(metadata) : mediaWord(mediaType, "unknown")}
           yearAndRuntime={mediaItemYearAndRuntime(mediaItem)}
-          initial={newEntry(inLog)}
+          initial={newEntry(mediaType, inLog)}
           loggedMediaItemId={inLog ? mediaItem.id : null}
           hint={backlogHint(mediaType, inBacklog)}
           save={(fields) =>

@@ -1,7 +1,6 @@
 import { type LucideIcon, Plus, Search } from "lucide-react";
 import { type ReactNode, useId } from "react";
 import { Link } from "react-router";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -138,41 +137,9 @@ function Fan({ covers, adding }: { covers: readonly MediaItem[]; adding: boolean
   );
 }
 
-// The tile of a Media Type still to come: dashed, muted, disabled, and labelled "Coming soon".
-export function ComingSoonTile({ name, icon }: { name: string; icon: LucideIcon }) {
-  const soonId = useId();
+function TileIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
-    <button
-      type="button"
-      disabled
-      aria-describedby={soonId}
-      className="grid h-30 grid-cols-[minmax(0,1fr)_auto] content-start items-start gap-x-3 gap-y-3.5 rounded-xl border-[1.5px] border-border border-dashed p-4.5 text-left text-muted-foreground [grid-template-areas:'icon_badge'_'words_badge'] md:h-55 md:grid-rows-[auto_1fr] md:content-stretch md:p-6"
-    >
-      <TileIcon icon={icon} muted />
-      <span className="font-semibold text-xl tracking-tight [grid-area:words] md:self-end md:text-2xl">
-        {name}
-      </span>
-      {/* Out of the tile's name, which is the Media Type's alone; the description still reads it. */}
-      <Badge
-        id={soonId}
-        aria-hidden
-        variant="secondary"
-        className="bg-muted px-2.5 py-1 font-semibold text-muted-foreground [grid-area:badge]"
-      >
-        {t("saved.comingSoon")}
-      </Badge>
-    </button>
-  );
-}
-
-function TileIcon({ icon: Icon, muted = false }: { icon: LucideIcon; muted?: boolean }) {
-  return (
-    <span
-      className={cn(
-        "flex size-10 items-center justify-center self-start rounded-lg [grid-area:icon] md:size-11",
-        muted ? "bg-muted" : "bg-primary-soft text-primary-strong",
-      )}
-    >
+    <span className="flex size-10 items-center justify-center self-start rounded-lg bg-primary-soft text-primary-strong [grid-area:icon] md:size-11">
       <Icon aria-hidden className="size-5.5" />
     </span>
   );
