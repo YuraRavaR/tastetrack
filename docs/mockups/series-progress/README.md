@@ -102,6 +102,7 @@ A bottom sheet on a phone (28 px top corners) and a centred 480 px dialog from `
   2. **From the start**, hint "Next: S1 · E1".
   3. **Choose where you are**, hint "Set the last episode you watched". Once chosen, the hint becomes the next episode ("Next: S3 · E5") and the "Last watched" steppers of the series' page show under it.
 - **A series added by hand** has only "From the start", chosen when the sheet opens, and "Choose where you are".
+- **A series that lists only its first season** has the same two, as "From season 1" would be "From the start" again (#214).
 - **Start watching** (primary) is the only button on a phone, 50 px; from `md` Cancel sits beside it, both 40 px. It starts the series from the choice and closes the sheet.
 
 ## Not in these mockups

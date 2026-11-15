@@ -4,6 +4,7 @@ import { expectBody } from "../support/api/responses";
 import { breakingBad, chernobyl, manualSeries, newSeries } from "../support/scenarios/series";
 import { holdImages } from "../support/scenarios/tmdb";
 import { expect, test } from "../support/ui/fixtures";
+import type { FilmPage } from "../support/ui/pages/FilmPage";
 
 // Watching a series: started from its page, kept up with one tap at a time, then finished with a
 // Rating or stopped. Locally the Worker reads a TMDB fake, whose series mirror TMDB as it was on
@@ -57,6 +58,8 @@ for (const [device, viewport] of [
 
     await filmPage.startWatchingButton.click();
 
+    // A series not yet rated starts with one tap: there is nothing to choose.
+    await expect(filmPage.dialogs).toHaveCount(0);
     await expect(watchingCard.root).toContainText("NextS1 · E1Season 1, episode 1 of 7");
     await expect(watchingCard.bar).toHaveAccessibleName("0 of 62 episodes watched");
     await expect(filmPage.startWatchingButton).toBeHidden();
@@ -316,23 +319,207 @@ test("stopping a series right after a step of the picker shows no error", async 
   await expect(filmPage.errorMessage).toHaveCount(0);
 });
 
-test("a series already rated offers Start watching from its first episode", async ({
+// The choices Watch more offers, in order.
+async function expectChoices(dialog: FilmPage["watchMoreDialog"], names: string[]) {
+  await expect(dialog.choices).toHaveCount(names.length);
+  for (const [index, name] of names.entries()) {
+    await expect(dialog.choices.nth(index)).toHaveAccessibleName(name);
+  }
+}
+
+// Gives a series a Log Entry, so its page offers Watch more.
+async function rate(api: ApiClient, mediaItemId: number) {
+  const entry = { mediaItemId, rating: 4, date: null, revisit: false };
+  await expectBody(api.log.createLogEntry(entry), 201);
+}
+
+for (const [device, viewport] of [
+  ["desktop", null],
+  ["a phone", phone],
+] as const) {
+  test(`on ${device}, Watch more on a series already rated starts it from its latest season by default, with undo offered`, async ({
+    page,
+    api,
+    loggedInUi: ui,
+  }) => {
+    if (viewport) await page.setViewportSize(viewport);
+    // Five regular seasons, the last of 16 episodes, and a season 0 of specials.
+    const series = await breakingBad(api);
+    await rate(api, series.id);
+    await expectBody(api.backlog.addBacklogItem({ mediaItemId: series.id }), 201);
+    const { filmPage, savedPage } = ui;
+    const { watchMoreDialog: dialog, watchingCard, toast } = filmPage;
+    await filmPage.goto(series.id);
+    await expect(filmPage.watchedAgainButton).toBeVisible();
+    await expect(filmPage.startWatchingButton).toBeHidden();
+
+    await filmPage.watchMoreButton.click();
+
+    await expectChoices(dialog, ["From season 5", "From the start", "Choose where you are"]);
+    await expect(dialog.choice("From season 5")).toBeChecked();
+    await expect(dialog.choice("From season 5")).toHaveAccessibleDescription("Next: S5 · E1");
+    await expect(dialog.choice("From the start")).toHaveAccessibleDescription("Next: S1 · E1");
+    await expect(dialog.choice("Choose where you are")).toHaveAccessibleDescription(
+      "Set the last episode you watched",
+    );
+    await expect(dialog.lastWatched).toBeHidden();
+
+    await dialog.startWatchingButton.click();
+
+    await expect(dialog.root).toBeHidden();
+    await expect(watchingCard.root).toContainText("NextS5 · E1Season 5, episode 1 of 16");
+    await expect(watchingCard.bar).toHaveAccessibleName("46 of 62 episodes watched");
+    await expect(watchingCard.season).toHaveText("5");
+    await expect(watchingCard.episode).toHaveText("0");
+    await expect(filmPage.onWatchlistButton).toBeHidden();
+    await expect(filmPage.viewings).toHaveCount(1);
+    await expect(toast.message("Started watching Breaking Bad (2008).")).toBeVisible();
+    await expect(toast.undoButton).toBeVisible();
+
+    await savedPage.goto();
+    await expect(savedPage.watchingNowRow("Breaking Bad").link).toContainText("Next: S5 · E1");
+    await expect(savedPage.tile("Series").root).toContainText(
+      "0 to watch · 1 watching · 1 watched",
+    );
+  });
+}
+
+test("Watch more from the start starts a series already rated at its first episode, and undo puts it back on the Watchlist", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const series = await breakingBad(api);
+  await rate(api, series.id);
+  await expectBody(api.backlog.addBacklogItem({ mediaItemId: series.id }), 201);
+  const { filmPage } = ui;
+  const { watchMoreDialog: dialog, watchingCard, toast } = filmPage;
+  await filmPage.goto(series.id);
+  await filmPage.watchMoreButton.click();
+
+  await dialog.choice("From the start").click();
+  await dialog.startWatchingButton.click();
+
+  await expect(watchingCard.root).toContainText("NextS1 · E1Season 1, episode 1 of 7");
+  await expect(watchingCard.bar).toHaveAccessibleName("0 of 62 episodes watched");
+
+  await toast.undo();
+
+  await expect(watchingCard.root).toBeHidden();
+  await expect(filmPage.onWatchlistButton).toBeVisible();
+  await expect(filmPage.watchMoreButton).toBeVisible();
+  await expect(toast.message("Put Breaking Bad (2008) back on your Watchlist.")).toBeVisible();
+});
+
+test("Watch more from where the User is follows their own season and episode", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const series = await breakingBad(api);
+  await rate(api, series.id);
+  const { filmPage, savedPage } = ui;
+  const { watchMoreDialog: dialog } = filmPage;
+  await filmPage.goto(series.id);
+  await filmPage.watchMoreButton.click();
+
+  await dialog.choice("Choose where you are").click();
+
+  await expect(dialog.choice("Choose where you are")).toBeChecked();
+  await expect(dialog.season).toHaveText("1");
+  await expect(dialog.episode).toHaveText("0");
+  await expect(dialog.choice("Choose where you are")).toHaveAccessibleDescription("Next: S1 · E1");
+
+  await dialog.nextSeasonButton.click();
+  await dialog.nextSeasonButton.click();
+  for (let tap = 0; tap < 4; tap++) await dialog.nextEpisodeButton.click();
+
+  await expect(dialog.season).toHaveText("3");
+  await expect(dialog.episode).toHaveText("4");
+  await expect(dialog.choice("Choose where you are")).toHaveAccessibleDescription("Next: S3 · E5");
+
+  await dialog.startWatchingButton.click();
+
+  await expect(dialog.root).toBeHidden();
+  await expect(filmPage.watchingCard.root).toContainText("NextS3 · E5Season 3, episode 5 of 13");
+  // 7 and 13 episodes of the first two seasons, and 4 of the third.
+  await expect(filmPage.watchingCard.bar).toHaveAccessibleName("24 of 62 episodes watched");
+  await savedPage.goto();
+  await expect(savedPage.watchingNowRow("Breaking Bad").link).toContainText("Next: S3 · E5");
+});
+
+test("a series added by hand and already rated offers Watch more from the start or from where the User is", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const series = await manualSeries(api, { title: "Леся + Рома", year: 2005 });
+  await rate(api, series.id);
+  const { filmPage } = ui;
+  const { watchMoreDialog: dialog } = filmPage;
+  await filmPage.goto(series.id);
+
+  await filmPage.watchMoreButton.click();
+
+  await expectChoices(dialog, ["From the start", "Choose where you are"]);
+  await expect(dialog.choice("From the start")).toBeChecked();
+  await expect(dialog.choice("From the start")).toHaveAccessibleDescription("Next: S1 · E1");
+
+  // Closing it starts nothing.
+  await dialog.closeButton.click();
+  await expect(dialog.root).toBeHidden();
+  await expect(filmPage.watchingCard.root).toBeHidden();
+
+  await filmPage.watchMoreButton.click();
+  await dialog.choice("Choose where you are").click();
+  await dialog.nextSeasonButton.click();
+  await expect(dialog.choice("Choose where you are")).toHaveAccessibleDescription("Next: S2 · E1");
+  await dialog.startWatchingButton.click();
+
+  await expect(filmPage.watchingCard.root).toContainText("NextS2 · E1Season 2, episode 1");
+  await expect(filmPage.watchingCard.bar).toHaveCount(0);
+});
+
+test("a series with one season offers Watch more from the start or from where the User is", async ({
   api,
   loggedInUi: ui,
 }) => {
   const series = await chernobyl(api);
-  await expectBody(
-    api.log.createLogEntry({ mediaItemId: series.id, rating: 4, date: null, revisit: false }),
-    201,
-  );
+  await rate(api, series.id);
   const { filmPage } = ui;
   await filmPage.goto(series.id);
-  await expect(filmPage.watchedAgainButton).toBeVisible();
 
-  await filmPage.startWatchingButton.click();
+  await filmPage.watchMoreButton.click();
 
-  await expect(filmPage.watchingCard.root).toContainText("NextS1 · E1Season 1, episode 1 of 5");
-  await expect(filmPage.viewings).toHaveCount(1);
+  // "From season 1" would be the start again.
+  await expectChoices(filmPage.watchMoreDialog, ["From the start", "Choose where you are"]);
+  await expect(filmPage.watchMoreDialog.choice("From the start")).toBeChecked();
+});
+
+test("Finished after Watch more adds a second Viewing, not a Rewatch unless the User says so", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const series = await breakingBad(api);
+  await rate(api, series.id);
+  const { filmPage } = ui;
+  await filmPage.goto(series.id);
+  await filmPage.watchMoreButton.click();
+  await filmPage.watchMoreDialog.startWatchingButton.click();
+  await expect(filmPage.watchingCard.root).toContainText("NextS5 · E1");
+
+  await filmPage.watchingCard.finishedButton.click();
+  const dialog = filmPage.logEntryDialog("Breaking Bad");
+  await expect(dialog.revisitSwitch).not.toBeChecked();
+  await dialog.dateChip("No date").click();
+  await dialog.rate("5 stars");
+  await dialog.save();
+
+  await expect(dialog.root).toBeHidden();
+  await expect(filmPage.watchingCard.root).toBeHidden();
+  await expect(filmPage.viewings).toHaveCount(2);
+  await expect(filmPage.viewing(0).revisitBadge).toBeHidden();
+  await expect(filmPage.viewing(1).revisitBadge).toBeHidden();
+  await expect(filmPage.ratingStars("5 stars")).toBeVisible();
+  // Another season later, it offers Watch more again.
+  await expect(filmPage.watchMoreButton).toBeVisible();
 });
 
 test("a series whose aired episodes are all watched says Caught up and offers Finished, and shows Next again once a newer episode has aired", async ({
@@ -410,7 +597,7 @@ test("Finished on a caught-up series records a Viewing with its Rating and moves
   await filmPage.goto(series.id);
   await expect(filmPage.viewings).toHaveCount(1);
   await expect(filmPage.watchingCard.root).toBeHidden();
-  await expect(filmPage.startWatchingButton).toBeVisible();
+  await expect(filmPage.watchMoreButton).toBeVisible();
 });
 
 test("Finished on Saved takes the series out of Watching now and counts it as watched", async ({

@@ -52,16 +52,37 @@ export function watchingOf({ metadata }: Series, progress: SeriesProgress | null
   };
 }
 
+// The episode a series starts at from this Progress, whether it has aired or not, so Watch more can
+// say where each choice starts; null past all the series lists.
+export function nextEpisodeOf(
+  { metadata }: Series,
+  progress: SeriesProgress | null,
+): Episode | null {
+  return seriesOutlook(progress, metadata ?? unknownLength).nextEpisode;
+}
+
+// The latest season the series lists episodes for, where Watch more starts by default; null when
+// it lists none, as for a manual series, or only its first, which "From the start" already covers.
+export function latestSeason({ metadata }: Series): number | null {
+  const listed = metadata?.seasons.filter(({ episodeCount }) => episodeCount > 0) ?? [];
+  const latest = listed.at(-1)?.season;
+  return latest !== undefined && latest > firstSeason ? latest : null;
+}
+
+// The Progress of a series started at `season`, none of it watched yet.
+export function startOfSeason(season: number): SeriesProgress {
+  return { mediaType: "series", season, episode: 0 };
+}
+
 // The last episode watched, as the picker shows it: none of the first season before any Progress.
 export function lastWatched(progress: SeriesProgress | null): Episode {
-  return progress ?? { season: firstSeason, episode: 0 };
+  return progress ?? startOfSeason(firstSeason);
 }
 
 // The picker's steps. Another season starts with none of it watched, which is how a User moves a
 // manual series on to its next season. Neither has an upper end: TMDB can lag behind what aired.
 export function stepSeason(progress: SeriesProgress | null, by: 1 | -1): SeriesProgress {
-  const season = Math.max(firstSeason, lastWatched(progress).season + by);
-  return { mediaType: "series", season, episode: 0 };
+  return startOfSeason(Math.max(firstSeason, lastWatched(progress).season + by));
 }
 
 export function stepEpisode(progress: SeriesProgress | null, by: 1 | -1): SeriesProgress {

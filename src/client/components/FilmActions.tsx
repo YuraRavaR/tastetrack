@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ItemHistoryResponse, RemovedListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
+import type { SeriesProgress } from "../../shared/progress";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
 import { can, canProgress, mediaTypeIcon } from "../catalog/media-types";
@@ -15,6 +16,7 @@ import { InProgressCard } from "./InProgressCard";
 import { MediaItemLogEntryDialog } from "./LogEntryDialog";
 import { SeriesProgressPanel } from "./SeriesProgress";
 import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
+import { WatchMoreDialog } from "./WatchMoreDialog";
 
 type PlanError = "backlog_full" | "unavailable";
 
@@ -25,9 +27,9 @@ type ActionError = PlanError | "startFailed" | "stopFailed" | "progressFailed";
 // Log Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type that
 // has In Progress can be started too; while it is, a card says since when, and for a series
 // holds its Progress, and finishing it or stopping it take the place of marking it Experienced,
-// Planned or started. `onChanged` reloads the
-// page for a new Log Entry or a change to In Progress, and `onPlanned` tells it whether the Media
-// Item is on the Backlog now.
+// Planned or started. A series already logged starts where the User picks in Watch more.
+// `onChanged` reloads the page for a new Log Entry or a change to In Progress, and `onPlanned`
+// tells it whether the Media Item is on the Backlog now.
 export function FilmActions({
   history,
   onChanged,
@@ -46,9 +48,12 @@ export function FilmActions({
   const progressable = canProgress(mediaType);
   const started = progressable && inProgress !== null;
   const StartIcon = mediaTypeIcon(mediaType);
+  // A series already logged asks where to start, as one is often back for a new season.
+  const watchMore = mediaItem.mediaType === "series" && experienced;
   const [logging, setLogging] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [stopping, setStopping] = useState(false);
+  const [watchingMore, setWatchingMore] = useState(false);
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const [planning, setPlanning] = useState(false);
   const [planError, setActionError] = useState<ActionError | null>(null);
@@ -70,13 +75,15 @@ export function FilmActions({
     setLastAction({ kind: adding ? "planned" : "unplanned" });
   }
 
-  // Starts the Media Item today, taking it off the Backlog, which the toast offers to undo.
-  async function start() {
+  // Starts the Media Item today, at `progress` for a series, taking it off the Backlog, which the
+  // toast offers to undo.
+  async function start(progress: SeriesProgress | null = null) {
     setActionError(null);
     setPlanning(true);
     const outcome = await api.startInProgress({
       mediaItemId: mediaItem.id,
       startDate: userToday(),
+      progress,
       timeZone: userTimeZone(),
     });
     if (!outcome.ok) {
@@ -204,7 +211,7 @@ export function FilmActions({
             variant="outline"
             className="h-11 gap-1.5 px-1.5 sm:h-10 sm:gap-2 sm:px-4"
             disabled={planning}
-            onClick={start}
+            onClick={() => (watchMore ? setWatchingMore(true) : start())}
           >
             <StartIcon aria-hidden />
             {progressWord(mediaType, experienced ? "startAgain" : "start")}
@@ -242,6 +249,17 @@ export function FilmActions({
         }}
         onLogged={logged}
       />
+      {mediaItem.mediaType === "series" && (
+        <WatchMoreDialog
+          series={mediaItem}
+          open={watchingMore}
+          onClose={() => setWatchingMore(false)}
+          onStart={(progress) => {
+            setWatchingMore(false);
+            void start(progress);
+          }}
+        />
+      )}
       <FilmListsDialog film={listing} onClose={() => setListing(null)} />
       <Toast onDismiss={() => setLastAction(null)}>
         {lastAction && (
