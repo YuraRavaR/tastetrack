@@ -707,23 +707,75 @@ export const NewLogEntryResponse = LogEntryResponse.extend({
 
 export type NewLogEntryResponse = z.infer<typeof NewLogEntryResponse>;
 
+// A series' Progress: the last episode the User watched (src/shared/progress.ts). The schema
+// takes any numbers, so that a season or an episode out of range is refused as `invalid_progress`
+// rather than as a malformed request; the document says what is accepted.
+export const SeriesProgress = z
+  .object({
+    mediaType: z.literal("series"),
+    season: z.number().openapi({ type: "integer", minimum: 1, example: 2 }),
+    episode: z.number().openapi({
+      type: "integer",
+      minimum: 0,
+      example: 5,
+      description: "The last episode watched in the season; 0 when none is yet",
+    }),
+  })
+  .openapi("SeriesProgress");
+
+// How far a User has got in a Media Item In Progress, in a shape set by its Media Type, which it
+// names (ADR-0005). Only a series has Progress so far.
+export const Progress = z.discriminatedUnion("mediaType", [SeriesProgress]).openapi("Progress");
+
+// What follows from a series' Progress and the seasons its cache entry lists, worked out by
+// seriesOutlook (src/shared/progress.ts), which the client shares.
+export const SeriesOutlook = z
+  .object({
+    nextEpisode: SeriesEpisode.nullable().openapi({
+      description:
+        "The episode after the last watched, or the first of the next season that lists " +
+        "episodes; null when the series lists none after it. Without seasons, as for a manual " +
+        "series, the next number in the same season",
+    }),
+    watchedEpisodes: z.int().min(0).nullable().openapi({
+      example: 15,
+      description: "Episodes watched of all the seasons list; null without seasons",
+    }),
+    episodeCount: z.int().min(0).nullable().openapi({
+      example: 62,
+      description: "Episodes all the seasons list; null without seasons",
+    }),
+    caughtUp: z.boolean().openapi({
+      description:
+        "The User has watched the last episode that has aired, or none has aired; never true " +
+        "without seasons",
+    }),
+  })
+  .openapi("SeriesOutlook");
+
 // A Media Item the User has started and not finished: since when, a calendar day they may leave
-// out, and when they marked it. It carries no amount of progress (ADR-0005).
+// out, and when they marked it. Where its Media Type has Progress, as a series does, it carries the
+// User's, or null when they haven't started it, and for a series what follows from it; for any
+// other Media Type, such as a book, it has neither.
 export const InProgress = z
   .object({
     startDate: LogDate.nullable(),
     createdAt: z.iso.datetime().openapi({ example: "2026-10-12T19:30:00.000Z" }),
+    progress: Progress.nullable().optional(),
+    outlook: SeriesOutlook.optional(),
   })
   .openapi("InProgress");
 
 export type InProgress = z.infer<typeof InProgress>;
 
 // Starts a Media Item. The start date follows a Log Entry date's rules, with timeZone setting the
-// latest one allowed.
+// latest one allowed. A Progress, of the Media Item's Media Type, starts it part way, as "Watch
+// more" starts a series from a season.
 export const NewInProgressRequest = z
   .object({
     mediaItemId: z.int().positive().openapi({ example: 42 }),
     startDate: LogDate.nullable().default(null),
+    progress: Progress.nullable().default(null),
     timeZone: z.string().max(100).optional().openapi({ example: "Europe/Kyiv" }),
   })
   .openapi("NewInProgressRequest");
@@ -741,13 +793,18 @@ export const NewInProgressResponse = z
 
 export type NewInProgressResponse = z.infer<typeof NewInProgressResponse>;
 
-// A new start date, or null to clear it.
+// A new start date or Progress, or both; null clears either. Progress is sent whole, as an
+// absolute value, so sending the same one twice changes nothing.
 export const InProgressEditRequest = z
   .object({
-    startDate: LogDate.nullable(),
+    startDate: LogDate.nullable().optional(),
+    progress: Progress.nullable().optional(),
     timeZone: z.string().max(100).optional().openapi({ example: "Europe/Kyiv" }),
   })
   .strict()
+  .refine((edit) => edit.startDate !== undefined || edit.progress !== undefined, {
+    message: "Send a start date, a Progress or both",
+  })
   .openapi("InProgressEditRequest");
 
 export type InProgressEditRequest = z.infer<typeof InProgressEditRequest>;

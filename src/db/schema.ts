@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 import type { SeriesStatus } from "../shared/api";
 import { visibilities } from "../shared/lists";
+import type { Progress } from "../shared/progress";
 
 // Deployment-wide settings as key/value pairs. The health check reads it to
 // prove the migrations have been applied.
@@ -240,10 +241,12 @@ export const logEntries = sqliteTable(
   ],
 );
 
-// A Media Item a User has started and not finished: In Progress ("Reading" for books in the UI). A
-// User has at most one per Media Item, which is why the two make its key. The start date is an
-// optional calendar day, as a Log Entry's date is; there is no amount of progress (ADR-0005).
-// Finishing it records a Log Entry and deletes the row, and stopping deletes it, leaving no trace.
+// A Media Item a User has started and not finished: In Progress ("Reading" for books and
+// "Watching" for series in the UI). A User has at most one per Media Item, which is why the two
+// make its key. The start date is an optional calendar day, as a Log Entry's date is. Progress is
+// the latest of how far they have got, as JSON in its Media Type's shape (src/shared/progress.ts),
+// or null when they haven't started or their Media Type has none (ADR-0005). Finishing it records a
+// Log Entry and deletes the row, Progress with it, and stopping deletes it, leaving no trace.
 export const inProgress = sqliteTable(
   "in_progress",
   {
@@ -255,6 +258,7 @@ export const inProgress = sqliteTable(
       .references(() => mediaItems.id, { onDelete: "cascade" }),
     startDate: text("start_date"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    progress: text("progress", { mode: "json" }).$type<Progress>(),
   },
   (table) => [
     primaryKey({ columns: [table.userId, table.mediaItemId] }),

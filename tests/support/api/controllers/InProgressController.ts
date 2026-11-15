@@ -7,11 +7,16 @@ export class InProgressController extends BaseController {
     return this.requestContext.post(endpoints.inProgress.collection, { ...options, data: started });
   }
 
-  updateStartDate(mediaItemId: number, changes: InProgressEditRequest, options?: RequestOptions) {
+  update(mediaItemId: number, changes: InProgressEditRequest, options?: RequestOptions) {
     return this.requestContext.patch(endpoints.inProgress.byMediaItem(mediaItemId), {
       ...options,
       data: changes,
     });
+  }
+
+  // The books' specs change only the start date, which is all a book's In Progress has.
+  updateStartDate(mediaItemId: number, changes: InProgressEditRequest, options?: RequestOptions) {
+    return this.update(mediaItemId, changes, options);
   }
 
   finish(mediaItemId: number, finished: FinishRequest, options?: RequestOptions) {

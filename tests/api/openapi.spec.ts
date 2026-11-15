@@ -52,3 +52,25 @@ test("the OpenAPI spec describes the lockout, the restricted session and require
   expect(spec.components.schemas.User.required).toContain("displayName");
   expect(spec.components.schemas.UserDeletionRequest.required).toEqual(["password"]);
 });
+
+// The schema takes any numbers for a season and an episode, so that the Worker can refuse one out
+// of range as `invalid_progress`; only the document says what is accepted.
+test("the OpenAPI spec describes Progress: a series' last episode watched, its range, and where it goes", async ({
+  request,
+}) => {
+  const spec = await (await request.get("/api/openapi.json")).json();
+  const { schemas } = spec.components;
+
+  expect(schemas.SeriesProgress.properties).toMatchObject({
+    mediaType: { enum: ["series"] },
+    season: { type: "integer", minimum: 1 },
+    episode: { type: "integer", minimum: 0 },
+  });
+  expect(schemas.InProgress.properties).toHaveProperty("progress");
+  expect(schemas.InProgress.properties).toHaveProperty("outlook");
+  expect(schemas.NewInProgressRequest.properties).toHaveProperty("progress");
+  expect(schemas.InProgressEditRequest.properties).toHaveProperty("progress");
+  const change = spec.paths["/api/in-progress/{mediaItemId}"].patch;
+  expect(change.responses["400"].description).toContain("invalid_progress");
+  expect(change.responses["400"].description).toContain("progress_mismatch");
+});

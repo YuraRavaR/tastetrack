@@ -4,7 +4,7 @@
 // only translate HTTP to these calls.
 import { and, eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { inProgress, mediaItems } from "../../db/schema";
+import { catalogCache, inProgress, mediaItems } from "../../db/schema";
 import type {
   FinishRequest,
   InProgress,
@@ -14,7 +14,8 @@ import type {
 } from "../../shared/api";
 import { canProgress } from "../../shared/catalog";
 import { type LogDateProblem, logDateProblem } from "../../shared/log";
-import { visibleTo } from "../catalog/media-items";
+import { type ProgressProblem, progressProblem } from "../../shared/progress";
+import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
 import { takeOffBacklog } from "../lists/backlog";
 import {
   type CreatedLogEntry,
@@ -31,7 +32,12 @@ export type Started =
   | { ok: true; inProgress: InProgress; removedFromBacklog: RemovedListItem | null }
   | {
       ok: false;
-      error: LogDateProblem | "unknown_media_item" | "not_progressable" | "already_in_progress";
+      error:
+        | LogDateProblem
+        | ProgressProblem
+        | "unknown_media_item"
+        | "not_progressable"
+        | "already_in_progress";
     };
 
 // Starts a Media Item for the User, and takes it off their Backlog in the same batch;
@@ -45,23 +51,26 @@ export async function start(
   request: NewInProgress,
   now: Date,
 ): Promise<Started> {
-  const { mediaItemId, startDate } = request;
+  const { mediaItemId, startDate, progress } = request;
   const dateProblem = startDate && logDateProblem(startDate, now, request.timeZone);
   if (dateProblem) return { ok: false, error: dateProblem };
 
   const [found] = await db
-    .select({ mediaType: mediaItems.mediaType, startedAt: inProgress.createdAt })
+    .select({ ...mediaItemColumns, startedAt: inProgress.createdAt })
     .from(mediaItems)
+    .leftJoin(catalogCache, cacheOfMediaItem(now))
     .leftJoin(inProgress, ownInProgress(userId, mediaItems.id))
     .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId)));
   if (!found) return { ok: false, error: "unknown_media_item" };
   if (!canProgress(found.mediaType)) return { ok: false, error: "not_progressable" };
+  const progressError = progress && progressProblem(progress, found.mediaType);
+  if (progressError) return { ok: false, error: progressError };
   if (found.startedAt !== null) return { ok: false, error: "already_in_progress" };
 
   const [inserted, [removed]] = await db.batch([
     db
       .insert(inProgress)
-      .values({ userId, mediaItemId, startDate, createdAt: now })
+      .values({ userId, mediaItemId, startDate, progress, createdAt: now })
       .onConflictDoNothing()
       .returning(inProgressColumns),
     ...takeOffBacklog(db, userId, mediaItemId),
@@ -69,31 +78,44 @@ export async function start(
   // Only a start racing this one gets here, and that one took the Media Item off the Backlog.
   const [row] = inserted;
   if (!row) return { ok: false, error: "already_in_progress" };
-  return { ok: true, inProgress: toInProgress(row), removedFromBacklog: removed ?? null };
+  const started = toInProgress(row, toMediaItem(found));
+  return { ok: true, inProgress: started, removedFromBacklog: removed ?? null };
 }
 
-export type StartDateChange =
+export type InProgressChange =
   | { ok: true; inProgress: InProgress }
-  | { ok: false; error: LogDateProblem | "not_in_progress" };
+  | { ok: false; error: LogDateProblem | ProgressProblem | "not_in_progress" };
 
-// Sets or clears the start date of a Media Item the User has In Progress, by a Log Entry date's
-// rules.
-export async function changeStartDate(
+// Sets or clears the start date or the Progress of a Media Item the User has In Progress, or both,
+// leaving what `edit` doesn't give as it is. The start date follows a Log Entry date's rules, and a
+// Progress must be of the Media Item's Media Type.
+export async function changeInProgress(
   db: DrizzleD1Database,
   userId: number,
   mediaItemId: number,
   edit: InProgressEditRequest,
   now: Date,
-): Promise<StartDateChange> {
-  const dateProblem = edit.startDate && logDateProblem(edit.startDate, now, edit.timeZone);
+): Promise<InProgressChange> {
+  const { startDate, progress } = edit;
+  const dateProblem = startDate && logDateProblem(startDate, now, edit.timeZone);
   if (dateProblem) return { ok: false, error: dateProblem };
+  const [found] = await db
+    .select(mediaItemColumns)
+    .from(inProgress)
+    .innerJoin(mediaItems, eq(inProgress.mediaItemId, mediaItems.id))
+    .leftJoin(catalogCache, cacheOfMediaItem(now))
+    .where(ownInProgress(userId, mediaItemId));
+  if (!found) return { ok: false, error: "not_in_progress" };
+  const progressError = progress && progressProblem(progress, found.mediaType);
+  if (progressError) return { ok: false, error: progressError };
   const [row] = await db
     .update(inProgress)
-    .set({ startDate: edit.startDate })
+    .set({ startDate, progress })
     .where(ownInProgress(userId, mediaItemId))
     .returning(inProgressColumns);
+  // Only a finish or a stop racing this one gets here.
   if (!row) return { ok: false, error: "not_in_progress" };
-  return { ok: true, inProgress: toInProgress(row) };
+  return { ok: true, inProgress: toInProgress(row, toMediaItem(found)) };
 }
 
 // Ends a Media Item the User has In Progress without a Log Entry, leaving no trace of it. False when

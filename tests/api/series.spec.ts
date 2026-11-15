@@ -1,12 +1,15 @@
 import {
   BacklogResponse,
   CatalogSearchResponse,
+  InProgressResponse,
   ItemHistoryResponse,
+  type LibraryItem,
   LibraryResponse,
   ListItemResponse,
   type ManualMediaItemEditRequest,
   ManualMediaItemResponse,
   MediaItemResponse,
+  NewInProgressResponse,
   type NewLogEntryRequest,
   NewLogEntryResponse,
   SharedListResponse,
@@ -15,6 +18,7 @@ import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
 import { test as base, expect } from "../support/fixtures";
+import { tyhrolovy } from "../support/scenarios/books";
 import { alien } from "../support/scenarios/films";
 import {
   breakingBad,
@@ -534,4 +538,297 @@ test("a running series is found by its Ukrainian title", async ({ loggedInApi })
   const result = await seriesSearchResult(loggedInApi, "Земля Гангстерів", mobLandId);
 
   expect(result).toMatchObject({ originalTitle: "MobLand", titleLanguage: "uk", year: 2025 });
+});
+
+// Progress: how far a User has got in a series they are watching ("Watching" in the UI), the last
+// episode they watched.
+
+// A series' Progress at the last episode watched.
+function seriesProgress(season: number, episode: number) {
+  return { mediaType: "series", season, episode } as const;
+}
+
+test("a series can be started with or without the last episode watched, and its In Progress carries it", async ({
+  loggedInApi,
+}) => {
+  const [fresh, resumed] = [await chernobyl(loggedInApi), await breakingBad(loggedInApi)];
+  const startedAt = minutesAgo(5);
+
+  const started = loggedInApi.inProgress.start({ mediaItemId: fresh.id }, at(startedAt));
+  const startedMidway = loggedInApi.inProgress.start({
+    mediaItemId: resumed.id,
+    progress: seriesProgress(3, 0),
+  });
+
+  expect(await expectBody(started, 201, NewInProgressResponse)).toEqual({
+    inProgress: {
+      startDate: null,
+      createdAt: startedAt,
+      progress: null,
+      // Chernobyl has one season of five episodes.
+      outlook: {
+        nextEpisode: { season: 1, episode: 1 },
+        watchedEpisodes: 0,
+        episodeCount: 5,
+        caughtUp: false,
+      },
+    },
+    removedFromBacklog: null,
+  });
+  expect((await expectBody(startedMidway, 201, NewInProgressResponse)).inProgress).toMatchObject({
+    progress: seriesProgress(3, 0),
+  });
+});
+
+test("a series' Progress can be changed and cleared, and changing only the start date keeps it", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await breakingBad(loggedInApi);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: mediaItem.id }), 201);
+  const progressOnPage = async () => {
+    const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+    return (await expectBody(history, 200, ItemHistoryResponse)).inProgress?.progress;
+  };
+  const seasonTwoEpisodeFive = seriesProgress(2, 5);
+
+  const changed = loggedInApi.inProgress.update(mediaItem.id, { progress: seasonTwoEpisodeFive });
+
+  expect((await expectBody(changed, 200, InProgressResponse)).inProgress).toMatchObject({
+    startDate: null,
+    progress: seasonTwoEpisodeFive,
+  });
+  expect(await progressOnPage()).toEqual(seasonTwoEpisodeFive);
+
+  const dated = loggedInApi.inProgress.update(mediaItem.id, { startDate: "2026-10-12" });
+
+  expect((await expectBody(dated)).inProgress).toMatchObject({
+    startDate: "2026-10-12",
+    progress: seasonTwoEpisodeFive,
+  });
+
+  const cleared = loggedInApi.inProgress.update(mediaItem.id, { progress: null });
+
+  expect((await expectBody(cleared)).inProgress).toMatchObject({
+    startDate: "2026-10-12",
+    progress: null,
+  });
+  expect(await progressOnPage()).toBeNull();
+});
+
+test("a Progress out of range, or sent for a book, is refused, and an episode beyond what TMDB lists is kept", async ({
+  loggedInApi,
+}) => {
+  const [mediaItem, book] = [await chernobyl(loggedInApi), await tyhrolovy(loggedInApi)];
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: mediaItem.id }), 201);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: book.id }), 201);
+
+  for (const [refused, error] of [
+    [seriesProgress(0, 3), "invalid_progress"],
+    [seriesProgress(1, -1), "invalid_progress"],
+    [seriesProgress(1.5, 2), "invalid_progress"],
+    [seriesProgress(1, 2.5), "invalid_progress"],
+    [{ mediaType: "book", page: 12 }, "invalid_request"],
+    [{ season: 1, episode: 2 }, "invalid_request"],
+  ] as const) {
+    const changed = loggedInApi.inProgress.update(mediaItem.id, { progress: refused as never });
+    expect(await expectBody(changed, 400), JSON.stringify(refused)).toEqual({ error });
+  }
+  const forBook = loggedInApi.inProgress.update(book.id, { progress: seriesProgress(1, 2) });
+  expect(await expectBody(forBook, 400)).toEqual({ error: "progress_mismatch" });
+  const nothing = loggedInApi.inProgress.update(mediaItem.id, {} as never);
+  expect(await expectBody(nothing, 400)).toEqual({ error: "invalid_request" });
+
+  // Chernobyl has one season of five episodes.
+  const beyond = loggedInApi.inProgress.update(mediaItem.id, { progress: seriesProgress(2, 9) });
+
+  expect((await expectBody(beyond)).inProgress.progress).toEqual(seriesProgress(2, 9));
+});
+
+test("a series can't be started with a Progress out of range, nor a book with any, and neither is started", async ({
+  loggedInApi,
+}) => {
+  const [mediaItem, book] = [await chernobyl(loggedInApi), await tyhrolovy(loggedInApi)];
+  const seriesStart = loggedInApi.inProgress.start({
+    mediaItemId: mediaItem.id,
+    progress: seriesProgress(0, 1),
+  });
+  const bookStart = loggedInApi.inProgress.start({
+    mediaItemId: book.id,
+    progress: seriesProgress(1, 1),
+  });
+
+  expect(await expectBody(seriesStart, 400)).toEqual({ error: "invalid_progress" });
+  expect(await expectBody(bookStart, 400)).toEqual({ error: "progress_mismatch" });
+  for (const { id } of [mediaItem, book]) {
+    const history = loggedInApi.catalog.getMediaItemHistory(id);
+    expect((await expectBody(history, 200, ItemHistoryResponse)).inProgress).toBeNull();
+  }
+});
+
+test("finishing a series returns its Log Entry, and it is no longer In Progress, its Progress gone", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await chernobyl(loggedInApi);
+  const progress = seriesProgress(1, 5);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: mediaItem.id, progress }), 201);
+
+  const finished = loggedInApi.inProgress.finish(mediaItem.id, { rating: 5 });
+
+  const { logEntry } = await expectBody(finished, 201, NewLogEntryResponse);
+  expect(logEntry).toMatchObject({ mediaItem, rating: 5, revisit: false });
+  expect(Object.keys(logEntry)).not.toContain("progress");
+  const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+  expect(await expectBody(history, 200, ItemHistoryResponse)).toMatchObject({
+    logEntries: [logEntry],
+    inProgress: null,
+  });
+  const again = loggedInApi.inProgress.start({ mediaItemId: mediaItem.id });
+  expect((await expectBody(again, 201)).inProgress.progress).toBeNull();
+});
+
+test("stopping a series leaves no Log Entry, and starting it again starts with no Progress", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await chernobyl(loggedInApi);
+  const progress = seriesProgress(1, 3);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: mediaItem.id, progress }), 201);
+
+  const stopped = await loggedInApi.inProgress.stop(mediaItem.id);
+
+  expect(stopped.status()).toBe(204);
+  const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+  expect(await expectBody(history, 200, ItemHistoryResponse)).toMatchObject({
+    logEntries: [],
+    inProgress: null,
+  });
+  const { items } = await expectBody(loggedInApi.library.getLibrary({ mediaType: "series" }));
+  expect(items).toEqual([]);
+  const again = loggedInApi.inProgress.start({ mediaItemId: mediaItem.id });
+  expect((await expectBody(again, 201)).inProgress.progress).toBeNull();
+});
+
+test("the Library of series shows each series In Progress with its Progress, and a Share Link shows none", async ({
+  loggedInApi,
+  visitor,
+}) => {
+  const [watching, notStarted] = [await chernobyl(loggedInApi), await breakingBad(loggedInApi)];
+  const progress = seriesProgress(1, 2);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: watching.id, progress }), 201);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: notStarted.id }), 201);
+  const { list } = await expectBody(
+    loggedInApi.lists.createList({ name: "On now", mediaType: "series" }),
+    201,
+  );
+  await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId: watching.id }), 201);
+  const { shareLink } = await expectBody(loggedInApi.lists.createShareLink(list.id), 201);
+
+  const library = loggedInApi.library.getLibrary({ mediaType: "series" });
+  const shared = visitor.sharedLists.getSharedList(shareLink.token);
+
+  const { items } = await expectBody(library, 200, LibraryResponse);
+  const progressOf = (id: number) => {
+    return items.find((item: LibraryItem) => item.mediaItem.id === id)?.inProgress?.progress;
+  };
+  expect(progressOf(watching.id)).toEqual(progress);
+  expect(progressOf(notStarted.id)).toBeNull();
+  const body = JSON.stringify(await expectBody(shared, 200, SharedListResponse));
+  expect(body).not.toContain("progress");
+  expect(body).not.toContain("inProgress");
+});
+
+// What follows from Progress: the next episode, how many are watched and listed, and whether the
+// User is caught up.
+async function outlookAt(
+  client: ApiClient,
+  mediaItemId: number,
+  progress: ReturnType<typeof seriesProgress>,
+) {
+  const changed = client.inProgress.update(mediaItemId, { progress });
+  return (await expectBody(changed, 200, InProgressResponse)).inProgress.outlook;
+}
+
+test("a series' next episode rolls over to the next season, and the User is caught up after its last", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await breakingBad(loggedInApi);
+
+  const started = loggedInApi.inProgress.start({ mediaItemId: mediaItem.id });
+
+  expect((await expectBody(started, 201, NewInProgressResponse)).inProgress.outlook).toEqual({
+    nextEpisode: { season: 1, episode: 1 },
+    watchedEpisodes: 0,
+    episodeCount: 62,
+    caughtUp: false,
+  });
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(1, 6))).toEqual({
+    nextEpisode: { season: 1, episode: 7 },
+    watchedEpisodes: 6,
+    episodeCount: 62,
+    caughtUp: false,
+  });
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(1, 7))).toMatchObject({
+    nextEpisode: { season: 2, episode: 1 },
+    watchedEpisodes: 7,
+  });
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(3, 0))).toMatchObject({
+    nextEpisode: { season: 3, episode: 1 },
+    watchedEpisodes: 20,
+  });
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(5, 16))).toEqual({
+    nextEpisode: null,
+    watchedEpisodes: 62,
+    episodeCount: 62,
+    caughtUp: true,
+  });
+  const { items } = await expectBody(loggedInApi.library.getLibrary({ mediaType: "series" }));
+  expect(items[0].inProgress.outlook).toMatchObject({ nextEpisode: null, caughtUp: true });
+});
+
+test("a running series is caught up at its last aired episode, though its season lists one more", async ({
+  loggedInApi,
+}) => {
+  test.skip(callsRealTmdb(), "A running series moves on every week on real TMDB");
+  // MobLand's second season lists 10 episodes, of which 9 have aired.
+  const mediaItem = await mobLand(loggedInApi);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: mediaItem.id }), 201);
+
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(2, 8))).toEqual({
+    nextEpisode: { season: 2, episode: 9 },
+    watchedEpisodes: 18,
+    episodeCount: 20,
+    caughtUp: false,
+  });
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(2, 9))).toEqual({
+    nextEpisode: { season: 2, episode: 10 },
+    watchedEpisodes: 19,
+    episodeCount: 20,
+    caughtUp: true,
+  });
+  const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+  expect((await expectBody(history, 200, ItemHistoryResponse)).inProgress?.outlook).toMatchObject({
+    nextEpisode: { season: 2, episode: 10 },
+    caughtUp: true,
+  });
+});
+
+test("a manual series' next episode is the next number in the same season, with no count and never caught up", async ({
+  loggedInApi,
+}) => {
+  const mediaItem = await manualSeries(loggedInApi, { title: "Спіймати Кайдаша", year: 2020 });
+
+  const started = loggedInApi.inProgress.start({ mediaItemId: mediaItem.id });
+
+  const noCount = { watchedEpisodes: null, episodeCount: null, caughtUp: false };
+  expect((await expectBody(started, 201)).inProgress.outlook).toEqual({
+    nextEpisode: { season: 1, episode: 1 },
+    ...noCount,
+  });
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(1, 12))).toEqual({
+    nextEpisode: { season: 1, episode: 13 },
+    ...noCount,
+  });
+  expect(await outlookAt(loggedInApi, mediaItem.id, seriesProgress(2, 0))).toEqual({
+    nextEpisode: { season: 2, episode: 1 },
+    ...noCount,
+  });
 });

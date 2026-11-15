@@ -8,6 +8,7 @@ import type {
   ItemHistoryResponse,
   LogEntry,
   LogEntryEditRequest,
+  MediaItem,
   NewLogEntryRequest,
   RemovedListItem,
 } from "../../shared/api";
@@ -19,6 +20,7 @@ import {
   storedRating,
   toStars,
 } from "../../shared/log";
+import { type Progress, seriesOutlook } from "../../shared/progress";
 import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
 import { isInBacklog, takeOffBacklog } from "../lists/backlog";
 
@@ -134,10 +136,24 @@ export function ownInProgress(userId: number, mediaItemId: number | Column) {
 export const inProgressColumns = {
   startDate: inProgress.startDate,
   createdAt: inProgress.createdAt,
+  progress: inProgress.progress,
 };
 
-export function toInProgress(row: { startDate: string | null; createdAt: Date }): InProgress {
-  return { startDate: row.startDate, createdAt: row.createdAt.toISOString() };
+// An In Progress as inProgressColumns read it.
+export interface InProgressRow {
+  startDate: string | null;
+  createdAt: Date;
+  progress: Progress | null;
+}
+
+// An In Progress of `mediaItem`, which carries Progress only where its Media Type has it, and for a
+// series what follows from it and the seasons its metadata lists.
+export function toInProgress(row: InProgressRow, mediaItem: MediaItem): InProgress {
+  const { startDate, createdAt, progress } = row;
+  const started = { startDate, createdAt: createdAt.toISOString() };
+  if (mediaItem.mediaType !== "series") return started;
+  const length = mediaItem.metadata ?? { seasons: [], lastAiredEpisode: null };
+  return { ...started, progress, outlook: seriesOutlook(progress, length) };
 }
 
 // One of the User's own Log Entries: another User's is as unknown as one that doesn't exist.
@@ -227,12 +243,13 @@ export async function itemHistory(
   ]);
   if (!item) return null;
   const current = currentRating(rows);
+  const mediaItem = toMediaItem(item);
   return {
-    mediaItem: toMediaItem(item),
+    mediaItem,
     logEntries: inLogOrder(rows).map(toLogEntry),
     currentRating: current === null ? null : toStars(current),
     inBacklog,
-    inProgress: started[0] ? toInProgress(started[0]) : null,
+    inProgress: started[0] ? toInProgress(started[0], mediaItem) : null,
   };
 }
 
