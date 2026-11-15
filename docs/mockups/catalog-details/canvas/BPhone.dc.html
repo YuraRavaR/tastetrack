@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>B · About section after the actions · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1300px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;position:relative;z-index:1}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pic{position:relative;width:388px;aspect-ratio:16/9;overflow:hidden;background:var(--muted)}
+.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.pic.blur img{position:absolute;inset:-15%;width:130%;height:130%;filter:blur(24px) saturate(1.3)}
+.pic::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,var(--background))}
+.prow{display:flex;align-items:flex-end;gap:14px;margin-top:-72px;position:relative;padding:0 16px}
+.cover{width:104px;height:156px;border-radius:10px;object-fit:cover;flex:none;border:1px solid var(--border);box-shadow:0 10px 24px oklch(0 0 0 / 40%);box-sizing:border-box}
+.h1{margin:0;font-size:21px;font-weight:700;line-height:1.2;letter-spacing:-0.01em}
+.uk{margin:0;font-size:14px;font-weight:600;color:var(--muted-foreground)}
+.facts{margin:0;font-size:13px;color:var(--muted-foreground)}
+.body{display:flex;flex-direction:column;gap:18px;padding:18px 16px 96px}
+.about{display:flex;flex-direction:column;gap:10px}
+.ahead{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;margin-bottom:-4px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:2px;background:var(--card)}
+.seg button{height:38px;min-width:52px;padding:0 12px;border:0;border-radius:999px;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.seg button.on{background:var(--primary-soft);color:var(--foreground)}
+.tag{margin:0;font-size:15px;font-style:italic;font-weight:500}
+.ov{margin:0;font-size:15px;line-height:1.5;white-space:pre-line}
+.clamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.lnk{align-self:flex-start;height:44px;margin:-10px 0 -6px -10px;padding:0 10px;border:0;border-radius:10px;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--primary-strong)}
+.cred{margin:0;border:1px solid var(--border);background:var(--card);border-radius:14px;padding:4px 14px}
+.cred div{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;padding:10px 0;font-size:14px;line-height:1.4}
+.cred div + div{border-top:1px solid var(--border)}
+.cred dt{color:var(--muted-foreground)}
+.cred dd{margin:0}
+.src{margin:0;font-size:12px;color:var(--muted-foreground)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tl{font-size:12px;color:var(--muted-foreground)}
+.tv{font-size:18px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.btn{height:44px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--foreground)}
+.btn.p{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.h2{margin:0;font-size:18px;font-weight:600}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:20px 16px;font-size:14px;color:var(--muted-foreground);text-align:center}
+.vrow{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:10px;font-size:15px;min-height:44px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb .ic{width:22px;height:22px}
+</style>
+</helmet>
+<div class="tt" data-theme="{{theme}}" style="width: 1270px; display: flex; gap: 50px; align-items: flex-start">
+<sc-for list="{{items}}" as="b" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{b.label}}</div>
+<div class="ph">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="{{b.picClass}}"><img src="{{b.picture}}" alt=""></div>
+<div class="prow">
+<img class="cover" src="{{b.cover}}" alt="{{b.coverAlt}}">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-bottom: 2px">
+<h1 class="h1">{{b.title}}</h1>
+<p class="uk">{{b.uk}}</p>
+<p class="facts">{{b.facts}}</p>
+</div>
+</div>
+<div class="body">
+
+<sc-if value="{{b.done}}" hint-placeholder-val="{{false}}">
+<div class="tiles">
+<div class="tile"><span class="tl">Read</span><span class="tv">Once</span></div>
+<div class="tile"><span class="tl">Your rating</span><span class="tv"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill: var(--primary)"><path d="M11.5 2.3a.53.53 0 0 1 .95 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.16l5.17.75a.53.53 0 0 1 .3.9l-3.74 3.64a2.1 2.1 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.1 2.1 0 0 0-1.97 0L6.4 21a.53.53 0 0 1-.77-.56l.88-5.14a2.1 2.1 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76A2.1 2.1 0 0 0 9.2 7z"></path></svg>4.5</span></div>
+<div class="tile"><span class="tl">First read</span><span class="tv" style="font-size: 15px">Aug 2025</span></div>
+</div>
+</sc-if>
+
+<div class="acts">
+<button class="btn p"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>{{b.doneLabel}}</button>
+<button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>{{b.wantLabel}}</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button>
+</div>
+
+<section class="about" aria-labelledby="about-{{b.id}}">
+<div class="ahead">
+<h2 class="h2" id="about-{{b.id}}">About</h2>
+<sc-if value="{{b.bilingual}}" hint-placeholder-val="{{true}}">
+<div class="seg" role="group" aria-label="Language of the overview">
+<button class="{{b.enClass}}" aria-pressed="{{b.enOn}}" onClick="{{b.pickEn}}">EN</button>
+<button class="{{b.ukClass}}" aria-pressed="{{b.ukOn}}" onClick="{{b.pickUk}}" lang="uk">УК</button>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{b.tagline}}" hint-placeholder-val="{{true}}"><p class="tag">{{b.tagline}}</p></sc-if>
+<p class="{{b.ovClass}}">{{b.text}}</p>
+<button class="lnk" onClick="{{b.toggleMore}}" aria-expanded="{{b.open}}">{{b.moreLabel}}</button>
+<sc-if value="{{b.film}}" hint-placeholder-val="{{true}}">
+<dl class="cred"><div><dt>Director</dt><dd>Jean-Pierre Jeunet</dd></div><div><dt>Cast</dt><dd>Audrey Tautou, Mathieu Kassovitz, Rufus, Serge Merlin, Jamel Debbouze</dd></div></dl>
+</sc-if>
+<p class="src">{{b.source}}</p>
+</section>
+
+<h2 class="h2" style="margin-top: 4px; margin-bottom: -6px">{{b.historyTitle}}</h2>
+<sc-if value="{{b.done}}" hint-placeholder-val="{{false}}"><div class="vrow"><span style="font-weight: 500">Aug 2025</span><span style="color: var(--muted-foreground)">★ 4.5</span></div></sc-if>
+<sc-if value="{{b.notDone}}" hint-placeholder-val="{{true}}"><div class="empty">{{b.emptyText}}</div></sc-if>
+</div>
+<nav class="tabbar" aria-label="Sections">
+<a href="#" class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a>
+<a href="#" class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"></path><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"></path></svg>Collections</a>
+<a href="#" class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a>
+</nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1270,"height":1350}}'>
+class Component extends DCLogic {
+renderVals() {
+const s = this.state || {};
+const open = s.open || {};
+const ua = s.ua || {};
+const flip = (id) => () => {
+const cur = (this.state || {}).open || {};
+this.setState({ open: Object.assign({}, cur, { [id]: !cur[id] }) });
+};
+const pick = (id, v) => () => {
+const cur = (this.state || {}).ua || {};
+this.setState({ ua: Object.assign({}, cur, { [id]: v }) });
+};
+const data = [
+{ id: 'amelie', label: 'Amélie · film, English with a Ukrainian overview', film: true, picture: '/_blob/bc3b51ac93faa9651d7aab4c10d567e5', blur: false, cover: '/_blob/1a0f4e9dbecbceb2eeab9e9535f9304d', coverAlt: 'Amélie poster', title: 'Amélie (Le Fabuleux Destin d’Amélie Poulain, 2001)', uk: 'Амелі', facts: '122 min · Comedy, Romance',
+en: { tagline: 'She’ll change your life.', text: 'At a tiny Parisian café, the adorable yet painfully shy Amélie accidentally discovers a gift for helping others. Soon Amelie is spending her days as a matchmaker, guardian angel, and all-around do-gooder. But when she bumps into a handsome stranger, will she find the courage to become the star of her very own love story?' },
+uk2: { tagline: 'Одна людина може змінити ваше життя назавжди.', text: 'Чи знаєте ви, що всі події, що відбуваються в нашому світі, навіть найбільш незначні, взаємопов’язані найдивовижнішим і чудернацьким чином? Як політ крихітної мухи може викликати десь далеко могутній ураган, так і дивні, і на перший погляд, незрозумілі вчинки тихої і самотньої дівчини, що живе в світі своїх фантазій, можуть назавжди змінити життя абсолютно різних людей. Цю дівчину звуть Амелі Пулен.' },
+source: 'TMDB', done: false, doneLabel: 'Watched', wantLabel: 'Want to watch', historyTitle: 'Viewings', emptyText: 'Not watched yet' },
+{ id: 'hp', label: 'Harry Potter · book, a long English description', film: false, picture: '/_blob/ce854c0469f3ea283e7a970bf6a3e127', blur: true, cover: '/_blob/ce854c0469f3ea283e7a970bf6a3e127', coverAlt: 'Harry Potter and the Philosopher’s Stone cover', title: 'Harry Potter and the Philosopher’s Stone (1997)', uk: 'Гаррі Поттер і філософський камінь', facts: 'J. K. Rowling',
+en: { tagline: '', text: 'Turning the envelope over, his hand trembling, Harry saw a purple wax seal bearing a coat of arms; a lion, an eagle, a badger and a snake surrounding a large letter ‘H’.\n\nHARRY POTTER has never even heard of Hogwarts when the LETTERS start dropping on the doormat at number four, Privet Drive. Addressed in GREEN INK on yellowish parchment with a PURPLE SEAL, they are swiftly confiscated by his GRISLY aunt and uncle. Then, on Harry’s eleventh birthday, a great beetle-eyed giant of a man called RUBEUS HAGRID bursts in with some ASTONISHING news: Harry Potter is a wizard, and he has a place at Hogwarts School of Witchcraft and Wizardry. An incredible adventure is about to begin!' },
+source: 'Open Library', done: false, doneLabel: 'Read', wantLabel: 'Want to read', historyTitle: 'Readings', emptyText: 'Not read yet' },
+{ id: 'vg', label: 'Voroshilovgrad · book, its description in Russian', film: false, picture: '/_blob/0ffde36c2c611c502aa505f705cca17e', blur: true, cover: '/_blob/0ffde36c2c611c502aa505f705cca17e', coverAlt: 'Voroshilovgrad cover', title: 'Voroshilovgrad (2012)', uk: 'Ворошиловград', facts: 'Сергі́й Ві́кторович Жада́н, Reilly Costigan-Humes +1',
+en: { tagline: '', text: 'Поэт и прозаик Сергей Жадан (р. 1974) - видная фигура современной украинской культурной жизни. Он организует общественные акции, выступает совместно с рок-группами, переводит немецких и русских поэтов. Его называют лицом и голосом новой украинской литературы.\nРоман “Ворошиловград”, как и все тексты Жадана, полон поэтических метафор, неожиданных поворотов сюжета, воспоминай и сновидений, и в то же время повествует о событиях реальных и современных. Главный герой, Герман, отправляется на Донбасс, в город своего детства, окруженный бескрайними кукурузными полями.\nРоман удостоен премии Би-Би-Си “Книга года”.' },
+source: 'Open Library', done: true, doneLabel: 'Read again', wantLabel: 'Want to read', historyTitle: 'Readings', emptyText: '' }
+];
+const items = data.map((d) => {
+const inUk = !!ua[d.id] && !!d.uk2;
+const t = inUk ? d.uk2 : d.en;
+const isOpen = !!open[d.id];
+return Object.assign({}, d, {
+picClass: d.blur ? 'pic blur' : 'pic',
+tagline: t.tagline,
+text: t.text,
+ovClass: isOpen ? 'ov' : 'ov clamp',
+open: isOpen ? 'true' : 'false',
+moreLabel: isOpen ? 'Less' : 'More',
+bilingual: !!d.uk2,
+enClass: inUk ? '' : 'on',
+ukClass: inUk ? 'on' : '',
+enOn: inUk ? 'false' : 'true',
+ukOn: inUk ? 'true' : 'false',
+pickEn: pick(d.id, false),
+pickUk: pick(d.id, true),
+toggleMore: flip(d.id),
+source: (d.film ? 'Overview' : 'Description') + ' from ' + d.source,
+notDone: !d.done
+});
+});
+return { theme: this.props.theme ?? 'dark', items };
+}
+}
+</script>
+</body>
+</html>
