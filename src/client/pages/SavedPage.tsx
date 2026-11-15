@@ -14,9 +14,9 @@ import { usePageTitle } from "../navigation/page-title";
 import { itemPath } from "../navigation/paths";
 
 // Saved at "/": one tile per Media Type Saved offers, in the order every section keeps, each opening
-// its tabs. The heading names the list of tiles. Under
-// them, for each Media Type that has In Progress, what the User has In Progress, if anything
-// (`docs/mockups/books/`). Being the home page, its title is the app's name alone.
+// its tabs. The heading names the list of tiles. Under them, for each Media Type that has In
+// Progress, what the User has In Progress, if anything (`docs/mockups/books/`). Being the home
+// page, its title is the app's name alone.
 export function SavedPage() {
   const headingId = useId();
   usePageTitle([]);

@@ -137,6 +137,7 @@ function Fan({ covers, adding }: { covers: readonly MediaItem[]; adding: boolean
   );
 }
 
+// The Media Type's icon in the tile's corner, on a soft square of the primary colour.
 function TileIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
     <span className="flex size-10 items-center justify-center self-start rounded-lg bg-primary-soft text-primary-strong [grid-area:icon] md:size-11">

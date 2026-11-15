@@ -31,9 +31,9 @@ import {
 // The item to edit, or the Media Type of a new one, which starts from a title.
 type Editing = { mediaItem: MediaItem } | { mediaType: MediaType; title?: string };
 
-// Adds a film, a book or a series by hand as a Manual Media Item, or edits one, in a sheet on a phone and a
-// centred dialog from `md`. The dialog is open while `open` is set, and stays open until the item
-// is saved.
+// Adds a film, a book or a series by hand as a Manual Media Item, or edits one, in a sheet on a
+// phone and a centred dialog from `md`. The dialog is open while `open` is set, and stays open
+// until the item is saved.
 export function ManualMediaItemDialog({
   open,
   onClose,
@@ -91,6 +91,13 @@ function detailsOf(
       return { mediaType, ...titles };
   }
 }
+
+// The earliest year each Media Type's item can have: a series' is a film's.
+const earliestYears: Record<MediaType, number> = {
+  film: earliestFilmYear,
+  book: earliestBookYear,
+  series: earliestFilmYear,
+};
 
 // A number field's value, or null when it is empty.
 function numberOf(value: string): number | null {
@@ -234,7 +241,7 @@ function ManualMediaItemForm({
               id={ids.year}
               type="number"
               inputMode="numeric"
-              min={mediaType === "book" ? earliestBookYear : earliestFilmYear}
+              min={earliestYears[mediaType]}
               max={latestFilmYear(new Date())}
               step={1}
               value={year}

@@ -539,7 +539,8 @@ export const en = {
   "series.seasons": "{count, plural, one {# season} other {# seasons}}",
   "series.status.returning": "Returning",
   "series.status.in_production": "In production",
-  "series.status.planned": "Planned",
+  // Not "Planned", which is a User's word for their Backlog.
+  "series.status.planned": "Announced",
   "series.status.pilot": "Pilot",
   "series.status.ended": "Ended",
   "series.status.canceled": "Canceled",

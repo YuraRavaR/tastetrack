@@ -161,6 +161,11 @@ test("Want to watch puts a series on the Watchlist of series, apart from the fil
   await expect(result.onWatchlistButton).toHaveCount(0);
   await toast.undo();
   await expect(toast.message("Put Breaking Bad (2008) back on your Watchlist.")).toBeVisible();
+  // Once the query changes, it is In your Saved, with its Current Rating, and TMDB's leave it out.
+  await searchPage.search("breaking");
+  await expect(searchPage.userMediaItemsHeading).toHaveText(/^In your Saved\s*1$/);
+  await expect(searchPage.userMediaItems.film("Breaking Bad").root).toContainText("4.5");
+  await expect(searchPage.searchResults.filmLabel("Breaking Bad (2008)")).toHaveCount(0);
 
   // Each Media Type has a Watchlist of its own.
   await searchPage.mainNav.link("Saved").click();
@@ -209,8 +214,8 @@ test("the Series tile counts its tabs and fans out the Watchlist, and the tabs s
   const chernobylItem = await chernobyl(api);
   const breakingBadItem = await breakingBad(api);
   const mobLandItem = await mobLand(api);
-  await plan(api, chernobylItem.id, minutesAgo(30));
-  await plan(api, mobLandItem.id, minutesAgo(10));
+  await plan(api, mobLandItem.id, minutesAgo(30));
+  await plan(api, chernobylItem.id, minutesAgo(10));
   await log(api, breakingBadItem.id, 3.5, "2013-09-30");
   await log(api, breakingBadItem.id, 5, "2024-01-15");
   const { savedPage, libraryPage } = ui;
@@ -227,9 +232,10 @@ test("the Series tile counts its tabs and fans out the Watchlist, and the tabs s
   await expect(page).toHaveTitle("Watchlist · Series · TasteTrack");
   await expect(libraryPage.heading).toHaveText("Series");
   await expect(libraryPage.tabs).toHaveText(["Watchlist2", "Watched1"]);
+  // The latest added first, until sorted by the year each first aired, the latest first.
   await expect(libraryPage.posters("Watchlist")).toHaveText([
-    /^MobLand\s*2025$/,
     /^Chernobyl\s*2019$/,
+    /^MobLand\s*2025$/,
   ]);
   await libraryPage.choose("Sort", "First aired");
   await expect(libraryPage.posters("Watchlist")).toHaveText([/^MobLand/, /^Chernobyl/]);
@@ -240,6 +246,7 @@ test("the Series tile counts its tabs and fans out the Watchlist, and the tabs s
   await expect(page).toHaveTitle("Watched · Series · TasteTrack");
   await expect(libraryPage.posters("Watched")).toHaveCount(1);
   await expect(libraryPage.poster("Watched", "Breaking Bad").rating("5 stars")).toBeVisible();
+  await expect(libraryPage.chips).toHaveText(["Last watched", "Decade", "Rating"]);
   await expect(libraryPage.main).not.toContainText(otherWording);
 });
 
@@ -334,6 +341,8 @@ test("a series TMDB doesn't have is added by hand with a title, an Original Titl
   await expect(filmPage.heading).toHaveText("Спіймати Кайдаша (Catch Kaidash, 2020)");
   await expect(filmPage.text("You added this series manually. Only you can see it.")).toBeVisible();
   await expect(filmPage.editSeriesButton).toBeVisible();
+  // Only the titles and year, which its heading says: no seasons or status.
+  await expect(filmPage.main).not.toContainText(/season|Returning|Ended/);
   await expect(filmPage.main).not.toContainText(otherWording);
 
   // The same title and year again is warned of first.
