@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Watching now on Saved · web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.pg{width:1440px;height:1840px;background:var(--background);box-sizing:border-box;overflow:hidden}
+.hd{height:64px;background:var(--card);border-bottom:1px solid var(--border)}
+.hb{max-width:1152px;margin:0 auto;height:64px;display:flex;align-items:center;gap:28px;padding:0 24px;box-sizing:border-box}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:17px;line-height:0.95;letter-spacing:-0.035em}
+.nav{display:flex;gap:4px}
+.nav a{height:36px;display:flex;align-items:center;padding:0 14px;border-radius:14px;color:var(--muted-foreground);font-weight:500;font-size:15px;text-decoration:none}
+.nav a.on{background:var(--primary-soft);color:var(--foreground)}
+.av{margin-left:auto;width:40px;height:40px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}
+.ic22{width:22px;height:22px}
+.ct{max-width:1152px;margin:0 auto;padding:28px 24px 0;box-sizing:border-box;display:flex;flex-direction:column;gap:36px}
+.sec{display:flex;flex-direction:column;gap:14px}
+.cap{font-size:14px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted-foreground);border-bottom:1px solid var(--border);padding-bottom:8px}
+.h2{font-size:20px;font-weight:600;letter-spacing:-0.01em}
+.rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.now{display:flex;align-items:stretch;border:1px solid var(--border);background:var(--card);border-radius:16px;position:relative;overflow:hidden}
+.nl{display:flex;gap:14px;align-items:center;padding:10px 8px 10px 10px;flex:1;min-width:0;text-decoration:none}
+.po{width:48px;height:72px;border-radius:6px;object-fit:cover;border:1px solid var(--border);flex:none;box-sizing:border-box}
+.np{background:var(--primary-soft);color:var(--primary-strong);display:grid;place-items:center}
+.tx{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.ti{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me{font-size:14px;line-height:1.3;color:var(--muted-foreground);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.me b{color:var(--foreground);font-weight:600}
+.br{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted-foreground);white-space:nowrap;max-width:340px}
+.bar{flex:1;height:5px;border-radius:999px;background:var(--muted);overflow:hidden;display:block}
+.bar i{display:block;height:100%;background:var(--primary-strong);border-radius:999px}
+.edge{position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--muted);display:block}
+.edge i{display:block;height:100%;background:var(--primary-strong)}
+.pie{width:16px;height:16px;border-radius:999px;flex:none;display:block}
+.chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;background:var(--muted);font-size:12px;font-weight:500;color:var(--foreground)}
+.act{flex:none;display:flex;align-items:center;justify-content:center;background:none;border:0;color:inherit;font:inherit;min-width:68px;padding:0 14px;cursor:pointer}
+.div{border-left:1px solid var(--border)}
+.ck{width:40px;height:40px;border-radius:999px;border:1.5px solid var(--primary-strong);color:var(--primary-strong);display:grid;place-items:center;box-sizing:border-box}
+.ckf{width:44px;height:44px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);display:grid;place-items:center}
+.pill{height:36px;padding:0 14px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);font-size:14px;font-weight:600;display:flex;align-items:center}
+.pillo{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--primary-strong);color:var(--primary-strong);font-size:14px;font-weight:600;display:flex;align-items:center;box-sizing:border-box}
+.lb{height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--border);font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;box-sizing:border-box}
+.lbp{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.chev{flex:none;display:grid;place-items:center;width:48px;color:var(--muted-foreground)}
+</style>
+</helmet>
+<div class="tt pg" data-theme="{{theme}}">
+<header class="hd"><div class="hb"><span style="display: flex; align-items: center; gap: 7px"><svg viewBox="0 0 32 32" width="36" height="36" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span></span><nav class="nav" aria-label="Sections"><a href="#" class="on" aria-current="page">Saved</a><a href="#">Collections</a><a href="#">Search</a></nav><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></div></header>
+<div class="ct">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div class="sec">
+<div class="cap">{{v.cap}}</div>
+<div class="h2">Reading now</div>
+<div class="rows"><div class="now"><a href="#" class="nl"><img class="po" src="/_blob/13926921943cbe324bdded4cc2c7497a" alt=""><span class="tx"><span class="ti">Piranesi</span><span class="me">Susanna Clarke · since 12 October</span></span></a><span class="chev"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></span></div></div>
+<div class="h2" style="margin-top: 6px">Watching now</div>
+<div class="rows">
+<sc-for list="{{v.rows}}" as="i" hint-placeholder-count="5">
+<div class="now">
+<a href="#" class="nl">
+<sc-if value="{{i.src}}" hint-placeholder-val="{{true}}"><img class="po" src="{{i.src}}" alt=""></sc-if>
+<sc-if value="{{i.noPoster}}" hint-placeholder-val="{{false}}"><span class="po np" role="img" aria-label="No poster"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span></sc-if>
+<span class="tx">
+<span class="ti">{{i.title}}</span>
+<sc-if value="{{i.a}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><span class="me">Next: <b>{{i.ep}}</b></span></sc-if>
+<sc-if value="{{i.caughtAir}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b> · {{i.air}}</span></sc-if>
+<sc-if value="{{i.caughtNoAir}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b></span></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="br"><span class="bar"><i style="width: {{i.pct}}"></i></span>{{i.count}}</span></sc-if>
+</sc-if>
+<sc-if value="{{i.b}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><span class="me">Next: <b>{{i.ep}}</b></span></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b></span></sc-if>
+<sc-if value="{{i.air}}" hint-placeholder-val="{{false}}"><span class="me"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>{{i.airLine}}</span></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="me" style="font-size: 13px">{{i.count}}</span></sc-if>
+</sc-if>
+<sc-if value="{{i.c}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><span class="me">Next: <b>{{i.ep}}</b></span></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b><sc-if value="{{i.air}}" hint-placeholder-val="{{false}}"><span class="chip"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>{{i.airShort}}</span></sc-if></span></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="me" style="font-size: 13px"><span class="pie" style="background: conic-gradient(var(--primary-strong) {{i.pct}}, var(--muted) 0)"></span>{{i.count}}</span></sc-if>
+</sc-if>
+</span>
+</a>
+<sc-if value="{{i.a}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><button class="act div" aria-label="{{i.label}}"><span class="ck"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><button class="act div"><span class="pill">Finished</span></button></sc-if>
+</sc-if>
+<sc-if value="{{i.b}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><button class="act" aria-label="{{i.label}}"><span class="lb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Watched</span></button></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><button class="act"><span class="lb lbp">Finished</span></button></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="edge" aria-hidden="true"><i style="width: {{i.pct}}"></i></span></sc-if>
+</sc-if>
+<sc-if value="{{i.c}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><button class="act" aria-label="{{i.label}}"><span class="ckf"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><button class="act"><span class="pillo">Finished</span></button></sc-if>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1840}}'>
+class Component extends DCLogic {
+renderVals() {
+const base = [
+{ title: 'Breaking Bad', src: '/_blob/309874acfd85a5645b22a583f37f3411', next: true, ep: 'S2 · E9', label: 'Mark S2 · E9 of Breaking Bad watched', bar: true, count: '15 of 62', pct: '24%' },
+{ title: 'Silo', src: '/_blob/24c096800f23ce04e82549415867d198', caught: true, caughtAir: true, air: 'S4 · E1 on 8 Jul 2027', airLine: 'S4 · E1 airs 8 Jul 2027', airShort: '8 Jul 2027', bar: true, count: '30 of 31', pct: '97%' },
+{ title: 'Slow Horses', src: '/_blob/ed188bc63bcbbfe1606a70e8dd4c9c50', caught: true, caughtNoAir: true, bar: true, count: '36 of 36', pct: '100%' },
+{ title: 'Леся + Рома', src: '', noPoster: true, next: true, ep: 'S1 · E4', label: 'Mark S1 · E4 of Леся + Рома watched', bar: false },
+{ title: 'Severance', src: '/_blob/308823d1f35d7db27798fd84bd3aa2bd', next: true, ep: 'S1 · E1', label: 'Mark S1 · E1 of Severance watched', bar: true, count: '0 of 19', pct: '0%' }
+];
+const rows = (flag) => base.map((r) => ({ ...r, [flag]: true }));
+return {
+theme: this.props.theme ?? 'light',
+variants: [
+{ cap: 'A · A bar in the row, a round check, the date in the status line', rows: rows('a') },
+{ cap: 'B · A labelled button, a bar along the edge, the date on its own line', rows: rows('b') },
+{ cap: 'C · A pie as Sequel has, a filled check, the date as a chip', rows: rows('c') }
+]
+};
+}
+}
+</script>
+</body>
+</html>

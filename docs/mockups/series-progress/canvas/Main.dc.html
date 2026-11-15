@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Watching now on Saved · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1490px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}
+.ic22{width:22px;height:22px}
+.pc{padding:12px 16px 96px;display:flex;flex-direction:column;gap:14px}
+.h1{margin:4px 0 0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.h2{font-size:18px;font-weight:600;margin-top:6px}
+.tile{position:relative;border:1px solid var(--border);background:var(--card);border-radius:20px;padding:18px;height:170px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;text-decoration:none}
+.tic{width:40px;height:40px;border-radius:12px;background:var(--primary-soft);color:var(--primary-strong);display:grid;place-items:center}
+.tn{margin-top:auto;font-size:22px;font-weight:700}
+.tc{font-size:14px;color:var(--muted-foreground)}
+.fan{position:absolute;right:18px;top:24px;width:150px;height:130px}
+.fan img,.fan span{position:absolute;width:76px;height:114px;border-radius:8px;object-fit:cover;box-shadow:0 8px 18px oklch(0 0 0 / 35%);top:4px}
+.rows{display:flex;flex-direction:column;gap:10px}
+.now{display:flex;align-items:stretch;border:1px solid var(--border);background:var(--card);border-radius:16px;position:relative;overflow:hidden}
+.nl{display:flex;gap:12px;align-items:center;padding:10px 6px 10px 10px;flex:1;min-width:0;text-decoration:none}
+.po{width:48px;height:72px;border-radius:6px;object-fit:cover;border:1px solid var(--border);flex:none;box-sizing:border-box}
+.np{background:var(--primary-soft);color:var(--primary-strong);display:grid;place-items:center}
+.tx{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.ti{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me{font-size:13px;line-height:1.3;color:var(--muted-foreground);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.me b{color:var(--foreground);font-weight:600}
+.br{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.bar{flex:1;height:5px;border-radius:999px;background:var(--muted);overflow:hidden;display:block}
+.bar i{display:block;height:100%;background:var(--primary-strong);border-radius:999px}
+.edge{position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--muted);display:block}
+.edge i{display:block;height:100%;background:var(--primary-strong)}
+.pie{width:16px;height:16px;border-radius:999px;flex:none;display:block}
+.chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;background:var(--muted);font-size:12px;font-weight:500;color:var(--foreground)}
+.act{flex:none;display:flex;align-items:center;justify-content:center;background:none;border:0;color:inherit;font:inherit;min-width:64px;padding:0 10px;cursor:pointer}
+.div{border-left:1px solid var(--border)}
+.ck{width:40px;height:40px;border-radius:999px;border:1.5px solid var(--primary-strong);color:var(--primary-strong);display:grid;place-items:center;box-sizing:border-box}
+.ckf{width:44px;height:44px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);display:grid;place-items:center}
+.pill{height:36px;padding:0 14px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);font-size:14px;font-weight:600;display:flex;align-items:center;gap:5px}
+.pillo{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--primary-strong);color:var(--primary-strong);font-size:14px;font-weight:600;display:flex;align-items:center;box-sizing:border-box}
+.lb{height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--border);font-size:14px;font-weight:600;display:flex;align-items:center;gap:5px;box-sizing:border-box}
+.lbp{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.chev{flex:none;display:grid;place-items:center;width:44px;color:var(--muted-foreground)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<h1 class="h1">Saved</h1>
+<a href="#" class="tile"><span class="tic"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></span><span class="tn">Films</span><span class="tc">12 to watch · 14 watched</span><span class="fan" aria-hidden="true"><span style="left: 0; transform: rotate(-9deg); background: oklch(0.42 0.08 250)"></span><span style="left: 74px; transform: rotate(9deg); background: oklch(0.45 0.1 30)"></span><span style="left: 37px; top: 0; background: oklch(0.42 0.09 150)"></span></span></a>
+<a href="#" class="tile"><span class="tic"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><span class="tn">Books</span><span class="tc">8 to read · 1 reading · 23 read</span><span class="fan" aria-hidden="true"><span style="left: 0; transform: rotate(-9deg); background: oklch(0.45 0.07 300)"></span><span style="left: 74px; transform: rotate(9deg); background: oklch(0.48 0.08 200)"></span><img src="/_blob/13926921943cbe324bdded4cc2c7497a" alt="" style="left: 37px; top: 0"></span></a>
+<a href="#" class="tile"><span class="tic"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span><span class="tn">Series</span><span class="tc">3 to watch · 5 watching · 9 watched</span><span class="fan" aria-hidden="true"><img src="/_blob/736eb79247f560db88169bbacf6ad4e9" alt="" style="left: 0; transform: rotate(-9deg)"><img src="/_blob/ed188bc63bcbbfe1606a70e8dd4c9c50" alt="" style="left: 74px; transform: rotate(9deg)"><img src="/_blob/309874acfd85a5645b22a583f37f3411" alt="" style="left: 37px; top: 0"></span></a>
+<div class="h2">Reading now</div>
+<div class="now"><a href="#" class="nl"><img class="po" src="/_blob/13926921943cbe324bdded4cc2c7497a" alt=""><span class="tx"><span class="ti">Piranesi</span><span class="me">Susanna Clarke · since 12 October</span></span></a><span class="chev"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></span></div>
+<div class="h2">Watching now</div>
+<div class="rows">
+<sc-for list="{{v.rows}}" as="i" hint-placeholder-count="5">
+<div class="now">
+<a href="#" class="nl">
+<sc-if value="{{i.src}}" hint-placeholder-val="{{true}}"><img class="po" src="{{i.src}}" alt=""></sc-if>
+<sc-if value="{{i.noPoster}}" hint-placeholder-val="{{false}}"><span class="po np" role="img" aria-label="No poster"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span></sc-if>
+<span class="tx">
+<span class="ti">{{i.title}}</span>
+<sc-if value="{{i.a}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><span class="me">Next: <b>{{i.ep}}</b></span></sc-if>
+<sc-if value="{{i.caughtAir}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b> · {{i.air}}</span></sc-if>
+<sc-if value="{{i.caughtNoAir}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b></span></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="br"><span class="bar"><i style="width: {{i.pct}}"></i></span>{{i.count}}</span></sc-if>
+</sc-if>
+<sc-if value="{{i.b}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><span class="me">Next: <b>{{i.ep}}</b></span></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b></span></sc-if>
+<sc-if value="{{i.air}}" hint-placeholder-val="{{false}}"><span class="me"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>{{i.airLine}}</span></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="me" style="font-size: 12px">{{i.count}}</span></sc-if>
+</sc-if>
+<sc-if value="{{i.c}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><span class="me">Next: <b>{{i.ep}}</b></span></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><span class="me"><b>Caught up</b><sc-if value="{{i.air}}" hint-placeholder-val="{{false}}"><span class="chip"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>{{i.airShort}}</span></sc-if></span></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="me" style="font-size: 12px"><span class="pie" style="background: conic-gradient(var(--primary-strong) {{i.pct}}, var(--muted) 0)"></span>{{i.count}}</span></sc-if>
+</sc-if>
+</span>
+</a>
+<sc-if value="{{i.a}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><button class="act div" aria-label="{{i.label}}"><span class="ck"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><button class="act div"><span class="pill">Finished</span></button></sc-if>
+</sc-if>
+<sc-if value="{{i.b}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><button class="act" aria-label="{{i.label}}"><span class="lb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Watched</span></button></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><button class="act"><span class="lb lbp">Finished</span></button></sc-if>
+<sc-if value="{{i.bar}}" hint-placeholder-val="{{true}}"><span class="edge" aria-hidden="true"><i style="width: {{i.pct}}"></i></span></sc-if>
+</sc-if>
+<sc-if value="{{i.c}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{i.next}}" hint-placeholder-val="{{true}}"><button class="act" aria-label="{{i.label}}"><span class="ckf"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></sc-if>
+<sc-if value="{{i.caught}}" hint-placeholder-val="{{false}}"><button class="act"><span class="pillo">Finished</span></button></sc-if>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1530}}'>
+class Component extends DCLogic {
+renderVals() {
+const base = [
+{ title: 'Breaking Bad', src: '/_blob/309874acfd85a5645b22a583f37f3411', next: true, ep: 'S2 · E9', label: 'Mark S2 · E9 of Breaking Bad watched', bar: true, count: '15 of 62', pct: '24%' },
+{ title: 'Silo', src: '/_blob/24c096800f23ce04e82549415867d198', caught: true, caughtAir: true, air: 'S4 · E1 on 8 Jul 2027', airLine: 'S4 · E1 airs 8 Jul 2027', airShort: '8 Jul 2027', bar: true, count: '30 of 31', pct: '97%' },
+{ title: 'Slow Horses', src: '/_blob/ed188bc63bcbbfe1606a70e8dd4c9c50', caught: true, caughtNoAir: true, bar: true, count: '36 of 36', pct: '100%' },
+{ title: 'Леся + Рома', src: '', noPoster: true, next: true, ep: 'S1 · E4', label: 'Mark S1 · E4 of Леся + Рома watched', bar: false },
+{ title: 'Severance', src: '/_blob/308823d1f35d7db27798fd84bd3aa2bd', next: true, ep: 'S1 · E1', label: 'Mark S1 · E1 of Severance watched', bar: true, count: '0 of 19', pct: '0%' }
+];
+const rows = (flag) => base.map((r) => ({ ...r, [flag]: true }));
+return {
+theme: this.props.theme ?? 'dark',
+variants: [
+{ cap: 'A · A bar in the row, a round check, the date in the status line', rows: rows('a') },
+{ cap: 'B · A labelled button, a bar along the edge, the date on its own line', rows: rows('b') },
+{ cap: 'C · A pie as Sequel has, a filled check, the date as a chip', rows: rows('c') }
+]
+};
+}
+}
+</script>
+</body>
+</html>

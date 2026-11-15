@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A series' page while Watching · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1250px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic22{width:22px;height:22px}
+.ic26{width:26px;height:26px;stroke-width:2.4}
+.pic{position:relative;height:219px;overflow:hidden}
+.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.pic::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,var(--background) 100%)}
+.head{position:relative;display:flex;align-items:flex-end;gap:14px;margin-top:-72px;padding:0 16px}
+.art{width:104px;height:156px;border-radius:10px;object-fit:cover;border:1px solid var(--border);box-shadow:0 8px 24px oklch(0 0 0 / 35%);flex:none;box-sizing:border-box}
+.titles{display:flex;flex-direction:column;gap:3px;min-width:0;padding-bottom:2px}
+.h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-0.01em;line-height:1.15}
+.uk{margin:0;font-size:14px;font-weight:600;color:var(--muted-foreground)}
+.facts{margin:2px 0 0;font-size:13px;color:var(--muted-foreground)}
+.body{display:flex;flex-direction:column;gap:18px;padding:18px 16px 0}
+.btn{height:48px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:var(--card);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.btn.pr{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.btn.pl{background:transparent;height:44px}
+.inp{border:1px solid var(--primary-strong);background:var(--primary-soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;gap:12px;align-items:center}
+.mark{width:40px;height:40px;border-radius:12px;background:var(--card);color:var(--primary-strong);display:grid;place-items:center;flex:none}
+.ib{width:44px;height:44px;border:0;border-radius:10px;background:none;color:var(--muted-foreground);display:grid;place-items:center;margin-left:auto;cursor:pointer}
+.sm{font-size:14px;color:var(--muted-foreground)}
+.lbl{font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.nx{display:flex;align-items:center;gap:12px}
+.big{font-size:19px;font-weight:700;letter-spacing:-0.01em}
+.ckf{width:52px;height:52px;border-radius:999px;border:0;background:var(--primary);color:var(--primary-foreground);display:grid;place-items:center;flex:none;margin-left:auto;cursor:pointer}
+.br{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted-foreground);white-space:nowrap}
+.bar{flex:1;height:6px;border-radius:999px;background:var(--muted);overflow:hidden;display:block}
+.bar i{display:block;height:100%;width:24%;background:var(--primary-strong);border-radius:999px}
+.st{display:flex;align-items:center;gap:10px;font-size:15px}
+.stp{margin-left:auto;display:flex;align-items:center;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--background)}
+.stp button{width:44px;height:44px;border:0;background:none;color:inherit;display:grid;place-items:center;cursor:pointer}
+.stp output{min-width:40px;text-align:center;font-weight:700;font-size:16px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sch{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.sch button{height:44px;border-radius:10px;border:1px solid var(--border);background:none;color:inherit;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.sch button.on{background:var(--foreground);color:var(--background);border-color:var(--foreground)}
+.eg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.eg button{height:44px;border-radius:10px;border:1px solid var(--border);background:none;color:inherit;font:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.eg button.w{background:var(--primary-soft);border-color:transparent;font-weight:600}
+.eg button.last{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary);font-weight:700}
+.pie{width:44px;height:44px;border-radius:999px;flex:none;background:conic-gradient(var(--primary-strong) 24%,var(--muted) 0);display:grid;place-items:center}
+.pie span{width:30px;height:30px;border-radius:999px;background:var(--card);display:block}
+.sel{height:48px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:inherit;font:inherit;font-size:15px;font-weight:600;padding:0 12px;width:100%;box-sizing:border-box}
+.fld{display:flex;flex-direction:column;gap:6px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.h2{font-size:18px;font-weight:600;margin:6px 0 -6px}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:20px 16px;font-size:14px;color:var(--muted-foreground);text-align:center}
+.lnk{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--primary-strong);height:44px;cursor:pointer}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pic"><img src="/_blob/beabe67a37ee45a59c89a6a08c218ad1" alt=""></div>
+<div class="head"><img class="art" src="/_blob/309874acfd85a5645b22a583f37f3411" alt="Breaking Bad poster"><div class="titles"><h1 class="h1">Breaking Bad (2008)</h1><p class="uk">Пуститися берега</p><p class="facts">2008–2013 · 5 seasons · Ended</p></div></div>
+<div class="body">
+
+<sc-if value="{{v.a}}" hint-placeholder-val="{{true}}">
+<section class="inp" aria-label="Watching">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Watching</div><div class="sm">Since 2 November 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="panel">
+<div class="nx"><div><div class="lbl">Next</div><div class="big">S2 · E9</div><div class="sm">Season 2, episode 9 of 13</div></div><button class="ckf" aria-label="Mark S2 · E9 watched"><svg class="ic ic26" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></button></div>
+<div class="br"><span class="bar"><i></i></span>15 of 62</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="lbl">Last watched</div>
+<div class="st"><span>Season</span><span class="stp"><button aria-label="Previous season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>2</output><button aria-label="Next season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+<div class="st"><span>Episode</span><span class="stp"><button aria-label="Previous episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>8</output><button aria-label="Next episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+</div>
+<div class="two"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop watching</button></div>
+</section>
+<div class="acts"><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+</sc-if>
+
+<sc-if value="{{v.b}}" hint-placeholder-val="{{false}}">
+<section class="inp" aria-label="Watching">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Watching</div><div class="sm">Since 2 November 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div><div class="big">Next: S2 · E9</div><div class="sm">Season 2, episode 9 of 13</div></div>
+<button class="btn pr" style="height: 52px; font-size: 16px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Mark S2 · E9 watched</button>
+<div class="br"><span class="bar"><i></i></span>15 of 62</div>
+<div class="panel">
+<div class="lbl">Tap the last episode you watched</div>
+<div class="sch" role="group" aria-label="Season"><button>S1</button><button class="on" aria-pressed="true">S2</button><button>S3</button><button>S4</button><button>S5</button></div>
+<div class="eg" role="group" aria-label="Episode of season 2"><button class="w">1</button><button class="w">2</button><button class="w">3</button><button class="w">4</button><button class="w">5</button><button class="w">6</button><button class="w">7</button><button class="last" aria-pressed="true">8</button><button>9</button><button>10</button><button>11</button><button>12</button><button>13</button></div>
+</div>
+<div class="two"><button class="btn">Finished</button><button class="btn">Stop watching</button></div>
+</section>
+<div class="acts"><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+</sc-if>
+
+<sc-if value="{{v.c}}" hint-placeholder-val="{{false}}">
+<section aria-label="Watching" style="display: flex; flex-direction: column; gap: 12px">
+<div class="panel" style="border-radius: 16px; padding: 12px 12px 12px 14px"><div class="nx"><span class="pie" role="img" aria-label="15 of 62 episodes watched"><span></span></span><div><div class="big" style="font-size: 17px">Next: S2 · E9</div><div class="sm">15 of 62 · episode 9 of 13</div></div><button class="ckf" aria-label="Mark S2 · E9 watched"><svg class="ic ic26" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></button></div></div>
+<div class="two"><label class="fld"><span class="lbl">Last watched: season</span><select class="sel"><option>Season 1</option><option selected>Season 2</option><option>Season 3</option><option>Season 4</option><option>Season 5</option></select></label><label class="fld"><span class="lbl">Episode</span><select class="sel"><option>None yet</option><option>Episode 7</option><option selected>Episode 8</option><option>Episode 9</option></select></label></div>
+</section>
+<div class="acts"><button class="btn pr" style="height: 44px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn pl">Stop watching</button><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+<div class="sm" style="margin: -8px 0; display: flex; align-items: center; gap: 6px">Watching since 2 November 2026 ·<button class="lnk">Change</button></div>
+</sc-if>
+
+<div class="h2">Viewings</div>
+<div class="empty">Not watched yet</div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1290}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+theme: this.props.theme ?? 'dark',
+variants: [
+{ cap: 'A · A Watching card, a round check, two steppers', a: true },
+{ cap: 'B · A Watching card, a labelled button, seasons and episodes as a list', b: true },
+{ cap: 'C · A compact strip with a pie, two dropdowns, the ordinary action row', c: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>

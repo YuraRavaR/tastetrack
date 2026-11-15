@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Series Progress · The Watch more choice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87); --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75); --input: oklch(0.85 0.015 75); --overlay: oklch(0.2 0.01 50 / 50%); --ink: oklch(0.22 0.02 60);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85); --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%); --input: oklch(1 0 0 / 15%); --overlay: oklch(0 0 0 / 60%); --ink: #fff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic22 { width: 22px; height: 22px; }
+.star { width: 14px; height: 14px; fill: currentColor; flex: none; color: var(--primary); }
+[data-for] { display: none; }
+[data-for].shown { display: block; }
+
+/* Header, bottom tab bar and footer, as on every page. */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo svg { width: 34px; height: 34px; color: var(--ink); }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.nav { display: none; gap: 4px; }
+.nav a { height: 36px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); }
+.account { margin-left: auto; width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); display: grid; place-items: center; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border); z-index: 5; }
+.tabbar a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.tabbar .ic { width: 24px; height: 24px; }
+footer { border-top: 1px solid var(--border); margin-top: 40px; }
+.foot { max-width: 1152px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; line-height: 1.45; color: var(--muted-foreground); }
+.tmdb { align-self: flex-start; font-weight: 800; font-size: 11px; letter-spacing: 0.02em; padding: 1px 6px; border-radius: 4px; background: var(--foreground); color: var(--background); }
+
+/* Buttons. */
+.btn { height: 44px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; font-weight: 600; border: 1px solid var(--border); background: transparent; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.btn.on { background: var(--primary-soft); border-color: transparent; }
+.btn.on .fill { fill: currentColor; }
+
+/* The stepper: minus, the number, plus. 44 px buttons on a phone, 40 px from md. */
+.stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--background); }
+.stepper button { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; }
+.stepper output { min-width: 40px; text-align: center; font-weight: 700; font-size: 16px; }
+.step-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 15px; }
+.label { font-size: 13px; font-weight: 600; color: var(--muted-foreground); }
+
+@media (min-width: 768px) {
+  body { padding-bottom: 0; }
+  .bar { padding: 0 24px; height: 64px; }
+  .logo svg { width: 36px; height: 36px; }
+  .wm { font-size: 17px; }
+  .nav { display: flex; }
+  .tabbar { display: none; }
+  .foot { padding: 16px 24px; flex-direction: row; align-items: center; gap: 16px; }
+  .foot .version { margin-left: auto; }
+  .stepper button { width: 40px; height: 40px; }
+}
+
+/* Watch more: a bottom sheet on a phone, a centred dialog from md, over the dimmed series' page. */
+body { padding-bottom: 0; min-height: 844px; }
+.behind { max-width: 1008px; margin: 0 auto; }
+.behind img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.behind .blank { aspect-ratio: 16 / 9; }
+.dim { position: fixed; inset: 0; background: var(--overlay); }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-radius: 28px 28px 0 0; display: flex; flex-direction: column; }
+.sheet .top { display: flex; align-items: flex-start; gap: 12px; padding: 18px 10px 4px 20px; }
+.sheet h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.sheet .of { font-size: 14px; color: var(--muted-foreground); }
+.close { margin-left: auto; width: 44px; height: 44px; border: 0; border-radius: 999px; background: none; color: var(--muted-foreground); display: grid; place-items: center; }
+.close .ic { width: 20px; height: 20px; }
+.options { display: flex; flex-direction: column; gap: 8px; padding: 14px 20px 20px; border: 0; margin: 0; min-width: 0; }
+.option { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; }
+.option:has(:checked) { border-color: var(--primary-strong); background: var(--primary-soft); }
+.option input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary-strong); flex: none; }
+.option .what { display: flex; flex-direction: column; gap: 1px; font-size: 16px; font-weight: 600; }
+.option .what span { font-size: 13px; font-weight: 400; color: var(--muted-foreground); }
+.own { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px; }
+.sheet .foot2 { border-top: 1px solid var(--border); padding: 12px 20px 34px; display: flex; flex-direction: column; }
+.sheet .foot2 .btn { height: 50px; font-size: 16px; }
+.sheet .cancel { display: none; }
+@media (min-width: 768px) {
+  .sheet { left: 50%; right: auto; bottom: auto; top: 50%; transform: translate(-50%, -50%); width: 480px; border-radius: 18px; border: 1px solid var(--border); box-shadow: 0 20px 50px oklch(0 0 0 / 30%); }
+  .sheet .top { padding: 20px 12px 4px 24px; }
+  .close { width: 40px; height: 40px; border-radius: 10px; }
+  .options { padding: 14px 24px 22px; }
+  .option { min-height: 56px; }
+  .sheet .foot2 { flex-direction: row; justify-content: flex-end; gap: 12px; padding: 16px 24px; }
+  .sheet .foot2 .btn { height: 40px; font-size: 14px; }
+  .sheet .cancel { display: inline-flex; }
+}
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="logo" href="#" aria-label="TasteTrack"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span></a><nav class="nav" aria-label="Sections"><a href="#" aria-current="page">Saved</a><a href="#">Collections</a><a href="#">Search</a></nav><button class="account" aria-label="Account menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></button></div></header>
+<div data-for="default">
+<div class="behind" aria-hidden="true"><img src="https://image.tmdb.org/t/p/w1280/aJtG4txtmiRHwAAqENQHZvBs6kY.jpg" alt=""></div><div class="dim"></div>
+<div class="sheet" role="dialog" aria-label="Watch more">
+<div class="top"><div><h1>Watch more</h1><div class="of">The Bear</div></div><button class="close" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset class="options" aria-label="Where to start"><label class="option"><input type="radio" name="a" checked><span class="what">From season 5<span>Next: S5 · E1</span></span></label><label class="option"><input type="radio" name="a"><span class="what">From the start<span>Next: S1 · E1</span></span></label><label class="option"><input type="radio" name="a"><span class="what">Choose where you are<span>Set the last episode you watched</span></span></label></fieldset>
+<div class="foot2"><button class="btn cancel">Cancel</button><button class="btn primary">Start watching</button></div>
+</div>
+</div>
+<div data-for="own">
+<div class="behind" aria-hidden="true"><img src="https://image.tmdb.org/t/p/w1280/aJtG4txtmiRHwAAqENQHZvBs6kY.jpg" alt=""></div><div class="dim"></div>
+<div class="sheet" role="dialog" aria-label="Watch more">
+<div class="top"><div><h1>Watch more</h1><div class="of">The Bear</div></div><button class="close" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset class="options" aria-label="Where to start"><label class="option"><input type="radio" name="b"><span class="what">From season 5<span>Next: S5 · E1</span></span></label><label class="option"><input type="radio" name="b"><span class="what">From the start<span>Next: S1 · E1</span></span></label><label class="option"><input type="radio" name="b" checked><span class="what">Choose where you are<span>Next: S3 · E5</span></span></label><div class="own"><div class="label">Last watched</div><div class="step-row"><span>Season</span><span class="stepper"><button aria-label="Previous season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>3</output><button aria-label="Next season"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div><div class="step-row"><span>Episode</span><span class="stepper"><button aria-label="Previous episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><output>4</output><button aria-label="Next episode"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div></div></fieldset>
+<div class="foot2"><button class="btn cancel">Cancel</button><button class="btn primary">Start watching</button></div>
+</div>
+</div>
+<div data-for="manual">
+<div class="behind" aria-hidden="true"><div class="blank"></div></div><div class="dim"></div>
+<div class="sheet" role="dialog" aria-label="Watch more">
+<div class="top"><div><h1>Watch more</h1><div class="of">Леся + Рома</div></div><button class="close" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<fieldset class="options" aria-label="Where to start"><label class="option"><input type="radio" name="c" checked><span class="what">From the start<span>Next: S1 · E1</span></span></label><label class="option"><input type="radio" name="c"><span class="what">Choose where you are<span>Set the last episode you watched</span></span></label></fieldset>
+<div class="foot2"><button class="btn cancel">Cancel</button><button class="btn primary">Start watching</button></div>
+</div>
+</div>
+<script>function show(){const s=location.hash.slice(1)||"default";document.querySelectorAll("[data-for]").forEach(e=>e.classList.toggle("shown",e.dataset.for.split(" ").includes(s)));}addEventListener("hashchange",show);show();</script>
+</body>
+</html>
