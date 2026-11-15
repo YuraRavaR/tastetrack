@@ -11,7 +11,13 @@ import {
   mediaItems,
   users,
 } from "../../db/schema";
-import type { ExternalReference, FilmMetadata, MediaItem } from "../../shared/api";
+import type {
+  ExternalReference,
+  FilmMetadata,
+  MediaItem,
+  SeriesEpisode,
+  SeriesStatus,
+} from "../../shared/api";
 import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
@@ -135,15 +141,19 @@ async function book(id: string, options: Work = {}): Promise<void> {
   );
 }
 
-// Adds a catalog-backed series with TMDB id `id`.
-async function series(id: string, options: Work = {}): Promise<void> {
+// Adds a catalog-backed series with TMDB id `id`, its status and last aired episode unknown
+// unless given.
+async function series(
+  id: string,
+  options: Work & { status?: SeriesStatus | null; lastAiredEpisode?: SeriesEpisode } = {},
+): Promise<void> {
   const extra = {
     backdropPath: null,
     firstAirYear: null,
     lastAirYear: null,
-    status: null,
+    status: options.status ?? null,
     seasons: [],
-    lastAiredEpisode: null,
+    lastAiredEpisode: options.lastAiredEpisode ?? null,
     nextAirDate: null,
     overview: { en: null, uk: null },
     tagline: { en: null, uk: null },
@@ -238,6 +248,78 @@ describe("which cache entries the cron refreshes", () => {
     await film("3", { in: "list", cached: { updated: daysAgo(2), detailed: false } });
 
     expect(await due()).toEqual(["3", "2", "1"]);
+  });
+
+  it("picks a running series some User has In Progress once a day old, before week-old ones", async () => {
+    await film("1", { in: "log", cached: { updated: daysAgo(30) } });
+    await series("2", { in: "inProgress", status: "returning", cached: { updated: daysAgo(1.1) } });
+    await series("3", { in: "inProgress", status: "returning", cached: { updated: daysAgo(0.9) } });
+    await series("4", { in: "inProgress", cached: { updated: daysAgo(2) } });
+
+    expect(await due()).toEqual(["4", "2", "1"]);
+  });
+
+  it("leaves ended and cancelled series, and those nobody has In Progress, until a week old", async () => {
+    await series("1", { in: "inProgress", status: "ended", cached: { updated: daysAgo(2) } });
+    await series("2", { in: "inProgress", status: "canceled", cached: { updated: daysAgo(2) } });
+    await series("3", { in: "log", status: "returning", cached: { updated: daysAgo(2) } });
+    await series("4", { in: "list", status: "returning", cached: { updated: daysAgo(2) } });
+    await series("5", { in: "inProgress", status: "ended", cached: { updated: daysAgo(9) } });
+    await series("6", { in: "log", status: "returning", cached: { updated: daysAgo(8) } });
+
+    expect(await due()).toEqual(["5", "6"]);
+  });
+
+  it("leaves half the batch to week-old entries when many running series are due", async () => {
+    for (let n = 1; n <= 45; n++) {
+      const updated = daysAgo(2 + n / 100);
+      await series(`S${n}`, { in: "inProgress", status: "returning", cached: { updated } });
+      await film(`F${n}`, { in: "log", cached: { updated: daysAgo(30 + n) } });
+    }
+
+    const batch = await due();
+    expect(batch).toEqual([
+      ...Array.from({ length: 20 }, (_, index) => `S${45 - index}`),
+      ...Array.from({ length: 20 }, (_, index) => `F${45 - index}`),
+    ]);
+  });
+
+  it("gives running series what week-old entries leave of the batch", async () => {
+    for (let n = 1; n <= 45; n++) {
+      const updated = daysAgo(2 + n / 100);
+      await series(`S${n}`, { in: "inProgress", status: "returning", cached: { updated } });
+    }
+    await film("F1", { in: "log", cached: { updated: daysAgo(30) } });
+
+    expect(await due()).toEqual([
+      ...Array.from({ length: 20 }, (_, index) => `S${45 - index}`),
+      "F1",
+      ...Array.from({ length: 19 }, (_, index) => `S${25 - index}`),
+    ]);
+  });
+
+  it("still picks entries filled from a search result alone before running series", async () => {
+    for (let n = 1; n <= 10; n++) {
+      await film(`N${n}`, { in: "list", cached: { updated: daysAgo(n / 100), detailed: false } });
+    }
+    for (let n = 1; n <= 45; n++) {
+      const updated = daysAgo(2 + n / 100);
+      await series(`S${n}`, { in: "inProgress", status: "returning", cached: { updated } });
+      await film(`F${n}`, { in: "log", cached: { updated: daysAgo(30 + n) } });
+    }
+
+    // Ten from search; then half of the thirty left for series, and the rest for week-old films.
+    expect(await due()).toEqual([
+      ...Array.from({ length: 10 }, (_, index) => `N${10 - index}`),
+      ...Array.from({ length: 15 }, (_, index) => `S${45 - index}`),
+      ...Array.from({ length: 15 }, (_, index) => `F${45 - index}`),
+    ]);
+  });
+
+  it("picks a running series that is also a week old once", async () => {
+    await series("1", { in: "inProgress", status: "returning", cached: { updated: daysAgo(10) } });
+
+    expect(await due()).toEqual(["1"]);
   });
 
   it("leaves out referenced films with no cache entry: a page fills those", async () => {
@@ -408,6 +490,56 @@ describe("a cron run", () => {
       seasons: [{ season: 1, episodeCount: 5 }],
       lastAiredEpisode: { season: 1, episode: 5 },
     });
+  });
+
+  it("refreshes a running series some User has In Progress daily, so its new episode shows", async () => {
+    // Cached when the eighth episode of season 2 had aired; TMDB has the ninth now.
+    await series("247718", {
+      in: "inProgress",
+      status: "returning",
+      lastAiredEpisode: { season: 2, episode: 8 },
+      cached: { updated: daysAgo(0.9) },
+    });
+    const lastAired = async (at: Date) => {
+      const [mobland] = await catalogMediaItems(db, env, [1], at);
+      return mobland?.mediaType === "series" ? mobland.metadata?.lastAiredEpisode : undefined;
+    };
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 0, deleted: 0 });
+    expect(await lastAired(now)).toEqual({ season: 2, episode: 8 });
+    const nextDay = new Date(now.getTime() + 0.2 * day);
+    expect(await refreshCache(db, env, nextDay)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    expect(await lastAired(nextDay)).toEqual({ season: 2, episode: 9 });
+    expect(subrequests).toBe(1);
+  });
+
+  it("refreshes running series, films and books in one run within 40, serving each queue", async () => {
+    // Running series some User has In Progress, over a day old, which no fake knows but the oldest.
+    await series("247718", {
+      in: "inProgress",
+      status: "returning",
+      cached: { updated: daysAgo(3) },
+    });
+    for (let n = 1; n <= 30; n++) {
+      await series(`404${n}`, {
+        in: "inProgress",
+        status: "returning",
+        cached: { updated: daysAgo(2 - n / 100) },
+      });
+    }
+    // Week-old films and books, which no fake knows but the oldest of each.
+    await film("348", { in: "log", cached: { updated: daysAgo(60) } });
+    await book("OL2094429W", { in: "log", cached: { updated: daysAgo(59) } });
+    for (let n = 1; n <= 20; n++) {
+      await film(`404${n}`, { in: "list", cached: { updated: daysAgo(50 - n) } });
+      await book(`OL404${n}W`, { in: "list", cached: { updated: daysAgo(49.5 - n) } });
+    }
+
+    // Twenty series, then three for Alien and Tigrolovy, then six films and five books, three a
+    // pair: the sixth book doesn't fit, and the series behind it wait for the next run.
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 3, failed: 30, deleted: 0 });
+    expect(subrequests).toBe(39);
+    expect(await loggedTitles()).toEqual(expect.arrayContaining(["Alien", "Тигролови"]));
   });
 
   it("keeps a book's entry it couldn't refresh, however old: only TMDB's entries expire", async () => {
