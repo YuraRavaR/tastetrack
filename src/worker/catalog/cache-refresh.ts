@@ -2,9 +2,10 @@
 // minutes: it refreshes a batch of the oldest entries in use and deletes the rest once they expire
 // or nothing uses them. There is no refresh on read; a page fills only entries that are missing,
 // which an expired one counts as.
-import { and, asc, eq, exists, isNull, lt, not, or, sql } from "drizzle-orm";
+import { and, asc, eq, exists, isNull, lt, not, or, type SQL, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { catalogCache, inProgress, listItems, logEntries, mediaItems } from "../../db/schema";
+import type { SeriesStatus } from "../../shared/api";
 import { type CacheKey, cacheKeyId, fetchDetails, storeDetails } from "./media-items";
 import { expiredEntries, sourceOf } from "./registry";
 import type { CatalogEnv } from "./source";
@@ -23,6 +24,10 @@ const day = 24 * 60 * 60 * 1000;
 // An entry is refreshed once it is this old, so a small deployment doesn't fetch the same works
 // from their source every 15 minutes.
 const refreshAge = 7 * day;
+
+// A running series some User has In Progress is refreshed once it is this old, so a newly aired
+// episode shows within a day (ADR-0004).
+const dailyRefreshAge = day;
 
 // An entry nothing references is kept this long, so one just added from search survives until
 // the User logs or plans it.
@@ -68,13 +73,61 @@ function referenced(db: DrizzleD1Database) {
   );
 }
 
-// The cache entries the cron refreshes next, as many as `budget` subrequests refresh: those a Log
-// Entry, List Item or In Progress references and that are a week old, or were filled from a search
-// result alone, at any age. Those the cron hasn't tried since come first, then the rest by when
-// they were last filled or tried, so an entry its source never answers for goes to the back each
-// run instead of taking the batch for good. The batch stops at the first entry that doesn't fit, so
-// none jumps the order. A referenced Media Item with no entry isn't due: the first page to show it
-// fills it.
+// The cache entry's Media Item, when some User has it In Progress.
+function inProgressBySomeone(db: DrizzleD1Database) {
+  return exists(
+    db
+      .select({ id: mediaItems.id })
+      .from(mediaItems)
+      .innerJoin(inProgress, eq(inProgress.mediaItemId, mediaItems.id))
+      .where(
+        and(
+          eq(mediaItems.externalSource, catalogCache.externalSource),
+          eq(mediaItems.mediaType, catalogCache.mediaType),
+          eq(mediaItems.externalId, catalogCache.externalId),
+        ),
+      ),
+  );
+}
+
+// A series whose status says no more is coming. One whose status is unknown may still be running.
+const endedStatuses: readonly SeriesStatus[] = ["ended", "canceled"];
+
+// Series entries whose status doesn't say they have ended.
+const runningSeries = sql`(${catalogCache.mediaType} = 'series'
+  and coalesce(${catalogCache.extra} ->> '$.status', '') not in ${endedStatuses})`;
+
+// Entries filled from a search result alone that the cron hasn't tried since.
+const untried = sql`(${catalogCache.detailedAt} is null and ${catalogCache.checkedAt} is null)`;
+
+// The referenced entries matching `where`, by when they were last filled or tried, so an entry
+// its source never answers for goes to the back each run instead of taking the batch for good.
+// Every entry costs at least one subrequest, so no more than `budget` can be refreshed.
+function queue(db: DrizzleD1Database, where: SQL | undefined, budget: number): Promise<CacheKey[]> {
+  return db
+    .select({
+      externalSource: catalogCache.externalSource,
+      mediaType: catalogCache.mediaType,
+      externalId: catalogCache.externalId,
+    })
+    .from(catalogCache)
+    .where(and(referenced(db), where))
+    .orderBy(asc(sql`coalesce(${catalogCache.checkedAt}, ${catalogCache.updatedAt})`))
+    .limit(budget);
+}
+
+// The cache entries the cron refreshes next, as many as `budget` subrequests refresh, from three
+// queues in turn, each oldest first by `queue`'s order:
+// 1. those filled from a search result alone that the cron hasn't tried yet, at any age;
+// 2. running series some User has In Progress that are a day old, so a User who has caught up sees
+//    a new episode within a day; they take at most half of what the first queue leaves, so the
+//    third is still served;
+// 3. those a Log Entry, List Item or In Progress references that are a week old, and those filled
+//    from a search result alone that the cron has tried.
+// The second queue then gets what the third leaves. A queue stops at its first entry that doesn't
+// fit, so none jumps the order, and the batch ends there, but for the second queue's share. An
+// entry in two queues is refreshed once. A referenced Media Item with no entry isn't due: the
+// first page to show it fills it.
 // Nothing reads an unreferenced entry, so it is never refreshed.
 export async function dueForRefresh(
   db: DrizzleD1Database,
@@ -82,32 +135,47 @@ export async function dueForRefresh(
   budget = refreshBudget,
   refreshCost: (key: CacheKey) => number = sourceRefreshCost,
 ): Promise<CacheKey[]> {
-  // Every entry costs at least one subrequest, so no more than `budget` can fit.
-  const candidates = await db
-    .select({
-      externalSource: catalogCache.externalSource,
-      mediaType: catalogCache.mediaType,
-      externalId: catalogCache.externalId,
-    })
-    .from(catalogCache)
-    .where(
+  const [searchResults, dailySeries, weekOld] = await Promise.all([
+    queue(db, untried, budget),
+    queue(
+      db,
       and(
-        referenced(db),
+        inProgressBySomeone(db),
+        runningSeries,
+        lt(catalogCache.updatedAt, before(now, dailyRefreshAge)),
+      ),
+      budget,
+    ),
+    queue(
+      db,
+      and(
+        not(untried),
         or(isNull(catalogCache.detailedAt), lt(catalogCache.updatedAt, before(now, refreshAge))),
       ),
-    )
-    .orderBy(
-      sql`${catalogCache.detailedAt} is not null or ${catalogCache.checkedAt} is not null`,
-      asc(sql`coalesce(${catalogCache.checkedAt}, ${catalogCache.updatedAt})`),
-    )
-    .limit(budget);
+      budget,
+    ),
+  ]);
   const due: CacheKey[] = [];
+  const picked = new Set<string>();
   let spent = 0;
-  for (const key of candidates) {
-    spent += refreshCost(key);
-    if (spent > budget) break;
-    due.push(key);
+  // Takes entries from `entries` while they fit within `limit` subrequests, and says whether it
+  // stopped at one that doesn't.
+  function take(entries: CacheKey[], limit: number): boolean {
+    for (const key of entries) {
+      const id = cacheKeyId(key);
+      if (picked.has(id)) continue;
+      const cost = refreshCost(key);
+      if (spent + cost > limit) return true;
+      spent += cost;
+      picked.add(id);
+      due.push(key);
+    }
+    return false;
   }
+  if (take(searchResults, budget)) return due;
+  take(dailySeries, spent + Math.floor((budget - spent) / 2));
+  if (take(weekOld, budget)) return due;
+  take(dailySeries, budget);
   return due;
 }
 
