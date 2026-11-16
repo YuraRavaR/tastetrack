@@ -1,0 +1,27 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-16T12:00:00Z" },
+  "title": "TasteTrack book Progress",
+  "launch": { "view": "canvas", "page": "r1" },
+  "pages": [
+    { "id": "r1", "name": "Round 1 · The Reading card and the row" }
+  ],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 2110, "h": 880, "page": "r1", "title": "A book's page · phone · A: change it in the card" },
+    "CardB.dc.html": { "x": 0, "y": 1000, "w": 2110, "h": 880, "page": "r1", "title": "A book's page · phone · B: a sheet" },
+    "CardC.dc.html": { "x": 0, "y": 2000, "w": 2110, "h": 880, "page": "r1", "title": "A book's page · phone · C: fields always open" },
+    "CardWeb.dc.html": { "x": 0, "y": 3000, "w": 1980, "h": 1150, "page": "r1", "title": "The Reading card · web · A, B, C" },
+    "SavedPhone.dc.html": { "x": 0, "y": 4700, "w": 840, "h": 840, "page": "r1", "title": "Reading now on Saved · phone · A, B" },
+    "SavedWeb.dc.html": { "x": 920, "y": 4700, "w": 1440, "h": 1300, "page": "r1", "title": "Reading now on Saved · web · A, B" }
+  },
+  "order": ["Main.dc.html", "CardB.dc.html", "CardC.dc.html", "CardWeb.dc.html", "SavedPhone.dc.html", "SavedWeb.dc.html"],
+  "notes": {
+    "t1": { "kind": "title1", "page": "r1", "x": 0, "y": -300, "maxW": 2110, "text": "A book's Reading card with its Progress" },
+    "t2": { "kind": "title1", "page": "r1", "x": 0, "y": 4400, "maxW": 2360, "text": "Reading now on Saved" },
+    "n1": { "page": "r1", "x": 2210, "y": 0, "w": 420, "size": "m", "fill": "teal", "text": "Real books, checked on Open Library 2026-11-16.\n\nPiranesi, Susanna Clarke: 272 pages (the median of its editions), so 142 of 272.\nKafka on the Shore: a page only, p. 88.\nВорошиловград, Сергій Жадан: no Progress yet.\n\nThe page count is the User's own edition, never Open Library's (spec #204).\n\nTweaks switches every board between dark and light." },
+    "n2": { "page": "r1", "x": 2210, "y": 1000, "w": 420, "size": "m", "fill": "orange", "text": "To pick: how the page and the page count are entered.\n\nA: the panel turns into two fields in the card, with Clear, Cancel and Save.\nB: a sheet on a phone (a dialog on the web), as the start date is changed; a big page field with − and +.\nC: the fields are always there, a stepper for the page; saved a second after the last change, as a series' steppers are.\n\nAll three: a number keyboard (inputmode numeric), 44 px targets or more, and a page above the page count refused before anything is saved." },
+    "picks": { "page": "r1", "x": 2210, "y": 2000, "w": 420, "size": "m", "fill": "green", "text": "Picked 2026-11-16:\nThe card: A (Change turns the panel into two fields in the card, with Clear, Cancel and Save).\nThe row: A (author and since when stay; the bar or \"p. 88\" is a third line)." },
+    "n3": { "page": "r1", "x": 2460, "y": 4700, "w": 420, "size": "m", "fill": "orange", "text": "To pick: where the page sits in the row.\n\nA: author and since when stay; the bar or \"p. 142\" is a third line, where a series' bar is.\nB: once there is a page, it takes the start date's place: \"Susanna Clarke · p. 142\", with the bar under it when there is a page count.\n\nA book with no Progress looks as it does today in both." }
+  },
+  "designSystems": []
+}

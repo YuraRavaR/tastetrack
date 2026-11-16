@@ -50,3 +50,4 @@ Shoots every `.html` in the folder at 390 and 1440 px, in light and dark, with t
 | [`books/`](books/) | Every screen books change: Media Type chips, Search, a book's page, Saved, Collections, adding by hand, the Open Library credit | #174 | Chips C (segmented), covers cropped to 2:3, a typeset cover when there is none |
 | [`catalog-details/`](catalog-details/) | A film's and a book's page: overview, tagline, director and cast, a book's description | #203 | Variant A, under the title |
 | [`series-progress/`](series-progress/) | A series' Progress: the "Watching now" row on Saved, a series' page, the Watch more choice, the Watching tab | #211 | Row A (a bar and a round check), page A (a Watching card with two steppers) |
+| [`book-progress/`](book-progress/) | A book's Progress: its Reading card and the "Reading now" row on Saved | #235 | Card A (Change opens two fields in the card), row A (the page as a third line) |

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Reading card · web · A, B, C</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.66 0.012 60);--destructive:oklch(0.66 0.2 22);--overlay:oklch(0 0 0 / 60%);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--ring:oklch(0.55 0.012 55);--destructive:oklch(0.46 0.18 25);--overlay:oklch(0.2 0.01 50 / 50%)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.stage{width:960px;background:var(--background);border:1px solid var(--border);border-radius:20px;padding:24px;box-sizing:border-box;position:relative;overflow:hidden}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic16{width:16px;height:16px}
+.ic22{width:22px;height:22px}
+.btn{height:40px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:14px;font-weight:600;border:1px solid var(--border);background:var(--card);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.btn.pr{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.btn.s{background:var(--background)}
+.btn.gh{background:transparent;border-color:transparent;color:var(--muted-foreground);padding:0 10px}
+.btn.dis{opacity:0.5}
+.inp{border:1px solid var(--primary-strong);background:var(--primary-soft);border-radius:16px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.top{display:flex;gap:12px;align-items:center}
+.mark{width:40px;height:40px;border-radius:12px;background:var(--card);color:var(--primary-strong);display:grid;place-items:center;flex:none}
+.ib{width:36px;height:36px;border:0;border-radius:10px;background:none;color:var(--muted-foreground);display:grid;place-items:center;cursor:pointer}
+.btns{display:flex;gap:8px}
+.wide{grid-column:1 / -1}
+.sm{font-size:14px;color:var(--muted-foreground)}
+.lbl{font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:24px;width:100%;box-sizing:border-box;font:inherit;color:inherit;text-align:left}
+.col{display:flex;flex-direction:column;min-width:0}
+.big{font-size:20px;font-weight:700;letter-spacing:-0.01em}
+.go{width:40px;height:40px;border-radius:999px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);display:grid;place-items:center;flex:none;box-sizing:border-box}
+.br{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted-foreground);white-space:nowrap;flex:1;max-width:340px}
+.bar{flex:1;height:6px;border-radius:999px;background:var(--muted);overflow:hidden;display:block}
+.bar i{display:block;height:100%;background:var(--primary-strong);border-radius:999px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.num{height:40px;border:1px solid var(--input);border-radius:10px;background:var(--background);color:inherit;font:inherit;font-size:16px;font-weight:700;padding:0 12px;width:100%;box-sizing:border-box}
+.num.foc{border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklch,var(--ring) 45%,transparent)}
+.st{display:flex;align-items:center;gap:10px;font-size:15px}
+.stp{display:flex;align-items:center;border:1px solid var(--input);border-radius:10px;background:var(--background)}
+.stp button{width:40px;height:40px;border:0;background:none;color:inherit;display:grid;place-items:center;cursor:pointer}
+.sin{width:64px;height:40px;border:0;border-left:1px solid var(--border);border-right:1px solid var(--border);background:none;color:inherit;font:inherit;font-size:16px;font-weight:700;text-align:center;box-sizing:border-box}
+.cnt{width:96px;height:42px;border:1px solid var(--input);border-radius:10px;background:var(--background);color:inherit;font:inherit;font-size:16px;font-weight:700;text-align:center;box-sizing:border-box}
+.foc2{outline:2px solid var(--ring);outline-offset:1px}
+.ov{position:absolute;inset:0;background:var(--overlay)}
+.dlg{position:relative;margin:0 auto;width:480px;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 50px oklch(0 0 0 / 35%);display:flex;flex-direction:column}
+.dhd{display:flex;align-items:center;gap:12px;padding:20px 12px 4px 24px}
+.x{width:40px;height:40px;border-radius:10px;border:0;background:none;color:var(--muted-foreground);display:grid;place-items:center;margin-left:auto;align-self:flex-start;cursor:pointer}
+.dbody{display:flex;flex-direction:column;gap:18px;padding:14px 24px 20px}
+.bs{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:8px}
+.bs button{height:48px;border-radius:12px;border:1px solid var(--border);background:var(--background);color:inherit;display:grid;place-items:center;cursor:pointer}
+.bs .num{height:48px;font-size:22px;text-align:center}
+.dft{display:flex;align-items:center;gap:8px;padding:16px 24px 20px;border-top:1px solid var(--border)}
+</style>
+</helmet>
+<div style="width: 1980px; display: flex; flex-direction: column; gap: 50px">
+
+<div style="display: flex; gap: 60px; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 10px"><div class="cap">A · A page and the page count</div>
+<div class="tt stage" data-theme="{{theme}}">
+<section class="inp" aria-label="Reading">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Reading</div><div class="sm">Since 12 October 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="btns"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop reading</button></div>
+<div class="panel wide"><div class="col" style="width: 150px"><span class="lbl">Page</span><span class="big">142</span><span class="sm">130 pages to go</span></div><div class="br"><span class="bar" role="img" aria-label="Page 142 of 272"><i style="width: 52%"></i></span>142 of 272</div><button class="btn s" style="margin-left: auto"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg>Change</button></div>
+</section>
+</div></div>
+<div style="display: flex; flex-direction: column; gap: 10px"><div class="cap">A · Changing it in the card</div>
+<div class="tt stage" data-theme="{{theme}}">
+<section class="inp" aria-label="Reading">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Reading</div><div class="sm">Since 12 October 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="btns"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop reading</button></div>
+<form class="panel wide" style="align-items: flex-end; gap: 12px"><label class="fld" style="width: 140px"><span class="lbl">Page</span><input class="num foc" inputmode="numeric" value="168"></label><label class="fld" style="width: 180px"><span class="lbl">Pages in your edition</span><input class="num" inputmode="numeric" value="272" placeholder="Optional"></label><button type="button" class="btn gh" style="margin-left: auto">Clear</button><button type="button" class="btn s">Cancel</button><button type="submit" class="btn pr">Save</button></form>
+</section>
+</div></div>
+</div>
+
+<div style="display: flex; gap: 60px; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 10px"><div class="cap">B · A page and the page count: the panel is one button</div>
+<div class="tt stage" data-theme="{{theme}}">
+<section class="inp" aria-label="Reading">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Reading</div><div class="sm">Since 12 October 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="btns"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop reading</button></div>
+<button class="panel wide" style="cursor: pointer" aria-label="Page 142 of 272. Change your page"><span class="col" style="width: 150px"><span class="lbl">Page</span><span class="big">142</span><span class="sm">130 pages to go</span></span><span class="br" aria-hidden="true"><span class="bar"><i style="width: 52%"></i></span>142 of 272</span><span class="go" style="margin-left: auto" aria-hidden="true"><svg class="ic ic16" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></span></button>
+</section>
+</div></div>
+<div style="display: flex; flex-direction: column; gap: 10px"><div class="cap">B · Changing it: a centred dialog from md</div>
+<div class="tt stage" data-theme="{{theme}}" style="padding: 32px 24px">
+<div class="ov"></div>
+<form class="dlg" role="dialog" aria-label="Your page">
+<div class="dhd"><div class="col"><span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Your page</span><span class="sm">Piranesi</span></div><button type="button" class="x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+<div class="dbody">
+<div class="fld"><span class="lbl">Page</span><div class="bs"><button type="button" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><input class="num foc" inputmode="numeric" aria-label="Page" value="168"><button type="button" aria-label="Next page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
+<label class="fld"><span class="lbl">Pages in your edition <span style="font-weight: 400">· optional</span></span><input class="num" inputmode="numeric" value="272"></label>
+</div>
+<div class="dft"><button type="button" class="btn gh" style="margin-left: -10px">Clear</button><button type="button" class="btn" style="margin-left: auto">Cancel</button><button type="submit" class="btn pr">Save</button></div>
+</form>
+</div></div>
+</div>
+
+<div style="display: flex; gap: 60px; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 10px"><div class="cap">C · A page and the page count: fields always open</div>
+<div class="tt stage" data-theme="{{theme}}">
+<section class="inp" aria-label="Reading">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Reading</div><div class="sm">Since 12 October 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="btns"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop reading</button></div>
+<div class="panel wide" role="group" aria-label="Where you are"><div class="st"><span>Page</span><span class="stp"><button type="button" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><input class="sin" inputmode="numeric" aria-label="Page" value="142"><button type="button" aria-label="Next page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div><label class="st"><span>of</span><input class="cnt" inputmode="numeric" aria-label="Pages in your edition" value="272" placeholder="Optional"></label><div class="br"><span class="bar" role="img" aria-label="Page 142 of 272"><i style="width: 52%"></i></span>142 of 272</div><button type="button" class="btn gh" style="margin-left: auto">Clear</button></div>
+</section>
+</div></div>
+<div style="display: flex; flex-direction: column; gap: 10px"><div class="cap">C · Typing: saved a second after the last change</div>
+<div class="tt stage" data-theme="{{theme}}">
+<section class="inp" aria-label="Reading">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Reading</div><div class="sm">Since 12 October 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="btns"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop reading</button></div>
+<div class="panel wide" role="group" aria-label="Where you are"><div class="st"><span>Page</span><span class="stp"><button type="button" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><input class="sin foc2" inputmode="numeric" aria-label="Page" value="168"><button type="button" aria-label="Next page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div><label class="st"><span>of</span><input class="cnt" inputmode="numeric" aria-label="Pages in your edition" value="272" placeholder="Optional"></label><div class="br"><span class="bar" role="img" aria-label="Page 168 of 272"><i style="width: 62%"></i></span>168 of 272</div><button type="button" class="btn gh" style="margin-left: auto">Clear</button></div>
+</section>
+</div></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1980,"height":1150}}'>
+class Component extends DCLogic {
+renderVals() {
+return { theme: this.props.theme ?? 'dark' };
+}
+}
+</script>
+</body>
+</html>
