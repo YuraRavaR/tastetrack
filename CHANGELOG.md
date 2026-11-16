@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.13.0](https://github.com/YuraRavaR/tastetrack/compare/v0.12.0...v0.13.0) (2026-11-16)
+
+
+### Features
+
+* **catalog:** a book's page says what the book is about ([#234](https://github.com/YuraRavaR/tastetrack/issues/234)) ([7a33b59](https://github.com/YuraRavaR/tastetrack/commit/7a33b594ab37834066651553d774e5f77f300c7e))
+* **catalog:** a film's page says what the film is about ([#230](https://github.com/YuraRavaR/tastetrack/issues/230)) ([e4df883](https://github.com/YuraRavaR/tastetrack/commit/e4df883640cdab7a153c042ea5a14c55e44e81a3))
+* **catalog:** a series' page says what the series is about ([#231](https://github.com/YuraRavaR/tastetrack/issues/231)) ([43af9ae](https://github.com/YuraRavaR/tastetrack/commit/43af9ae3e1995050431575e817dd6e672fd918e4)), closes [#216](https://github.com/YuraRavaR/tastetrack/issues/216)
+* **catalog:** refresh running series someone has In Progress every day ([#223](https://github.com/YuraRavaR/tastetrack/issues/223)) ([4428135](https://github.com/YuraRavaR/tastetrack/commit/4428135ab6c6fcaa364d3260f2f14623b737e0ce)), closes [#215](https://github.com/YuraRavaR/tastetrack/issues/215)
+* **catalog:** series in Search, on their page, in Saved and in Collections ([#221](https://github.com/YuraRavaR/tastetrack/issues/221)) ([13073b7](https://github.com/YuraRavaR/tastetrack/commit/13073b72050057b4b178512f8675b68150fcab32))
+* **catalog:** series in the API, from TMDB tv shows ([#219](https://github.com/YuraRavaR/tastetrack/issues/219)) ([e3c36db](https://github.com/YuraRavaR/tastetrack/commit/e3c36db96eac156a2a727dcb79bfe1cb03b542ef))
+* **in-progress:** a series already rated offers Watch more, from its latest season by default ([#225](https://github.com/YuraRavaR/tastetrack/issues/225)) ([e32a457](https://github.com/YuraRavaR/tastetrack/commit/e32a457c2a1110d6f5e321731f76416a37a686b6))
+* **in-progress:** a series can be watched, with its Progress in the API ([#222](https://github.com/YuraRavaR/tastetrack/issues/222)) ([7661a56](https://github.com/YuraRavaR/tastetrack/commit/7661a5691282ba7ed53ae42258224fc833834ff6))
+* **in-progress:** watch a series one episode at a time, with the check, the bar and Caught up ([#224](https://github.com/YuraRavaR/tastetrack/issues/224)) ([0277eb8](https://github.com/YuraRavaR/tastetrack/commit/0277eb8d5e1e87c67fbc17c1cb5c8163bc198876))
+
+
+### Bug Fixes
+
+* **deps:** bump the production-dependencies group with 3 updates ([#232](https://github.com/YuraRavaR/tastetrack/issues/232)) ([b920667](https://github.com/YuraRavaR/tastetrack/commit/b920667c27d06f2b964f241935e86f73329b4dce))
+
 ## [0.12.0](https://github.com/YuraRavaR/tastetrack/compare/v0.11.0...v0.12.0) (2026-11-11)
 
 
