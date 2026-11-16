@@ -68,7 +68,16 @@ export const kafkaOnTheShoreId = "OL2625431W";
 export const kafkaOnTheShore = (client: ApiClient) => {
   return book(client, "Kafka on the Shore", kafkaOnTheShoreId);
 };
-// A work without a cover.
+// A work whose description names other books and authors as Markdown reference links, with the
+// list of links at its end.
+export const nameOfTheWindId = "OL8479867W";
+export const nameOfTheWind = (client: ApiClient) => {
+  return book(client, "The Name of the Wind", nameOfTheWindId);
+};
+// A work whose description ends with a list of inline Markdown links to the books it is in.
+export const greatGatsbyId = "OL468431W";
+export const greatGatsby = (client: ApiClient) => book(client, "The Great Gatsby", greatGatsbyId);
+// A work without a cover, or a description.
 export const hymnId = "OL12697597W";
 export const hymn = (client: ApiClient) => book(client, "Himn demokratychnoï molodi", hymnId);
 

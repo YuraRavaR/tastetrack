@@ -168,10 +168,13 @@ export interface FilmCacheExtra {
   cast?: string[];
 }
 
-// What only a book's cache entry has: its authors' names, in the source's order. A row filled from
-// a search result alone has none.
+// What only a book's cache entry has: its authors' names, in the source's order, and for its About
+// block the work's description, cleaned of Markdown links (ADR-0011), null when it has none. A row
+// filled from a search result alone has neither, and a row filled before descriptions were kept
+// (#228) lacks one until the cron refreshes it: a missing one reads as none.
 export interface BookCacheExtra {
   authors: string[];
+  description?: string | null;
 }
 
 // What only a series' cache entry has, from its one details call (ADR-0004). Seasons leave out

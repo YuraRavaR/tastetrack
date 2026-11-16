@@ -137,8 +137,10 @@ test("a result opens the book's page, with its cover over a blurred copy, its ti
   await expect(filmPage.pictureImage).toHaveAttribute("src", cover);
   await expect(filmPage.pictureImage).toHaveCSS("filter", /blur/);
   await expect(filmPage.posterImage(cover)).toBeVisible();
-  // Before a first Reading: Read, Want to read and Add to collection, and an empty Readings.
+  // More, for its description, then before a first Reading: Read, Want to read and Add to
+  // collection, and an empty Readings.
   await expect(filmPage.buttons).toHaveText([
+    "More",
     "Read",
     "Want to read",
     "Start reading",

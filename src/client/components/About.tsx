@@ -150,5 +150,13 @@ export function aboutProps(about: AboutData): AboutProps {
         ],
         source: t("about.fromTmdb"),
       };
+    // A description is in whatever language it was typed, so it is never switched or marked.
+    case "book":
+      return {
+        tagline: { en: null, uk: null },
+        overview: { en: about.description, uk: null },
+        credits: [],
+        source: t("about.fromOpenLibrary"),
+      };
   }
 }

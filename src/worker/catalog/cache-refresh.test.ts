@@ -212,7 +212,7 @@ describe("which cache entries the cron refreshes", () => {
     for (let id = 1; id <= 45; id++) {
       await film(String(id), { in: "log", cached: { updated: daysAgo(10 + id) } });
     }
-    // As if films cost two subrequests an entry, as books do.
+    // As if films cost two subrequests an entry.
     const twoEach = () => 2;
 
     const batch = (await dueForRefresh(db, now, undefined, twoEach)).map((key) => key.externalId);
@@ -221,17 +221,21 @@ describe("which cache entries the cron refreshes", () => {
     expect(odd.map((key) => key.externalId)).toEqual(["45", "44"]);
   });
 
-  it("counts a film as one subrequest and a book as two, and never spends more than 40", async () => {
-    // From the oldest: a book, a film, a book, a film and so on, three subrequests a pair.
+  it("counts a film as one subrequest and a book as three, and never spends more than 40", async () => {
+    // From the oldest: a book, a film, a book, a film and so on, four subrequests a pair.
     for (let n = 1; n <= 20; n++) {
       await book(`OL${n}W`, { in: "log", cached: { updated: daysAgo(100 - 2 * n) } });
       await film(String(n), { in: "log", cached: { updated: daysAgo(99 - 2 * n) } });
     }
+    const pairs = (count: number) => {
+      return Array.from({ length: count }, (_, index) => [`OL${index + 1}W`, String(index + 1)]);
+    };
 
-    const batch = await dueForRefresh(db, now);
-    // Thirteen pairs cost 39, and the next book doesn't fit: the film after it doesn't jump it.
-    expect(batch.map((key) => key.externalId)).toEqual(
-      Array.from({ length: 13 }, (_, index) => [`OL${index + 1}W`, String(index + 1)]).flat(),
+    // Ten pairs cost 40.
+    expect((await dueForRefresh(db, now)).map((key) => key.externalId)).toEqual(pairs(10).flat());
+    // Of 38, nine pairs leave 2, so the next book doesn't fit, and the film after it doesn't jump it.
+    expect((await dueForRefresh(db, now, 38)).map((key) => key.externalId)).toEqual(
+      pairs(9).flat(),
     );
   });
 
@@ -450,9 +454,10 @@ describe("a cron run", () => {
       await book(`OL404${n}W`, { in: "list", cached: { updated: daysAgo(79.5 - n) } });
     }
 
-    // Three for the two, then thirteen films and twelve books: the thirteenth book doesn't fit.
-    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 2, failed: 25, deleted: 0 });
-    expect(subrequests).toBe(40);
+    // Four for the two, then nine films and nine books, four a pair. A book Open Library doesn't
+    // have makes two of its three: its search, then its record's 404.
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 2, failed: 18, deleted: 0 });
+    expect(subrequests).toBe(4 + 9 * (1 + 2));
     const [alien, tyhrolovy] = await userLog(db, userId, now);
     expect(alien?.mediaItem.metadata?.title).toBe("Alien");
     expect(tyhrolovy?.mediaItem.metadata).toEqual({
@@ -479,9 +484,10 @@ describe("a cron run", () => {
       await book(`OL404${n}W`, { in: "list", cached: { updated: daysAgo(79.5 - n) } });
     }
 
-    // Four for the three, then twelve series and twelve books, three a pair.
-    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 3, failed: 24, deleted: 0 });
-    expect(subrequests).toBe(40);
+    // Five for the three, then eight series and eight books, four a pair, and one more series: the
+    // ninth book doesn't fit. A book Open Library doesn't have makes two of its three.
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 3, failed: 17, deleted: 0 });
+    expect(subrequests).toBe(5 + 9 + 8 * 2);
     const [chernobyl] = await catalogMediaItems(db, env, [1], now);
     expect(chernobyl?.metadata).toMatchObject({
       title: "Chernobyl",
@@ -535,10 +541,11 @@ describe("a cron run", () => {
       await book(`OL404${n}W`, { in: "list", cached: { updated: daysAgo(49.5 - n) } });
     }
 
-    // Twenty series, then three for Alien and Tigrolovy, then six films and five books, three a
-    // pair: the sixth book doesn't fit, and the series behind it wait for the next run.
-    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 3, failed: 30, deleted: 0 });
-    expect(subrequests).toBe(39);
+    // Twenty series, then four for Alien and Tigrolovy, then four films and four books, four a
+    // pair, which spend the 40: the series behind them wait for the next run. A book Open Library
+    // doesn't have makes two of its three.
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 3, failed: 27, deleted: 0 });
+    expect(subrequests).toBe(20 + 4 + 4 + 4 * 2);
     expect(await loggedTitles()).toEqual(expect.arrayContaining(["Alien", "Тигролови"]));
   });
 
