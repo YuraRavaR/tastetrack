@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A book's Reading card · phone · C</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.66 0.012 60);--destructive:oklch(0.66 0.2 22);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--ring:oklch(0.55 0.012 55);--destructive:oklch(0.46 0.18 25);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:844px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;box-sizing:border-box}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic22{width:22px;height:22px}
+.pic{position:relative;height:219px;overflow:hidden}
+.pic img{position:absolute;left:-15%;top:-15%;width:130%;height:130%;object-fit:cover;filter:blur(24px) saturate(1.3)}
+.pic::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,var(--background) 100%)}
+.head{position:relative;display:flex;align-items:flex-end;gap:14px;margin-top:-72px;padding:0 16px}
+.art{width:104px;height:156px;border-radius:10px;object-fit:cover;border:1px solid var(--border);box-shadow:0 8px 24px oklch(0 0 0 / 35%);flex:none;box-sizing:border-box}
+.titles{display:flex;flex-direction:column;gap:3px;min-width:0;padding-bottom:2px}
+.h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-0.01em;line-height:1.15}
+.uk{margin:0;font-size:14px;font-weight:600;color:var(--muted-foreground)}
+.facts{margin:2px 0 0;font-size:13px;color:var(--muted-foreground)}
+.body{display:flex;flex-direction:column;gap:18px;padding:18px 16px 0}
+.btn{height:48px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:var(--card);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.btn.pr{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.btn.pl{background:transparent;height:44px}
+.btn.gh{background:transparent;border-color:transparent;color:var(--muted-foreground);padding:0 8px;height:44px;margin:-10px -6px -10px auto}
+.inp{border:1px solid var(--primary-strong);background:var(--primary-soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;gap:12px;align-items:center}
+.mark{width:40px;height:40px;border-radius:12px;background:var(--card);color:var(--primary-strong);display:grid;place-items:center;flex:none}
+.ib{width:44px;height:44px;border:0;border-radius:10px;background:none;color:var(--muted-foreground);display:grid;place-items:center;margin-left:auto;cursor:pointer}
+.sm{font-size:14px;color:var(--muted-foreground)}
+.lbl{font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.lh{display:flex;align-items:center;min-height:24px}
+.st{display:flex;align-items:center;gap:10px;font-size:15px}
+.stp{margin-left:auto;display:flex;align-items:center;border:1px solid var(--input);border-radius:12px;background:var(--background);box-sizing:border-box}
+.stp button{width:44px;height:44px;border:0;background:none;color:inherit;display:grid;place-items:center;cursor:pointer}
+.sin{width:72px;height:44px;border:0;border-left:1px solid var(--border);border-right:1px solid var(--border);background:none;color:inherit;font:inherit;font-size:17px;font-weight:700;text-align:center;box-sizing:border-box}
+.sin::placeholder,.cnt::placeholder{color:var(--muted-foreground);font-weight:400;font-size:15px}
+.cnt{margin-left:auto;width:162px;height:46px;border:1px solid var(--input);border-radius:12px;background:var(--background);color:inherit;font:inherit;font-size:17px;font-weight:700;text-align:center;box-sizing:border-box}
+.foc{outline:2px solid var(--ring);outline-offset:1px;border-radius:2px}
+.stp.bad{border-color:var(--destructive);box-shadow:0 0 0 3px color-mix(in oklch,var(--destructive) 25%,transparent)}
+.err{display:flex;gap:6px;align-items:flex-start;font-size:14px;color:var(--destructive);margin:0}
+.br{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted-foreground);white-space:nowrap}
+.bar{flex:1;height:6px;border-radius:999px;background:var(--muted);overflow:hidden;display:block}
+.bar i{display:block;height:100%;background:var(--primary-strong);border-radius:999px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.h2{font-size:18px;font-weight:600;margin:6px 0 -6px}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:20px 16px;font-size:14px;color:var(--muted-foreground);text-align:center}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tb.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 2110px; display: flex; gap: 40px; align-items: flex-start">
+<sc-for list="{{states}}" as="s" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{s.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pic"><img src="/_blob/9628d7d4054da40370045c9ffb743b77" alt=""></div>
+<div class="head"><img class="art" src="/_blob/9628d7d4054da40370045c9ffb743b77" alt="Piranesi cover"><div class="titles"><h1 class="h1">Piranesi (2020)</h1><p class="uk">Піранезі</p><p class="facts">Susanna Clarke</p></div></div>
+<div class="body">
+<section class="inp" aria-label="Reading">
+<div class="top"><span class="mark"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><div><div style="font-size: 16px; font-weight: 700">Reading</div><div class="sm">Since 12 October 2026</div></div><button class="ib" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></button></div>
+<div class="panel" role="group" aria-label="Where you are">
+<div class="lh"><span class="lbl">Where you are</span><sc-if value="{{s.clear}}" hint-placeholder-val="{{true}}"><button type="button" class="btn gh">Clear</button></sc-if></div>
+<div class="st"><span>Page</span><span class="{{s.stpClass}}"><button type="button" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><input class="{{s.pageClass}}" inputmode="numeric" aria-label="Page" value="{{s.page}}" placeholder="–"><button type="button" aria-label="Next page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></span></div>
+<sc-if value="{{s.bad}}" hint-placeholder-val="{{false}}"><p class="err" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 1px"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>Page 312 is past the last page, 272. Not saved.</p></sc-if>
+<label class="st"><span>Pages in your edition</span><input class="cnt" inputmode="numeric" value="{{s.count}}" placeholder="Optional"></label>
+<sc-if value="{{s.meter}}" hint-placeholder-val="{{true}}"><div class="br"><span class="bar" role="img" aria-label="{{s.meterLabel}}"><i style="width: {{s.pct}}"></i></span>{{s.meterText}}</div></sc-if>
+</div>
+<div class="two"><button class="btn pr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop reading</button></div>
+</section>
+<div class="acts"><button class="btn pl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+<div class="h2">Readings</div>
+<div class="empty">Not read yet</div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tb on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tb"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":2110,"height":880}}'>
+class Component extends DCLogic {
+renderVals() {
+const base = { stpClass: 'stp', pageClass: 'sin', page: '', count: '', clear: false, meter: false, bad: false };
+return {
+theme: this.props.theme ?? 'dark',
+states: [
+{ ...base, cap: 'C · No page yet: the fields are empty' },
+{ ...base, cap: 'C · A page only', page: '142', clear: true },
+{ ...base, cap: 'C · A page and the page count', page: '142', count: '272', clear: true, meter: true, pct: '52%', meterText: '142 of 272', meterLabel: 'Page 142 of 272' },
+{ ...base, cap: 'C · Typing: number keyboard, saved a second after', page: '168', pageClass: 'sin foc', count: '272', clear: true, meter: true, pct: '62%', meterText: '168 of 272', meterLabel: 'Page 168 of 272' },
+{ ...base, cap: 'C · A page past the page count, refused', page: '312', stpClass: 'stp bad', count: '272', clear: true, bad: true, meter: true, pct: '52%', meterText: '142 of 272', meterLabel: 'Page 142 of 272' }
+]
+};
+}
+}
+</script>
+</body>
+</html>
