@@ -100,7 +100,7 @@ test("finishing a book returns its Log Entry, and the book is Read and no longer
     currentRating: 4.5,
     inBacklog: false,
     inProgress: null,
-    about: null,
+    about: { mediaType: "book", description: expect.stringMatching(/^Роман Івана Багряного/) },
   });
   expect(await bookLibrary(loggedInApi)).toEqual([
     {
@@ -144,7 +144,7 @@ test("stopping a book leaves no Log Entry and no Reading list item, and the book
     currentRating: null,
     inBacklog: false,
     inProgress: null,
-    about: null,
+    about: { mediaType: "book", description: expect.stringMatching(/^Роман Івана Багряного/) },
   });
   expect(await bookLibrary(loggedInApi)).toEqual([]);
 });

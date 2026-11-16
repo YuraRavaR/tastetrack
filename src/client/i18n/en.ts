@@ -502,6 +502,7 @@ export const en = {
   "about.createdBy": "Created by",
   "about.cast": "Cast",
   "about.fromTmdb": "From TMDB",
+  "about.fromOpenLibrary": "From Open Library",
   "manualItem.editTitle": "Edit {film}",
   "manualItem.title": "Title",
   "manualItem.originalTitle": "Original Title",

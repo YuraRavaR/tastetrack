@@ -2,6 +2,7 @@
 // stays in this file. Both a search and a book's details go through Open Library's search, the
 // one call that gives a work with its authors' names, its first-published year and its edition in
 // a language; a work's own record names its authors only by key, and its editions come in pages.
+// Search gives a work's description too, but only to a call that doesn't ask for its editions.
 import { z } from "zod";
 import type { CoverUrls } from "../../../shared/api";
 import {
@@ -68,6 +69,13 @@ const workFields = [
 
 const SearchResponse = z.object({ docs: z.array(z.unknown()) });
 
+// A work's description, which comes either as text or as a typed value.
+const DescribedWork = z.object({
+  description: z
+    .union([z.string(), z.object({ value: z.string() }).transform(({ value }) => value)])
+    .optional(),
+});
+
 // A work's own record, of which we read only what became of the work.
 const WorkRecord = z.object({
   type: z.object({ key: z.string() }),
@@ -112,6 +120,15 @@ async function get(env: CatalogEnv, path: string, params: Record<string, string>
   return response.json().catch(() => undefined);
 }
 
+// One search, answered with the works it found, each as Open Library gave it.
+async function search(env: CatalogEnv, params: Record<string, string>): Promise<unknown[]> {
+  const body = SearchResponse.safeParse(await get(env, "/search.json", params));
+  if (!body.success) {
+    throw new SourceUnavailable("Open Library search answered in an unknown shape", "temporary");
+  }
+  return body.data.docs;
+}
+
 // One search for works, each with its edition in the language. `lang` is a hint that ranks and
 // excludes nothing; the language filter is never used, since it drops works with no edition in
 // the language. A work that isn't shaped as we read it is left out.
@@ -121,21 +138,43 @@ async function searchWorks(
   language: Language,
   limit: number,
 ): Promise<Work[]> {
-  const body = SearchResponse.safeParse(
-    await get(env, "/search.json", {
-      q,
-      lang: language,
-      limit: String(limit),
-      fields: workFields,
-    }),
-  );
-  if (!body.success) {
-    throw new SourceUnavailable("Open Library search answered in an unknown shape", "temporary");
-  }
-  return body.data.docs.flatMap((doc) => {
+  const docs = await search(env, { q, lang: language, limit: String(limit), fields: workFields });
+  return docs.flatMap((doc) => {
     const work = Work.safeParse(doc);
     return work.success ? [work.data] : [];
   });
+}
+
+// A reference-style link's definition, such as `  [1]: https://…`, and a horizontal rule.
+const linkDefinition = /^ {0,3}\[[^\]]+\]:\s*\S+.*$/;
+const horizontalRule = /^ {0,3}([-*_])(\s*\1){2,}\s*$/;
+
+// A description as a book's page shows it: Markdown links as their text, the list of link
+// definitions at its end cut, with the rule before it, and lines broken by `\n` alone. Nothing else
+// is rewritten, so the rest of its Markdown stays as typed. Null when nothing is left.
+function cleanDescription(description: string): string | null {
+  const lines = description.replace(/\r\n?/g, "\n").trimEnd().split("\n");
+  const last = () => lines.at(-1) ?? "";
+  if (linkDefinition.test(last())) {
+    while (lines.length > 0 && (linkDefinition.test(last()) || last().trim() === "")) lines.pop();
+    if (horizontalRule.test(last())) lines.pop();
+  }
+  const text = lines
+    .join("\n")
+    // `[text][1]`, and `[text](url)`, whose URL may hold a pair of parentheses.
+    .replace(/\[([^\]\n]*)\]\[[^\]\n]*\]/g, "$1")
+    .replace(/\[([^\]\n]*)\]\((?:[^()\s]|\([^()\s]*\))*\)/g, "$1")
+    .trim();
+  return text || null;
+}
+
+// A work's description, cleaned, or null when it has none. A search of its own: Open Library
+// answers 500 to one that asks for both the description and the editions.
+async function descriptionOf(env: CatalogEnv, id: string): Promise<string | null> {
+  const [doc] = await search(env, { q: `key:/works/${id}`, limit: "1", fields: "key,description" });
+  const work = DescribedWork.safeParse(doc);
+  const description = work.success ? work.data.description : undefined;
+  return description ? cleanDescription(description) : null;
 }
 
 // The title of the edition the work came with, if that edition is in the language asked for.
@@ -194,11 +233,11 @@ async function mergedInto(env: CatalogEnv, id: string): Promise<string> {
   return target;
 }
 
-// Two calls, one after the other: the work with its Ukrainian edition, then with its English one.
-// The Original Title is the work's, and each Localized Title an edition's in that language, none
-// when the work has no such edition. A work search doesn't have costs one call instead of the
-// second, to learn what became of it; only a merged work costs two more, for the work it became.
-// The entry stays under the ID asked for.
+// Three calls, one after the other: the work with its Ukrainian edition, then with its English one,
+// then its description. The Original Title is the work's, and each Localized Title an edition's in
+// that language, none when the work has no such edition. A work search doesn't have costs one call
+// instead of the other two, to learn what became of it; only a merged work costs three more, for
+// the work it became. The entry stays under the ID asked for.
 async function bookDetails(
   env: CatalogEnv,
   id: string,
@@ -212,20 +251,21 @@ async function bookDetails(
     return bookDetails(env, await mergedInto(env, id), true);
   }
   const english = (await workIn(env, id, "en")) ?? ukrainian;
+  const description = await descriptionOf(env, id);
   return {
     englishTitle: editionTitle(english, "en"),
     ukrainianTitle: editionTitle(ukrainian, "uk"),
     originalTitle: english.title,
     year: english.first_publish_year ?? null,
     coverRef: coverIdIn(english),
-    extra: { authors: english.author_name ?? [] },
+    extra: { authors: english.author_name ?? [], description },
   };
 }
 
 export const openLibraryBooks: CatalogSource<"book"> = {
   externalSource: "openlibrary",
   mediaType: "book",
-  refreshCost: 2,
+  refreshCost: 3,
   // Open Library sets no limit on how long its data may be kept (ADR-0011).
   maxEntryAge: null,
   search: searchBooks,
@@ -240,6 +280,7 @@ export const openLibraryBooks: CatalogSource<"book"> = {
     coverUrls: coverUrls(entry.coverRef),
     authors: entry.extra.authors,
   }),
-  // A book's page shows no About block yet (#228).
-  aboutOf: () => null,
+  // Nothing to show without a description. A row filled from a search result alone has none.
+  aboutOf: ({ extra: { description } }) =>
+    description ? { mediaType: "book", description } : null,
 };

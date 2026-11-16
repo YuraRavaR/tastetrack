@@ -915,8 +915,21 @@ export const SeriesAbout = z
   })
   .openapi("SeriesAbout");
 
+// What a book's page shows in its About block: Open Library's description of the work, in whatever
+// language it was typed, its Markdown links shown as their text and its paragraphs kept.
+export const BookAbout = z
+  .object({
+    mediaType: z.literal("book"),
+    description: z.string().openapi({
+      example: "Turning the envelope over, his hand trembling, Harry saw…\n\nHARRY POTTER has…",
+    }),
+  })
+  .openapi("BookAbout");
+
 // What a Media Item's page shows in its About block, by its Media Type.
-export const About = z.discriminatedUnion("mediaType", [FilmAbout, SeriesAbout]).openapi("About");
+export const About = z
+  .discriminatedUnion("mediaType", [FilmAbout, SeriesAbout, BookAbout])
+  .openapi("About");
 
 export type About = z.infer<typeof About>;
 
