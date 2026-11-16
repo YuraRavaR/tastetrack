@@ -454,7 +454,7 @@ interface FakeSeries {
   cast: string[];
 }
 
-// Series as real TMDB had them on 2026-11-15, the overviews shortened.
+// Series as real TMDB had them on 2026-11-15, and their overviews on 2026-11-16.
 const series: FakeSeries[] = [
   // Still running, with its season's last episode listed before it airs.
   {
@@ -474,7 +474,7 @@ const series: FakeSeries[] = [
       "uk-UA": {
         name: "Земля Гангстерів",
         overview:
-          "Дві впливові злочинні династії ведуть жорстоку війну за контроль над підпільним світом Лондона.",
+          "Дві впливові злочинні династії – Гаррігани та Стівенсони , ведуть жорстоку війну за контроль над наркоринком та підпільним світом Лондона. Це кривава гра без правил, де кожен хід може стати фатальним. Головний герой, Гаррі да Соуза, опиняється в епіцентрі цього протистояння, намагаючись зберегти свою сім'ю та своє місце в ієрархії.",
         tagline: "І запанує хаос.",
       },
     },
@@ -504,12 +504,13 @@ const series: FakeSeries[] = [
       "en-US": {
         name: "Chernobyl",
         overview:
-          "The true story of one of the worst man-made catastrophes in history: the catastrophic nuclear accident at Chernobyl.",
+          "The true story of one of the worst man-made catastrophes in history: the catastrophic nuclear accident at Chernobyl. A tale of the brave men and women who sacrificed to save Europe from unimaginable disaster.",
         tagline: "What is the cost of lies?",
       },
       "uk-UA": {
         name: "Чорнобиль",
-        overview: "Сюжет розгортається 1986 року під час трагічних подій на Чорнобильській АЕС.",
+        overview:
+          "Сюжет розгортається 1986 року під час трагічних подій на Чорнобильській АЕС. У центрі уваги – радянський науковець, який має провести розслідування того, що трапилося.",
         tagline: "Яка ціна брехні?",
       },
     },
@@ -539,13 +540,13 @@ const series: FakeSeries[] = [
       "en-US": {
         name: "Breaking Bad",
         overview:
-          "Walter White, a New Mexico chemistry teacher, is diagnosed with Stage III cancer and given a prognosis of only two years left to live.",
+          "Walter White, a New Mexico chemistry teacher, is diagnosed with Stage III cancer and given a prognosis of only two years left to live. He becomes filled with a sense of fearlessness and an unrelenting desire to secure his family's financial future at any cost as he enters the dangerous world of drugs and crime.",
         tagline: "Change the equation.",
       },
       "uk-UA": {
         name: "Пуститися берега",
         overview:
-          "Шкільний учитель хімії Волтер Вайт дізнається, що хворий на рак легенів, і вирішує зайнятися виготовленням метамфетаміну.",
+          "Шкільний учитель хімії Волтер Вайт дізнається, що хворий на рак легенів. З огляду на складний фінансовий стан справ сім'ї, а також перспективи, Волтер вирішує зайнятися виготовленням метамфетаміну. Для цього він залучає свого колишнього учня Джессі Пінкмана, колись виключеного зі школи за активного сприяння Вайта. Пінкман сам займався «варінням мету», але напередодні, в ході рейду УБН, він позбувся напарника і лабораторії.",
         tagline: "Як далеко ти готовий зайти заради родини?",
       },
     },
@@ -555,8 +556,8 @@ const series: FakeSeries[] = [
     created_by: ["Vince Gilligan"],
     cast: ["Bryan Cranston", "Aaron Paul", "Anna Gunn", "RJ Mitte", "Dean Norris", "Betsy Brandt"],
   },
-  // Not a real series: a backdrop (Chernobyl's picture) and no poster, no translation and no
-  // tagline, and no creators TMDB knows of.
+  // Not a real series: a backdrop (Chernobyl's picture) and no poster, an English overview short
+  // enough to show whole and no Ukrainian one, no tagline, and no creators or cast TMDB knows of.
   {
     id: 999_000_102,
     original_name: "TMDB Fake No Poster Series",
@@ -565,7 +566,13 @@ const series: FakeSeries[] = [
     status: "Canceled",
     poster_path: null,
     backdrop_path: "/900tHlUYUkp7Ol04XFSoAaEIXcT.jpg",
-    translations: {},
+    translations: {
+      "en-US": {
+        name: "TMDB Fake No Poster Series",
+        overview: "A series with no poster.",
+        tagline: "",
+      },
+    },
     seasons: { 1: 2 },
     last_episode_to_air: { season_number: 1, episode_number: 2, air_date: "2021-09-08" },
     next_episode_to_air: null,

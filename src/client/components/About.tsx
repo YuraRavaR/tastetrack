@@ -140,5 +140,15 @@ export function aboutProps(about: AboutData): AboutProps {
         ],
         source: t("about.fromTmdb"),
       };
+    case "series":
+      return {
+        tagline: about.tagline,
+        overview: about.overview,
+        credits: [
+          { label: t("about.createdBy"), names: about.creators },
+          { label: t("about.cast"), names: about.cast },
+        ],
+        source: t("about.fromTmdb"),
+      };
   }
 }

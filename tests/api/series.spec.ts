@@ -187,7 +187,7 @@ test("adding the same series again finds its Media Item, and its page shows it",
     currentRating: null,
     inBacklog: false,
     inProgress: null,
-    about: null,
+    about: expect.objectContaining({ mediaType: "series", creators: ["Craig Mazin"] }),
   });
 });
 
