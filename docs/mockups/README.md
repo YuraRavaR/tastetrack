@@ -51,3 +51,4 @@ Shoots every `.html` in the folder at 390 and 1440 px, in light and dark, with t
 | [`catalog-details/`](catalog-details/) | A film's and a book's page: overview, tagline, director and cast, a book's description | #203 | Variant A, under the title |
 | [`series-progress/`](series-progress/) | A series' Progress: the "Watching now" row on Saved, a series' page, the Watch more choice, the Watching tab | #211 | Row A (a bar and a round check), page A (a Watching card with two steppers) |
 | [`book-progress/`](book-progress/) | A book's Progress: its Reading card and the "Reading now" row on Saved | #235 | Card A (Change opens two fields in the card), row A (the page as a third line) |
+| [`thoughts/`](thoughts/) | Thoughts: History on a Media Item's page (Log Entries and Thoughts in one list) and the add and edit form | #241 | Row A (the state and Progress on the date line, a ⋯ menu), form A (the Watched sheet's shape) |

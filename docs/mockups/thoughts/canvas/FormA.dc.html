@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add a thought · phone · A</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.66 0.012 60);--destructive:oklch(0.66 0.2 22);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--ring:oklch(0.55 0.012 55);--destructive:oklch(0.46 0.18 25);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:390px}
+.ph{width:390px;height:844px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;box-sizing:border-box}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.scrim{position:absolute;inset:0;background:oklch(0 0 0 / 55%)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:796px;background:var(--card);border-radius:28px 28px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 32px oklch(0 0 0 / 30%)}
+.sbody{display:flex;flex-direction:column;gap:16px;padding:20px 16px 0;overflow:hidden}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}.ic16{width:16px;height:16px}
+.shd{display:flex;gap:12px;align-items:flex-start}
+.th{width:36px;height:54px;border-radius:6px;object-fit:cover;border:1px solid var(--border);flex:none;box-sizing:border-box}
+.eb{font-size:12px;font-weight:600;color:var(--primary-strong)}
+.dtl{margin:2px 0 0;font-size:20px;font-weight:600;line-height:1.2}
+.sub{margin:2px 0 0;font-size:14px;color:var(--muted-foreground)}
+.x{width:44px;height:44px;border-radius:10px;border:0;background:transparent;color:var(--muted-foreground);display:grid;place-items:center;flex:none;margin:-8px -8px 0 auto}
+.fld{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:14px;font-weight:600}
+.ta{font:inherit;font-size:15px;line-height:1.45;color:inherit;background:var(--background);border:1px solid var(--input);border-radius:12px;padding:10px 12px;resize:none;box-sizing:border-box;width:100%}
+.ta.foc{border-color:var(--ring);box-shadow:0 0 0 3px oklch(0.66 0.012 60 / 35%)}
+.ta.bad{border-color:var(--destructive);box-shadow:0 0 0 3px oklch(0.6 0.2 22 / 25%)}
+.ta.q{font-style:italic}
+.cnt{display:flex;justify-content:flex-end;font-size:13px;color:var(--muted-foreground);font-variant-numeric:tabular-nums}
+.cnt.bad{justify-content:space-between;color:var(--destructive)}
+.line{display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid var(--border)}
+.lcol{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.hint{font-size:13px;color:var(--muted-foreground)}
+.sw{width:44px;height:26px;border-radius:999px;background:var(--input);position:relative;flex:none;border:0;padding:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;background:var(--foreground)}
+.sw.on{background:var(--primary)}
+.sw.on::after{left:21px;background:var(--primary-foreground)}
+.pv{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.btn{height:44px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:var(--background);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.btn.gh{background:transparent;border-color:transparent;color:var(--muted-foreground);padding:0 10px}
+.btn.ib{width:44px;padding:0}
+.btn.pr{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.btn.del{background:transparent;border-color:transparent;color:var(--destructive);padding:0 12px}
+.btn.dis{opacity:0.5}
+.num{width:76px;height:44px;font:inherit;font-size:17px;font-weight:700;text-align:center;color:inherit;background:var(--background);border:1px solid var(--ring);border-radius:12px;box-shadow:0 0 0 3px oklch(0.66 0.012 60 / 35%);box-sizing:border-box}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--border);background:var(--background);font:inherit;font-size:15px;color:inherit;display:inline-flex;align-items:center}
+.chip.on{border-color:var(--primary-strong);background:var(--primary-soft);font-weight:600}
+.date{height:44px;font:inherit;font-size:15px;color:inherit;background:var(--background);border:1px solid var(--input);border-radius:12px;padding:0 12px;box-sizing:border-box;width:100%}
+.foot{display:flex;gap:8px;align-items:center;padding:14px 16px 30px;margin-top:16px;border-top:1px solid var(--border)}
+.err{margin:0;font-size:14px;color:var(--destructive);display:flex;gap:6px;align-items:flex-start}
+</style>
+</helmet>
+<div style="width: 2110px; display: flex; gap: 40px; align-items: flex-start">
+<sc-for list="{{phones}}" as="p" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{p.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><span class="wm">Taste<br>Track</span></header>
+<div class="scrim"></div>
+<div class="sheet" role="dialog" aria-label="{{p.eyebrow}}">
+<div class="sbody">
+<div class="shd"><img class="th" src="{{p.img}}" alt=""><div style="min-width: 0"><div class="eb">{{p.eyebrow}}</div><h2 class="dtl">{{p.title}}</h2><p class="sub">{{p.sub}}</p></div><button class="x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+
+<div class="fld"><label class="lbl" for="t">Thought</label>
+<textarea id="t" class="{{p.taClass}}" rows="{{p.rows}}" placeholder="What's on your mind?">{{p.text}}</textarea>
+<sc-if value="{{p.count}}" hint-placeholder-val="{{false}}"><div class="cnt">{{p.count}}</div></sc-if>
+<sc-if value="{{p.over}}" hint-placeholder-val="{{false}}"><div class="cnt bad"><span>A thought holds up to 2,000 characters.</span><span>2,014 / 2,000</span></div></sc-if>
+</div>
+
+<div class="line"><div class="lcol"><span class="lbl">Quote</span><span class="hint">{{p.quoteHint}}</span></div><button class="{{p.swClass}}" role="switch" aria-checked="{{p.quoteOn}}" aria-label="Quote"></button></div>
+
+<sc-if value="{{p.progress}}" hint-placeholder-val="{{true}}">
+<div class="line"><div class="lcol"><span class="lbl">{{p.pLabel}}</span><span class="hint">{{p.pHint}}</span></div><span class="pv">{{p.progress}}</span><button class="btn gh">Change</button><button class="btn gh ib" aria-label="{{p.clearLabel}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+</sc-if>
+<sc-if value="{{p.pEdit}}" hint-placeholder-val="{{false}}">
+<div class="line"><div class="lcol"><label class="lbl" for="pg">Page</label><span class="hint">Pages in your edition: 272</span></div><input id="pg" class="num" inputmode="numeric" value="142"><button class="btn">Done</button></div>
+</sc-if>
+<sc-if value="{{p.pNone}}" hint-placeholder-val="{{false}}">
+<div class="line"><div class="lcol"><span class="lbl">Page</span><span class="hint">No page on this thought</span></div><button class="btn"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Add page</button></div>
+</sc-if>
+
+<div class="fld" style="padding-top: 12px; border-top: 1px solid var(--border)"><span class="lbl">Date</span>
+<div class="chips" role="radiogroup" aria-label="Date"><button class="{{p.c1}}" role="radio">Today</button><button class="chip" role="radio">Yesterday</button><button class="{{p.c3}}" role="radio">Other date</button></div>
+<sc-if value="{{p.other}}" hint-placeholder-val="{{false}}"><input class="date" type="text" value="2 Nov 2026" aria-label="Date"></sc-if>
+</div>
+</div>
+<div class="foot">
+<sc-if value="{{p.editing}}" hint-placeholder-val="{{false}}"><button class="btn del"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>Delete</button></sc-if>
+<button class="{{p.saveClass}}" style="flex: 1; height: 50px">Save</button>
+</div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":2110,"height":880}}'>
+class Component extends DCLogic {
+renderVals() {
+const long = "There is a passage in the middle of the second part where he walks the Drowned Halls at low tide and counts the statues aloud, and I realised I had been counting with him. ".repeat(12);
+const base = { rows: 6, taClass: "ta", quoteOn: "false", swClass: "sw", c1: "chip on", c3: "chip", saveClass: "btn pr", eyebrow: "New thought" };
+const book = { img: "/_blob/67b56f1faf3786bd88d99498d1d3a59b", title: "Piranesi", sub: "2020 · Susanna Clarke · reading", quoteHint: "Words from the book, not your own", pLabel: "Page", pHint: "Filled in from Reading", clearLabel: "Remove the page" };
+return {
+theme: this.props.theme ?? "dark",
+phones: [
+{ ...base, cap: "A · New, while watching: the episode filled in", img: "/_blob/860f7beb13c4eee65a17878165d3e569", title: "Severance", sub: "2022 · Apple TV+ · watching", text: "", taClass: "ta foc", quoteHint: "Words from the series, not your own", progress: "S2 · E5", pLabel: "Episode", pHint: "Filled in from Watching", clearLabel: "Remove the episode" },
+{ ...base, ...book, cap: "A · A quote, changing the page", text: "The Beauty of the House is immeasurable; its Kindness infinite.", taClass: "ta q", quoteOn: "true", swClass: "sw on", progress: "", pEdit: true },
+{ ...base, ...book, cap: "A · The page removed", text: "Took me thirty pages to stop fighting the capital letters. Now I like them.", progress: "", pNone: true },
+{ ...base, ...book, cap: "A · Editing: an earlier date, the counter, Delete", eyebrow: "Edit thought", text: long.slice(0, 1962), rows: 7, count: "1,962 / 2,000", progress: "p. 142", pHint: "", c1: "chip", c3: "chip on", other: true, editing: true },
+{ ...base, cap: "A · A film has no Progress row; too long", img: "/_blob/a7105c3481e72306053592373ae7eb4b", title: "Spirit: Stallion of the Cimarron", sub: "2002 · 1h 24m", text: long.slice(0, 2014), rows: 9, taClass: "ta bad", over: true, quoteHint: "Words from the film, not your own", progress: "", saveClass: "btn pr dis" }
+]
+};
+}
+}
+</script>
+</body>
+</html>

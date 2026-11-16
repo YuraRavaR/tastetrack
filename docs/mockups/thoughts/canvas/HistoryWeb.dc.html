@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>History · web · A, B, C</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.66 0.012 60);--destructive:oklch(0.66 0.2 22);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--ring:oklch(0.55 0.012 55);--destructive:oklch(0.46 0.18 25);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.pg-col{width:1008px;height:780px;background:var(--background);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-sizing:border-box;padding:24px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic12{width:12px;height:12px}.ic14{width:14px;height:14px}.ic16{width:16px;height:16px}
+.skip{height:48px;border:1px dashed var(--input);border-radius:12px;display:grid;place-items:center;font-size:14px;color:var(--muted-foreground)}
+.sec{display:flex;flex-direction:column;gap:12px;padding-top:22px}
+.shd{display:flex;align-items:center;gap:8px;min-height:40px}
+.h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-0.01em}
+.btn{height:36px;padding:0 12px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:14px;font-weight:600;border:1px solid var(--border);background:var(--card);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.list{margin:0;padding:0;list-style:none;border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden}
+.row{display:flex;gap:8px;align-items:flex-start;padding:10px 4px 10px 14px;border-top:1px solid var(--border)}
+.row.first{border-top:0}
+.col{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;padding-top:2px}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:14px}
+.dt{font-weight:500}
+.mu{color:var(--muted-foreground);font-size:13px}
+.tag{font-size:12px;font-weight:600;padding:1px 7px;border-radius:6px;background:var(--muted);font-variant-numeric:tabular-nums}
+.badge{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--muted)}
+.rv{margin:0;font-size:14px;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx{margin:0;font-size:15px;line-height:1.5;max-width:68ch}
+.tx.q{font-style:italic}
+.tic{color:var(--muted-foreground)}.tic.q{color:var(--primary-strong)}
+.more{width:40px;height:40px;border-radius:10px;border:0;background:transparent;color:var(--muted-foreground);display:grid;place-items:center;flex:none;margin-top:-6px}
+.comp{height:44px;border:1px solid var(--input);border-radius:12px;background:var(--card);display:flex;align-items:center;gap:10px;padding:0 14px;font:inherit;font-size:15px;color:var(--muted-foreground);text-align:left;width:100%;box-sizing:border-box}
+.tl{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.li{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr);gap:14px;padding-bottom:14px}
+.li.line::before{content:"";position:absolute;left:13px;top:32px;bottom:2px;width:2px;border-radius:2px;background:var(--border)}
+.mk{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;box-sizing:border-box}
+.mk.lg{background:var(--primary);color:var(--primary-foreground)}
+.mk.tp{background:var(--card);border:1px solid var(--border);color:var(--muted-foreground)}
+.mk.tq{background:var(--primary-soft);color:var(--primary-strong)}
+.it{display:flex;flex-direction:column;gap:4px;min-height:40px;padding:3px 0 0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;min-width:0}
+.dts{font-size:13px;font-weight:500;color:var(--muted-foreground);margin-right:2px}
+.chip{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--muted);display:inline-flex;align-items:center;gap:4px}
+.chip.pg{background:var(--primary-soft);font-variant-numeric:tabular-nums}
+.lt{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600}
+.trow{padding:8px;border-top:1px solid var(--border)}.trow.first{border-top:0}
+.card{display:flex;flex-direction:column;gap:6px;width:100%;padding:12px 16px;border-radius:10px;border:0;background:var(--muted);color:inherit;font:inherit;text-align:left;box-sizing:border-box}
+.card.q{background:var(--primary-soft)}
+.qm{font-size:34px;line-height:0.6;height:16px;font-weight:700;color:var(--primary-strong);margin-top:4px}
+.ft{display:flex;flex-wrap:wrap;gap:4px 6px;font-size:13px;color:var(--muted-foreground)}
+.ft b{font-weight:600;color:var(--foreground)}
+.stars{display:inline-flex;gap:1px;color:var(--primary)}
+.st{position:relative;width:14px;height:14px;display:inline-block}
+.st svg{position:absolute;inset:0;width:14px;height:14px}
+.st .o{fill:none;stroke:var(--input);stroke-width:2}
+.st .f{fill:currentColor;stroke:none}
+</style>
+</helmet>
+<div class="tt" data-theme="{{theme}}" style="width: 3184px; display: flex; gap: 80px; align-items: flex-start; color: inherit">
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">A · one list, the state on the date line, a ⋯ menu</div>
+<div class="pg-col">
+<div class="skip">Piranesi: banner, About, the Reading card and actions, as today</div>
+<section class="sec" aria-label="History">
+<div class="shd"><h2 class="h2">History</h2><button class="btn" style="margin-left: auto"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"></path><path d="M12 7v6"></path><path d="M9 10h6"></path></svg>Add a thought</button></div>
+<ul class="list">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="5">
+<li class="{{it.rowA}}">
+<sc-if value="{{it.log}}" hint-placeholder-val="{{false}}">
+<div class="col"><div class="meta"><span class="dt">{{it.date}}</span><span class="stars" role="img" aria-label="Rating 5 of 5"><sc-for list="{{five}}" as="s" hint-placeholder-count="5"><span class="st"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"></path></svg></span></sc-for></span></div><p class="rv">{{it.review}}</p></div>
+</sc-if>
+<sc-if value="{{it.thought}}" hint-placeholder-val="{{true}}">
+<div class="col"><div class="meta">
+<sc-if value="{{it.quote}}" hint-placeholder-val="{{false}}"><svg class="ic ic14 tic q" viewBox="0 0 24 24" role="img" aria-label="Quote"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg></sc-if>
+<sc-if value="{{it.plain}}" hint-placeholder-val="{{true}}"><svg class="ic ic14 tic" viewBox="0 0 24 24" role="img" aria-label="Thought"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"></path></svg></sc-if>
+<span class="dt">{{it.date}}</span><span class="mu">{{it.state}}</span>
+<sc-if value="{{it.progress}}" hint-placeholder-val="{{false}}"><span class="tag">{{it.progress}}</span></sc-if>
+</div><p class="{{it.textClass}}">{{it.textQ}}</p></div>
+</sc-if>
+<button class="more" aria-label="Actions"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></button>
+</li>
+</sc-for>
+</ul>
+</section>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">B · a timeline, chips, the whole item taps to edit</div>
+<div class="pg-col">
+<div class="skip">Piranesi: banner, About, the Reading card and actions, as today</div>
+<section class="sec" aria-label="History">
+<h2 class="h2">History</h2>
+<button class="comp"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg>Write a thought…</button>
+<ul class="tl">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="5">
+<li class="{{it.liB}}">
+<sc-if value="{{it.log}}" hint-placeholder-val="{{false}}">
+<span class="mk lg" aria-hidden="true"><svg class="ic ic14" viewBox="0 0 24 24" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg></span>
+<button class="it"><span class="dts">{{it.date}}</span><span class="lt">Read <span class="stars" role="img" aria-label="Rating 5 of 5"><sc-for list="{{five}}" as="s" hint-placeholder-count="5"><span class="st"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"></path></svg></span></sc-for></span></span><span class="mu" style="font-size: 14px">{{it.review}}</span></button>
+</sc-if>
+<sc-if value="{{it.thought}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{it.quote}}" hint-placeholder-val="{{false}}"><span class="mk tq" aria-hidden="true"><svg class="ic ic14" viewBox="0 0 24 24"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg></span></sc-if>
+<sc-if value="{{it.plain}}" hint-placeholder-val="{{true}}"><span class="mk tp" aria-hidden="true"><svg class="ic ic14" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"></path></svg></span></sc-if>
+<button class="it"><span class="meta"><span class="dts">{{it.date}}</span><span class="chip">{{it.stateCap}}</span><sc-if value="{{it.progress}}" hint-placeholder-val="{{false}}"><span class="chip pg"><svg class="ic ic12" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>{{it.progress}}</span></sc-if></span><span class="{{it.textClass}}">{{it.textQ}}</span></button>
+</sc-if>
+</li>
+</sc-for>
+</ul>
+</section>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">C · Log Entries as today, Thoughts as soft cards</div>
+<div class="pg-col">
+<div class="skip">Piranesi: banner, About, the Reading card and actions, as today</div>
+<section class="sec" aria-label="History">
+<div class="shd"><h2 class="h2">History</h2><button class="btn" style="margin-left: auto"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Thought</button></div>
+<ul class="list">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="5">
+<sc-if value="{{it.log}}" hint-placeholder-val="{{false}}">
+<li class="{{it.rowA}}" style="align-items: center"><div class="col"><div class="meta"><span class="dt">{{it.date}}</span><span class="stars" role="img" aria-label="Rating 5 of 5"><sc-for list="{{five}}" as="s" hint-placeholder-count="5"><span class="st"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"></path></svg></span></sc-for></span></div><p class="rv">{{it.review}}</p></div><button class="more" aria-label="Actions" style="margin-top: 0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></button></li>
+</sc-if>
+<sc-if value="{{it.thought}}" hint-placeholder-val="{{true}}">
+<li class="{{it.rowC}}"><button class="{{it.cardClass}}"><sc-if value="{{it.quote}}" hint-placeholder-val="{{false}}"><span class="qm" aria-hidden="true">“</span></sc-if><span class="{{it.textClass}}">{{it.text}}</span><span class="ft"><span>{{it.stateCap}} · {{it.date}}</span><sc-if value="{{it.progress}}" hint-placeholder-val="{{false}}"><span>·</span><b>{{it.progress}}</b></sc-if></span></button></li>
+</sc-if>
+</sc-for>
+</ul>
+</section>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":3184,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const th = (date, state, progress, text, quote) => ({ thought: true, date, state, stateCap: cap(state), progress, quote: !!quote, plain: !quote, text, textQ: quote ? "“" + text + "”" : text, textClass: quote ? "tx q" : "tx", cardClass: quote ? "card q" : "card" });
+const raw = [
+th("15 Nov 2026", "while reading", "p. 142", "The Beauty of the House is immeasurable; its Kindness infinite.", true),
+th("20 Oct 2026", "while reading", "p. 34", "Took me thirty pages to stop fighting the capital letters. Now I like them. Every Statue in the Halls seems to be waiting for something, and by the end of chapter two I was waiting with them."),
+th("4 Feb 2024", "after reading", "", "Still thinking about the statues. Read it again in winter."),
+{ log: true, date: "2 Feb 2024", review: "Read it in two evenings. Strange and very kind." },
+th("10 Jan 2024", "while on your Reading list", "", "Marta: read it in one go if you can.")
+];
+const items = raw.map((it, i) => ({ ...it, rowA: i === 0 ? "row first" : "row", rowC: (it.log ? "row" : "trow") + (i === 0 ? " first" : ""), liB: i < raw.length - 1 ? "li line" : "li" }));
+return { theme: this.props.theme ?? "dark", items, five: [1, 2, 3, 4, 5] };
+}
+}
+</script>
+</body>
+</html>
