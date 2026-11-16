@@ -899,8 +899,24 @@ export const FilmAbout = z
   })
   .openapi("FilmAbout");
 
+// What a series' page shows in its About block, as a film's does, with its creators in the
+// directors' place, in TMDB's order.
+export const SeriesAbout = z
+  .object({
+    mediaType: z.literal("series"),
+    overview: LocalizedText.openapi({
+      example: { en: "The true story of one of the worst…", uk: "Сюжет розгортається 1986 року…" },
+    }),
+    tagline: LocalizedText.openapi({
+      example: { en: "What is the cost of lies?", uk: "Яка ціна брехні?" },
+    }),
+    creators: z.array(z.string()).openapi({ example: ["Craig Mazin"] }),
+    cast: z.array(z.string()).openapi({ example: ["Jared Harris", "Stellan Skarsgård"] }),
+  })
+  .openapi("SeriesAbout");
+
 // What a Media Item's page shows in its About block, by its Media Type.
-export const About = z.discriminatedUnion("mediaType", [FilmAbout]).openapi("About");
+export const About = z.discriminatedUnion("mediaType", [FilmAbout, SeriesAbout]).openapi("About");
 
 export type About = z.infer<typeof About>;
 

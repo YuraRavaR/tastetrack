@@ -498,6 +498,8 @@ export const en = {
   "about.ukrainian": "Українською",
   "about.english": "In English",
   "about.directors": "{count, plural, one {Director} other {Directors}}",
+  // A series' creators, where a film names its directors.
+  "about.createdBy": "Created by",
   "about.cast": "Cast",
   "about.fromTmdb": "From TMDB",
   "manualItem.editTitle": "Edit {film}",

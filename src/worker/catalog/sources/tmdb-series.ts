@@ -241,6 +241,10 @@ export const tmdbSeries: CatalogSource<"series"> = {
     lastAiredEpisode: entry.extra.lastAiredEpisode,
     nextAirDate: entry.extra.nextAirDate,
   }),
-  // A series' page shows no About block yet (#216).
-  aboutOf: () => null,
+  // As for films, nothing to show without an overview in either language or anyone in the
+  // credits: a tagline alone isn't enough. A row filled from a search result alone has none.
+  aboutOf: ({ extra: { overview, tagline, creators, cast } }) =>
+    overview.en || overview.uk || creators.length > 0 || cast.length > 0
+      ? { mediaType: "series", overview, tagline, creators, cast }
+      : null,
 };

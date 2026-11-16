@@ -98,8 +98,11 @@ test("a series found in Search opens its page, with its titles, years, seasons a
   await expect(
     filmPage.posterImage(posterUrl("/anFx9aTOOYqgS3v7x3R84Kz67ly.jpg", "w500")),
   ).toBeVisible();
-  // Before a first Viewing: Watched, Want to watch and Add to collection, and empty Viewings.
+  // Before a first Viewing: the About block's More and Українською, then Watched, Want to watch,
+  // Start watching and Add to collection, and empty Viewings.
   await expect(filmPage.buttons).toHaveText([
+    "More",
+    "Українською",
     "Watched",
     "Want to watch",
     "Start watching",
