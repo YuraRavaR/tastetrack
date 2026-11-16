@@ -245,4 +245,6 @@ export const tmdbSeries: CatalogSource<"series"> = {
     lastAiredEpisode: entry.extra.lastAiredEpisode,
     nextAirDate: entry.extra.nextAirDate,
   }),
+  // A series' page shows no About block yet (#216).
+  aboutOf: () => null,
 };

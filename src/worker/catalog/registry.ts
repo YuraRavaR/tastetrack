@@ -2,7 +2,7 @@
 // a source here and never imports one, which `pnpm lint` enforces (biome.json).
 import { and, eq, gte, lt, or, type SQL, sql } from "drizzle-orm";
 import { catalogCache } from "../../db/schema";
-import type { MediaItem, MediaType } from "../../shared/api";
+import type { About, MediaItem, MediaType } from "../../shared/api";
 import type { AnyCatalogSource, CatalogEntry, CatalogSource } from "./source";
 import { openLibraryBooks } from "./sources/open-library";
 import { tmdbFilms } from "./sources/tmdb";
@@ -25,6 +25,12 @@ export function sourceOf(mediaType: MediaType): AnyCatalogSource {
 export function metadataOf(mediaType: MediaType, entry: CatalogEntry): MediaItem["metadata"] {
   const source = sources[mediaType] as CatalogSource<MediaType>;
   return source.metadataOf(entry);
+}
+
+// What a cache entry says its work is about, by its Media Type's source, or null when nothing.
+export function aboutOf(mediaType: MediaType, entry: CatalogEntry): About | null {
+  const source = sources[mediaType] as CatalogSource<MediaType>;
+  return source.aboutOf(entry);
 }
 
 // Every source, for what applies to each of them in turn.

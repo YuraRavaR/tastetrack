@@ -877,9 +877,38 @@ export const MediaItemParams = z.object({
   mediaItemId: z.coerce.number().int().positive().openapi({ example: 42 }),
 });
 
+// A text in English and in Ukrainian, as the source has it, null where it has none.
+const LocalizedText = z.object({
+  en: z.string().nullable(),
+  uk: z.string().nullable(),
+});
+
+// What a film's page shows in its About block, as TMDB has it: the overview unedited, every
+// director and the first 5 of the cast, in TMDB's order.
+export const FilmAbout = z
+  .object({
+    mediaType: z.literal("film"),
+    overview: LocalizedText.openapi({
+      example: { en: "During its return to the earth…", uk: "У далекому майбутньому…" },
+    }),
+    tagline: LocalizedText.openapi({
+      example: { en: "In space no one can hear you scream.", uk: null },
+    }),
+    directors: z.array(z.string()).openapi({ example: ["Ridley Scott"] }),
+    cast: z.array(z.string()).openapi({ example: ["Tom Skerritt", "Sigourney Weaver"] }),
+  })
+  .openapi("FilmAbout");
+
+// What a Media Item's page shows in its About block, by its Media Type.
+export const About = z.discriminatedUnion("mediaType", [FilmAbout]).openapi("About");
+
+export type About = z.infer<typeof About>;
+
 // One User's Item History of a Media Item: every Log Entry for it in Log Order, the Current Rating,
 // which is the last one's Rating, whether it is in their Backlog, and since when it is In Progress,
 // if it is. A Media Item the User hasn't experienced has neither Log Entries nor a Current Rating.
+// `about` is what its page says the Media Item is about, from the catalog cache, or null when there
+// is nothing to show: for a Manual Media Item, and for an entry with no details yet.
 export const ItemHistoryResponse = z
   .object({
     mediaItem: MediaItem,
@@ -887,6 +916,7 @@ export const ItemHistoryResponse = z
     currentRating: Rating.nullable(),
     inBacklog: z.boolean(),
     inProgress: InProgress.nullable(),
+    about: About.nullable(),
   })
   .openapi("ItemHistoryResponse");
 

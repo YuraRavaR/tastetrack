@@ -82,6 +82,21 @@ class EntryActionsMenu extends ScopedComponent {
   }
 }
 
+// What a Media Item's page says it is about, under its titles: the tagline and the overview, More
+// and Less, the language switch, the credits as names under their labels, and the source.
+class AboutBlock extends ScopedComponent {
+  readonly moreButton = this.root.getByRole("button", { name: "More" });
+  readonly lessButton = this.root.getByRole("button", { name: "Less" });
+  readonly ukrainianButton = this.root.getByRole("button", { name: "Українською" });
+  readonly englishButton = this.root.getByRole("button", { name: "In English" });
+  readonly creditLabels = this.root.getByRole("term");
+  readonly creditNames = this.root.getByRole("definition");
+
+  text(content: string | RegExp) {
+    return this.root.getByText(content);
+  }
+}
+
 // A Media Item's page: its banner, the actions on it, the tiles and its Item History, which a
 // film calls Viewings and a book Readings.
 export class FilmPage extends BasePage<[mediaItemId: number]> {
@@ -159,11 +174,14 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   // Why the page shows no Media Item: there is none, or it couldn't be loaded.
   readonly errorMessage = this.main.getByRole("alert");
 
+  readonly about = new AboutBlock(this.main.getByRole("region", { name: "About" }));
+
   // The tiles: how often it was watched, its Current Rating, when first watched.
-  readonly stats = this.main.getByRole("definition");
+  readonly tiles = this.main.locator("dl").filter({ hasText: "Your rating" });
+  readonly stats = this.tiles.getByRole("definition");
   readonly watchedStat = this.stats.nth(0);
   readonly ratingStat = this.stats.nth(1);
-  readonly statNames = this.main.getByRole("term");
+  readonly statNames = this.tiles.getByRole("term");
   readonly ratingStatName = this.main.getByText("Your rating");
 
   readonly viewingsHeading = this.main.getByRole("heading", { name: "Viewings", level: 2 });

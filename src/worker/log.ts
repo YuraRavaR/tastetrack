@@ -199,10 +199,7 @@ logRoutes.openapi(listRoute, async (c) => {
 
 logRoutes.openapi(historyRoute, async (c) => {
   const { mediaItemId } = c.req.valid("param");
-  const history = await itemHistory(c.var.db, c.var.userId, mediaItemId, c.var.now);
+  const history = await itemHistory(c.var.db, c.env, c.var.userId, mediaItemId, c.var.now);
   if (!history) return c.json({ error: "unknown_media_item" }, 404);
-  // Each Log Entry shows the same Media Item, so filling it once fills them all.
-  const mediaItems = [history.mediaItem, ...history.logEntries.map((entry) => entry.mediaItem)];
-  await fillMissingMetadata(c.var.db, c.env, mediaItems, c.var.now);
   return c.json(history, 200);
 });

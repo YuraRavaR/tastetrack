@@ -5,6 +5,7 @@ import type { ItemHistoryResponse, LogEntry } from "../../shared/api";
 import * as api from "../api";
 import { filmTitleAndYear } from "../catalog/film-label";
 import { can } from "../catalog/media-types";
+import { About, aboutProps } from "../components/About";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { FilmActions } from "../components/FilmActions";
@@ -35,7 +36,7 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 }
 
 // One Media Item's page, its Item History: a banner with its title, then, indented with it from
-// `sm`, tiles for how the User watched and rated it, the actions they can take on it, and every
+// `sm`, what it is about when the Worker says, tiles for how the User watched and rated it, the actions they can take on it, and every
 // Log Entry, newest first, each of which can be edited or deleted. A film with no Log Entries has
 // no tiles, and says what will show where its entries go. The Worker sends them in Log Order, and
 // the page only reverses that for display. After a new entry, an edit or a delete it reloads, so
@@ -81,13 +82,14 @@ export function ItemHistoryPage() {
     );
   }
 
-  const { mediaItem, logEntries } = state.history;
+  const { mediaItem, logEntries, about } = state.history;
   const manual = mediaItem.externalReference === null;
   const loggable = can(mediaItem.mediaType, "log");
   return (
     <div className="flex flex-col gap-4.5 sm:gap-5.5">
       <FilmBanner mediaItem={mediaItem} />
       <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
+        {about && <About {...aboutProps(about)} />}
         {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
         <FilmActions
           history={state.history}

@@ -1,4 +1,4 @@
-import { MediaItemsResponse } from "@shared/api";
+import { ItemHistoryResponse, MediaItemsResponse } from "@shared/api";
 import { expectBody } from "../support/api/responses";
 import { expect, test } from "../support/fixtures";
 import { shadows, shadowsReference } from "../support/scenarios/films";
@@ -23,6 +23,26 @@ test("a page fills a film missing from the cache with TMDB's details", async ({ 
   const page = await expectBody(loggedInApi.lists.getList(list.id));
 
   expect(titles(page.list.items)).toEqual(["Shadows of Forgotten Ancestors"]);
+});
+
+test("a film's page fills a film missing from the cache, with what it is about", async ({
+  loggedInApi,
+}) => {
+  const mediaItemId = (await shadows(loggedInApi)).id;
+  expect((await loggedInApi.testHooks.evictFromCatalogCache(shadowsReference)).status()).toBe(204);
+
+  const history = loggedInApi.catalog.getMediaItemHistory(mediaItemId);
+
+  expect(await expectBody(history, 200, ItemHistoryResponse)).toMatchObject({
+    mediaItem: { metadata: { title: "Shadows of Forgotten Ancestors" } },
+    about: {
+      overview: {
+        en: expect.stringMatching(/^In the Carpathian Mountains/),
+        uk: expect.any(String),
+      },
+      directors: ["Sergei Parajanov"],
+    },
+  });
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds, and filling

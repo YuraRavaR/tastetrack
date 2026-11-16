@@ -240,4 +240,6 @@ export const openLibraryBooks: CatalogSource<"book"> = {
     coverUrls: coverUrls(entry.coverRef),
     authors: entry.extra.authors,
   }),
+  // A book's page shows no About block yet (#228).
+  aboutOf: () => null,
 };

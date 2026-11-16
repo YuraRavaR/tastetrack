@@ -488,6 +488,16 @@ export const en = {
   "itemHistory.notFound": "There's nothing here. It may have been deleted.",
   "itemHistory.currentRating": "Your rating",
   "itemHistory.noFirstDate": "–",
+  // A Media Item's About block, under its titles.
+  "about.label": "About",
+  "about.more": "More",
+  "about.less": "Less",
+  // Written in the language it switches to, so a reader of either finds it.
+  "about.ukrainian": "Українською",
+  "about.english": "In English",
+  "about.directors": "{count, plural, one {Director} other {Directors}}",
+  "about.cast": "Cast",
+  "about.fromTmdb": "From TMDB",
   "manualItem.editTitle": "Edit {film}",
   "manualItem.title": "Title",
   "manualItem.originalTitle": "Original Title",
