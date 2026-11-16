@@ -164,9 +164,13 @@ test("before a first viewing, a film's page offers the actions and explains its 
   await expect(filmPage.watchedButton).toBeVisible();
   await expect(filmPage.wantToWatchButton).toBeVisible();
   await expect(filmPage.addToListButton).toBeVisible();
-  await expect(filmPage.viewingsHeading).toBeVisible();
-  await expect(filmPage.noViewingsMessage).toBeVisible();
-  await expect(filmPage.noViewingsHint).toBeVisible();
+  await expect(filmPage.historyHeading).toBeVisible();
+  await expect(filmPage.emptyHistoryMessage).toBeVisible();
+  await expect(
+    filmPage.emptyHistoryHint(
+      "Mark it Watched to keep the date, Rating and Review here, or add a thought at any time, even before you watch.",
+    ),
+  ).toBeVisible();
   await expect(filmPage.ratingStatName).toBeHidden();
 });
 
@@ -227,8 +231,8 @@ test("logging a Revisit from a film's page updates its tiles and Viewings at onc
   await expect(dialog.root).toBeHidden();
   await expect(filmPage.watchedStat).toHaveText("2 times");
   await expect(filmPage.ratingStars("3 stars")).toBeVisible();
-  await expect(filmPage.viewings).toHaveCount(2);
-  await expect(filmPage.viewing(0).revisitBadge).toBeVisible();
+  await expect(filmPage.historyRows).toHaveCount(2);
+  await expect(filmPage.historyRow(0).revisitBadge).toBeVisible();
   await expect(filmPage.toast.root).toContainText("Added Alien (1979) to your Log.");
 });
 
@@ -253,7 +257,7 @@ test("a first viewing from a film's page takes it off the Watchlist, with an und
   await dialog.save();
 
   await expect(filmPage.watchedAgainButton).toBeVisible();
-  await expect(filmPage.viewings).toHaveCount(1);
+  await expect(filmPage.historyRows).toHaveCount(1);
   await expect(filmPage.wantToWatchButton).toBeVisible();
 
   await filmPage.toast.undo();

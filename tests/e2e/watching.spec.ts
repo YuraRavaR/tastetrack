@@ -372,7 +372,7 @@ for (const [device, viewport] of [
     await expect(watchingCard.season).toHaveText("5");
     await expect(watchingCard.episode).toHaveText("0");
     await expect(filmPage.onWatchlistButton).toBeHidden();
-    await expect(filmPage.viewings).toHaveCount(1);
+    await expect(filmPage.historyRows).toHaveCount(1);
     await expect(toast.message("Started watching Breaking Bad (2008).")).toBeVisible();
     await expect(toast.undoButton).toBeVisible();
 
@@ -514,9 +514,9 @@ test("Finished after Watch more adds a second Viewing, not a Rewatch unless the 
 
   await expect(dialog.root).toBeHidden();
   await expect(filmPage.watchingCard.root).toBeHidden();
-  await expect(filmPage.viewings).toHaveCount(2);
-  await expect(filmPage.viewing(0).revisitBadge).toBeHidden();
-  await expect(filmPage.viewing(1).revisitBadge).toBeHidden();
+  await expect(filmPage.historyRows).toHaveCount(2);
+  await expect(filmPage.historyRow(0).revisitBadge).toBeHidden();
+  await expect(filmPage.historyRow(1).revisitBadge).toBeHidden();
   await expect(filmPage.ratingStars("5 stars")).toBeVisible();
   // Another season later, it offers Watch more again.
   await expect(filmPage.watchMoreButton).toBeVisible();
@@ -595,7 +595,7 @@ test("Finished on a caught-up series records a Viewing with its Rating and moves
   await libraryPage.toast.goToWatchedLink.click();
   await expect(libraryPage.poster("Watched", "Chernobyl").rating("4 stars")).toBeVisible();
   await filmPage.goto(series.id);
-  await expect(filmPage.viewings).toHaveCount(1);
+  await expect(filmPage.historyRows).toHaveCount(1);
   await expect(filmPage.watchingCard.root).toBeHidden();
   await expect(filmPage.watchMoreButton).toBeVisible();
 });
@@ -635,7 +635,7 @@ test("Stop watching removes the series from Watching and leaves no Viewing", asy
   await expect(filmPage.watchingCard.root).toBeHidden();
   await expect(filmPage.startWatchingButton).toBeVisible();
   await expect(filmPage.wantToWatchButton).toBeVisible();
-  await expect(filmPage.noViewingsMessage).toBeVisible();
+  await expect(filmPage.emptyHistoryMessage).toBeVisible();
   await expect(filmPage.toast.message("Stopped watching Chernobyl (2019).")).toBeVisible();
   await libraryPage.goto("Watching", "series");
   await expect(libraryPage.tab("Watching")).toHaveAccessibleName("Watching 0");

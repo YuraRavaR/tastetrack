@@ -56,11 +56,16 @@ test("deleting the account removes everything the User owns, and ends their sess
   const { shareLink } = await expectBody(api.lists.createShareLink(list.id), 201);
   expect((await api.sharedLists.getSharedList(shareLink.token)).status()).toBe(200);
   const { inviteCode } = await expectBody(api.inviteCodes.issueInviteCode(), 201);
+  const { thought } = await expectBody(
+    api.thoughts.createThought(film.id, { text: "Olena's favourite.", date: "2026-11-10" }),
+    201,
+  );
   const records = {
     logEntries: [logEntry.id],
     lists: [backlog.id, list.id],
     listItems: [planned.id, listItem.id],
     mediaItems: [film.id, manual.id].sort((a, b) => a - b),
+    thoughts: [thought.id],
   };
   expect(await expectBody(api.testHooks.getStoredRecords(records))).toEqual(records);
   const phone = await createApiClient();
@@ -90,6 +95,7 @@ test("deleting the account removes everything the User owns, and ends their sess
     lists: [],
     listItems: [],
     mediaItems: [film.id],
+    thoughts: [],
   });
 });
 

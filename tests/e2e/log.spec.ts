@@ -26,8 +26,8 @@ test("a User marks a search result Watched, rates it and finds the viewing on th
   await alien.itemHistoryLink("4.5 · 1 viewing").click();
   await expect(filmPage.heading).toHaveText(/^Alien \(1979\)/);
   await expect(filmPage.heading).toContainText("Чужий");
-  await expect(filmPage.viewings).toHaveCount(1);
-  const viewing = filmPage.viewing(0);
+  await expect(filmPage.historyRows).toHaveCount(1);
+  const viewing = filmPage.historyRow(0);
   await expect(viewing.ratingStars("4.5 stars")).toBeVisible();
   await expect(viewing.text("Still terrifying.")).toBeVisible();
 });
@@ -48,8 +48,8 @@ async function saveRatedEntry({ searchPage, filmPage }: Ui, dialog: LogEntryDial
   await dialog.save();
   await expect(dialog.root).toBeHidden();
   await searchPage.searchResults.result("Alien (1979)").itemHistoryLink("3 · 1 viewing").click();
-  await expect(filmPage.viewings).toHaveCount(1);
-  return filmPage.viewing(0);
+  await expect(filmPage.historyRows).toHaveCount(1);
+  return filmPage.historyRow(0);
 }
 
 test("a new Log Entry is dated today unless the User says otherwise", async ({
@@ -176,7 +176,7 @@ test("a User opens a film's Item History from Watched, edits an entry and delete
   ]);
   await openAlienFromWatched(ui);
   const { filmPage } = ui;
-  const { stats, viewings, deleteEntryDialog: confirm } = filmPage;
+  const { stats, historyRows: viewings, deleteEntryDialog: confirm } = filmPage;
 
   await expect(stats).toHaveText(["2 times", "4.5", "Sep 15, 2001"]);
   await expect(viewings.first()).toContainText("Oct 1, 2026");
@@ -207,7 +207,7 @@ test("a User opens a film's Item History from Watched, edits an entry and delete
   // Deleting the only entry leaves the film not watched, with no tiles.
   await filmPage.chooseEntryAction("Oct 1, 2026", "Delete");
   await confirm.confirm("Delete");
-  await expect(filmPage.noViewingsMessage).toBeVisible();
+  await expect(filmPage.emptyHistoryMessage).toBeVisible();
   await expect(viewings).toHaveCount(0);
   await expect(stats).toHaveCount(0);
 });
@@ -237,17 +237,17 @@ test("Viewings lists the newest first, with undated entries at the bottom", asyn
   ]);
   await openAlienFromWatched(ui);
   const { filmPage } = ui;
-  const { viewings } = filmPage;
+  const { historyRows: viewings } = filmPage;
 
-  await expect(filmPage.viewingsHeading).toBeVisible();
+  await expect(filmPage.historyHeading).toBeVisible();
   await expect(viewings).toHaveCount(3);
   await expect(viewings.nth(0)).toContainText("Oct 11, 2026");
-  await expect(filmPage.viewing(0).revisitBadge).toBeVisible();
+  await expect(filmPage.historyRow(0).revisitBadge).toBeVisible();
   await expect(viewings.nth(1)).toContainText("Mar 2, 2019");
-  await expect(filmPage.viewing(1).ratingStars("2 stars")).toBeVisible();
-  await expect(filmPage.viewing(1).text("Too slow for me.")).toBeVisible();
+  await expect(filmPage.historyRow(1).ratingStars("2 stars")).toBeVisible();
+  await expect(filmPage.historyRow(1).text("Too slow for me.")).toBeVisible();
   await expect(viewings.nth(2)).toContainText("No date");
-  await expect(filmPage.viewing(2).actionsButton("No date")).toBeVisible();
+  await expect(filmPage.historyRow(2).actionsButton("No date")).toBeVisible();
 
   // The display order changes nothing else: the Current Rating is still the last in Log Order.
   await expect(filmPage.stats).toHaveText(["3 times", "4", "Mar 2, 2019"]);
@@ -299,9 +299,9 @@ test("Rewatch is on when the film is already in the Log, and can be turned off",
   await expect(dialog.root).toBeHidden();
 
   await alien.itemHistoryLink("5 · 2 viewings").click();
-  await expect(filmPage.viewings).toHaveCount(2);
-  await expect(filmPage.viewing(0).revisitBadge).toHaveCount(0);
-  await expect(filmPage.viewing(1).revisitBadge).toHaveCount(0);
+  await expect(filmPage.historyRows).toHaveCount(2);
+  await expect(filmPage.historyRow(0).revisitBadge).toHaveCount(0);
+  await expect(filmPage.historyRow(1).revisitBadge).toHaveCount(0);
 });
 
 test("editing opens on the chip that matches the entry's date", async ({

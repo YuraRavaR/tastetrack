@@ -135,7 +135,7 @@ test("a film added manually but never logged or planned is still reached from se
 
   await searchPage.searchResults.result(wedding).filmLink(wedding).click();
 
-  await expect(filmPage.noViewingsMessage).toBeVisible();
+  await expect(filmPage.emptyHistoryMessage).toBeVisible();
   await filmPage.deleteFilmButton.click();
   const confirm = filmPage.deleteFilmDialog(wedding);
   await expect(confirm.root).toContainText("You have no Log Entries for it.");

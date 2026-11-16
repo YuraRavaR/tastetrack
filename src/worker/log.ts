@@ -137,8 +137,9 @@ const historyRoute = createRoute({
   path: "/catalog/items/{mediaItemId}/history",
   summary: "Show the logged-in User's Item History of a Media Item, and its Current Rating",
   description:
-    "Every Log Entry the User has for the Media Item, in Log Order. The Current Rating is the " +
-    "last one's Rating, so a backdated entry doesn't override it; with no entries it is null. " +
+    "Every Log Entry the User has for the Media Item, in Log Order, and every Thought of theirs on " +
+    "it, by date with creation time breaking ties. The Current Rating is the last Log Entry's " +
+    "Rating, so a backdated entry doesn't override it; with no entries it is null. " +
     "`inBacklog` says whether the Media Item is in the User's Backlog of its Media Type.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],

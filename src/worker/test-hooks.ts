@@ -3,10 +3,11 @@
 import { z } from "@hono/zod-openapi";
 import { inArray } from "drizzle-orm";
 import { Hono } from "hono";
-import { catalogCache, listItems, lists, logEntries, mediaItems } from "../db/schema";
+import { catalogCache, listItems, lists, logEntries, mediaItems, thoughts } from "../db/schema";
 import { type ErrorResponse, MediaType, Password, SeriesEpisode, Username } from "../shared/api";
 import { maxManualMediaItems } from "../shared/catalog";
 import { maxListItems } from "../shared/lists";
+import { maxThoughtsPerMediaItem } from "../shared/thoughts";
 import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./accounts/accounts";
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { byCacheKey } from "./catalog/media-items";
@@ -15,6 +16,7 @@ import { sourceFakes } from "./catalog/source-fakes";
 import { type AppEnv, requestHasTestHooksAccess, testHooksOn } from "./env";
 import { fillBacklog, removeBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
+import { fillThoughts } from "./log/thoughts";
 
 export const testHooks = new Hono<AppEnv>();
 
@@ -68,16 +70,17 @@ testHooks.get("/users/:username/invited-by", async (c) => {
   return c.json({ invitedBy }, 200);
 });
 
-// Of the given Log Entry, List, List Item and Media Item ids, those still stored, in id order: the
-// API shows a User's records only to them, so this is how a test sees a deleted User's records
-// gone.
-const recordTables = { logEntries, lists, listItems, mediaItems };
+// Of the given Log Entry, List, List Item, Media Item and Thought ids, those still stored, in id
+// order: the API shows a User's records only to them, so this is how a test sees a deleted User's
+// records gone.
+const recordTables = { logEntries, lists, listItems, mediaItems, thoughts };
 const recordIds = z.array(z.int()).max(100).default([]);
 const RecordIds = z.object({
   logEntries: recordIds,
   lists: recordIds,
   listItems: recordIds,
   mediaItems: recordIds,
+  thoughts: recordIds,
 });
 
 testHooks.post("/records", async (c) => {
@@ -146,6 +149,23 @@ testHooks.post("/users/:username/manual-items", async (c) => {
     c.var.now,
   );
   if (!filled) return c.notFound();
+  return c.body(null, 204);
+});
+
+// Keeps placeholder Thoughts on a Media Item for a User, so tests reach the limit without keeping
+// 500 one by one.
+const ThoughtFill = z.object({ count: z.int().min(1).max(maxThoughtsPerMediaItem) });
+
+testHooks.post("/users/:username/media-items/:mediaItemId/thoughts", async (c) => {
+  const mediaItemId = Number(c.req.param("mediaItemId"));
+  const body = ThoughtFill.safeParse(await c.req.json().catch(() => undefined));
+  if (!Number.isInteger(mediaItemId) || !body.success) {
+    return c.json({ error: "invalid_request" } satisfies ErrorResponse, 400);
+  }
+  const { count } = body.data;
+  if (!(await fillThoughts(c.var.db, c.req.param("username"), mediaItemId, count, c.var.now))) {
+    return c.notFound();
+  }
   return c.body(null, 204);
 });
 

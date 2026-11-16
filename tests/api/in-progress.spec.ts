@@ -99,6 +99,7 @@ test("finishing a book returns its Log Entry, and the book is Read and no longer
   expect(await expectBody(history, 200, ItemHistoryResponse)).toEqual({
     mediaItem,
     logEntries: [logEntry],
+    thoughts: [],
     currentRating: 4.5,
     inBacklog: false,
     inProgress: null,
@@ -143,6 +144,7 @@ test("stopping a book leaves no Log Entry and no Reading list item, and the book
   expect(await expectBody(history, 200, ItemHistoryResponse)).toEqual({
     mediaItem,
     logEntries: [],
+    thoughts: [],
     currentRating: null,
     inBacklog: false,
     inProgress: null,

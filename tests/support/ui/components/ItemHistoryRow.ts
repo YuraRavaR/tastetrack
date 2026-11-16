@@ -1,6 +1,6 @@
 import { ScopedComponent } from "./ScopedComponent";
 
-// One Log Entry among a film's Viewings or a book's Readings.
+// One Log Entry in a Media Item's History.
 export class ItemHistoryRow extends ScopedComponent {
   readonly revisitBadge = this.root.getByText("Rewatch", { exact: true });
   readonly bookRevisitBadge = this.root.getByText("Reread", { exact: true });

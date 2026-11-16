@@ -31,6 +31,7 @@ import {
 import { aboutOf } from "../catalog/registry";
 import type { CatalogEnv } from "../catalog/source";
 import { isInBacklog, takeOffBacklog } from "../lists/backlog";
+import { thoughtsOn } from "./thoughts";
 
 const logEntryColumns = {
   id: logEntries.id,
@@ -232,10 +233,11 @@ export async function userLog(
   return inLogOrder(rows).map(toLogEntry);
 }
 
-// The User's Item History of a Media Item, or null when there is no such Media Item they may see.
-// Four queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
-// columns would collide. A Media Item the cache misses is filled as any page fills it, and what it
-// is about comes from the entry read or filled, so the page calls no source for that alone.
+// The User's Item History of a Media Item, their Log Entries and Thoughts, or null when there is no
+// such Media Item they may see. Five queries, not a db.batch: D1 returns batched rows keyed by
+// column name, so the join's two id columns would collide. A Media Item the cache misses is filled
+// as any page fills it, and what it is about comes from the entry read or filled, so the page calls
+// no source for that alone.
 export async function itemHistory(
   db: DrizzleD1Database,
   env: CatalogEnv,
@@ -243,7 +245,7 @@ export async function itemHistory(
   mediaItemId: number,
   now: Date,
 ): Promise<ItemHistoryResponse | null> {
-  const [[item], rows, inBacklog, started] = await Promise.all([
+  const [[item], rows, thoughts, inBacklog, started] = await Promise.all([
     db
       .select(mediaItemColumns)
       .from(mediaItems)
@@ -252,6 +254,7 @@ export async function itemHistory(
     selectLog(db, now)
       .where(and(eq(logEntries.userId, userId), eq(logEntries.mediaItemId, mediaItemId)))
       .orderBy(logEntries.id),
+    thoughtsOn(db, userId, mediaItemId),
     isInBacklog(db, userId, mediaItemId),
     db.select(inProgressColumns).from(inProgress).where(ownInProgress(userId, mediaItemId)),
   ]);
@@ -266,6 +269,7 @@ export async function itemHistory(
   return {
     mediaItem,
     logEntries: entries,
+    thoughts,
     currentRating: current === null ? null : toStars(current),
     inBacklog,
     inProgress: started[0] ? toInProgress(started[0], mediaItem) : null,

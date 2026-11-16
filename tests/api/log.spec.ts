@@ -338,6 +338,7 @@ test("a film's Item History has its Log Entries in Log Order, and the last one's
   expect(await expectBody(history, 200, ItemHistoryResponse)).toEqual({
     mediaItem: alienItem,
     logEntries: [backdated, latest],
+    thoughts: [],
     currentRating: 4,
     inBacklog: false,
     inProgress: null,
@@ -355,6 +356,7 @@ test("the Item History of a film the User hasn't logged is empty, with no Curren
   expect(await itemHistory(loggedInApi, mediaItem.id)).toEqual({
     mediaItem,
     logEntries: [],
+    thoughts: [],
     currentRating: null,
     inBacklog: false,
     inProgress: null,

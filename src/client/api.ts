@@ -43,6 +43,7 @@ import type {
   NewLogEntryRequest,
   NewLogEntryResponse,
   NewManualMediaItemRequest,
+  NewThoughtRequest,
   PasswordChangeRequest,
   PlanRequest,
   RegisterRequest,
@@ -50,6 +51,9 @@ import type {
   SharedListResponse,
   ShareLink,
   ShareLinkResponse,
+  Thought,
+  ThoughtEditRequest,
+  ThoughtResponse,
   User,
   UserDeletionRequest,
   UserResponse,
@@ -486,6 +490,56 @@ export function finishInProgress(
 export async function stopInProgress(mediaItemId: number): Promise<boolean> {
   try {
     const response = await fetch(`/api/in-progress/${mediaItemId}`, { method: "DELETE" });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+export type ThoughtError = LogDateProblem | "too_many_thoughts" | "unavailable";
+
+export type SaveThoughtResult = { ok: true; thought: Thought } | { ok: false; error: ThoughtError };
+
+const thoughtErrors = new Set<string>([...logEntryErrors, "too_many_thoughts"]);
+
+// Sends a new or changed Thought, and reads back what was saved or why it was refused.
+async function sendThought(
+  url: string,
+  method: "POST" | "PATCH",
+  request: NewThoughtRequest | ThoughtEditRequest,
+): Promise<SaveThoughtResult> {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (response.ok) return { ok: true, ...((await response.json()) as ThoughtResponse) };
+    const { error } = (await response.json()) as ErrorResponse;
+    return { ok: false, error: thoughtErrors.has(error) ? (error as ThoughtError) : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+export function createThought(
+  mediaItemId: number,
+  request: NewThoughtRequest,
+): Promise<SaveThoughtResult> {
+  return sendThought(`/api/catalog/items/${mediaItemId}/thoughts`, "POST", request);
+}
+
+export function editThought(
+  thoughtId: number,
+  edit: ThoughtEditRequest,
+): Promise<SaveThoughtResult> {
+  return sendThought(`/api/thoughts/${thoughtId}`, "PATCH", edit);
+}
+
+// True once the Thought is gone, including when it already was.
+export async function deleteThought(thoughtId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/thoughts/${thoughtId}`, { method: "DELETE" });
     return response.ok || response.status === 404;
   } catch {
     return false;

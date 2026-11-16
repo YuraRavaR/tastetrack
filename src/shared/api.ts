@@ -21,6 +21,7 @@ import {
 } from "./lists";
 import { maxReviewLength, ratingStars } from "./log";
 import { maxPage } from "./progress";
+import { maxThoughtLength, thoughtStates } from "./thoughts";
 
 export const HealthResponse = z
   .object({
@@ -849,6 +850,79 @@ export const FinishRequest = NewLogEntryRequest.omit({ mediaItemId: true }).open
 
 export type FinishRequest = z.input<typeof FinishRequest>;
 
+// A Thought's text: plain, trimmed, 1 to `maxThoughtLength` characters.
+const ThoughtText = z
+  .string()
+  .trim()
+  .min(1)
+  .max(maxThoughtLength)
+  .openapi({ example: "Olena says it's her favourite." });
+
+// The state a Media Item was in for the User when they wrote a Thought: on their Backlog, In
+// Progress, Experienced, or none of these. In Progress wins over Experienced, as on a second
+// viewing, and Experienced over Planned.
+export const ThoughtState = z.enum(thoughtStates).openapi({ example: "planned" });
+
+// A User's own Thought on a Media Item: its text, its date, whether it is a quote, where the User
+// was in the Media Item, if anywhere, and the state it was written in, which never changes.
+// createdAt orders a day's Thoughts.
+export const Thought = z
+  .object({
+    id: z.int().openapi({ example: 9 }),
+    mediaItemId: z.int().openapi({ example: 42 }),
+    text: z.string().openapi({ example: "Olena says it's her favourite." }),
+    date: LogDate,
+    quote: z.boolean(),
+    progress: Progress.nullable(),
+    state: ThoughtState,
+    createdAt: z.iso.datetime().openapi({ example: "2026-11-15T19:30:00.000Z" }),
+  })
+  .openapi("Thought");
+
+export type Thought = z.infer<typeof Thought>;
+
+// A new Thought. The date follows a Log Entry date's rules, with timeZone setting the latest one
+// allowed. The Progress, of the Media Item's Media Type, is kept as given: the client fills it
+// from the In Progress, and the User may change or clear it.
+export const NewThoughtRequest = z
+  .object({
+    text: ThoughtText,
+    date: LogDate,
+    quote: z.boolean().default(false),
+    progress: Progress.nullable().default(null),
+    timeZone: z.string().max(100).optional().openapi({ example: "Europe/Kyiv" }),
+  })
+  .openapi("NewThoughtRequest");
+
+export type NewThoughtRequest = z.input<typeof NewThoughtRequest>;
+
+// Only the fields given change, by the same rules as a new Thought; a null Progress clears it. The
+// state and the creation time never change.
+export const ThoughtEditRequest = z
+  .object({
+    text: ThoughtText.optional(),
+    date: LogDate.optional(),
+    quote: z.boolean().optional(),
+    progress: Progress.nullable().optional(),
+    timeZone: z.string().max(100).optional().openapi({ example: "Europe/Kyiv" }),
+  })
+  .strict()
+  .openapi("ThoughtEditRequest");
+
+export type ThoughtEditRequest = z.input<typeof ThoughtEditRequest>;
+
+export const ThoughtParams = z.object({
+  thoughtId: z.coerce.number().int().positive().openapi({ example: 9 }),
+});
+
+export const ThoughtResponse = z
+  .object({
+    thought: Thought,
+  })
+  .openapi("ThoughtResponse");
+
+export type ThoughtResponse = z.infer<typeof ThoughtResponse>;
+
 export const LibraryQuery = z.object({
   mediaType: MediaType,
 });
@@ -958,15 +1032,17 @@ export const About = z
 
 export type About = z.infer<typeof About>;
 
-// One User's Item History of a Media Item: every Log Entry for it in Log Order, the Current Rating,
-// which is the last one's Rating, whether it is in their Backlog, and since when it is In Progress,
-// if it is. A Media Item the User hasn't experienced has neither Log Entries nor a Current Rating.
+// One User's Item History of a Media Item: every Log Entry for it in Log Order, every Thought on it
+// by date with creation time breaking ties, the Current Rating, which is the last Log Entry's
+// Rating, whether it is in their Backlog, and since when it is In Progress, if it is. A Media Item
+// the User hasn't experienced has neither Log Entries nor a Current Rating.
 // `about` is what its page says the Media Item is about, from the catalog cache, or null when there
 // is nothing to show: for a Manual Media Item, and for an entry with no details yet.
 export const ItemHistoryResponse = z
   .object({
     mediaItem: MediaItem,
     logEntries: z.array(LogEntry),
+    thoughts: z.array(Thought),
     currentRating: Rating.nullable(),
     inBacklog: z.boolean(),
     inProgress: InProgress.nullable(),

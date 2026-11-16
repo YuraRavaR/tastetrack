@@ -11,6 +11,7 @@ import { listRoutes } from "./lists";
 import { logRoutes } from "./log";
 import { meRoutes } from "./me";
 import { testHooks } from "./test-hooks";
+import { thoughtRoutes } from "./thoughts";
 
 const healthRoute = createRoute({
   method: "get",
@@ -45,6 +46,7 @@ app.route("/", inviteCodeRoutes);
 app.route("/", catalogRoutes);
 app.route("/", logRoutes);
 app.route("/", inProgressRoutes);
+app.route("/", thoughtRoutes);
 app.route("/", listRoutes);
 app.route("/", libraryRoutes);
 app.route("/test", testHooks);

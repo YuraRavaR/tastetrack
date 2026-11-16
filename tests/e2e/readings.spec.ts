@@ -33,9 +33,9 @@ test("a User reads a book from the Reading list, finds it Read, and rereads it",
   const book = await tyhrolovy(api);
   await expectBody(api.backlog.addBacklogItem({ mediaItemId: book.id }), 201);
   const { filmPage, libraryPage } = ui;
-  const { readings, stats, toast } = filmPage;
+  const { historyRows: readings, stats, toast } = filmPage;
   await filmPage.goto(book.id);
-  await expect(filmPage.notReadYetMessage).toBeVisible();
+  await expect(filmPage.emptyHistoryMessage).toBeVisible();
 
   // Read takes it off the Reading list, and the toast offers to put it back.
   await filmPage.readButton.click();
@@ -75,8 +75,8 @@ test("a User reads a book from the Reading list, finds it Read, and rereads it",
 
   await expect(revisit.root).toBeHidden();
   await expect(readings).toHaveCount(2);
-  await expect(filmPage.reading(0).bookRevisitBadge).toBeVisible();
-  await expect(filmPage.reading(1).bookRevisitBadge).toHaveCount(0);
+  await expect(filmPage.historyRow(0).bookRevisitBadge).toBeVisible();
+  await expect(filmPage.historyRow(1).bookRevisitBadge).toHaveCount(0);
   await expect(stats).toHaveText(["Twice", "5", "–"]);
   await expect(filmPage.main).not.toContainText(filmWording);
   await libraryPage.goto("Read");
@@ -91,7 +91,7 @@ test("editing and deleting a book's Readings updates its page and the Read tab",
   await logBook(api, book.id, { rating: 4, date: "2026-03-14" }, minutesAgo(20));
   await logBook(api, book.id, { rating: 5, date: "2026-03-15", revisit: true }, minutesAgo(10));
   const { filmPage, libraryPage } = ui;
-  const { readings, stats, deleteEntryDialog: confirm } = filmPage;
+  const { historyRows: readings, stats, deleteEntryDialog: confirm } = filmPage;
   await filmPage.goto(book.id);
   await expect(stats).toHaveText(["Twice", "5", "Mar 14, 2026"]);
 
@@ -114,7 +114,7 @@ test("editing and deleting a book's Readings updates its page and the Read tab",
   await expect(stats).toHaveText(["Once", "4", "Mar 14, 2026"]);
   await filmPage.chooseEntryAction("Mar 14, 2026", "Delete");
   await confirm.confirm("Delete");
-  await expect(filmPage.notReadYetMessage).toBeVisible();
+  await expect(filmPage.emptyHistoryMessage).toBeVisible();
   await expect(stats).toHaveCount(0);
   await expect(filmPage.readButton).toBeVisible();
 
@@ -173,9 +173,9 @@ test("Mark read in Search logs a book, which then shows its Current Rating in Se
   await expect(result.readAgainButton).toBeVisible();
   await result.itemHistoryLink("4.5 · 1 reading").click();
   await expect(filmPage.heading).toContainText("Himn demokratychnoï molodi");
-  await expect(filmPage.readings).toHaveCount(1);
-  await expect(filmPage.reading(0).ratingStars("4.5 stars")).toBeVisible();
-  await expect(filmPage.reading(0).text("Loud and young.")).toBeVisible();
+  await expect(filmPage.historyRows).toHaveCount(1);
+  await expect(filmPage.historyRow(0).ratingStars("4.5 stars")).toBeVisible();
+  await expect(filmPage.historyRow(0).text("Loud and young.")).toBeVisible();
 
   // The next search finds it In your Saved, with its Current Rating, and leaves it out of Open
   // Library's results.
@@ -249,8 +249,8 @@ test("on a phone a book's page has Read and Want to read side by side, and Readi
   expect([read?.x, read?.height, plan?.height]).toEqual([16, 48, 48]);
   expect(plan?.y).toBe(read?.y);
   await expect(filmPage.statNames).toHaveText(["Read", "Your rating", "First read"]);
-  await expect(filmPage.readingsHeading).toBeVisible();
-  await expect(filmPage.readings).toHaveCount(1);
+  await expect(filmPage.historyHeading).toBeVisible();
+  await expect(filmPage.historyRows).toHaveCount(1);
   const sideways = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );

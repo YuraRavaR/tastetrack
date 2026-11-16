@@ -190,7 +190,7 @@ function userBacklogs(db: DrizzleD1Database, userId: number) {
 }
 
 // The Media Item's List Item in the User's Backlog of its Media Type.
-function inBacklogOf(db: DrizzleD1Database, userId: number, mediaItemId: number) {
+export function inBacklogOf(db: DrizzleD1Database, userId: number, mediaItemId: number) {
   return and(
     inArray(listItems.listId, userBacklogs(db, userId)),
     eq(listItems.mediaItemId, mediaItemId),
