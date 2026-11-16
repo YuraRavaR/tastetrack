@@ -594,6 +594,7 @@ export const en = {
   "progress.pagesToGo": "{count, plural, one {# page to go} other {# pages to go}}",
   "progress.onLastPage": "On the last page",
   "progress.pageOfCount": "Page {page} of {count}",
+  "progress.pagesRead": "{page} of {count}",
   "progress.pageShort": "p. {page}",
   "progress.addPage": "Add page",
   "progress.changePage": "Change",
@@ -603,9 +604,9 @@ export const en = {
   "progress.clear": "Clear",
   "progress.cancel": "Cancel",
   "progress.pastLastPage": "Page {page} is past the last page, {count}.",
-  "progress.pageOutOfRange": "A page goes up to 100,000.",
-  "progress.pageCountOutOfRange": "An edition has from 1 to 100,000 pages.",
-  "progress.pageSaveFailed": "Couldn't save your page of {film}. Please try again.",
+  "progress.pageOutOfRange": "A page goes up to {max, number}.",
+  "progress.pageCountOutOfRange": "An edition has from 1 to {max, number} pages.",
+  "progress.pageSaveFailed": "Couldn't save your page of {book}. Please try again.",
   // Where Watch more starts a series already logged: its latest season, its first, or the User's
   // own last episode watched, each with the next episode it starts at.
   "watchMore.title": "Watch more",

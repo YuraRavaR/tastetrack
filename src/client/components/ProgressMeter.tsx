@@ -9,18 +9,20 @@ const meterSizes = {
 
 type MeterSize = keyof typeof meterSizes;
 
-// How far through a Media Item the User is: a bar, then the count, "15 of 62". The bar reads out
-// as `label`, which says the count in full, so the count beside it is hidden from a screen
-// reader. A series and a book share it, so the two read as one system.
+// How far through a Media Item the User is: a bar of `done` of `count`, then `countText`, "15 of
+// 62". The bar reads out as `label`, which says the count in full, so the count beside it is
+// hidden from a screen reader. A series and a book share it, so the two read as one system.
 function ProgressMeter({
   done,
   count,
+  countText,
   label,
   size,
   className,
 }: {
   done: number;
   count: number;
+  countText: string;
   label: string;
   size: MeterSize;
   className?: string;
@@ -44,7 +46,7 @@ function ProgressMeter({
           style={{ width: `${share}%` }}
         />
       </span>
-      <span aria-hidden>{t("progress.watched", { watched: done, count })}</span>
+      <span aria-hidden>{countText}</span>
     </span>
   );
 }
@@ -59,8 +61,15 @@ export function EpisodeMeter({
   count: number;
   size: MeterSize;
 }) {
-  const label = t("progress.watchedEpisodes", { watched, count });
-  return <ProgressMeter done={watched} count={count} label={label} size={size} />;
+  return (
+    <ProgressMeter
+      done={watched}
+      count={count}
+      countText={t("progress.watched", { watched, count })}
+      label={t("progress.watchedEpisodes", { watched, count })}
+      size={size}
+    />
+  );
 }
 
 // How far through their edition of a book the User is, "142 of 272", read out as "Page 142 of
@@ -76,8 +85,14 @@ export function PageMeter({
   size: MeterSize;
   className?: string;
 }) {
-  const label = t("progress.pageOfCount", { page, count: pageCount });
   return (
-    <ProgressMeter done={page} count={pageCount} label={label} size={size} className={className} />
+    <ProgressMeter
+      done={page}
+      count={pageCount}
+      countText={t("progress.pagesRead", { page, count: pageCount })}
+      label={t("progress.pageOfCount", { page, count: pageCount })}
+      size={size}
+      className={className}
+    />
   );
 }

@@ -20,6 +20,7 @@ import {
   visibilities,
 } from "./lists";
 import { maxReviewLength, ratingStars } from "./log";
+import { maxPage } from "./progress";
 
 export const HealthResponse = z
   .object({
@@ -732,14 +733,14 @@ export const BookProgress = z
     page: z.number().openapi({
       type: "integer",
       minimum: 0,
-      maximum: 100_000,
+      maximum: maxPage,
       example: 142,
       description: "The page the User is on; 0 when they haven't started",
     }),
     pageCount: z.number().optional().openapi({
       type: "integer",
       minimum: 1,
-      maximum: 100_000,
+      maximum: maxPage,
       example: 380,
       description: "How many pages the User's edition has, never fewer than the page",
     }),

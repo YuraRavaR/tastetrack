@@ -141,7 +141,7 @@ function InProgressRow({ item }: { item: LibraryItem }) {
         className="flex items-center gap-3.5 rounded-xl border bg-card p-2.5 pr-4 hover:border-muted-foreground"
       >
         <Poster subject={mediaItem} size="thumbnail" />
-        <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate font-semibold">
             {mediaItem.metadata?.title ?? mediaWord(mediaItem.mediaType, "unknown")}
           </span>

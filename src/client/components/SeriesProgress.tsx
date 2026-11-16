@@ -39,7 +39,7 @@ export function SeriesProgressPanel({
   onChange: () => void;
   onFailed: () => void;
 }) {
-  const saved = progressFor(inProgress?.progress, "series");
+  const saved = progressFor(inProgress.progress, "series");
   const { progress, change, markWatched } = useSeriesProgress(series.id, saved, onFailed);
   const { next, airs, meter } = watchingOf(series, progress);
   return (

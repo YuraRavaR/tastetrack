@@ -1,7 +1,13 @@
 import type { NewInProgressRequest } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
-import { holdCovers, kafkaOnTheShore, manualBook, tyhrolovy } from "../support/scenarios/books";
+import {
+  bookProgress,
+  holdCovers,
+  kafkaOnTheShore,
+  manualBook,
+  tyhrolovy,
+} from "../support/scenarios/books";
 import { expect, test } from "../support/ui/fixtures";
 
 // A book's Progress (`docs/mockups/book-progress/`): the page the User is on and, if they give
@@ -10,10 +16,6 @@ import { expect, test } from "../support/ui/fixtures";
 test.beforeEach(async ({ page }) => {
   await holdCovers(page);
 });
-
-function bookProgress(page: number, pageCount?: number) {
-  return { mediaType: "book", page, ...(pageCount === undefined ? {} : { pageCount }) } as const;
-}
 
 async function startReading(
   api: ApiClient,
@@ -175,7 +177,7 @@ test("a page that can't be saved keeps the editor open with what was typed", asy
   await card.savePage("142", "380");
 
   await expect(card.pageProblem).toHaveText(
-    "Couldn't save your page of Тигролови (1946). Please try again.",
+    "Couldn't save your page of Тигролови. Please try again.",
   );
   await expect(card.pageInput).toHaveValue("142");
   await expect(card.pageCountInput).toHaveValue("380");

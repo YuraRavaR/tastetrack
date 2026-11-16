@@ -178,7 +178,7 @@ export function FilmActions({
               mediaItem.mediaType === "book" && (
                 <BookProgressPanel
                   mediaItemId={mediaItem.id}
-                  label={film}
+                  title={mediaItem.metadata?.title ?? film}
                   inProgress={inProgress}
                   onChanged={onChanged}
                 />

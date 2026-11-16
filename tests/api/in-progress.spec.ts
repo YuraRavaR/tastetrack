@@ -9,7 +9,7 @@ import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
 import { expect, test } from "../support/fixtures";
-import { kafkaOnTheShore, manualBook, tyhrolovy } from "../support/scenarios/books";
+import { bookProgress, kafkaOnTheShore, manualBook, tyhrolovy } from "../support/scenarios/books";
 import { alien } from "../support/scenarios/films";
 import { chernobyl } from "../support/scenarios/series";
 
@@ -265,10 +265,6 @@ test("a film can't be started, as a film has no In Progress, and stays on the Wa
 
 // A book's Progress: the page the User is on and, if they give it, how many pages their edition
 // has. Both are the User's own, so a catalog-backed book and a Manual Media Item follow one rule.
-
-function bookProgress(page: number, pageCount?: number) {
-  return { mediaType: "book", page, ...(pageCount === undefined ? {} : { pageCount }) } as const;
-}
 
 // A book from the catalog and one the User added by hand.
 async function twoBooks(api: ApiClient) {

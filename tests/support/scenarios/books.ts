@@ -36,6 +36,11 @@ export async function bookSearchResult(client: ApiClient, query: string, id: str
   return result;
 }
 
+// A book's Progress: the page, and the page count when given.
+export function bookProgress(page: number, pageCount?: number) {
+  return { mediaType: "book", page, ...(pageCount === undefined ? {} : { pageCount }) } as const;
+}
+
 // A book's Media Item, as adding it from search makes or finds it.
 export async function book(client: ApiClient, query: string, id: string) {
   const result = await bookSearchResult(client, query, id);

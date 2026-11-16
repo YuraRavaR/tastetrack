@@ -44,6 +44,7 @@ export const firstSeason = 1;
 // Why a Progress is refused.
 export type ProgressProblem = "invalid_progress" | "progress_mismatch";
 
+// A whole number from `min` to `max`.
 function isWhole(value: number, min: number, max = Number.POSITIVE_INFINITY): boolean {
   return Number.isInteger(value) && value >= min && value <= max;
 }
@@ -61,11 +62,12 @@ export function progressProblem(progress: Progress, mediaType: string): Progress
   return bookPageProblem(progress) === null ? null : "invalid_progress";
 }
 
-// Why a book's page and page count can't be kept, naming which of them is wrong, so the client can
-// say it under the right field: a page out of range, a page count out of range, or a page past the
-// page count. Null when both can.
+// Which of a book's page and page count is wrong.
 export type BookPageProblem = "page_out_of_range" | "page_count_out_of_range" | "past_last_page";
 
+// Why a book's page and page count can't be kept, naming which of them is wrong, so the client can
+// say it at the right field: a page out of range, a page count out of range, or a page past the
+// page count. Null when both can.
 export function bookPageProblem({
   page,
   pageCount,

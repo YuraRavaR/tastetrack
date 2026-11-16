@@ -17,6 +17,7 @@ import {
   type BookPageProblem,
   type BookProgress,
   bookPageProblem,
+  maxPage,
   progressFor,
 } from "../../shared/progress";
 import * as api from "../api";
@@ -26,16 +27,16 @@ import { PageMeter } from "./ProgressMeter";
 // What a book's Reading card holds between its heading and its buttons
 // (`docs/mockups/book-progress/`): the page the User is on, how many pages are left and the bar
 // when they gave the page count, and Change, which puts the editor in the panel's place; or, with
-// no Progress yet, "Which page are you on?" and Add page. `label` names the book in a message, and
+// no Progress yet, "Which page are you on?" and Add page. `title` names the book in a message, and
 // `onChanged` reloads the page once a change is saved.
 export function BookProgressPanel({
   mediaItemId,
-  label,
+  title,
   inProgress,
   onChanged,
 }: {
   mediaItemId: number;
-  label: string;
+  title: string;
   inProgress: InProgress;
   onChanged: () => Promise<void>;
 }) {
@@ -54,7 +55,7 @@ export function BookProgressPanel({
     return (
       <PageEditor
         mediaItemId={mediaItemId}
-        label={label}
+        title={title}
         saved={progress}
         onClose={() => setEditing(false)}
         onSaved={async () => {
@@ -121,13 +122,13 @@ function digitsOf(value: string): string {
 // A page or page count the rules refuse is said under the fields, and Save waits for a change.
 function PageEditor({
   mediaItemId,
-  label,
+  title,
   saved,
   onClose,
   onSaved,
 }: {
   mediaItemId: number;
-  label: string;
+  title: string;
   saved: BookProgress | null;
   onClose: () => void;
   onSaved: () => Promise<void>;
@@ -261,9 +262,11 @@ function PageEditor({
     if (found === "past_last_page") {
       return t("progress.pastLastPage", { page, count: pageCount });
     }
-    if (found === "page_out_of_range") return t("progress.pageOutOfRange");
-    if (found === "page_count_out_of_range") return t("progress.pageCountOutOfRange");
-    return t("progress.pageSaveFailed", { film: label });
+    if (found === "page_out_of_range") return t("progress.pageOutOfRange", { max: maxPage });
+    if (found === "page_count_out_of_range") {
+      return t("progress.pageCountOutOfRange", { max: maxPage });
+    }
+    return t("progress.pageSaveFailed", { book: title });
   }
 }
 
@@ -317,10 +320,12 @@ export function BookProgressLine({ inProgress }: { inProgress: InProgress | null
   if (!progress) return null;
   if (progress.pageCount === undefined) {
     return (
-      <span className="text-muted-foreground text-xs md:text-[0.8125rem]">
+      <span className="mt-0.5 text-muted-foreground text-xs md:text-[0.8125rem]">
         {t("progress.pageShort", { page: progress.page })}
       </span>
     );
   }
-  return <PageMeter page={progress.page} pageCount={progress.pageCount} size="row" />;
+  return (
+    <PageMeter page={progress.page} pageCount={progress.pageCount} size="row" className="mt-0.5" />
+  );
 }

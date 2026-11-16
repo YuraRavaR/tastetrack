@@ -11,6 +11,7 @@ import {
   NewInProgressResponse,
   NewLogEntryResponse,
 } from "../shared/api";
+import { maxPage } from "../shared/progress";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import type { AppEnv } from "./env";
 import { changeInProgress, finish, start, stop } from "./log/in-progress";
@@ -22,8 +23,8 @@ const dateRules =
 const progressRules =
   "the Progress is of another Media Type, or the Media Item's Media Type has none " +
   "(`progress_mismatch`), or a series' season isn't a whole number from 1 or its episode a " +
-  "whole number from 0, or a book's page isn't a whole number from 0 to 100,000, its page count " +
-  "one from 1 to 100,000, or the page is past the page count (`invalid_progress`)";
+  `whole number from 0, or a book's page isn't a whole number from 0 to ${maxPage}, its page ` +
+  `count one from 1 to ${maxPage}, or the page is past the page count (\`invalid_progress\`)`;
 
 const notInProgressResponse = {
   content: { "application/json": { schema: ErrorResponse } },
