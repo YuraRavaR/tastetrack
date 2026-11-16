@@ -13,6 +13,7 @@ import { expect, test } from "../support/ui/fixtures";
 const alienOverview = /^During its return to the earth, commercial spaceship Nostromo/;
 const alienUkrainianOverview = /^У далекому майбутньому вантажний космічний корабель/;
 
+// How tall an element is drawn, to tell a cut overview from an open one.
 function heightOf(element: Locator) {
   return element.evaluate((node: HTMLElement) => node.offsetHeight);
 }

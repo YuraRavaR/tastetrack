@@ -8,6 +8,7 @@ import { callsRealTmdb } from "../support/scenarios/tmdb";
 // Locally the Worker calls a TMDB fake that mirrors real TMDB; these are TMDB's texts as it had
 // them on 2026-11-16.
 
+// What a Media Item's page says it is about, as its Item History carries it.
 async function aboutOf(api: ApiClient, mediaItemId: number) {
   const history = api.catalog.getMediaItemHistory(mediaItemId);
   return (await expectBody(history, 200, ItemHistoryResponse)).about;

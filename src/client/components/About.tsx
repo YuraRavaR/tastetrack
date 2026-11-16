@@ -5,10 +5,7 @@ import type { About as AboutData } from "../../shared/api";
 import { t } from "../i18n/t";
 
 // A text in English and in Ukrainian, null where the source has none.
-interface LocalizedText {
-  en: string | null;
-  uk: string | null;
-}
+type LocalizedText = Extract<AboutData, { mediaType: "film" }>["overview"];
 
 // One row of the credits: its label, such as "Director", and the names under it.
 export interface CreditRow {
@@ -16,6 +13,8 @@ export interface CreditRow {
   names: string[];
 }
 
+// What the About block shows, whatever the Media Type: a book has no tagline, credits or Ukrainian
+// text, a series names its creators where a film names its directors.
 export interface AboutProps {
   tagline: LocalizedText;
   overview: LocalizedText;
@@ -24,6 +23,7 @@ export interface AboutProps {
   source: string;
 }
 
+// More, Less and the language switch: text links in the accent colour, 44 px tall to tap.
 const linkClass =
   "h-11 rounded-lg px-2.5 font-semibold text-[14px] text-primary-strong " +
   "hover:text-primary-strong sm:text-[15px]";

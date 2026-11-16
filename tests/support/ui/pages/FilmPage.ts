@@ -177,7 +177,7 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly about = new AboutBlock(this.main.getByRole("region", { name: "About" }));
 
   // The tiles: how often it was watched, its Current Rating, when first watched.
-  readonly tiles = this.main.locator("dl").filter({ hasText: "Your rating" });
+  readonly tiles = this.main.getByRole("region", { name: "At a glance" });
   readonly stats = this.tiles.getByRole("definition");
   readonly watchedStat = this.stats.nth(0);
   readonly ratingStat = this.stats.nth(1);

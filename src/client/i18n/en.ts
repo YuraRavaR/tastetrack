@@ -486,6 +486,8 @@ export const en = {
   // Shown before the Media Item, and so its Media Type, is known.
   "itemHistory.unavailable": "Couldn't load this page. Please try again.",
   "itemHistory.notFound": "There's nothing here. It may have been deleted.",
+  // The tiles of how the User experienced a Media Item, as a screen reader names them.
+  "itemHistory.stats": "At a glance",
   "itemHistory.currentRating": "Your rating",
   "itemHistory.noFirstDate": "–",
   // A Media Item's About block, under its titles.

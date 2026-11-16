@@ -184,8 +184,7 @@ async function filmDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"f
     genres: film.genres?.map((genre) => genre.name) ?? [],
     overview: { en: textOf(film.overview), uk: textOf(ukrainian?.overview) },
     tagline: { en: textOf(film.tagline), uk: textOf(ukrainian?.tagline) },
-    // A director TMDB lists twice is named once.
-    directors: [...new Set(directors.map((member) => member.name))],
+    directors: directors.map((member) => member.name),
     cast: film.credits?.cast?.slice(0, 5).map((member) => member.name) ?? [],
   };
   return {
