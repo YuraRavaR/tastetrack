@@ -3,6 +3,7 @@
 // through the registry alone.
 import type { CacheExtras } from "../../db/schema";
 import type {
+  About,
   CatalogSearchResult,
   CoverUrls,
   ExternalSource,
@@ -59,6 +60,10 @@ type MetadataOf<M extends MediaType> = NonNullable<
   Extract<MediaItem, { mediaType: M }>["metadata"]
 >;
 
+// What a Media Item of this Media Type shows in its About block. A Media Type that shows none yet
+// has none, so its source answers null.
+export type AboutOf<M extends MediaType> = Extract<About, { mediaType: M }>;
+
 // One External Source's catalog of one Media Type: how to search it, fetch an entry's details and
 // show its covers, and the rules its cache entries keep.
 export interface CatalogSource<M extends MediaType> {
@@ -84,6 +89,8 @@ export interface CatalogSource<M extends MediaType> {
   classifyFailure(status: number): SourceFailure;
   // A cache entry as the API shows it.
   metadataOf(entry: CatalogEntry<M>): MetadataOf<M>;
+  // What a cache entry says the work is about, for its page alone, or null when nothing.
+  aboutOf(entry: CatalogEntry<M>): AboutOf<M> | null;
 }
 
 // The source of any one Media Type, for code that works with whichever a Media Item has.

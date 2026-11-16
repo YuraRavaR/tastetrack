@@ -146,11 +146,26 @@ export const mediaItems = sqliteTable(
 // What only a film's cache entry has. A row filled from a search result alone has no backdrop and
 // no runtime or genres, and neither has a row filled before backdrops were kept until the cron
 // refreshes it.
+// A text in English and in Ukrainian, null where the source has none.
+export interface LocalizedText {
+  en: string | null;
+  uk: string | null;
+}
+
+// The overviews, taglines, directors and cast are for a film's About block. A row filled from a
+// search result alone has none of them, and a row filled before they were kept (#227) lacks them
+// until the cron refreshes it: a missing one reads as none.
 export interface FilmCacheExtra {
   backdropPath: string | null;
   runtime: number | null;
   // Null when unknown, as an empty list is.
   genres: string[] | null;
+  overview?: LocalizedText;
+  tagline?: LocalizedText;
+  // Every crew member with the job Director, in TMDB's order.
+  directors?: string[];
+  // The first 5 cast members' names, in TMDB's order.
+  cast?: string[];
 }
 
 // What only a book's cache entry has: its authors' names, in the source's order. A row filled from
@@ -172,8 +187,8 @@ export interface SeriesCacheExtra {
   seasons: { season: number; episodeCount: number }[];
   lastAiredEpisode: { season: number; episode: number } | null;
   nextAirDate: string | null;
-  overview: { en: string | null; uk: string | null };
-  tagline: { en: string | null; uk: string | null };
+  overview: LocalizedText;
+  tagline: LocalizedText;
   creators: string[];
   // The first 5 cast members' names, in TMDB's order.
   cast: string[];

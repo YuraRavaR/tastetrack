@@ -65,12 +65,28 @@ const TmdbDetailsResponse = TmdbFilm.extend({
   backdrop_path: z.string().nullable().optional(),
   runtime: z.number().nullable().optional(),
   genres: z.array(z.object({ name: z.string() })).optional(),
+  overview: z.string().nullable().optional(),
+  tagline: z.string().nullable().optional(),
+  credits: z
+    .object({
+      cast: z.array(z.object({ name: z.string() })).optional(),
+      crew: z
+        .array(z.object({ name: z.string(), job: z.string().nullable().optional() }))
+        .optional(),
+    })
+    .optional(),
   translations: z
     .object({
       translations: z.array(
         z.object({
           iso_639_1: z.string(),
-          data: z.object({ title: z.string().optional() }).optional(),
+          data: z
+            .object({
+              title: z.string().optional(),
+              overview: z.string().optional(),
+              tagline: z.string().optional(),
+            })
+            .optional(),
         }),
       ),
     })
@@ -86,6 +102,11 @@ function yearOf(film: TmdbFilm): number | null {
 // title is treated the same way, in case that ever changes.
 function titleOf(film: TmdbFilm): string {
   return film.title?.trim() || film.original_title;
+}
+
+// An overview, a tagline or a translated title: an empty one counts as none.
+export function textOf(text: string | null | undefined): string | null {
+  return text?.trim() || null;
 }
 
 // TMDB takes a key, so a 401 or 403 means ours is wrong or revoked; a 404 is a film it no longer
@@ -139,30 +160,36 @@ async function searchFilms(env: CatalogEnv, query: string): Promise<CatalogSearc
   }));
 }
 
-// One call for both titles, the images, the runtime and the genres: the details in English with
-// the film's translations appended. Unlike `title`, the translations list never falls back to
-// another language, so it alone says whether a Ukrainian title exists; an empty one counts as none.
+// One call for everything a film's entry holds: the details in English with the film's
+// translations and credits appended. Unlike `title`, the translations list never falls back to
+// another language, so it alone says whether a Ukrainian title, overview or tagline exists; an
+// empty one counts as none.
 async function filmDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"film">> {
   const body = TmdbDetailsResponse.safeParse(
     await get(env, `/movie/${encodeURIComponent(id)}`, {
       language: "en-US",
-      append_to_response: "translations",
+      append_to_response: "translations,credits",
     }),
   );
   if (!body.success) {
     throw new SourceUnavailable("TMDB details answered in an unknown shape", "temporary");
   }
   const film = body.data;
-  const ukrainian = film.translations?.translations.find((t) => t.iso_639_1 === "uk");
+  const ukrainian = film.translations?.translations.find((t) => t.iso_639_1 === "uk")?.data;
+  const directors = film.credits?.crew?.filter((member) => member.job === "Director") ?? [];
   const extra: FilmCacheExtra = {
     backdropPath: film.backdrop_path ?? null,
     // TMDB says 0 for a runtime it doesn't know.
     runtime: film.runtime || null,
     genres: film.genres?.map((genre) => genre.name) ?? [],
+    overview: { en: textOf(film.overview), uk: textOf(ukrainian?.overview) },
+    tagline: { en: textOf(film.tagline), uk: textOf(ukrainian?.tagline) },
+    directors: directors.map((member) => member.name),
+    cast: film.credits?.cast?.slice(0, 5).map((member) => member.name) ?? [],
   };
   return {
     englishTitle: titleOf(film),
-    ukrainianTitle: ukrainian?.data?.title?.trim() || null,
+    ukrainianTitle: textOf(ukrainian?.title),
     originalTitle: film.original_title,
     year: yearOf(film),
     coverRef: film.poster_path ?? null,
@@ -192,4 +219,17 @@ export const tmdbFilms: CatalogSource<"film"> = {
     runtime: entry.extra.runtime,
     genres: entry.extra.genres ?? [],
   }),
+  aboutOf: ({ extra }) => {
+    const about = {
+      mediaType: "film" as const,
+      overview: extra.overview ?? { en: null, uk: null },
+      tagline: extra.tagline ?? { en: null, uk: null },
+      directors: extra.directors ?? [],
+      cast: extra.cast ?? [],
+    };
+    // Nothing to show without an overview in either language or anyone in the credits: a
+    // tagline alone isn't enough.
+    const { overview, directors, cast } = about;
+    return overview.en || overview.uk || directors.length > 0 || cast.length > 0 ? about : null;
+  },
 };

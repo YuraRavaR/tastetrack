@@ -27,30 +27,32 @@ function Stat({
 
 // The three tiles that open a film's page once it has Log Entries: how often the User experienced
 // it, their Current Rating, and when they first did. A tile with nothing to say stays, so the row
-// always has three.
+// always has three. Screen readers hear them as one section, "At a glance".
 export function ItemHistoryStats({ history }: { history: ItemHistoryResponse }) {
   const { mediaItem, logEntries, currentRating } = history;
   const firstDate = firstLogDate(logEntries);
   return (
-    <dl className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:grid-cols-3">
-      <Stat label={mediaWord(mediaItem.mediaType, "experienced")}>
-        {mediaWord(mediaItem.mediaType, "experiencedCount", { count: logEntries.length })}
-      </Stat>
-      <Stat label={t("itemHistory.currentRating")}>
-        {currentRating !== null && <RatingValue rating={currentRating} />}
-      </Stat>
-      <Stat
-        label={mediaWord(mediaItem.mediaType, "firstExperienced")}
-        className="whitespace-nowrap text-sm sm:text-base"
-      >
-        {firstDate ? (
-          formatCalendarDate(firstDate)
-        ) : (
-          <span role="img" aria-label={t("logEntry.noDate")}>
-            {t("itemHistory.noFirstDate")}
-          </span>
-        )}
-      </Stat>
-    </dl>
+    <section aria-label={t("itemHistory.stats")}>
+      <dl className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:grid-cols-3">
+        <Stat label={mediaWord(mediaItem.mediaType, "experienced")}>
+          {mediaWord(mediaItem.mediaType, "experiencedCount", { count: logEntries.length })}
+        </Stat>
+        <Stat label={t("itemHistory.currentRating")}>
+          {currentRating !== null && <RatingValue rating={currentRating} />}
+        </Stat>
+        <Stat
+          label={mediaWord(mediaItem.mediaType, "firstExperienced")}
+          className="whitespace-nowrap text-sm sm:text-base"
+        >
+          {firstDate ? (
+            formatCalendarDate(firstDate)
+          ) : (
+            <span role="img" aria-label={t("logEntry.noDate")}>
+              {t("itemHistory.noFirstDate")}
+            </span>
+          )}
+        </Stat>
+      </dl>
+    </section>
   );
 }

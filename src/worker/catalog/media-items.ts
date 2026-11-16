@@ -332,13 +332,14 @@ export async function addFromSearch(
 // order given, that came without it because the cache has no entry for them: one details fetch
 // each from their source, all at once, and one query to write them all to the cache. The rest stay
 // null for the client to load by id, so a page's time and queries don't grow with how much the
-// cache misses.
+// cache misses. It answers with the cache entry it filled each of them from.
 export async function fillMissingMetadata(
   db: DrizzleD1Database,
   env: CatalogEnv,
   items: MediaItem[],
   now: Date,
-): Promise<void> {
+): Promise<Map<MediaItem, CatalogEntry>> {
+  const filledFrom = new Map<MediaItem, CatalogEntry>();
   const missing = new Map<string, CacheKey>();
   for (const { externalReference, metadata } of items) {
     if (missing.size === maxMetadataFills) break;
@@ -347,15 +348,18 @@ export async function fillMissingMetadata(
       missing.set(cacheKeyId(key), key);
     }
   }
-  if (missing.size === 0) return;
+  if (missing.size === 0) return filledFrom;
   const fetched = await fetchDetails(env, [...missing.values()]);
   await storeDetails(db, fetched, now);
   const entries = new Map(fetched.map(({ entry, ...key }) => [cacheKeyId(key), entry]));
   for (const item of items) {
     const filled =
       item.externalReference && entries.get(cacheKeyId(cacheKeyOf(item.externalReference)));
-    if (filled) Object.assign(item, withMetadata(item, metadataOf(item.mediaType, filled)));
+    if (!filled) continue;
+    Object.assign(item, withMetadata(item, metadataOf(item.mediaType, filled)));
+    filledFrom.set(item, filled);
   }
+  return filledFrom;
 }
 
 // The ids of the catalog-backed Media Items for these External Source ids of one Media Type, by

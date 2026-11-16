@@ -34,6 +34,12 @@ export async function manualFilm(client: ApiClient, data: Omit<NewManualFilmRequ
 export const alien = (client: ApiClient) => film(client, "alien", "348");
 export const aliens = (client: ApiClient) => film(client, "aliens", "679");
 export const amelie = (client: ApiClient) => film(client, "amelie", "194");
+// Directed by two, the Coen brothers.
+export const noCountryForOldMen = (client: ApiClient) => {
+  return film(client, "no country for old men", "6977");
+};
+// A film TMDB has no Ukrainian translation of, so only an English overview and tagline.
+export const tampopo = (client: ApiClient) => film(client, "tampopo", "11830");
 // A film with a backdrop and no poster. Only the TMDB fake has it, so skip the test on real TMDB.
 export const noPosterFilm = (client: ApiClient) => {
   return film(client, "tmdb fake no poster", "999000002");

@@ -486,8 +486,20 @@ export const en = {
   // Shown before the Media Item, and so its Media Type, is known.
   "itemHistory.unavailable": "Couldn't load this page. Please try again.",
   "itemHistory.notFound": "There's nothing here. It may have been deleted.",
+  // The tiles of how the User experienced a Media Item, as a screen reader names them.
+  "itemHistory.stats": "At a glance",
   "itemHistory.currentRating": "Your rating",
   "itemHistory.noFirstDate": "–",
+  // A Media Item's About block, under its titles.
+  "about.label": "About",
+  "about.more": "More",
+  "about.less": "Less",
+  // Written in the language it switches to, so a reader of either finds it.
+  "about.ukrainian": "Українською",
+  "about.english": "In English",
+  "about.directors": "{count, plural, one {Director} other {Directors}}",
+  "about.cast": "Cast",
+  "about.fromTmdb": "From TMDB",
   "manualItem.editTitle": "Edit {film}",
   "manualItem.title": "Title",
   "manualItem.originalTitle": "Original Title",

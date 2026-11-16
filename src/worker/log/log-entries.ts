@@ -21,7 +21,15 @@ import {
   toStars,
 } from "../../shared/log";
 import { type Progress, seriesOutlook } from "../../shared/progress";
-import { cacheOfMediaItem, mediaItemColumns, toMediaItem, visibleTo } from "../catalog/media-items";
+import {
+  cacheOfMediaItem,
+  fillMissingMetadata,
+  mediaItemColumns,
+  toMediaItem,
+  visibleTo,
+} from "../catalog/media-items";
+import { aboutOf } from "../catalog/registry";
+import type { CatalogEnv } from "../catalog/source";
 import { isInBacklog, takeOffBacklog } from "../lists/backlog";
 
 const logEntryColumns = {
@@ -222,9 +230,11 @@ export async function userLog(
 
 // The User's Item History of a Media Item, or null when there is no such Media Item they may see.
 // Four queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
-// columns would collide.
+// columns would collide. A Media Item the cache misses is filled as any page fills it, and what it
+// is about comes from the entry read or filled, so the page calls no source for that alone.
 export async function itemHistory(
   db: DrizzleD1Database,
+  env: CatalogEnv,
   userId: number,
   mediaItemId: number,
   now: Date,
@@ -244,12 +254,18 @@ export async function itemHistory(
   if (!item) return null;
   const current = currentRating(rows);
   const mediaItem = toMediaItem(item);
+  const entries = inLogOrder(rows).map(toLogEntry);
+  // Each Log Entry shows the same Media Item, so filling it once fills them all.
+  const items = [mediaItem, ...entries.map((entry) => entry.mediaItem)];
+  const filled = await fillMissingMetadata(db, env, items, now);
+  const entry = item.cache ?? filled.get(mediaItem);
   return {
     mediaItem,
-    logEntries: inLogOrder(rows).map(toLogEntry),
+    logEntries: entries,
     currentRating: current === null ? null : toStars(current),
     inBacklog,
     inProgress: started[0] ? toInProgress(started[0], mediaItem) : null,
+    about: entry ? aboutOf(mediaItem.mediaType, entry) : null,
   };
 }
 

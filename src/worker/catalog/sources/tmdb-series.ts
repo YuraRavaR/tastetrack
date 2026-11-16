@@ -21,6 +21,7 @@ import {
   posterPathOf,
   posterUrl,
   posterUrls,
+  textOf,
 } from "./tmdb";
 
 // Only the fields we use, so TMDB adding or dropping others doesn't break us.
@@ -93,11 +94,6 @@ function dayOf(date: string | null | undefined): string | null {
 // As for films, an empty or missing name counts as none, and the Original Title stands in.
 function titleOf(series: TmdbSeries): string {
   return series.name?.trim() || series.original_name;
-}
-
-// An overview, tagline or translated name: an empty one counts as none.
-function textOf(text: string | null | undefined): string | null {
-  return text?.trim() || null;
 }
 
 // TMDB's statuses by the names it gives them. One it adds later reads as unknown, null, rather
@@ -245,4 +241,6 @@ export const tmdbSeries: CatalogSource<"series"> = {
     lastAiredEpisode: entry.extra.lastAiredEpisode,
     nextAirDate: entry.extra.nextAirDate,
   }),
+  // A series' page shows no About block yet (#216).
+  aboutOf: () => null,
 };

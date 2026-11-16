@@ -15,8 +15,14 @@ interface FakeFilm {
   titles: Partial<Record<SearchLanguage, string>>;
   runtime: number;
   genres: string[];
+  // Overviews and taglines by TMDB language. Like TMDB, a missing one comes back as empty.
+  texts: Partial<Record<SearchLanguage, { overview: string; tagline: string }>>;
+  // Each crew member's name and job, and the cast's names, in TMDB's order.
+  crew: [name: string, job: string][];
+  cast: string[];
 }
 
+// Films as real TMDB had them; their overviews, taglines and credits on 2026-11-16.
 const films: FakeFilm[] = [
   {
     id: 348,
@@ -27,6 +33,30 @@ const films: FakeFilm[] = [
     titles: { "en-US": "Alien", "uk-UA": "Чужий" },
     runtime: 117,
     genres: ["Horror", "Science Fiction"],
+    texts: {
+      "en-US": {
+        overview:
+          "During its return to the earth, commercial spaceship Nostromo intercepts a distress signal from a distant planet. When a three-member team of the crew discovers a chamber containing thousands of eggs on the planet, a creature inside one of the eggs attacks an explorer. The entire crew is unaware of the impending nightmare set to descend upon them when the alien parasite planted inside its unfortunate host is birthed.",
+        tagline: "In space no one can hear you scream.",
+      },
+      "uk-UA": {
+        overview:
+          "У далекому майбутньому вантажний космічний корабель, який повертається на Землю, перехоплює слабкий сигнал SOS з невідомої планети. Екіпаж вирішує виконати посадку і розібратися, що до чого. На планеті астронавти скрізь виявляють предмети, схожі на гігантські кокони або личинки.  На жаль, вони навіть не здогадуються, що в цих коконах чекають свого часу огидні безжальні тварюки, сенс існування яких зведено до винищення всього живого...",
+        tagline: "В космосі ніхто твій крик не почує.",
+      },
+    },
+    crew: [
+      ["Ridley Scott", "Director"],
+      ["Dan O'Bannon", "Screenplay"],
+    ],
+    cast: [
+      "Tom Skerritt",
+      "Sigourney Weaver",
+      "Veronica Cartwright",
+      "Harry Dean Stanton",
+      "John Hurt",
+      "Ian Holm",
+    ],
   },
   // Its backdrop is left out, so tests can meet a film with a poster and no backdrop.
   {
@@ -38,6 +68,30 @@ const films: FakeFilm[] = [
     titles: { "en-US": "Aliens", "uk-UA": "Чужі" },
     runtime: 137,
     genres: ["Action", "Thriller", "Science Fiction"],
+    texts: {
+      "en-US": {
+        overview:
+          "Ripley, the sole survivor of the Nostromo's deadly encounter with the monstrous Alien, returns to Earth after drifting through space in hypersleep for 57 years. Although her story is initially met with skepticism, she agrees to accompany a team of Colonial Marines back to LV-426.",
+        tagline: "This time it's war.",
+      },
+      "uk-UA": {
+        overview:
+          "Капсула з Елен знайдена рятувальниками після багатьох років блукання у космосі. Їй повідомляють, що планета LV-426 колонізована, і їй доведеться повернутися туди, де розпочалося її пекло, тому що зв'язок із колоністами перервався.  І ось у складі групи космічного десанту Ріплі вирушає на прокляту планету. Але тепер на людей там чекає не один Чужий, а тисячі. Хто зможе вижити у цій війні: чудовиська, здатні лише вбивати, або люди, здатні мислити?",
+        tagline: "",
+      },
+    },
+    crew: [
+      ["James Cameron", "Director"],
+      ["Gale Anne Hurd", "Producer"],
+    ],
+    cast: [
+      "Sigourney Weaver",
+      "Carrie Henn",
+      "Michael Biehn",
+      "Paul Reiser",
+      "Lance Henriksen",
+      "Bill Paxton",
+    ],
   },
   {
     id: 194,
@@ -48,6 +102,30 @@ const films: FakeFilm[] = [
     titles: { "en-US": "Amélie", "uk-UA": "Амелі" },
     runtime: 122,
     genres: ["Comedy", "Romance"],
+    texts: {
+      "en-US": {
+        overview:
+          "At a tiny Parisian café, the adorable yet painfully shy Amélie accidentally discovers a gift for helping others. Soon Amelie is spending her days as a matchmaker, guardian angel, and all-around do-gooder. But when she bumps into a handsome stranger, will she find the courage to become the star of her very own love story?",
+        tagline: "She’ll change your life.",
+      },
+      "uk-UA": {
+        overview:
+          "Чи знаєте ви, що всі події, що відбуваються в нашому світі, навіть найбільш незначні, взаємопов'язані найдивовижнішим і чудернацьким чином?  Як політ крихітної мухи може викликати десь далеко могутній ураган, так і дивні, і на перший погляд, незрозумілі вчинки тихої і самотньої дівчини, що живе в світі своїх фантазій, можуть назавжди змінити життя абсолютно різних людей. Цю дівчину звуть Амелі Пулен.",
+        tagline: "Одна людина може змінити ваше життя назавжди.",
+      },
+    },
+    crew: [
+      ["Bruno Delbonnel", "Director of Photography"],
+      ["Jean-Pierre Jeunet", "Director"],
+    ],
+    cast: [
+      "Audrey Tautou",
+      "Mathieu Kassovitz",
+      "Rufus",
+      "Serge Merlin",
+      "Jamel Debbouze",
+      "Clotilde Mollet",
+    ],
   },
   {
     id: 26782,
@@ -58,6 +136,30 @@ const films: FakeFilm[] = [
     titles: { "en-US": "Shadows of Forgotten Ancestors", "uk-UA": "Тіні забутих предків" },
     runtime: 97,
     genres: ["Drama", "Romance"],
+    texts: {
+      "en-US": {
+        overview:
+          "In the Carpathian Mountains of 19th-century Ukraine, love, hate, life and death among the Hutsul people are as they’ve been since time began. Ivan is drawn to Marichka, the beautiful young daughter of the man who killed his father. But fate tragically decrees that the two lovers will remain apart.",
+        tagline: "",
+      },
+      "uk-UA": {
+        overview:
+          "Фільм, створений за однойменною повістю Михайла Коцюбинського. Десятки років ворогували два гуцульских роди — Палійчуки та Гутенюки. Але сталось так, що Іван Палійчук покохав красуню із ворожого роду — Марічку, якій судилося прожити коротке, але щасливе життя. Не міг без неї бути щасливим Іванко. Але він жив далі. Оженився. Був коханим. Дітей не було. Господарював. І шукав смерть, яка забрала в нього кохану.",
+        tagline: "",
+      },
+    },
+    crew: [
+      ["Sergei Parajanov", "Director"],
+      ["Ivan Chendej", "Writer"],
+    ],
+    cast: [
+      "Ivan Mykolaichuk",
+      "Larisa Kadochnikova",
+      "Tatyana Bestayeva",
+      "Mykola Hrynko",
+      "Spartak Bagashvili",
+      "Leonid Yengibarov",
+    ],
   },
   // Its poster is left out, so the fake claims no poster path it can't vouch for.
   {
@@ -69,6 +171,31 @@ const films: FakeFilm[] = [
     titles: { "en-US": "The Matrix", "uk-UA": "Матриця" },
     runtime: 136,
     genres: ["Action", "Science Fiction"],
+    texts: {
+      "en-US": {
+        overview:
+          "Set in the 22nd century, The Matrix tells the story of a computer hacker who joins a group of underground insurgents fighting the vast and powerful computers who now rule the earth.",
+        tagline: "Believe the unbelievable.",
+      },
+      "uk-UA": {
+        overview:
+          "Хакер Томас Андерсон одного дня опиняється перед вибором, запропонованим таємничими незнайомцями. Він може продовжувати жити у своєму звичайному світі, який насправді — лише сон. Або ж поглянути в обличчя страшній реальності?",
+        tagline: "Звільни свій розум.",
+      },
+    },
+    crew: [
+      ["Lana Wachowski", "Director"],
+      ["Lilly Wachowski", "Director"],
+      ["Owen Paterson", "Production Design"],
+    ],
+    cast: [
+      "Keanu Reeves",
+      "Laurence Fishburne",
+      "Carrie-Anne Moss",
+      "Hugo Weaving",
+      "Gloria Foster",
+      "Joe Pantoliano",
+    ],
   },
   // Not a real film: the fake fails the details call for it the way TMDB does when it is down.
   {
@@ -80,9 +207,13 @@ const films: FakeFilm[] = [
     titles: { "en-US": "TMDB Fake Details Failure" },
     runtime: 90,
     genres: ["Drama"],
+    texts: {},
+    crew: [],
+    cast: [],
   },
-  // Not a real film: a backdrop (Alien's picture) and no poster, for the film page's placeholder.
-  // The Matrix has the same gap, but only the TMDB cache tests may use it.
+  // Not a real film: a backdrop (Alien's picture) and no poster, for the film page's placeholder,
+  // and an overview short enough to show whole. The Matrix has the same gap, but only the TMDB
+  // cache tests may use it.
   {
     id: 999_000_002,
     original_title: "TMDB Fake No Poster",
@@ -92,6 +223,89 @@ const films: FakeFilm[] = [
     titles: { "en-US": "TMDB Fake No Poster" },
     runtime: 90,
     genres: ["Drama"],
+    texts: { "en-US": { overview: "A film with no poster.", tagline: "" } },
+    crew: [],
+    cast: [],
+  },
+  // Not a real film: details with no overview, tagline or credits.
+  {
+    id: 999_000_003,
+    original_title: "TMDB Fake Nothing Known",
+    release_date: "2020-01-01",
+    poster_path: null,
+    backdrop_path: null,
+    titles: { "en-US": "TMDB Fake Nothing Known" },
+    runtime: 90,
+    genres: ["Drama"],
+    texts: {},
+    crew: [],
+    cast: [],
+  },
+  // Directed by two, in this order.
+  {
+    id: 6977,
+    original_title: "No Country for Old Men",
+    release_date: "2007-11-09",
+    poster_path: "/6d5XOczc226jECq0LIX0siKtgHR.jpg",
+    backdrop_path: "/fCCvn3xsG29TGKJPvZgTRppsDgk.jpg",
+    titles: { "en-US": "No Country for Old Men", "uk-UA": "Старим тут не місце" },
+    runtime: 122,
+    genres: ["Crime", "Thriller", "Western"],
+    texts: {
+      "en-US": {
+        overview:
+          "Llewelyn Moss stumbles upon dead bodies, $2 million and a hoard of heroin in a Texas desert, but methodical killer Anton Chigurh comes looking for it, with local sheriff Ed Tom Bell hot on his trail. The roles of prey and predator blur as the violent pursuit of money and justice collide.",
+        tagline: "There are no clean getaways.",
+      },
+      "uk-UA": {
+        overview:
+          "Звичайний роботяга знаходить в пустелі гору трупів, вантажівку, набиту героїном, і спокусливу суму у два мільйони доларів, готівкою. Він вирішує взяти гроші собі, і результатом стає хвиля насильства, яку не може зупинити вся поліція Західного Техасу.",
+        tagline: "Немає порожніх шляхів",
+      },
+    },
+    crew: [
+      ["Joel Coen", "Director"],
+      ["Scott Rudin", "Producer"],
+      ["Ethan Coen", "Director"],
+    ],
+    cast: [
+      "Javier Bardem",
+      "Tommy Lee Jones",
+      "Josh Brolin",
+      "Woody Harrelson",
+      "Kelly Macdonald",
+      "Garret Dillahunt",
+    ],
+  },
+  // TMDB has no Ukrainian translation of it, so its overview and tagline are English alone.
+  {
+    id: 11830,
+    original_title: "タンポポ",
+    release_date: "1985-11-23",
+    poster_path: "/ArYdSuX3zY9fMsE4LqmBl7xJq5R.jpg",
+    backdrop_path: "/oq8HM9TOSbH54Xy0OBJGzYrtUC7.jpg",
+    titles: { "en-US": "Tampopo" },
+    runtime: 115,
+    genres: ["Comedy"],
+    texts: {
+      "en-US": {
+        overview:
+          'In this humorous paean to the joys of food, a pair of truck drivers happen onto a decrepit roadside shop selling ramen noodles. The widowed owner, Tampopo, begs them to help her turn her establishment into a paragon of the "art of noodle-soup making". Interspersed are satirical vignettes about the importance of food to different aspects of human life.',
+        tagline: "The first Japanese Noodle Western.",
+      },
+    },
+    crew: [
+      ["Jūzō Itami", "Screenplay"],
+      ["Jūzō Itami", "Director"],
+    ],
+    cast: [
+      "Tsutomu Yamazaki",
+      "Nobuko Miyamoto",
+      "Ken Watanabe",
+      "Koji Yakusho",
+      "Rikiya Yasuoka",
+      "Kinzō Sakura",
+    ],
   },
 ];
 
@@ -133,6 +347,9 @@ function newFilm(id: string): FakeFilm {
     titles: {},
     runtime: 90,
     genres: [],
+    texts: {},
+    crew: [],
+    cast: [],
   };
 }
 
@@ -161,8 +378,9 @@ tmdbFake.get("/3/search/movie", (c) => {
   return c.json({ page: 1, results, total_pages: 1, total_results: results.length });
 });
 
-// Like TMDB, details are in the requested language, falling back to the Original Title, and the
-// appended translations list only the languages the film really has a title in.
+// Like TMDB, details are in the requested language, the title falling back to the Original Title
+// and the overview and tagline to empty, and the appended translations list only the languages
+// the film really has a title, an overview or a tagline in.
 tmdbFake.get("/3/movie/:id", (c) => {
   const film = films.find((f) => String(f.id) === c.req.param("id"));
   if (!film) {
@@ -172,19 +390,36 @@ tmdbFake.get("/3/movie/:id", (c) => {
     );
   }
   if (film.id === detailsFailureId) return c.json(serviceOffline, 503);
-  const { titles, genres, ...details } = film;
+  const { titles, genres, texts, crew, cast, ...details } = film;
   const language: SearchLanguage = c.req.query("language") === "uk-UA" ? "uk-UA" : "en-US";
-  const withTranslations = c.req.query("append_to_response")?.split(",").includes("translations");
+  const appended = c.req.query("append_to_response")?.split(",") ?? [];
+  const languages = [
+    ...new Set([...Object.keys(titles), ...Object.keys(texts)]),
+  ] as SearchLanguage[];
   return c.json({
     ...details,
     title: titles[language] ?? film.original_title,
+    overview: texts[language]?.overview ?? "",
+    tagline: texts[language]?.tagline ?? "",
     genres: genres.map((name, index) => ({ id: index + 1, name })),
-    ...(withTranslations && {
+    ...(appended.includes("credits") && {
+      credits: {
+        cast: cast.map((name, order) => ({ id: order + 1, name, character: "", order })),
+        crew: crew.map(([name, job], index) => ({ id: index + 100, name, job, department: "" })),
+      },
+    }),
+    ...(appended.includes("translations") && {
       translations: {
-        translations: Object.entries(titles).map(([tag, title]) => ({
+        translations: languages.map((tag) => ({
           iso_3166_1: tag.slice(3),
           iso_639_1: tag.slice(0, 2),
-          data: { title },
+          data: {
+            title: titles[tag] ?? "",
+            overview: texts[tag]?.overview ?? "",
+            tagline: texts[tag]?.tagline ?? "",
+            homepage: "",
+            runtime: 0,
+          },
         })),
       },
     }),
