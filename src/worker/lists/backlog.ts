@@ -228,8 +228,8 @@ export async function removeFromBacklog(
 
 // Takes a Media Item off the User's Backlog, for the batch that logs or starts it: the first
 // statement reads where it was and its Note, so that planning it back there can undo this; the
-// second keeps a non-empty Note as a Thought (keepNoteAsThought); the third removes it. With
-// `when`, all three do so only while that holds.
+// second keeps a Note that isn't empty as a Thought; the third removes it. With `when`, all three
+// do so only while that holds.
 export function takeOffBacklog(
   db: DrizzleD1Database,
   userId: number,
@@ -239,7 +239,7 @@ export function takeOffBacklog(
   const inBacklog = and(inBacklogOf(db, userId, mediaItemId), when);
   return [
     db.select({ position: listIndex, note: listItems.note }).from(listItems).where(inBacklog),
-    keepNoteAsThought(db, userId, mediaItemId, inBacklog, now, timeZone),
+    keepNoteAsThought(db, userId, mediaItemId, { inBacklog, now, timeZone }),
     db.delete(listItems).where(inBacklog),
   ] as const;
 }
@@ -253,16 +253,14 @@ function keepNoteAsThought(
   db: DrizzleD1Database,
   userId: number,
   mediaItemId: number,
-  inBacklog: SQL | undefined,
-  now: Date,
-  timeZone: string | undefined,
+  { inBacklog, now, timeZone }: { inBacklog: SQL | undefined; now: Date; timeZone?: string },
 ) {
   const ownThoughts = and(eq(thoughts.userId, userId), eq(thoughts.mediaItemId, mediaItemId));
   const sameThought = db
     .select({ id: thoughts.id })
     .from(thoughts)
     .where(and(ownThoughts, eq(thoughts.state, "planned"), eq(thoughts.text, listItems.note)));
-  const count = sql`(select count(*) from ${thoughts} where ${ownThoughts})`;
+  const thoughtCount = sql`(select count(*) from ${thoughts} where ${ownThoughts})`;
   const offsetSeconds = minutesAheadOfUtc(now, timeZone) * 60;
   return db.insert(thoughts).select(
     // Insert-select lists every column in schema order; a null id takes the next one.
@@ -286,7 +284,7 @@ function keepNoteAsThought(
           inBacklog,
           ne(listItems.note, ""),
           notExists(sameThought),
-          sql`${count} < ${maxThoughtsPerMediaItem}`,
+          sql`${thoughtCount} < ${maxThoughtsPerMediaItem}`,
         ),
       ),
   );

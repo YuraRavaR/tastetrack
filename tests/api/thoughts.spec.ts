@@ -399,7 +399,7 @@ function lateEveningThreeDaysAgo() {
   };
 }
 
-test("marking a film Watched keeps its Backlog Note as a Thought from the day it was Planned", async ({
+test("logging a film keeps its Backlog Note as a Thought from the day it was Planned", async ({
   loggedInApi,
 }) => {
   const film = await alien(loggedInApi);
@@ -474,5 +474,20 @@ test("undoing the take-off and leaving the Backlog again keeps the Backlog Note 
 
   expect(await thoughtsOn(loggedInApi, film.id)).toMatchObject([
     { text: "Olena says it's her favourite.", state: "planned" },
+  ]);
+});
+
+test("finishing a book planned again while reading keeps its Backlog Note as a Thought", async ({
+  loggedInApi,
+}) => {
+  const book = await tyhrolovy(loggedInApi);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: book.id }), 201);
+  const planned = { mediaItemId: book.id, note: "Marta: read it in one go." };
+  await expectBody(loggedInApi.backlog.addBacklogItem(planned), 201);
+
+  await expectBody(loggedInApi.inProgress.finish(book.id, { rating: 4 }), 201);
+
+  expect(await thoughtsOn(loggedInApi, book.id)).toMatchObject([
+    { text: "Marta: read it in one go.", state: "planned" },
   ]);
 });
