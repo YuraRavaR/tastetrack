@@ -73,7 +73,7 @@ export async function start(
       .values({ userId, mediaItemId, startDate, progress, createdAt: now })
       .onConflictDoNothing()
       .returning(inProgressColumns),
-    ...takeOffBacklog(db, userId, mediaItemId),
+    ...takeOffBacklog(db, userId, mediaItemId, { now, timeZone: request.timeZone }),
   ]);
   // Only a start racing this one gets here, and that one took the Media Item off the Backlog.
   const [row] = inserted;

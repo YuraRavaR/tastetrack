@@ -385,3 +385,109 @@ test("an Item History loads in the same number of queries for 1 Thought as for 2
   expect(one).toMatch(/^\d+$/);
   expect(twenty).toBe(one);
 });
+
+// A Backlog Note is kept as a Thought when a Log Entry or a Start takes its Media Item off the
+// Backlog.
+
+// 22:30 UTC three days ago: already the next day in Kyiv, two days ago.
+function lateEveningThreeDaysAgo() {
+  const today = new Date();
+  const [year, month, date] = [today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()];
+  return {
+    plannedAt: new Date(Date.UTC(year, month, date - 3, 22, 30)).toISOString(),
+    dayInKyiv: new Date(Date.UTC(year, month, date - 2)).toISOString().slice(0, 10),
+  };
+}
+
+test("logging a film keeps its Backlog Note as a Thought from the day it was Planned", async ({
+  loggedInApi,
+}) => {
+  const film = await alien(loggedInApi);
+  const { plannedAt, dayInKyiv } = lateEveningThreeDaysAgo();
+  const planned = { mediaItemId: film.id, note: "Olena says it's her favourite." };
+  await expectBody(loggedInApi.backlog.addBacklogItem(planned, at(plannedAt)), 201);
+  const loggedAt = minutesAgo(5);
+
+  const logged = loggedInApi.log.createLogEntry(
+    { mediaItemId: film.id, rating: 4, timeZone: "Europe/Kyiv" },
+    at(loggedAt),
+  );
+
+  await expectBody(logged, 201);
+  expect(await thoughtsOn(loggedInApi, film.id)).toEqual([
+    {
+      id: expect.any(Number),
+      mediaItemId: film.id,
+      text: "Olena says it's her favourite.",
+      date: dayInKyiv,
+      quote: false,
+      progress: null,
+      state: "planned",
+      createdAt: loggedAt,
+    },
+  ]);
+});
+
+test("starting a book keeps its Backlog Note as a Thought from the day it was Planned", async ({
+  loggedInApi,
+}) => {
+  const book = await tyhrolovy(loggedInApi);
+  const { plannedAt, dayInKyiv } = lateEveningThreeDaysAgo();
+  const planned = { mediaItemId: book.id, note: "For the train." };
+  await expectBody(loggedInApi.backlog.addBacklogItem(planned, at(plannedAt)), 201);
+
+  const started = loggedInApi.inProgress.start({ mediaItemId: book.id, timeZone: "Europe/Kyiv" });
+
+  await expectBody(started, 201);
+  expect(await thoughtsOn(loggedInApi, book.id)).toMatchObject([
+    { text: "For the train.", date: dayInKyiv, quote: false, progress: null, state: "planned" },
+  ]);
+});
+
+test("no Thought is kept for an empty Backlog Note, nor when the User takes it off the Backlog", async ({
+  loggedInApi,
+}) => {
+  const [noNote, removed] = [await alien(loggedInApi), await tyhrolovy(loggedInApi)];
+  await expectBody(loggedInApi.backlog.addBacklogItem({ mediaItemId: noNote.id, note: " " }), 201);
+  const noted = { mediaItemId: removed.id, note: "For the train." };
+  await expectBody(loggedInApi.backlog.addBacklogItem(noted), 201);
+
+  await expectBody(loggedInApi.log.createLogEntry({ mediaItemId: noNote.id, rating: 4 }), 201);
+  expect((await loggedInApi.backlog.deleteBacklogItem(removed.id)).status()).toBe(204);
+
+  expect(await thoughtsOn(loggedInApi, noNote.id)).toEqual([]);
+  expect(await thoughtsOn(loggedInApi, removed.id)).toEqual([]);
+});
+
+test("undoing the take-off and leaving the Backlog again keeps the Backlog Note only once", async ({
+  loggedInApi,
+}) => {
+  const film = await alien(loggedInApi);
+  const planned = { mediaItemId: film.id, note: "Olena says it's her favourite." };
+  await expectBody(loggedInApi.backlog.addBacklogItem(planned), 201);
+  const logged = loggedInApi.log.createLogEntry({ mediaItemId: film.id, rating: 4 });
+  const { removedFromBacklog } = await expectBody(logged, 201);
+
+  const undone = { mediaItemId: film.id, ...removedFromBacklog };
+  await expectBody(loggedInApi.backlog.addBacklogItem(undone), 201);
+  await expectBody(loggedInApi.log.createLogEntry({ mediaItemId: film.id, rating: 5 }), 201);
+
+  expect(await thoughtsOn(loggedInApi, film.id)).toMatchObject([
+    { text: "Olena says it's her favourite.", state: "planned" },
+  ]);
+});
+
+test("finishing a book planned again while reading keeps its Backlog Note as a Thought", async ({
+  loggedInApi,
+}) => {
+  const book = await tyhrolovy(loggedInApi);
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: book.id }), 201);
+  const planned = { mediaItemId: book.id, note: "Marta: read it in one go." };
+  await expectBody(loggedInApi.backlog.addBacklogItem(planned), 201);
+
+  await expectBody(loggedInApi.inProgress.finish(book.id, { rating: 4 }), 201);
+
+  expect(await thoughtsOn(loggedInApi, book.id)).toMatchObject([
+    { text: "Marta: read it in one go.", state: "planned" },
+  ]);
+});

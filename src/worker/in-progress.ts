@@ -37,11 +37,13 @@ const startRoute = createRoute({
   summary: "Start a Media Item, marking it In Progress",
   description:
     "Also takes the Media Item off the User's Backlog, and says where it was and its Note, so " +
-    "that marking it Planned at that position with that Note undoes it. A book or a series can " +
-    "be started, not a film, and not while it is In Progress already. A Progress starts it part " +
-    "way, as from a season of a series; without one, a series is not started yet, so its next " +
-    "episode is the first. Only the Progress's shape and range are checked, never what the " +
-    "catalog lists, which can lag behind what has aired.",
+    "that marking it Planned at that position with that Note undoes it. A Note that isn't " +
+    "empty is kept as a Thought written while Planned, dated the day it was Planned, unless " +
+    "the Media Item has that Thought already. A book or a series can be started, not a film, " +
+    "and not while it is In Progress already. A Progress starts it part way, as from a season " +
+    "of a series; without one, a series is not started yet, so its next episode is the first. " +
+    "Only the Progress's shape and range are checked, never what the catalog lists, which can " +
+    "lag behind what has aired.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {

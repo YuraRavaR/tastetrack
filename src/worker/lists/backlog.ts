@@ -1,8 +1,8 @@
 // The Backlog: the system List of the Media Items a User plans to experience, one per Media Type,
 // made with the account. Route handlers only translate HTTP to these calls.
-import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, notExists, type SQL, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
+import { listItems, lists, mediaItems, shareLinks, thoughts, users } from "../../db/schema";
 import {
   type Backlog,
   type ExternalSource,
@@ -10,6 +10,8 @@ import {
   MediaType,
   type PlanRequest,
 } from "../../shared/api";
+import { minutesAheadOfUtc } from "../../shared/log";
+import { maxThoughtsPerMediaItem } from "../../shared/thoughts";
 import { visibleTo } from "../catalog/media-items";
 import {
   appendListItem,
@@ -226,18 +228,66 @@ export async function removeFromBacklog(
 
 // Takes a Media Item off the User's Backlog, for the batch that logs or starts it: the first
 // statement reads where it was and its Note, so that planning it back there can undo this; the
-// second removes it. With `when`, both do so only while that holds.
+// second keeps a Note that isn't empty as a Thought; the third removes it. With `when`, all three
+// do so only while that holds.
 export function takeOffBacklog(
   db: DrizzleD1Database,
   userId: number,
   mediaItemId: number,
-  when?: SQL,
+  { now, timeZone, when }: { now: Date; timeZone?: string; when?: SQL },
 ) {
   const inBacklog = and(inBacklogOf(db, userId, mediaItemId), when);
   return [
     db.select({ position: listIndex, note: listItems.note }).from(listItems).where(inBacklog),
+    keepNoteAsThought(db, userId, mediaItemId, { inBacklog, now, timeZone }),
     db.delete(listItems).where(inBacklog),
   ] as const;
+}
+
+// Copies the Note of the List Item `inBacklog` picks out into a Thought written while Planned, dated
+// the day it was Planned where the User is (by the time zone's offset now, so a day it was Planned
+// across a daylight-saving change may be off by one within an hour of midnight). It writes at most
+// one row, and none for an empty Note, for a Note the Media Item already has as a Planned Thought,
+// as after undoing a take-off, or once the Media Item holds `maxThoughtsPerMediaItem` Thoughts.
+function keepNoteAsThought(
+  db: DrizzleD1Database,
+  userId: number,
+  mediaItemId: number,
+  { inBacklog, now, timeZone }: { inBacklog: SQL | undefined; now: Date; timeZone?: string },
+) {
+  const ownThoughts = and(eq(thoughts.userId, userId), eq(thoughts.mediaItemId, mediaItemId));
+  const sameThought = db
+    .select({ id: thoughts.id })
+    .from(thoughts)
+    .where(and(ownThoughts, eq(thoughts.state, "planned"), eq(thoughts.text, listItems.note)));
+  const thoughtCount = sql`(select count(*) from ${thoughts} where ${ownThoughts})`;
+  const offsetSeconds = minutesAheadOfUtc(now, timeZone) * 60;
+  return db.insert(thoughts).select(
+    // Insert-select lists every column in schema order; a null id takes the next one.
+    db
+      .select({
+        id: sql<number>`null`.as("id"),
+        userId: sql<number>`${userId}`.as("user_id"),
+        mediaItemId: listItems.mediaItemId,
+        text: sql<string>`${listItems.note}`.as("text"),
+        date: sql<string>`date(${listItems.createdAt} / 1000 + ${offsetSeconds}, 'unixepoch')`.as(
+          "date",
+        ),
+        quote: sql<boolean>`0`.as("quote"),
+        progress: sql<string | null>`null`.as("progress"),
+        state: sql<"planned">`'planned'`.as("state"),
+        createdAt: sql<number>`${now.getTime()}`.as("created_at"),
+      })
+      .from(listItems)
+      .where(
+        and(
+          inBacklog,
+          ne(listItems.note, ""),
+          notExists(sameThought),
+          sql`${thoughtCount} < ${maxThoughtsPerMediaItem}`,
+        ),
+      ),
+  );
 }
 
 // For the test hooks only: deletes the Backlog of the Media Type of the User with the Username, with
