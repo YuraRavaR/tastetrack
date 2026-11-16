@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.14.0](https://github.com/YuraRavaR/tastetrack/compare/v0.13.0...v0.14.0) (2026-11-16)
+
+
+### Features
+
+* **in-progress:** a book's In Progress remembers the page and the page count ([#238](https://github.com/YuraRavaR/tastetrack/issues/238)) ([41be6b4](https://github.com/YuraRavaR/tastetrack/commit/41be6b42817dbd3c3482f50a87f6c32a16a7201d))
+* **thoughts:** keep a Backlog Note as a Thought when a Log Entry or a Start takes it off ([#246](https://github.com/YuraRavaR/tastetrack/issues/246)) ([fb1207c](https://github.com/YuraRavaR/tastetrack/commit/fb1207c8963d1148be2393747bdcb1440f1a7da1))
+* **thoughts:** write, edit and delete Thoughts, and see them in History ([#245](https://github.com/YuraRavaR/tastetrack/issues/245)) ([56da2bc](https://github.com/YuraRavaR/tastetrack/commit/56da2bc331b77a131600fc48dad05f90a8e3f6a0))
+
 ## [0.13.0](https://github.com/YuraRavaR/tastetrack/compare/v0.12.0...v0.13.0) (2026-11-16)
 
 

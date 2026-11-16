@@ -55,7 +55,7 @@ app.doc31("/openapi.json", {
   openapi: "3.1.0",
   info: {
     title: "TasteTrack API",
-    version: "0.13.0", // x-release-please-version
+    version: "0.14.0", // x-release-please-version
   },
 });
 
