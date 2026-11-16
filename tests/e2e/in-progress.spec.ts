@@ -101,7 +101,7 @@ for (const [device, viewport] of [
 
     await expect(dialog.root).toBeHidden();
     await expect(readingCard.root).toBeHidden();
-    await expect(filmPage.readings).toHaveCount(1);
+    await expect(filmPage.historyRows).toHaveCount(1);
     await expect(filmPage.stats).toHaveText(["Once", "4", "–"]);
     await expect(filmPage.startRereadingButton).toBeVisible();
     await expect(filmPage.toast.message("Added Тигролови (1946) to your Log.")).toBeVisible();
@@ -128,7 +128,7 @@ for (const [device, viewport] of [
     await expect(filmPage.readingCard.root).toBeHidden();
     await expect(filmPage.startReadingButton).toBeVisible();
     await expect(filmPage.wantToReadButton).toBeVisible();
-    await expect(filmPage.notReadYetMessage).toBeVisible();
+    await expect(filmPage.emptyHistoryMessage).toBeVisible();
     await expect(filmPage.toast.message("Stopped reading Тигролови (1946).")).toBeVisible();
     await libraryPage.goto("Reading");
     await expect(libraryPage.tab("Reading")).toHaveAccessibleName("Reading 0");

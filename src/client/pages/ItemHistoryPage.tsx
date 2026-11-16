@@ -1,22 +1,27 @@
+import { MessageSquarePlus } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import type { ItemHistoryResponse, LogEntry } from "../../shared/api";
+import type { ItemHistoryResponse, LogEntry, Thought } from "../../shared/api";
 import * as api from "../api";
 import { filmTitleAndYear } from "../catalog/film-label";
 import { can } from "../catalog/media-types";
 import { About, aboutProps } from "../components/About";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
+import { DeleteThoughtDialog } from "../components/DeleteThoughtDialog";
 import { FilmActions } from "../components/FilmActions";
 import { FilmBanner } from "../components/FilmBanner";
 import { ItemHistoryRow } from "../components/ItemHistoryRow";
 import { ItemHistoryStats } from "../components/ItemHistoryStats";
 import { EditLogEntryDialog } from "../components/LogEntryDialog";
 import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
+import { ThoughtDialog } from "../components/ThoughtDialog";
+import { ThoughtRow } from "../components/ThoughtRow";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { libraryPath } from "../library/library-tabs";
+import { historyNewestFirst } from "../log/history";
 import { usePageTitle } from "../navigation/page-title";
 
 type HistoryState =
@@ -37,10 +42,10 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 
 // One Media Item's page, its Item History: a banner with its title, then, indented with it from
 // `sm`, what it is about when the Worker says, tiles for how the User watched and rated it, the
-// actions they can take on it, and every Log Entry, newest first, each of which can be edited or
-// deleted. A film with no Log Entries has no tiles, and says what will show where its entries go.
-// The Worker sends them in Log Order, and the page only reverses that for display. After a new
-// entry, an edit or a delete it reloads, so the order and the Current Rating are always the
+// actions they can take on it, and its History: every Log Entry and Thought, newest first, each of
+// which can be edited or deleted, and Add a thought, which writes a new one. A Media Item with no
+// Log Entries has no tiles, and one with neither says what will show in History. After a new entry
+// or Thought, an edit or a delete it reloads, so the order and the Current Rating are always the
 // Worker's. A Media Item the User added manually can be edited too, or deleted with everything
 // that goes with it. A Media Type that can't be logged has the banner and its actions alone.
 export function ItemHistoryPage() {
@@ -50,6 +55,9 @@ export function ItemHistoryPage() {
   const [state, setState] = useState<HistoryState>({ status: "loading" });
   const [editing, setEditing] = useState<LogEntry | null>(null);
   const [deleting, setDeleting] = useState<LogEntry | null>(null);
+  // The Thought form, for a new Thought (null) or one to change.
+  const [thoughtForm, setThoughtForm] = useState<{ thought: Thought | null } | null>(null);
+  const [deletingThought, setDeletingThought] = useState<Thought | null>(null);
   const [editingMediaItem, setEditingMediaItem] = useState(false);
   const [deletingMediaItem, setDeletingMediaItem] = useState(false);
   // The page belongs to no section, so until the film is known the tab shows the app's name alone.
@@ -82,7 +90,8 @@ export function ItemHistoryPage() {
     );
   }
 
-  const { mediaItem, logEntries, about } = state.history;
+  const { mediaItem, logEntries, thoughts, about, inProgress } = state.history;
+  const history = historyNewestFirst(logEntries, thoughts);
   const manual = mediaItem.externalReference === null;
   const loggable = can(mediaItem.mediaType, "log");
   return (
@@ -119,27 +128,47 @@ export function ItemHistoryPage() {
         )}
         {loggable && (
           <div className="flex flex-col gap-2.5">
-            <h2 id={historyHeadingId} className="font-semibold text-lg tracking-tight">
-              {mediaWord(mediaItem.mediaType, "history")}
-            </h2>
-            {logEntries.length > 0 ? (
+            <div className="flex items-center justify-between gap-3">
+              <h2 id={historyHeadingId} className="font-semibold text-lg tracking-tight sm:text-xl">
+                {t("history.title")}
+              </h2>
+              <Button
+                variant="outline"
+                className="h-10 md:h-9"
+                onClick={() => setThoughtForm({ thought: null })}
+              >
+                <MessageSquarePlus aria-hidden />
+                {t("thought.add")}
+              </Button>
+            </div>
+            {history.length > 0 ? (
               <ul
                 aria-labelledby={historyHeadingId}
                 className="flex flex-col divide-y rounded-lg border bg-card"
               >
-                {logEntries.toReversed().map((entry) => (
-                  <ItemHistoryRow
-                    key={entry.id}
-                    entry={entry}
-                    onEdit={() => setEditing(entry)}
-                    onDelete={() => setDeleting(entry)}
-                  />
-                ))}
+                {history.map((item) =>
+                  item.kind === "logEntry" ? (
+                    <ItemHistoryRow
+                      key={`entry-${item.logEntry.id}`}
+                      entry={item.logEntry}
+                      onEdit={() => setEditing(item.logEntry)}
+                      onDelete={() => setDeleting(item.logEntry)}
+                    />
+                  ) : (
+                    <ThoughtRow
+                      key={`thought-${item.thought.id}`}
+                      thought={item.thought}
+                      mediaType={mediaItem.mediaType}
+                      onEdit={() => setThoughtForm({ thought: item.thought })}
+                      onDelete={() => setDeletingThought(item.thought)}
+                    />
+                  ),
+                )}
               </ul>
             ) : (
               <div className="flex flex-col gap-1 rounded-lg border border-input border-dashed px-4 py-5 text-center">
-                <p className="font-medium">{mediaWord(mediaItem.mediaType, "historyEmpty")}</p>
-                <p className="text-muted-foreground text-sm">
+                <p className="font-semibold">{t("history.empty")}</p>
+                <p className="mx-auto max-w-[46ch] text-muted-foreground text-sm">
                   {mediaWord(mediaItem.mediaType, "historyEmptyHint")}
                 </p>
               </div>
@@ -157,6 +186,28 @@ export function ItemHistoryPage() {
         onDelete={() => {
           setDeleting(editing);
           setEditing(null);
+        }}
+      />
+      <ThoughtDialog
+        mediaItem={mediaItem}
+        inProgress={inProgress}
+        thought={thoughtForm?.thought ?? null}
+        open={thoughtForm !== null}
+        onClose={() => setThoughtForm(null)}
+        onSaved={async () => {
+          setThoughtForm(null);
+          await reload();
+        }}
+        onDelete={setDeletingThought}
+      />
+      <DeleteThoughtDialog
+        mediaItem={mediaItem}
+        thought={deletingThought}
+        onClose={() => setDeletingThought(null)}
+        onDeleted={async () => {
+          setDeletingThought(null);
+          setThoughtForm(null);
+          await reload();
         }}
       />
       <DeleteLogEntryDialog

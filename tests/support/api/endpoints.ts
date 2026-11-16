@@ -18,6 +18,7 @@ export const endpoints = {
     manualItemById: (mediaItemId: number) => `/api/catalog/manual-items/${mediaItemId}`,
     mediaItemHistory: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/history`,
     mediaItemLists: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/lists`,
+    mediaItemThoughts: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/thoughts`,
   },
   inProgress: {
     collection: "/api/in-progress",
@@ -47,6 +48,9 @@ export const endpoints = {
     password: "/api/me/password",
     newPassword: "/api/me/new-password",
   },
+  thoughts: {
+    byId: (thoughtId: number) => `/api/thoughts/${thoughtId}`,
+  },
   sharedLists: {
     byToken: (token: string) => `/api/shared-lists/${token}`,
     pageByToken: (token: string) => `/s/${token}`,
@@ -57,6 +61,8 @@ export const endpoints = {
     backlog: (username: string) => `/api/test/users/${username}/backlog`,
     listItems: (listId: number) => `/api/test/lists/${listId}/items`,
     manualItems: (username: string) => `/api/test/users/${username}/manual-items`,
+    thoughts: (username: string, mediaItemId: number) =>
+      `/api/test/users/${username}/media-items/${mediaItemId}/thoughts`,
     records: "/api/test/records",
     catalogCacheEntry: ({ source, mediaType, id }: ExternalReference) =>
       `/api/test/catalog-cache/${source}/${mediaType}/${id}`,

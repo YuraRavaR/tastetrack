@@ -10,6 +10,49 @@ import { BasePage } from "./BasePage";
 
 type EntryAction = "Edit" | "Delete";
 
+// The form that keeps a new Thought or changes one, named after its Media Item: its text, the Quote
+// switch, its Progress with Change, × and the number fields they open, and its date.
+class ThoughtDialog extends ScopedComponent {
+  readonly kindLabel = this.root.getByText(/^(New|Edit) thought$/);
+  readonly textInput = this.root.getByRole("textbox", { name: "Thought", exact: true });
+  readonly quoteSwitch = this.root.getByRole("switch", { name: "Quote" });
+  readonly progress = this.root.getByRole("group", { name: /^(Episode|Page)$/ });
+  readonly changeProgressButton = this.progress.getByRole("button", { name: "Change" });
+  readonly removeEpisodeButton = this.root.getByRole("button", { name: "Remove the episode" });
+  readonly removePageButton = this.root.getByRole("button", { name: "Remove the page" });
+  readonly addEpisodeButton = this.root.getByRole("button", { name: "Add episode" });
+  readonly addPageButton = this.root.getByRole("button", { name: "Add page" });
+  readonly seasonInput = this.progress.getByRole("textbox", { name: "Season" });
+  readonly episodeInput = this.progress.getByRole("textbox", { name: "Episode" });
+  readonly pageInput = this.progress.getByRole("textbox", { name: "Page" });
+  readonly doneButton = this.progress.getByRole("button", { name: "Done" });
+  readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
+  readonly dateInput = this.root.getByLabel("Date of the thought");
+  readonly errorMessage = this.root.getByRole("alert");
+  readonly deleteButton = this.root.getByRole("button", { name: "Delete" });
+  readonly saveButton = this.root.getByRole("button", { name: "Save" });
+
+  // What the dialog says without a role, such as the Progress ("S2 · E5") or its hint.
+  text(content: string | RegExp) {
+    return this.root.getByText(content, { exact: true });
+  }
+
+  // When it was written: Today, Yesterday or Other date.
+  dateChip(name: string) {
+    return this.root.getByRole("button", { name });
+  }
+
+  @step
+  async write(text: string): Promise<void> {
+    await this.textInput.fill(text);
+  }
+
+  @step
+  async save(): Promise<void> {
+    await this.saveButton.click();
+  }
+}
+
 // The card a Media Item's page shows while it is In Progress, which a book calls "Reading" and a
 // series "Watching": since when, the button that changes that, and Finished and Stop reading or
 // Stop watching. A series' also holds its Progress: the next episode with the check that marks it
@@ -118,8 +161,8 @@ class AboutBlock extends ScopedComponent {
   }
 }
 
-// A Media Item's page: its banner, the actions on it, the tiles and its Item History, which a
-// film calls Viewings and a book Readings.
+// A Media Item's page: its banner, the actions on it, the tiles and its History, its Log Entries
+// and the User's Thoughts in one list.
 export class FilmPage extends BasePage<[mediaItemId: number]> {
   path(mediaItemId: number) {
     return `/items/${mediaItemId}`;
@@ -205,18 +248,17 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly statNames = this.tiles.getByRole("term");
   readonly ratingStatName = this.main.getByText("Your rating");
 
-  readonly viewingsHeading = this.main.getByRole("heading", { name: "Viewings", level: 2 });
-  readonly viewings = this.main.getByRole("list", { name: "Viewings" }).getByRole("listitem");
-  readonly noViewingsMessage = this.main.getByText("No viewings yet");
-  readonly noViewingsHint = this.main.getByText(
-    "Each time you watch it, the date, Rating and Review show here.",
-  );
-  readonly readingsHeading = this.main.getByRole("heading", { name: "Readings", level: 2 });
-  readonly readings = this.main.getByRole("list", { name: "Readings" }).getByRole("listitem");
-  readonly notReadYetMessage = this.main.getByText("Not read yet");
+  readonly historyHeading = this.main.getByRole("heading", { name: "History", level: 2 });
+  // Each Log Entry and Thought, newest first.
+  readonly historyRows = this.main.getByRole("list", { name: "History" }).getByRole("listitem");
+  readonly emptyHistoryMessage = this.main.getByText("Nothing here yet");
+  readonly addThoughtButton = this.main.getByRole("button", { name: "Add a thought" });
   readonly entryActionsMenu = new EntryActionsMenu(this.page.getByRole("menu"));
   readonly deleteEntryDialog = new ConfirmDialog(
     this.page.getByRole("alertdialog", { name: "Delete this entry?" }),
+  );
+  readonly deleteThoughtDialog = new ConfirmDialog(
+    this.page.getByRole("alertdialog", { name: "Delete this thought?" }),
   );
 
   // Any text on the page, such as the film's runtime and genres.
@@ -239,12 +281,14 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     return this.stats.getByRole("img", { name: label });
   }
 
-  viewing(index: number) {
-    return new ItemHistoryRow(this.viewings.nth(index));
+  // A Log Entry or a Thought in History, counted from the newest.
+  historyRow(index: number) {
+    return new ItemHistoryRow(this.historyRows.nth(index));
   }
 
-  reading(index: number) {
-    return new ItemHistoryRow(this.readings.nth(index));
+  // What History says while empty, after "Nothing here yet".
+  emptyHistoryHint(hint: string) {
+    return this.main.getByText(hint);
   }
 
   // The "⋯" button of the Viewing with this date, or "No date".
@@ -257,6 +301,23 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   async chooseEntryAction(date: string, action: EntryAction): Promise<void> {
     await this.entryActionsButton(date).click();
     await this.entryActionsMenu.item(action).click();
+  }
+
+  // The "⋯" button of the Thought with this date.
+  thoughtActionsButton(date: string) {
+    return this.main.getByRole("button", { name: `Actions for your thought of ${date}` });
+  }
+
+  // Opens the "⋯" menu of the Thought with this date and picks an action.
+  @step
+  async chooseThoughtAction(date: string, action: EntryAction): Promise<void> {
+    await this.thoughtActionsButton(date).click();
+    await this.entryActionsMenu.item(action).click();
+  }
+
+  // The Thought form, named after its Media Item.
+  thoughtDialog(name: string) {
+    return new ThoughtDialog(this.page.getByRole("dialog", { name, exact: true }));
   }
 
   // Named after the film, or "Edit your entry for Alien" when it edits a Log Entry.

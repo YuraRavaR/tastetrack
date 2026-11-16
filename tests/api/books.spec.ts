@@ -105,6 +105,7 @@ test("a book's page shows it to a User who has done nothing with it", async ({ l
   expect(await expectBody(history, 200, ItemHistoryResponse)).toEqual({
     mediaItem,
     logEntries: [],
+    thoughts: [],
     currentRating: null,
     inBacklog: false,
     inProgress: null,

@@ -99,7 +99,7 @@ test("a series found in Search opens its page, with its titles, years, seasons a
     filmPage.posterImage(posterUrl("/anFx9aTOOYqgS3v7x3R84Kz67ly.jpg", "w500")),
   ).toBeVisible();
   // Before a first Viewing: the About block's More and Українською, then Watched, Want to watch,
-  // Start watching and Add to collection, and empty Viewings.
+  // Start watching and Add to collection, and an empty History with Add a thought.
   await expect(filmPage.buttons).toHaveText([
     "More",
     "Українською",
@@ -107,8 +107,9 @@ test("a series found in Search opens its page, with its titles, years, seasons a
     "Want to watch",
     "Start watching",
     "Add to collection",
+    "Add a thought",
   ]);
-  await expect(filmPage.sectionHeadings).toHaveText(["Viewings"]);
+  await expect(filmPage.sectionHeadings).toHaveText(["History"]);
   await expect(filmPage.main).not.toContainText(otherWording);
 });
 
@@ -205,9 +206,9 @@ test("a series' second Log Entry starts as no Rewatch, as a new season isn't one
   await expect(dialog.seriesRevisitHint).toBeVisible();
   await dialog.rate("5 stars");
   await dialog.save();
-  await expect(filmPage.viewings).toHaveCount(2);
-  await expect(filmPage.viewing(0).revisitBadge).toHaveCount(0);
-  await expect(filmPage.viewing(1).revisitBadge).toHaveCount(0);
+  await expect(filmPage.historyRows).toHaveCount(2);
+  await expect(filmPage.historyRow(0).revisitBadge).toHaveCount(0);
+  await expect(filmPage.historyRow(1).revisitBadge).toHaveCount(0);
 
   await filmPage.goto(film.id);
   await filmPage.watchedAgainButton.click();

@@ -29,9 +29,9 @@ const chipLabels = {
   none: "logEntry.noDate",
 } as const;
 
-// An optional calendar date by a Log Entry date's rules, picked with chips: Today, Yesterday,
-// Other date, which opens a date field, and No date. `dateLabel` names that field, and `error`
-// shows under it.
+// A calendar date by a Log Entry date's rules, picked with chips: Today, Yesterday, Other date,
+// which opens a date field, and No date, unless the date is `required`. `dateLabel` names that
+// field, and `error` shows under it.
 export function LogDateField({
   legend,
   dateLabel,
@@ -39,6 +39,7 @@ export function LogDateField({
   value,
   onChange,
   error,
+  required = false,
 }: {
   legend: string;
   dateLabel: string;
@@ -46,14 +47,19 @@ export function LogDateField({
   value: LogDateValue;
   onChange: (value: LogDateValue) => void;
   error: string | null;
+  required?: boolean;
 }) {
+  const chips = required ? dateChips.filter((chip) => chip !== "none") : dateChips;
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-2 font-medium text-sm">
-        {legend} <span className="font-normal text-muted-foreground">{t("logEntry.optional")}</span>
+        {legend}{" "}
+        {!required && (
+          <span className="font-normal text-muted-foreground">{t("logEntry.optional")}</span>
+        )}
       </legend>
       <div className="flex flex-wrap gap-2">
-        {dateChips.map((option) => (
+        {chips.map((option) => (
           <Button
             key={option}
             type="button"

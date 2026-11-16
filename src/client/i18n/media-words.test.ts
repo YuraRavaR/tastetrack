@@ -84,7 +84,8 @@ describe("a book's words", () => {
     ["experiencedAgain", "Read again"],
     ["revisit", "Reread"],
     ["revisitHint", "You've read it before"],
-    ["history", "Readings"],
+    ["thoughtInProgress", "while reading"],
+    ["thoughtPlanned", "while on your Reading list"],
   ] as const)("%s → %s", (word, expected) => {
     expect(mediaWord("book", word)).toBe(expected);
   });

@@ -12,6 +12,7 @@ import {
 import type { SeriesStatus } from "../shared/api";
 import { visibilities } from "../shared/lists";
 import type { Progress } from "../shared/progress";
+import { thoughtStates } from "../shared/thoughts";
 
 // Deployment-wide settings as key/value pairs. The health check reads it to
 // prove the migrations have been applied.
@@ -282,6 +283,34 @@ export const inProgress = sqliteTable(
     primaryKey({ columns: [table.userId, table.mediaItemId] }),
     index("in_progress_media_item_id_idx").on(table.mediaItemId),
   ],
+);
+
+// A Thought: free text a User keeps about one Media Item, private to them (GLOSSARY). The text
+// is plain, 1 to 2,000 characters, and the date a calendar day under a Log Entry date's rules; a
+// Thought always has one. quote marks words from the Media Item, not the User's own. Progress is a
+// copy of where the User was when they wrote it, as JSON in its Media Type's shape
+// (src/shared/progress.ts), set by the client and never updated after (ADR-0005), or null. state
+// is the one the Media Item was in for them when it was created, which an edit never changes.
+// createdAt never changes either, so it settles the order of a day's Thoughts. They go with the
+// User and with the Media Item, as Log Entries do, and nothing else deletes them.
+export const thoughts = sqliteTable(
+  "thoughts",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    mediaItemId: integer("media_item_id")
+      .notNull()
+      .references(() => mediaItems.id, { onDelete: "cascade" }),
+    text: text("text").notNull(),
+    date: text("date").notNull(),
+    quote: integer("quote", { mode: "boolean" }).notNull().default(false),
+    progress: text("progress", { mode: "json" }).$type<Progress>(),
+    state: text("state", { enum: thoughtStates }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [index("thoughts_user_media_item_idx").on(table.userId, table.mediaItemId)],
 );
 
 // A List: an ordered collection of Media Items of one Media Type, owned by a User. The Backlog is

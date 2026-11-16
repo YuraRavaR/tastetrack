@@ -138,16 +138,17 @@ test("a result opens the book's page, with its cover over a blurred copy, its ti
   await expect(filmPage.pictureImage).toHaveCSS("filter", /blur/);
   await expect(filmPage.posterImage(cover)).toBeVisible();
   // More, for its description, then before a first Reading: Read, Want to read and Add to
-  // collection, and an empty Readings.
+  // collection, and an empty History with Add a thought.
   await expect(filmPage.buttons).toHaveText([
     "More",
     "Read",
     "Want to read",
     "Start reading",
     "Add to collection",
+    "Add a thought",
   ]);
-  await expect(filmPage.sectionHeadings).toHaveText(["Readings"]);
-  await expect(filmPage.notReadYetMessage).toBeVisible();
+  await expect(filmPage.sectionHeadings).toHaveText(["History"]);
+  await expect(filmPage.emptyHistoryMessage).toBeVisible();
   await expect(filmPage.main).not.toContainText(/film|watch|viewing/i);
 });
 

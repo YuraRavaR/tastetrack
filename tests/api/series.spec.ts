@@ -184,6 +184,7 @@ test("adding the same series again finds its Media Item, and its page shows it",
   expect(await expectBody(page, 200, ItemHistoryResponse)).toEqual({
     mediaItem: first,
     logEntries: [],
+    thoughts: [],
     currentRating: null,
     inBacklog: false,
     inProgress: null,

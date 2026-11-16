@@ -94,4 +94,12 @@ export class TestHooksController extends BaseController {
       data: { count },
     });
   }
+
+  // Keeps placeholder Thoughts on a Media Item for the User, to reach the limit.
+  fillThoughts(username: string, mediaItemId: number, count: number, options?: RequestOptions) {
+    return this.requestContext.post(endpoints.testHooks.thoughts(username, mediaItemId), {
+      ...withSecret(options),
+      data: { count },
+    });
+  }
 }
