@@ -29,7 +29,7 @@ const unknownThoughtResponse = {
   description: "The User has no such Thought (`unknown_thought`)",
 };
 
-const createRouteDefinition = createRoute({
+const newThoughtRoute = createRoute({
   method: "post",
   path: "/catalog/items/{mediaItemId}/thoughts",
   summary: "Keep a Thought on a Media Item",
@@ -114,7 +114,7 @@ const deleteRoute = createRoute({
 
 export const thoughtRoutes = new OpenAPIHono<AppEnv>();
 
-thoughtRoutes.openapi(createRouteDefinition, async (c) => {
+thoughtRoutes.openapi(newThoughtRoute, async (c) => {
   const { mediaItemId } = c.req.valid("param");
   const created = await createThought(
     c.var.db,

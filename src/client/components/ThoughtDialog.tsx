@@ -42,12 +42,12 @@ import { mediaItemYearAndRuntime } from "../catalog/found";
 import { canProgress, type ProgressMediaType } from "../catalog/media-types";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
+import { progressLabel } from "../in-progress/progress-label";
 import { userTimeZone, userToday } from "../log/user-day";
 import { FormError } from "./FormError";
 import { LogDateField, logDateOf, logDateValue } from "./LogDateField";
 import { Poster } from "./Poster";
 import { sheetClasses } from "./sheet";
-import { progressLabel } from "./ThoughtRow";
 
 // Keeps a new Thought on a Media Item, or changes one: its text, whether it is a quote, its
 // Progress where the Media Type has one, and its date. A new Thought starts on today with the

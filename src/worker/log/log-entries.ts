@@ -234,9 +234,10 @@ export async function userLog(
 }
 
 // The User's Item History of a Media Item, their Log Entries and Thoughts, or null when there is no
-// such Media Item they may see. Five queries, not a db.batch: D1 returns batched rows keyed by column name, so the join's two id
-// columns would collide. A Media Item the cache misses is filled as any page fills it, and what it
-// is about comes from the entry read or filled, so the page calls no source for that alone.
+// such Media Item they may see. Five queries, not a db.batch: D1 returns batched rows keyed by
+// column name, so the join's two id columns would collide. A Media Item the cache misses is filled
+// as any page fills it, and what it is about comes from the entry read or filled, so the page calls
+// no source for that alone.
 export async function itemHistory(
   db: DrizzleD1Database,
   env: CatalogEnv,

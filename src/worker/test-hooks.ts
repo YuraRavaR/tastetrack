@@ -70,9 +70,9 @@ testHooks.get("/users/:username/invited-by", async (c) => {
   return c.json({ invitedBy }, 200);
 });
 
-// Of the given Log Entry, List, List Item, Media Item and Thought ids, those still stored, in id order: the
-// API shows a User's records only to them, so this is how a test sees a deleted User's records
-// gone.
+// Of the given Log Entry, List, List Item, Media Item and Thought ids, those still stored, in id
+// order: the API shows a User's records only to them, so this is how a test sees a deleted User's
+// records gone.
 const recordTables = { logEntries, lists, listItems, mediaItems, thoughts };
 const recordIds = z.array(z.int()).max(100).default([]);
 const RecordIds = z.object({

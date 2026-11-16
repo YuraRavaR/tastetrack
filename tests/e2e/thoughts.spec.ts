@@ -67,7 +67,7 @@ for (const [device, viewport] of devices) {
     await expect(dialog.root).toBeHidden();
     await expect(filmPage.emptyHistoryMessage).toBeHidden();
     await expect(filmPage.historyRows).toHaveCount(1);
-    const row = filmPage.historyRow(0);
+    const row = filmPage.thoughtRow(0);
     await expect(row.image("Thought")).toBeVisible();
     await expect(row.text("Nov 10, 2026")).toBeVisible();
     await expect(row.root).toHaveText(/^Nov 10, 2026Olena says\nit's her favourite\.$/);
@@ -146,7 +146,7 @@ test("a Thought on a series being watched carries its episode, which the User ca
   await dialog.write("The control room scene.");
   await dialog.save();
 
-  const first = filmPage.historyRow(0);
+  const first = filmPage.thoughtRow(0);
   await expect(first.text("while watching")).toBeVisible();
   await expect(first.text("S1 · E3", { exact: true })).toBeVisible();
 
@@ -159,7 +159,7 @@ test("a Thought on a series being watched carries its episode, which the User ca
   await dialog.save();
 
   await expect(filmPage.historyRows).toHaveCount(2);
-  const second = filmPage.historyRow(0);
+  const second = filmPage.thoughtRow(0);
   await expect(second.text("No episode on this one.")).toBeVisible();
   await expect(second.text("while watching")).toBeVisible();
   await expect(second.text(/^S\d+ · E\d+$/)).toBeHidden();
@@ -195,7 +195,7 @@ test("a quote from a book being read keeps the page the User changes it to", asy
   await dialog.quoteSwitch.click();
   await dialog.save();
 
-  const row = filmPage.historyRow(0);
+  const row = filmPage.thoughtRow(0);
   await expect(row.image("Quote")).toBeVisible();
   await expect(row.text("while reading")).toBeVisible();
   await expect(row.text("p. 150", { exact: true })).toBeVisible();

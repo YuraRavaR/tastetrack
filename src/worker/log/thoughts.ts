@@ -22,7 +22,7 @@ const thoughtColumns = {
   createdAt: thoughts.createdAt,
 };
 
-interface ThoughtRow {
+interface StoredThought {
   id: number;
   mediaItemId: number;
   text: string;
@@ -33,7 +33,7 @@ interface ThoughtRow {
   createdAt: Date;
 }
 
-function toThought(row: ThoughtRow): Thought {
+function toThought(row: StoredThought): Thought {
   return { ...row, createdAt: row.createdAt.toISOString() };
 }
 
@@ -128,8 +128,14 @@ export async function createThought(
         ),
     )
     .returning(thoughtColumns);
-  // Only a Manual Media Item deleted in that moment gets here with room left.
-  if (!inserted) return { ok: false, error: "too_many_thoughts" };
+  if (!inserted) {
+    // A Manual Media Item deleted in that moment leaves room, but no Media Item.
+    const [still] = await db
+      .select({ id: mediaItems.id })
+      .from(mediaItems)
+      .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId)));
+    return { ok: false, error: still ? "too_many_thoughts" : "unknown_media_item" };
+  }
   return { ok: true, thought: toThought(inserted) };
 }
 

@@ -1,6 +1,6 @@
 import { ScopedComponent } from "./ScopedComponent";
 
-// One Log Entry or Thought in a Media Item's History.
+// One Log Entry in a Media Item's History.
 export class ItemHistoryRow extends ScopedComponent {
   readonly revisitBadge = this.root.getByText("Rewatch", { exact: true });
   readonly bookRevisitBadge = this.root.getByText("Reread", { exact: true });
@@ -10,16 +10,11 @@ export class ItemHistoryRow extends ScopedComponent {
     return this.root.getByRole("button", { name: `Actions for ${date}` });
   }
 
-  // A Thought's icon, "Thought" or "Quote", or a Log Entry's stars, such as "4 stars".
-  image(name: string) {
-    return this.root.getByRole("img", { name, exact: true });
-  }
-
   ratingStars(label: string) {
     return this.root.getByRole("img", { name: label });
   }
 
-  text(content: string | RegExp, options?: { exact: boolean }) {
-    return this.root.getByText(content, options);
+  text(content: string) {
+    return this.root.getByText(content);
   }
 }

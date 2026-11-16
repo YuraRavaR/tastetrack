@@ -10,6 +10,18 @@ import { BasePage } from "./BasePage";
 
 type EntryAction = "Edit" | "Delete";
 
+// One Thought in History: its icon, "Thought" or "Quote", its date, state and Progress, and its
+// text.
+class ThoughtRow extends ScopedComponent {
+  image(name: "Thought" | "Quote") {
+    return this.root.getByRole("img", { name, exact: true });
+  }
+
+  text(content: string | RegExp, options?: { exact: boolean }) {
+    return this.root.getByText(content, options);
+  }
+}
+
 // The form that keeps a new Thought or changes one, named after its Media Item: its text, the Quote
 // switch, its Progress with Change, × and the number fields they open, and its date.
 class ThoughtDialog extends ScopedComponent {
@@ -19,11 +31,8 @@ class ThoughtDialog extends ScopedComponent {
   readonly progress = this.root.getByRole("group", { name: /^(Episode|Page)$/ });
   readonly changeProgressButton = this.progress.getByRole("button", { name: "Change" });
   readonly removeEpisodeButton = this.root.getByRole("button", { name: "Remove the episode" });
-  readonly removePageButton = this.root.getByRole("button", { name: "Remove the page" });
   readonly addEpisodeButton = this.root.getByRole("button", { name: "Add episode" });
   readonly addPageButton = this.root.getByRole("button", { name: "Add page" });
-  readonly seasonInput = this.progress.getByRole("textbox", { name: "Season" });
-  readonly episodeInput = this.progress.getByRole("textbox", { name: "Episode" });
   readonly pageInput = this.progress.getByRole("textbox", { name: "Page" });
   readonly doneButton = this.progress.getByRole("button", { name: "Done" });
   readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
@@ -281,9 +290,14 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     return this.stats.getByRole("img", { name: label });
   }
 
-  // A Log Entry or a Thought in History, counted from the newest.
+  // A Log Entry in History, counted from the newest of all its rows.
   historyRow(index: number) {
     return new ItemHistoryRow(this.historyRows.nth(index));
+  }
+
+  // A Thought in History, counted from the newest of all its rows.
+  thoughtRow(index: number) {
+    return new ThoughtRow(this.historyRows.nth(index));
   }
 
   // What History says while empty, after "Nothing here yet".

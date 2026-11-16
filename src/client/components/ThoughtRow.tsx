@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { MediaType, Thought } from "../../shared/api";
-import type { Progress } from "../../shared/progress";
 import type { ThoughtState } from "../../shared/thoughts";
 import { mediaWord } from "../i18n/media-words";
 import { formatCalendarDate, t } from "../i18n/t";
+import { progressLabel } from "../in-progress/progress-label";
 
 const stateWords = {
   planned: "thoughtPlanned",
@@ -24,13 +24,6 @@ const stateWords = {
 // says nothing.
 export function thoughtStateLabel(mediaType: MediaType, state: ThoughtState): string | null {
   return state === "none" ? null : mediaWord(mediaType, stateWords[state]);
-}
-
-// A Progress in short, as a Thought's row shows it: "S2 · E5", "p. 142".
-export function progressLabel(progress: Progress): string {
-  return progress.mediaType === "series"
-    ? t("progress.episode", { season: progress.season, episode: progress.episode })
-    : t("progress.pageShort", { page: progress.page });
 }
 
 // One Thought in a Media Item's History: an icon that says whether it is a quote, its date, the
