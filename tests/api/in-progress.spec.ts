@@ -1,4 +1,5 @@
 import {
+  InProgressResponse,
   ItemHistoryResponse,
   LibraryResponse,
   NewInProgressResponse,
@@ -8,8 +9,9 @@ import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
 import { expect, test } from "../support/fixtures";
-import { kafkaOnTheShore, manualBook, tyhrolovy } from "../support/scenarios/books";
+import { bookProgress, kafkaOnTheShore, manualBook, tyhrolovy } from "../support/scenarios/books";
 import { alien } from "../support/scenarios/films";
+import { chernobyl } from "../support/scenarios/series";
 
 // In Progress: a book the User has started and not finished ("Reading" in the UI).
 
@@ -36,7 +38,7 @@ test("starting a book on the Reading list takes it off, says where it was, and t
   );
 
   expect(await expectBody(started, 201, NewInProgressResponse)).toEqual({
-    inProgress: { startDate: "2026-10-12", createdAt: startedAt },
+    inProgress: { startDate: "2026-10-12", createdAt: startedAt, progress: null },
     removedFromBacklog: { position: 1, note: "Olena's copy" },
   });
   expect(await bookLibrary(loggedInApi)).toEqual(
@@ -44,7 +46,7 @@ test("starting a book on the Reading list takes it off, says where it was, and t
       {
         mediaItem,
         backlog: null,
-        inProgress: { startDate: "2026-10-12", createdAt: startedAt },
+        inProgress: { startDate: "2026-10-12", createdAt: startedAt, progress: null },
         log: null,
       },
     ]),
@@ -165,18 +167,30 @@ test("a book's page says since when it is In Progress, and the start date can be
     const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
     return (await expectBody(history, 200, ItemHistoryResponse)).inProgress;
   };
-  expect(await inProgressOnPage()).toEqual({ startDate: "2026-10-12", createdAt: startedAt });
+  expect(await inProgressOnPage()).toEqual({
+    startDate: "2026-10-12",
+    createdAt: startedAt,
+    progress: null,
+  });
 
   const changed = loggedInApi.inProgress.updateStartDate(mediaItem.id, { startDate: "2026-09-30" });
 
   expect(await expectBody(changed)).toEqual({
-    inProgress: { startDate: "2026-09-30", createdAt: startedAt },
+    inProgress: { startDate: "2026-09-30", createdAt: startedAt, progress: null },
   });
-  expect(await inProgressOnPage()).toEqual({ startDate: "2026-09-30", createdAt: startedAt });
+  expect(await inProgressOnPage()).toEqual({
+    startDate: "2026-09-30",
+    createdAt: startedAt,
+    progress: null,
+  });
 
   const cleared = loggedInApi.inProgress.updateStartDate(mediaItem.id, { startDate: null });
 
-  expect((await expectBody(cleared)).inProgress).toEqual({ startDate: null, createdAt: startedAt });
+  expect((await expectBody(cleared)).inProgress).toEqual({
+    startDate: null,
+    createdAt: startedAt,
+    progress: null,
+  });
 });
 
 test("a start date follows a Log Entry date's rules", async ({ loggedInApi }) => {
@@ -247,4 +261,165 @@ test("a film can't be started, as a film has no In Progress, and stays on the Wa
   expect((await expectBody(library, 200, LibraryResponse)).items).toEqual([
     { mediaItem: film, backlog: { addedAt: expect.any(String) }, inProgress: null, log: null },
   ]);
+});
+
+// A book's Progress: the page the User is on and, if they give it, how many pages their edition
+// has. Both are the User's own, so a catalog-backed book and a Manual Media Item follow one rule.
+
+// A book from the catalog and one the User added by hand.
+async function twoBooks(api: ApiClient) {
+  return [await tyhrolovy(api), await manualBook(api, { title: "Доця", year: 2019 })];
+}
+
+test("a book can be started at a page, with or without the page count, and the Library carries it", async ({
+  loggedInApi,
+}) => {
+  const [catalogBook, ownBook] = await twoBooks(loggedInApi);
+
+  const started = loggedInApi.inProgress.start({
+    mediaItemId: catalogBook.id,
+    progress: bookProgress(142, 380),
+  });
+  const startedOwn = loggedInApi.inProgress.start({
+    mediaItemId: ownBook.id,
+    progress: bookProgress(12),
+  });
+
+  expect((await expectBody(started, 201, NewInProgressResponse)).inProgress).toMatchObject({
+    progress: { mediaType: "book", page: 142, pageCount: 380 },
+  });
+  expect((await expectBody(startedOwn, 201)).inProgress.progress).toEqual({
+    mediaType: "book",
+    page: 12,
+  });
+  const progressOf = new Map(
+    (await bookLibrary(loggedInApi)).map((item) => [item.mediaItem.id, item.inProgress?.progress]),
+  );
+  expect(progressOf.get(catalogBook.id)).toEqual(bookProgress(142, 380));
+  expect(progressOf.get(ownBook.id)).toEqual(bookProgress(12));
+});
+
+test("a book's page and page count can be changed, the page count dropped, and both cleared", async ({
+  loggedInApi,
+}) => {
+  for (const mediaItem of await twoBooks(loggedInApi)) {
+    await expectBody(
+      loggedInApi.inProgress.start({ mediaItemId: mediaItem.id, startDate: "2026-10-12" }),
+      201,
+    );
+    const progressOnPage = async () => {
+      const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+      return (await expectBody(history, 200, ItemHistoryResponse)).inProgress?.progress;
+    };
+
+    const changed = loggedInApi.inProgress.update(mediaItem.id, {
+      progress: bookProgress(88, 272),
+    });
+
+    expect((await expectBody(changed, 200, InProgressResponse)).inProgress).toMatchObject({
+      startDate: "2026-10-12",
+      progress: bookProgress(88, 272),
+    });
+    expect(await progressOnPage()).toEqual(bookProgress(88, 272));
+
+    // The last page changes nothing else: the book is still In Progress.
+    const lastPage = loggedInApi.inProgress.update(mediaItem.id, {
+      progress: bookProgress(272, 272),
+    });
+    expect((await expectBody(lastPage)).inProgress.progress).toEqual(bookProgress(272, 272));
+
+    const pageOnly = loggedInApi.inProgress.update(mediaItem.id, { progress: bookProgress(140) });
+    expect((await expectBody(pageOnly)).inProgress.progress).toEqual(bookProgress(140));
+
+    const dated = loggedInApi.inProgress.update(mediaItem.id, { startDate: "2026-10-01" });
+    expect((await expectBody(dated)).inProgress.progress).toEqual(bookProgress(140));
+
+    const cleared = loggedInApi.inProgress.update(mediaItem.id, { progress: null });
+    expect((await expectBody(cleared)).inProgress).toMatchObject({
+      startDate: "2026-10-01",
+      progress: null,
+    });
+    expect(await progressOnPage()).toBeNull();
+  }
+});
+
+test("a book's page out of range, past the page count, or a series' Progress is refused, and it stays as it was", async ({
+  loggedInApi,
+}) => {
+  const [mediaItem, ownBook] = await twoBooks(loggedInApi);
+  const kept = bookProgress(50, 300);
+  await expectBody(
+    loggedInApi.inProgress.start({ mediaItemId: mediaItem.id, progress: kept }),
+    201,
+  );
+  await expectBody(loggedInApi.inProgress.start({ mediaItemId: ownBook.id }), 201);
+
+  for (const [refused, error] of [
+    [bookProgress(-1), "invalid_progress"],
+    [bookProgress(100_001), "invalid_progress"],
+    [bookProgress(12.5), "invalid_progress"],
+    [bookProgress(1, 0), "invalid_progress"],
+    [bookProgress(1, 100_001), "invalid_progress"],
+    [bookProgress(381, 380), "invalid_progress"],
+    [{ mediaType: "series", season: 1, episode: 2 }, "progress_mismatch"],
+    [{ mediaType: "book" }, "invalid_request"],
+    [{ mediaType: "book", page: "142" }, "invalid_request"],
+  ] as const) {
+    const changed = loggedInApi.inProgress.update(mediaItem.id, { progress: refused as never });
+    expect(await expectBody(changed, 400), JSON.stringify(refused)).toEqual({ error });
+  }
+  const pastLastPage = loggedInApi.inProgress.update(ownBook.id, {
+    progress: bookProgress(312, 272),
+  });
+  expect(await expectBody(pastLastPage, 400)).toEqual({ error: "invalid_progress" });
+  const history = loggedInApi.catalog.getMediaItemHistory(mediaItem.id);
+  expect((await expectBody(history, 200, ItemHistoryResponse)).inProgress?.progress).toEqual(kept);
+});
+
+test("a book can't be started past its last page, nor a series at a page, and neither is started", async ({
+  loggedInApi,
+}) => {
+  const [book, series] = [await tyhrolovy(loggedInApi), await chernobyl(loggedInApi)];
+
+  const bookStart = loggedInApi.inProgress.start({
+    mediaItemId: book.id,
+    progress: bookProgress(400, 380),
+  });
+  const seriesStart = loggedInApi.inProgress.start({
+    mediaItemId: series.id,
+    progress: bookProgress(12),
+  });
+
+  expect(await expectBody(bookStart, 400)).toEqual({ error: "invalid_progress" });
+  expect(await expectBody(seriesStart, 400)).toEqual({ error: "progress_mismatch" });
+  for (const { id } of [book, series]) {
+    const history = loggedInApi.catalog.getMediaItemHistory(id);
+    expect((await expectBody(history, 200, ItemHistoryResponse)).inProgress).toBeNull();
+  }
+});
+
+test("finishing or stopping a book leaves no Progress, and starting it again starts with none", async ({
+  loggedInApi,
+}) => {
+  const [finished, stopped] = [await tyhrolovy(loggedInApi), await kafkaOnTheShore(loggedInApi)];
+  for (const { id } of [finished, stopped]) {
+    const progress = bookProgress(380, 380);
+    await expectBody(loggedInApi.inProgress.start({ mediaItemId: id, progress }), 201);
+  }
+
+  const { logEntry } = await expectBody(
+    loggedInApi.inProgress.finish(finished.id, { rating: 4 }),
+    201,
+    NewLogEntryResponse,
+  );
+  expect((await loggedInApi.inProgress.stop(stopped.id)).status()).toBe(204);
+
+  expect(Object.keys(logEntry)).not.toContain("progress");
+  expect(await bookLibrary(loggedInApi)).toEqual([
+    expect.objectContaining({ mediaItem: finished, inProgress: null }),
+  ]);
+  for (const { id } of [finished, stopped]) {
+    const again = loggedInApi.inProgress.start({ mediaItemId: id });
+    expect((await expectBody(again, 201)).inProgress.progress).toBeNull();
+  }
 });

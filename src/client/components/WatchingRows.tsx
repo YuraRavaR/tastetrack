@@ -3,6 +3,7 @@ import { type ReactNode, useId, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { LibraryItem, RemovedListItem } from "../../shared/api";
+import { progressFor } from "../../shared/progress";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
 import { mediaWord, progressWord } from "../i18n/media-words";
@@ -13,7 +14,8 @@ import { userToday } from "../log/user-day";
 import { itemPath } from "../navigation/paths";
 import { MediaItemLogEntryDialog } from "./LogEntryDialog";
 import { Poster } from "./Poster";
-import { EpisodeMeter, episodeLabel } from "./SeriesProgress";
+import { EpisodeMeter } from "./ProgressMeter";
+import { episodeLabel } from "./SeriesProgress";
 import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
 // A series' Library item.
@@ -144,7 +146,7 @@ function WatchingRow({
   onFailed: () => void;
 }) {
   const { mediaItem, inProgress } = item;
-  const saved = inProgress?.progress ?? null;
+  const saved = progressFor(inProgress?.progress, "series");
   const { progress, markWatched } = useSeriesProgress(mediaItem.id, saved, onFailed);
   const { next, airs, meter } = watchingOf(mediaItem, progress);
   // The zone behind the divider, as tall as the row.

@@ -5,6 +5,7 @@ import type { LibraryItem, MediaType } from "../../shared/api";
 import * as api from "../api";
 import { authorName } from "../catalog/book-label";
 import { canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
+import { BookProgressLine } from "../components/BookProgress";
 import { MediaTypeTile, type TileState } from "../components/MediaTypeTile";
 import { Poster } from "../components/Poster";
 import { WatchingRows } from "../components/WatchingRows";
@@ -95,7 +96,8 @@ function useTiles(): [Record<MediaType, TileState>, (mediaType: MediaType) => Pr
 }
 
 // "Reading now": one row per Media Item In Progress, the latest started first, each opening its
-// page. Two columns from `md`.
+// page and showing its Progress under the author (`docs/mockups/book-progress/`). Two columns from
+// `md`.
 function InProgressNow({
   mediaType,
   items,
@@ -144,6 +146,7 @@ function InProgressRow({ item }: { item: LibraryItem }) {
             {mediaItem.metadata?.title ?? mediaWord(mediaItem.mediaType, "unknown")}
           </span>
           {meta && <span className="truncate text-muted-foreground text-sm">{meta}</span>}
+          <BookProgressLine inProgress={item.inProgress} />
         </span>
         <ChevronRight aria-hidden className="size-5 shrink-0 text-muted-foreground" />
       </Link>
