@@ -13,7 +13,8 @@ type EntryAction = "Edit" | "Delete";
 // The card a Media Item's page shows while it is In Progress, which a book calls "Reading" and a
 // series "Watching": since when, the button that changes that, and Finished and Stop reading or
 // Stop watching. A series' also holds its Progress: the next episode with the check that marks it
-// watched, the bar, and the steppers that set the last episode watched.
+// watched, the bar, and the steppers that set the last episode watched. A book's holds the page,
+// the bar with a page count, and the editor that Add page or Change opens in its place.
 class InProgressCard extends ScopedComponent {
   readonly changeStartDateButton = this.root.getByRole("button", {
     name: "Change the start date",
@@ -33,6 +34,26 @@ class InProgressCard extends ScopedComponent {
     name: "Previous episode",
   });
   readonly nextEpisodeButton = this.lastWatched.getByRole("button", { name: "Next episode" });
+  // A book's Progress.
+  readonly addPageButton = this.root.getByRole("button", { name: "Add page" });
+  readonly changePageButton = this.root.getByRole("button", { name: "Change the page" });
+  // Named with the page and the page count, such as "Page 142 of 380".
+  readonly pageBar = this.root.getByRole("img", { name: /^Page \d+ of \d+$/ });
+  readonly pageInput = this.root.getByLabel("Page", { exact: true });
+  readonly pageCountInput = this.root.getByLabel("Pages in your edition");
+  readonly clearButton = this.root.getByRole("button", { name: "Clear" });
+  readonly cancelButton = this.root.getByRole("button", { name: "Cancel" });
+  readonly saveButton = this.root.getByRole("button", { name: "Save" });
+  // Why the page or the page count wasn't saved.
+  readonly pageProblem = this.root.getByRole("alert");
+
+  // Fills the page and the page count, "" leaving one empty, and saves them.
+  @step
+  async savePage(page: string, pageCount: string): Promise<void> {
+    await this.pageInput.fill(page);
+    await this.pageCountInput.fill(pageCount);
+    await this.saveButton.click();
+  }
 
   text(content: string | RegExp) {
     return this.root.getByText(content);

@@ -2,7 +2,7 @@ import { Check, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { InProgress } from "../../shared/api";
-import { type Episode, firstSeason, type SeriesProgress } from "../../shared/progress";
+import { type Episode, firstSeason, progressFor, type SeriesProgress } from "../../shared/progress";
 import { formatCalendarDate, t } from "../i18n/t";
 import { useSeriesProgress } from "../in-progress/use-series-progress";
 import {
@@ -12,50 +12,11 @@ import {
   stepSeason,
   watchingOf,
 } from "../in-progress/watching";
+import { EpisodeMeter } from "./ProgressMeter";
 
 // An episode in short, "S2 · E9".
 export function episodeLabel({ season, episode }: Episode): string {
   return t("progress.episode", { season, episode });
-}
-
-// The bar and its count in a row, and a little larger on a series' page.
-const meterSizes = {
-  row: { box: "gap-2 text-xs md:max-w-85 md:gap-2.5 md:text-[0.8125rem]", bar: "h-1.25" },
-  card: { box: "gap-2.5 text-[0.8125rem]", bar: "h-1.5" },
-};
-
-// How much of a series is watched: a bar, then the count, "15 of 62". The bar reads out as "15 of
-// 62 episodes watched", so the count beside it is hidden from a screen reader.
-export function EpisodeMeter({
-  watched,
-  count,
-  size,
-}: {
-  watched: number;
-  count: number;
-  size: keyof typeof meterSizes;
-}) {
-  const share = count > 0 ? Math.min(100, Math.round((watched / count) * 100)) : 0;
-  return (
-    <span
-      className={cn(
-        "flex items-center whitespace-nowrap text-muted-foreground",
-        meterSizes[size].box,
-      )}
-    >
-      <span
-        role="img"
-        aria-label={t("progress.watchedEpisodes", { watched, count })}
-        className={cn("min-w-0 flex-1 overflow-hidden rounded-full bg-muted", meterSizes[size].bar)}
-      >
-        <span
-          className="block h-full rounded-full bg-primary-strong"
-          style={{ width: `${share}%` }}
-        />
-      </span>
-      <span aria-hidden>{t("progress.watched", { watched, count })}</span>
-    </span>
-  );
 }
 
 // How long the picker waits after the User's last tap before saving, so a run of taps is one
@@ -78,7 +39,7 @@ export function SeriesProgressPanel({
   onChange: () => void;
   onFailed: () => void;
 }) {
-  const saved = inProgress.progress ?? null;
+  const saved = progressFor(inProgress?.progress, "series");
   const { progress, change, markWatched } = useSeriesProgress(series.id, saved, onFailed);
   const { next, airs, meter } = watchingOf(series, progress);
   return (

@@ -20,7 +20,7 @@ import {
   storedRating,
   toStars,
 } from "../../shared/log";
-import { type Progress, seriesOutlook } from "../../shared/progress";
+import { type Progress, progressFor, seriesOutlook } from "../../shared/progress";
 import {
   cacheOfMediaItem,
   fillMissingMetadata,
@@ -159,9 +159,13 @@ export interface InProgressRow {
 export function toInProgress(row: InProgressRow, mediaItem: MediaItem): InProgress {
   const { startDate, createdAt, progress } = row;
   const started = { startDate, createdAt: createdAt.toISOString() };
+  if (mediaItem.mediaType === "book") {
+    return { ...started, progress: progressFor(progress, "book") };
+  }
   if (mediaItem.mediaType !== "series") return started;
+  const series = progressFor(progress, "series");
   const length = mediaItem.metadata ?? { seasons: [], lastAiredEpisode: null };
-  return { ...started, progress, outlook: seriesOutlook(progress, length) };
+  return { ...started, progress: series, outlook: seriesOutlook(series, length) };
 }
 
 // One of the User's own Log Entries: another User's is as unknown as one that doesn't exist.

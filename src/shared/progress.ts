@@ -13,9 +13,30 @@ export interface SeriesProgress {
   episode: number;
 }
 
-// A union discriminated by Media Type, with a member for each Media Type that has Progress. A
-// book's shape comes with #204.
-export type Progress = SeriesProgress;
+// A book's Progress: the page the User is on, and how many pages their edition has if they gave
+// it. Page 0 means not started, as episode 0 does for a series. Both are the User's own: the
+// catalog lists a work, not the edition in hand.
+export interface BookProgress {
+  mediaType: "book";
+  page: number;
+  pageCount?: number;
+}
+
+// A union discriminated by Media Type, with a member for each Media Type that has Progress.
+export type Progress = SeriesProgress | BookProgress;
+
+// `progress` if it is of `mediaType`, or null: a Media Item's Progress, read as its own shape.
+export function progressFor<M extends Progress["mediaType"]>(
+  progress: Progress | null | undefined,
+  mediaType: M,
+): Extract<Progress, { mediaType: M }> | null {
+  return progress?.mediaType === mediaType
+    ? (progress as Extract<Progress, { mediaType: M }>)
+    : null;
+}
+
+// The highest page, and the most pages an edition may have.
+export const maxPage = 100_000;
 
 // The first regular season; season 0 holds the specials.
 export const firstSeason = 1;
@@ -23,15 +44,36 @@ export const firstSeason = 1;
 // Why a Progress is refused.
 export type ProgressProblem = "invalid_progress" | "progress_mismatch";
 
+function isWhole(value: number, min: number, max = Number.POSITIVE_INFINITY): boolean {
+  return Number.isInteger(value) && value >= min && value <= max;
+}
+
 // Why `progress` can't be kept for a Media Item of `mediaType`, or null when it can: it is for
 // another Media Type, or one with no Progress (`progress_mismatch`), or out of its shape's range
-// (`invalid_progress`). Only the shape and the range are checked, never what the catalog lists,
-// which can lag behind what has aired.
+// (`invalid_progress`), as a book's page past its page count is. Only the shape and the range are
+// checked, never what the catalog lists, which can lag behind what has aired.
 export function progressProblem(progress: Progress, mediaType: string): ProgressProblem | null {
   if (progress.mediaType !== mediaType) return "progress_mismatch";
-  const { season, episode } = progress;
-  const inRange = Number.isInteger(season) && season >= firstSeason;
-  return inRange && Number.isInteger(episode) && episode >= 0 ? null : "invalid_progress";
+  if (progress.mediaType === "series") {
+    const { season, episode } = progress;
+    return isWhole(season, firstSeason) && isWhole(episode, 0) ? null : "invalid_progress";
+  }
+  return bookPageProblem(progress) === null ? null : "invalid_progress";
+}
+
+// Why a book's page and page count can't be kept, naming which of them is wrong, so the client can
+// say it under the right field: a page out of range, a page count out of range, or a page past the
+// page count. Null when both can.
+export type BookPageProblem = "page_out_of_range" | "page_count_out_of_range" | "past_last_page";
+
+export function bookPageProblem({
+  page,
+  pageCount,
+}: Omit<BookProgress, "mediaType">): BookPageProblem | null {
+  if (!isWhole(page, 0, maxPage)) return "page_out_of_range";
+  if (pageCount === undefined) return null;
+  if (!isWhole(pageCount, 1, maxPage)) return "page_count_out_of_range";
+  return page > pageCount ? "past_last_page" : null;
 }
 
 // One episode of a series, by its season and its number in that season.

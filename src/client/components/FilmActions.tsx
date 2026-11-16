@@ -11,6 +11,7 @@ import { can, canProgress, mediaTypeIcon } from "../catalog/media-types";
 import { mediaWord, progressWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { userTimeZone, userToday } from "../log/user-day";
+import { BookProgressPanel } from "./BookProgress";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { InProgressCard } from "./InProgressCard";
 import { MediaItemLogEntryDialog } from "./LogEntryDialog";
@@ -25,8 +26,8 @@ type ActionError = PlanError | "startFailed" | "stopFailed" | "progressFailed";
 
 // What the User can do with a Media Item from its page: mark it Experienced, or again once it has
 // Log Entries, mark it Planned or take it off the Backlog, and put it on Lists. A Media Type that
-// has In Progress can be started too; while it is, a card says since when, and for a series
-// holds its Progress, and finishing it or stopping it take the place of marking it Experienced,
+// has In Progress can be started too; while it is, a card says since when, and for a series or a
+// book holds its Progress, and finishing it or stopping it take the place of marking it Experienced,
 // Planned or started. A series already logged starts where the User picks in Watch more.
 // `onChanged` reloads the page for a new Log Entry or a change to In Progress, and `onPlanned`
 // tells it whether the Media Item is on the Backlog now.
@@ -75,8 +76,8 @@ export function FilmActions({
     setLastAction({ kind: adding ? "planned" : "unplanned" });
   }
 
-  // Starts the Media Item today, at `progress` for a series, taking it off the Backlog, which the
-  // toast offers to undo.
+  // Starts the Media Item today, at `progress` for a series (a book starts with none), taking it off
+  // the Backlog, which the toast offers to undo.
   async function start(progress: SeriesProgress | null = null) {
     setActionError(null);
     setPlanning(true);
@@ -166,13 +167,22 @@ export function FilmActions({
           inProgress={inProgress}
           stopping={stopping}
           progress={
-            mediaItem.mediaType === "series" && (
+            mediaItem.mediaType === "series" ? (
               <SeriesProgressPanel
                 series={mediaItem}
                 inProgress={inProgress}
                 onChange={() => setActionError(null)}
                 onFailed={() => setActionError("progressFailed")}
               />
+            ) : (
+              mediaItem.mediaType === "book" && (
+                <BookProgressPanel
+                  mediaItemId={mediaItem.id}
+                  label={film}
+                  inProgress={inProgress}
+                  onChanged={onChanged}
+                />
+              )
             )
           }
           onFinish={() => setFinishing(true)}

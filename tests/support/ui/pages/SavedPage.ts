@@ -58,6 +58,11 @@ export class SavedPage extends BasePage {
     return this.readingNowRows.filter({ hasText: title }).getByRole("link");
   }
 
+  // The bar on a row of Reading now, named with the page and the page count: "Page 142 of 380".
+  readingNowPageBar(title: string) {
+    return this.readingNowRow(title).getByRole("img", { name: /^Page \d+ of \d+$/ });
+  }
+
   // A Media Type's tile, by the name on it.
   tile(name: MediaTypeName) {
     const named = this.page.getByRole("heading", { name, exact: true });

@@ -63,7 +63,7 @@ The state of a Media Item that a User has started and not yet finished, which ma
 _Avoid_: Reading, Watching (as domain terms), currently reading, started, ongoing
 
 **Progress**:
-How far a User has got in a Media Item that is In Progress, in a shape set by its Media Type; for a series, the last episode they watched ("S2 · E5" in the UI). Only the latest is kept, and it ends with the In Progress; a Log Entry never carries it.
+How far a User has got in a Media Item that is In Progress, in a shape set by its Media Type; for a series, the last episode they watched ("S2 · E5" in the UI); for a book, the page they are on, and optionally how many pages their edition has ("p. 142", "142 of 380" in the UI). Only the latest is kept, and it ends with the In Progress; a Log Entry never carries it.
 _Avoid_: Position, bookmark, checkpoint, episode tracking
 
 **Revisit**:

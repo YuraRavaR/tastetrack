@@ -616,7 +616,7 @@ test("a series' Progress can be changed and cleared, and changing only the start
   expect(await progressOnPage()).toBeNull();
 });
 
-test("a Progress out of range, or sent for a book, is refused, and an episode beyond what TMDB lists is kept", async ({
+test("a Progress out of range, or of another Media Type, is refused, and an episode beyond what TMDB lists is kept", async ({
   loggedInApi,
 }) => {
   const [mediaItem, book] = [await chernobyl(loggedInApi), await tyhrolovy(loggedInApi)];
@@ -628,7 +628,7 @@ test("a Progress out of range, or sent for a book, is refused, and an episode be
     [seriesProgress(1, -1), "invalid_progress"],
     [seriesProgress(1.5, 2), "invalid_progress"],
     [seriesProgress(1, 2.5), "invalid_progress"],
-    [{ mediaType: "book", page: 12 }, "invalid_request"],
+    [{ mediaType: "book", page: 12 }, "progress_mismatch"],
     [{ season: 1, episode: 2 }, "invalid_request"],
   ] as const) {
     const changed = loggedInApi.inProgress.update(mediaItem.id, { progress: refused as never });
@@ -645,7 +645,7 @@ test("a Progress out of range, or sent for a book, is refused, and an episode be
   expect((await expectBody(beyond)).inProgress.progress).toEqual(seriesProgress(2, 9));
 });
 
-test("a series can't be started with a Progress out of range, nor a book with any, and neither is started", async ({
+test("a series can't be started with a Progress out of range, nor a book with a series', and neither is started", async ({
   loggedInApi,
 }) => {
   const [mediaItem, book] = [await chernobyl(loggedInApi), await tyhrolovy(loggedInApi)];

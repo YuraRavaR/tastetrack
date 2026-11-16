@@ -14,7 +14,7 @@ export class InProgressController extends BaseController {
     });
   }
 
-  // The books' specs change only the start date, which is all a book's In Progress has.
+  // A change to the start date alone.
   updateStartDate(mediaItemId: number, changes: InProgressEditRequest, options?: RequestOptions) {
     return this.update(mediaItemId, changes, options);
   }

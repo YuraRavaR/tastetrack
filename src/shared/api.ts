@@ -723,9 +723,34 @@ export const SeriesProgress = z
   })
   .openapi("SeriesProgress");
 
+// A book's Progress: the page the User is on and, if they gave it, how many pages their edition
+// has (src/shared/progress.ts). As for a series, the schema takes any numbers, so that one out of
+// range, or a page past the page count, is refused as `invalid_progress`.
+export const BookProgress = z
+  .object({
+    mediaType: z.literal("book"),
+    page: z.number().openapi({
+      type: "integer",
+      minimum: 0,
+      maximum: 100_000,
+      example: 142,
+      description: "The page the User is on; 0 when they haven't started",
+    }),
+    pageCount: z.number().optional().openapi({
+      type: "integer",
+      minimum: 1,
+      maximum: 100_000,
+      example: 380,
+      description: "How many pages the User's edition has, never fewer than the page",
+    }),
+  })
+  .openapi("BookProgress");
+
 // How far a User has got in a Media Item In Progress, in a shape set by its Media Type, which it
-// names (ADR-0005). Only a series has Progress so far.
-export const Progress = z.discriminatedUnion("mediaType", [SeriesProgress]).openapi("Progress");
+// names (ADR-0005).
+export const Progress = z
+  .discriminatedUnion("mediaType", [SeriesProgress, BookProgress])
+  .openapi("Progress");
 
 // What follows from a series' Progress and the seasons its cache entry lists, worked out by
 // seriesOutlook (src/shared/progress.ts), which the client shares.
@@ -754,9 +779,8 @@ export const SeriesOutlook = z
   .openapi("SeriesOutlook");
 
 // A Media Item the User has started and not finished: since when, a calendar day they may leave
-// out, and when they marked it. Where its Media Type has Progress, as a series does, it carries the
-// User's, or null when they haven't started it, and for a series what follows from it; for any
-// other Media Type, such as a book, it has neither.
+// out, and when they marked it. Where its Media Type has Progress, as a series and a book do, it
+// carries the User's, or null when they haven't given one, and for a series what follows from it.
 export const InProgress = z
   .object({
     startDate: LogDate.nullable(),
