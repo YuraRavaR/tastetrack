@@ -147,7 +147,7 @@ async function searchWorks(
 
 // A reference-style link's definition, such as `  [1]: https://…`, and a horizontal rule.
 const linkDefinition = /^ {0,3}\[[^\]]+\]:\s*\S+.*$/;
-const rule = /^ {0,3}([-*_])(\s*\1){2,}\s*$/;
+const horizontalRule = /^ {0,3}([-*_])(\s*\1){2,}\s*$/;
 
 // A description as a book's page shows it: Markdown links as their text, the list of link
 // definitions at its end cut, with the rule before it, and lines broken by `\n` alone. Nothing else
@@ -157,7 +157,7 @@ function cleanDescription(description: string): string | null {
   const last = () => lines.at(-1) ?? "";
   if (linkDefinition.test(last())) {
     while (lines.length > 0 && (linkDefinition.test(last()) || last().trim() === "")) lines.pop();
-    if (rule.test(last())) lines.pop();
+    if (horizontalRule.test(last())) lines.pop();
   }
   const text = lines
     .join("\n")
