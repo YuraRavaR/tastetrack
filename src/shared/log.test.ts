@@ -5,6 +5,7 @@ import {
   inLogOrder,
   latestLogDate,
   logDateProblem,
+  minutesAheadOfUtc,
   storedRating,
   toStars,
 } from "./log";
@@ -197,5 +198,21 @@ describe("the first date of a set of Log Entries", () => {
 
   it("skips undated entries, which Log Order puts first", () => {
     expect(firstLogDate([{ date: null }, { date: "2023-12-24" }])).toBe("2023-12-24");
+  });
+});
+
+describe("how far a time zone is ahead of UTC", () => {
+  it.each([
+    ["Europe/Kyiv", "2026-07-01T12:00:00Z", 180],
+    ["Europe/Kyiv", "2026-12-01T12:00:00Z", 120],
+    ["America/Los_Angeles", "2026-12-01T03:00:00Z", -480],
+    ["Asia/Kolkata", "2026-12-01T12:00:00Z", 330],
+    ["UTC", "2026-12-01T12:00:00Z", 0],
+  ])("is right for %s at %s", (timeZone, instant, minutes) => {
+    expect(minutesAheadOfUtc(new Date(instant), timeZone)).toBe(minutes);
+  });
+
+  it.each([undefined, "", "Mars/Olympus_Mons"])("is 0 when the time zone is %j", (timeZone) => {
+    expect(minutesAheadOfUtc(new Date("2026-12-01T12:00:00Z"), timeZone)).toBe(0);
   });
 });

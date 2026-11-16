@@ -51,6 +51,37 @@ function dateIn(instant: Date, timeZone: string): string {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
+// How many minutes `timeZone` is ahead of UTC at `instant`, negative west of Greenwich; 0 without a
+// usable time zone.
+export function minutesAheadOfUtc(instant: Date, timeZone: string | undefined): number {
+  if (!timeZone) return 0;
+  let parts: Intl.DateTimeFormatPart[];
+  try {
+    parts = new Intl.DateTimeFormat("en", {
+      timeZone,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    }).formatToParts(instant);
+  } catch (error) {
+    if (error instanceof RangeError) return 0;
+    throw error;
+  }
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((p) => p.type === type)?.value);
+  const wallClock = Date.UTC(
+    part("year"),
+    part("month") - 1,
+    part("day"),
+    part("hour"),
+    part("minute"),
+  );
+  return Math.round((wallClock - instant.getTime()) / 60_000);
+}
+
 // The latest date a Log Entry may have: today where the User is, so a late-evening entry is never
 // refused as "tomorrow". Without a usable time zone it is tomorrow in UTC, which is no earlier
 // than today anywhere on Earth.

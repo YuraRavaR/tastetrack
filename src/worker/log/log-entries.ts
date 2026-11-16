@@ -122,7 +122,11 @@ export async function createLogEntry(
         .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId), whileStarted)),
     )
     .returning({ id: logEntries.id });
-  const backlog = takeOffBacklog(db, userId, request.mediaItemId, whileStarted);
+  const backlog = takeOffBacklog(db, userId, request.mediaItemId, {
+    now,
+    timeZone: request.timeZone,
+    when: whileStarted,
+  });
   // In Progress ends last, as the statements before it check it.
   const [[inserted], [removed]] = finishing
     ? await db.batch([insert, ...backlog, db.delete(inProgress).where(started)])

@@ -29,9 +29,10 @@ const experiencedRoute = createRoute({
   summary: "Mark a Media Item Experienced, recording a Log Entry",
   description:
     "Also takes the Media Item off the User's Backlog, and says where it was and its Note, so " +
-    "that marking it Planned at that position with that Note undoes it. Answers with the Media " +
-    "Item's Current Rating and number of Log Entries too, as a backdated entry leaves the " +
-    "Current Rating as it was.",
+    "that marking it Planned at that position with that Note undoes it. A Note that isn't " +
+    "empty is kept as a Thought written while Planned, dated the day it was Planned, unless " +
+    "the Media Item has that Thought already. Answers with the Media Item's Current Rating and " +
+    "number of Log Entries too, as a backdated entry leaves the Current Rating as it was.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {

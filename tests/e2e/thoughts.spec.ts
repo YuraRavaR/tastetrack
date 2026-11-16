@@ -250,3 +250,24 @@ test("History's empty state says a Thought can come before the first Reading", a
   ).toBeVisible();
   await expect(filmPage.addThoughtButton).toBeVisible();
 });
+
+test("after Watched, the film's Watchlist Note is a Thought written while on the Watchlist", async ({
+  api,
+  loggedInUi: ui,
+}) => {
+  const film = await alien(api);
+  const planned = { mediaItemId: film.id, note: "Olena says it's her favourite." };
+  await expectBody(api.backlog.addBacklogItem(planned, at(minutesAgo(3 * 24 * 60))), 201);
+  const { filmPage } = ui;
+  await filmPage.goto(film.id);
+
+  await filmPage.watchedButton.click();
+  const dialog = filmPage.logEntryDialog("Alien");
+  await dialog.rate("4 stars");
+  await dialog.save();
+
+  await expect(filmPage.historyRows).toHaveCount(2);
+  const thought = filmPage.thoughtRow(1);
+  await expect(thought.image("Thought")).toBeVisible();
+  await expect(thought.root).toHaveText(/while on your WatchlistOlena says it's her favourite\.$/);
+});
