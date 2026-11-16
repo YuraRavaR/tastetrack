@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thoughts · Add a thought, edit a thought</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87); --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75); --input: oklch(0.85 0.015 75); --overlay: oklch(0.2 0.01 50 / 50%); --ink: oklch(0.22 0.02 60);
+  --ring: oklch(0.55 0.012 55); --destructive: oklch(0.46 0.18 25);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85); --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%); --input: oklch(1 0 0 / 15%); --overlay: oklch(0 0 0 / 60%); --ink: #fff;
+    --ring: oklch(0.66 0.012 60); --destructive: oklch(0.66 0.2 22);
+  }
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; min-height: 844px; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+button, input, textarea { font: inherit; color: inherit; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic16 { width: 16px; height: 16px; }
+
+/* The page behind, under the overlay. */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.behind { max-width: 1008px; margin: 16px auto 0; padding: 0 16px; }
+.behind div { height: 220px; border: 1px dashed var(--input); border-radius: 12px; }
+.overlay { position: fixed; inset: 0; background: var(--overlay); }
+
+/* Below md: a bottom sheet (the Watched sheet's shape, log-entry-dialog/). From md: a centred dialog. */
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; max-height: calc(100% - 48px); display: flex; flex-direction: column; background: var(--card); border-radius: 28px 28px 0 0; box-shadow: 0 -8px 32px oklch(0 0 0 / 30%); }
+.scroll { overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 20px 16px 4px; }
+.head { display: flex; gap: 12px; align-items: flex-start; }
+.thumb { width: 36px; height: 54px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); flex: none; }
+.eyebrow { font-size: 12px; font-weight: 600; color: var(--primary-strong); }
+h2 { margin: 2px 0 0; font-size: 20px; font-weight: 600; line-height: 1.2; }
+.sub { margin: 2px 0 0; font-size: 14px; color: var(--muted-foreground); }
+.close { width: 44px; height: 44px; margin: -8px -8px 0 auto; border-radius: 10px; border: 0; background: transparent; color: var(--muted-foreground); display: grid; place-items: center; flex: none; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 14px; font-weight: 600; }
+.hint { font-size: 13px; color: var(--muted-foreground); }
+textarea { width: 100%; min-height: 148px; resize: vertical; font-size: 15px; line-height: 1.45; background: var(--background); border: 1px solid var(--input); border-radius: 12px; padding: 10px 12px; }
+textarea::placeholder { color: var(--muted-foreground); }
+textarea.focused { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 45%, transparent); outline: none; }
+textarea.quote { font-style: italic; }
+textarea[aria-invalid="true"] { border-color: var(--destructive); box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 25%, transparent); }
+.count { display: flex; justify-content: flex-end; gap: 12px; font-size: 13px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.count.over { justify-content: space-between; color: var(--destructive); }
+.line { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+.line .text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.switch { width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; background: var(--input); position: relative; flex: none; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 999px; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / 25%); }
+.switch[aria-checked="true"] { background: var(--primary); }
+.switch[aria-checked="true"]::after { left: 21px; background: var(--primary-foreground); }
+.value { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.btn { height: 44px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; font-weight: 600; border: 1px solid var(--border); background: var(--background); white-space: nowrap; cursor: pointer; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted-foreground); padding: 0 10px; }
+.btn.icon { width: 44px; padding: 0; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.btn.danger { border-color: transparent; background: transparent; color: var(--destructive); padding: 0 12px; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.num { width: 72px; height: 44px; text-align: center; font-size: 17px; font-weight: 700; background: var(--background); border: 1px solid var(--input); border-radius: 12px; }
+.num.focused { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 45%, transparent); outline: none; }
+.small-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted-foreground); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--background); font-size: 15px; }
+.chip[aria-checked="true"] { border-color: var(--primary-strong); background: var(--primary-soft); font-weight: 600; }
+.date { height: 44px; width: 100%; background: var(--background); border: 1px solid var(--input); border-radius: 12px; padding: 0 12px; font-size: 15px; }
+.error { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 14px; color: var(--destructive); }
+.footer { display: flex; gap: 8px; align-items: center; padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 16px)); border-top: 1px solid var(--border); }
+.footer .save { flex: 1; height: 50px; }
+.footer .cancel { display: none; }
+
+/* The Delete confirmation, as a Log Entry's (DeleteLogEntryDialog). */
+.confirm { position: fixed; left: 16px; right: 16px; top: 50%; transform: translateY(-50%); background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 16px 48px oklch(0 0 0 / 35%); }
+.confirm h2 { font-size: 18px; margin: 0; }
+.confirm p { margin: 0; font-size: 14px; color: var(--muted-foreground); }
+.confirm .actions { display: flex; flex-direction: column-reverse; gap: 8px; margin-top: 6px; }
+.confirm .btn.destructive { background: var(--destructive); border-color: var(--destructive); color: var(--background); }
+
+@media (min-width: 768px) {
+  .bar { padding: 0 24px; height: 64px; }
+  .wm { font-size: 17px; }
+  .sheet { left: 50%; right: auto; bottom: auto; top: 72px; width: calc(100% - 48px); max-width: 480px; max-height: calc(100% - 144px); transform: translateX(-50%); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 16px 48px oklch(0 0 0 / 35%); }
+  .scroll { padding: 20px 20px 4px; gap: 14px; }
+  .thumb { width: 40px; height: 60px; }
+  .close { width: 40px; height: 40px; margin: -6px -6px 0 auto; }
+  .btn, .num, .date { height: 40px; font-size: 14px; }
+  .btn.icon { width: 40px; }
+  .chip { height: 36px; padding: 0 14px; font-size: 14px; }
+  .value { font-size: 16px; }
+  .footer { padding: 14px 20px 18px; }
+  .footer .save { flex: none; height: 40px; }
+  .footer .cancel { display: inline-flex; margin-left: auto; }
+  .footer .danger + .cancel { margin-left: auto; }
+  .confirm { left: 50%; right: auto; width: 420px; transform: translate(-50%, -50%); }
+  .confirm .actions { flex-direction: row; justify-content: flex-end; }
+}
+</style>
+</head>
+<body>
+<header><div class="bar"><span class="wm">Taste<br>Track</span></div></header>
+<div class="behind"><div></div></div>
+<div class="overlay"></div>
+<div id="root"></div>
+<script>
+// Open with #episode, #page, #no-page, #edit, #too-long, #failed or #delete. No hash is a new
+// Thought on a series being watched, its episode filled in from In Progress.
+const icons = {
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  alert: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+};
+const svg = (name, cls = "ic") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${icons[name]}</svg>`;
+const long = "There is a passage in the middle of the second part where he walks the Drowned Halls at low tide and counts the statues aloud, and I realised I had been counting with him. ".repeat(12);
+
+const series = { cover: "https://image.tmdb.org/t/p/w342/pPHpeI2X1qEd1CS1SeyrdhZ4qnT.jpg", title: "Severance", sub: "2022 · Apple TV+", quoteHint: "Words from the series, not your own", progressLabel: "Episode", progress: "S2 · E5", from: "From Watching", clear: "Remove the episode", add: "Add episode" };
+const book = { cover: "https://covers.openlibrary.org/b/id/10226290-M.jpg", title: "Piranesi", sub: "2020 · Susanna Clarke", quoteHint: "Words from the book, not your own", progressLabel: "Page", progress: "p. 142", from: "From Reading", clear: "Remove the page", add: "Add page" };
+const film = { cover: "https://image.tmdb.org/t/p/w342/bBEkKDQFianNYwGWR7gJfPVakmG.jpg", title: "Spirit: Stallion of the Cimarron", sub: "2002 · 1h 24m", quoteHint: "Words from the film, not your own" };
+
+const states = {
+  default: { ...series, text: "", focus: true },
+  episode: { ...series, text: "Season 2 drags until episode 5.", editor: "episode" },
+  page: { ...book, text: "The Beauty of the House is immeasurable; its Kindness infinite.", quote: true, editor: "page" },
+  "no-page": { ...book, text: "Took me thirty pages to stop fighting the capital letters. Now I like them.", progress: "" },
+  edit: { ...book, editing: true, text: long.slice(0, 1962), count: "1,962 / 2,000", from: "", date: "2026-11-02" },
+  "too-long": { ...film, text: long.slice(0, 2014), over: true },
+  failed: { ...book, text: "Still thinking about the statues. Read it again in winter.", progress: "", failed: true },
+  delete: { ...book, editing: true, text: "The Beauty of the House is immeasurable; its Kindness infinite.", quote: true, from: "", confirm: true },
+};
+
+function progressLine(s) {
+  if (!s.progressLabel) return "";
+  if (s.editor === "page") {
+    return `<div class="line"><div class="text"><label class="label" for="page">Page</label><span class="hint">From Reading: 142 of 272</span></div><input id="page" class="num focused" inputmode="numeric" value="142"><button class="btn">Done</button></div>`;
+  }
+  if (s.editor === "episode") {
+    return `<div class="line"><div class="text"><span class="label">Episode</span><span class="hint">From Watching</span></div><label class="small-field">Season<input class="num" inputmode="numeric" value="2"></label><label class="small-field">Episode<input class="num focused" inputmode="numeric" value="5"></label><button class="btn" style="align-self: flex-end">Done</button></div>`;
+  }
+  if (!s.progress) {
+    return `<div class="line"><div class="text"><span class="label">${s.progressLabel}</span><span class="hint">None on this thought</span></div><button class="btn">${svg("plus", "ic ic16")}${s.add}</button></div>`;
+  }
+  return `<div class="line"><div class="text"><span class="label">${s.progressLabel}</span>${s.from ? `<span class="hint">${s.from}</span>` : ""}</div><span class="value">${s.progress}</span><button class="btn ghost">Change</button><button class="btn ghost icon" aria-label="${s.clear}">${svg("x")}</button></div>`;
+}
+
+function render() {
+  const s = states[location.hash.slice(1)] ?? states.default;
+  const other = Boolean(s.date);
+  const chip = (label, on) => `<button class="chip" role="radio" aria-checked="${on}">${label}</button>`;
+  const textareaClass = [s.focus ? "focused" : "", s.quote ? "quote" : ""].join(" ").trim();
+  document.getElementById("root").innerHTML = `
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="title" aria-describedby="sub">
+  <div class="scroll">
+    <div class="head"><img class="thumb" src="${s.cover}" alt=""><div><div class="eyebrow">${s.editing ? "Edit thought" : "New thought"}</div><h2 id="title">${s.title}</h2><p class="sub" id="sub">${s.sub}</p></div><button class="close" aria-label="Close">${svg("x")}</button></div>
+    <div class="field">
+      <label class="label" for="thought">Thought</label>
+      <textarea id="thought" class="${textareaClass}" placeholder="What's on your mind?" ${s.over ? 'aria-invalid="true" aria-describedby="count"' : ""}>${s.text}</textarea>
+      ${s.count ? `<div class="count" id="count">${s.count}</div>` : ""}
+      ${s.over ? `<div class="count over" id="count" role="alert"><span>A thought holds up to 2,000 characters.</span><span>2,014 / 2,000</span></div>` : ""}
+    </div>
+    <div class="line"><div class="text"><span class="label" id="quote-label">Quote</span><span class="hint">${s.quoteHint}</span></div><button class="switch" role="switch" aria-checked="${Boolean(s.quote)}" aria-labelledby="quote-label"></button></div>
+    ${progressLine(s)}
+    <div class="field line" style="flex-direction: column; align-items: stretch">
+      <span class="label" id="date-label">Date</span>
+      <div class="chips" role="radiogroup" aria-labelledby="date-label">${chip("Today", !other)}${chip("Yesterday", false)}${chip("Other date", other)}</div>
+      ${other ? `<input class="date" type="date" value="${s.date}" min="1900-01-01" max="2026-11-16" aria-label="Date of the thought">` : ""}
+    </div>
+    ${s.failed ? `<p class="error" role="alert">${svg("alert")}Couldn't save your thought. Please try again.</p>` : ""}
+  </div>
+  <div class="footer">
+    ${s.editing ? `<button class="btn danger">${svg("trash", "ic ic16")}Delete</button>` : ""}
+    <button class="btn cancel">Cancel</button>
+    <button class="btn primary save" ${s.over ? "disabled" : ""}>Save</button>
+  </div>
+</div>
+${s.confirm ? `<div class="overlay" style="z-index: 1"></div><div class="confirm" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-text" style="z-index: 2"><h2 id="confirm-title">Delete this thought?</h2><p id="confirm-text">Your thought of 15 Nov 2026 about Piranesi will be removed for good. This can't be undone.</p><div class="actions"><button class="btn">Cancel</button><button class="btn destructive">Delete</button></div></div>` : ""}`;
+}
+addEventListener("hashchange", render);
+render();
+</script>
+</body>
+</html>

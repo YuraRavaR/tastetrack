@@ -63,7 +63,7 @@ The state of a Media Item that a User has started and not yet finished, which ma
 _Avoid_: Reading, Watching (as domain terms), currently reading, started, ongoing
 
 **Progress**:
-How far a User has got in a Media Item that is In Progress, in a shape set by its Media Type; for a series, the last episode they watched ("S2 · E5" in the UI); for a book, the page they are on, and optionally how many pages their edition has ("p. 142", "142 of 380" in the UI). Only the latest is kept, and it ends with the In Progress; a Log Entry never carries it.
+How far a User has got in a Media Item that is In Progress, in a shape set by its Media Type; for a series, the last episode they watched ("S2 · E5" in the UI); for a book, the page they are on, and optionally how many pages their edition has ("p. 142", "142 of 380" in the UI). Only the latest is kept, and it ends with the In Progress; a Log Entry never carries it, and a Thought keeps only a copy of the Progress of the moment it was written.
 _Avoid_: Position, bookmark, checkpoint, episode tracking
 
 **Revisit**:
@@ -84,10 +84,14 @@ _Avoid_: Latest rating, overall rating, my rating
 
 **Review**:
 Optional free text a User writes in one Log Entry.
-_Avoid_: Note (that is for List Items), comment, notes
+_Avoid_: Note (that is for List Items), Thought (that is for a Media Item), comment, notes
+
+**Thought**:
+Free text a User keeps about one Media Item, with a date, optionally marked as a quote, carrying the Progress and the state of the moment it was written; private to that User.
+_Avoid_: Note (that is for List Items), Review (that is for Log Entries), comment, journal entry, highlight
 
 **Item History**:
-All of one User's Log Entries for one Media Item, in time order ("Viewings" for films and series, and "Readings" for books in the UI).
+All of one User's Log Entries and Thoughts for one Media Item, in time order ("History" in the UI).
 _Avoid_: Timeline, item log
 
 **Tag** _(planned)_:
@@ -114,7 +118,7 @@ _Avoid_: Entry (that is for Log Entries), list entry
 
 **Note**:
 Optional free text attached to a List Item.
-_Avoid_: Review (that is for Log Entries), comment, annotation
+_Avoid_: Review (that is for Log Entries), Thought (that is for a Media Item), comment, annotation
 
 **Backlog**:
 A system List of the Media Items a User plans to experience; one per User per Media Type, which cannot be deleted or renamed ("Watchlist" for films and series, and "Reading list" for books in the UI).

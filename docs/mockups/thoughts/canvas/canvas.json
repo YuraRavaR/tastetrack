@@ -1,0 +1,29 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-16T15:00:00Z" },
+  "title": "TasteTrack Thoughts",
+  "launch": { "view": "canvas", "page": "r1" },
+  "pages": [
+    { "id": "r1", "name": "Round 1 · History and the form" }
+  ],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 2110, "h": 880, "page": "r1", "title": "History · phone · A: one list, the state on the date line" },
+    "HistoryB.dc.html": { "x": 0, "y": 1000, "w": 2110, "h": 880, "page": "r1", "title": "History · phone · B: a timeline" },
+    "HistoryC.dc.html": { "x": 0, "y": 2000, "w": 2110, "h": 880, "page": "r1", "title": "History · phone · C: Thoughts as soft cards" },
+    "HistoryWeb.dc.html": { "x": 0, "y": 3000, "w": 3184, "h": 820, "page": "r1", "title": "History · web (the 1008 px page column) · A, B, C" },
+    "FormA.dc.html": { "x": 0, "y": 4400, "w": 2110, "h": 880, "page": "r1", "title": "Add a thought · phone · A: the Watched sheet's shape" },
+    "FormB.dc.html": { "x": 0, "y": 5400, "w": 2110, "h": 880, "page": "r1", "title": "Add a thought · phone · B: write first, a toolbar of chips" },
+    "FormWeb.dc.html": { "x": 0, "y": 6400, "w": 1280, "h": 820, "page": "r1", "title": "Add a thought · web dialog · A, B" }
+  },
+  "order": ["Main.dc.html", "HistoryB.dc.html", "HistoryC.dc.html", "HistoryWeb.dc.html", "FormA.dc.html", "FormB.dc.html", "FormWeb.dc.html"],
+  "notes": {
+    "t1": { "kind": "title1", "page": "r1", "x": 0, "y": -300, "maxW": 3184, "text": "History: Log Entries and Thoughts in one list" },
+    "t2": { "kind": "title1", "page": "r1", "x": 0, "y": 4100, "maxW": 2110, "text": "Add a thought: the form" },
+    "n1": { "page": "r1", "x": 2210, "y": 0, "w": 420, "size": "m", "fill": "teal", "text": "Real titles: Severance (Apple TV+), Piranesi (Susanna Clarke), Spirit: Stallion of the Cimarron, Kafka on the Shore (Haruki Murakami), Perfect Days.\n\nNewest first. Log Entries keep their Log Order; a Thought sits by its date; an undated Log Entry stays last (Spirit).\n\nA Thought copied from a Backlog Note is a plain Planned Thought: \"while on your Watchlist\". There is no 'copied' mark, since the model has none.\n\nTweaks switches every board between dark and light." },
+    "n2": { "page": "r1", "x": 2210, "y": 1000, "w": 420, "size": "m", "fill": "orange", "text": "To pick: a Thought's row.\n\nA: the same bordered list; a Thought has a small icon, the date line carries the state and the Progress, the text in full under it, a ⋯ menu as a Log Entry has.\nB: a timeline; a dot per item (gold for a Log Entry), the state and Progress as chips, a \"Write a thought…\" box on top, the whole item taps to edit.\nC: Log Entries stay today's rows; a Thought is a soft card inside the list, a quote on gold, the date line under the text." },
+    "n3": { "page": "r1", "x": 2210, "y": 2000, "w": 420, "size": "m", "fill": "gray", "text": "The same in every variant:\n\n\"History\" for every Media Type.\nState labels: while on your Watchlist / Reading list, while watching / reading, after watching / reading; none when it is not in Saved.\nProgress as the app writes it: \"S2 · E5\", \"p. 142\".\nA quote in curly quotes and italics, never a left border.\nThe text is plain, kept in full (up to 2,000 characters) with its line breaks." },
+    "picks": { "page": "r1", "x": 2710, "y": 0, "w": 420, "size": "m", "fill": "green", "text": "Picked 2026-11-16:\nThe row: A (one bordered list; a Thought's icon, the state and Progress on the date line, the text in full, a ⋯ menu).\nThe form: A (the Watched sheet's shape: Quote switch, the Progress row with Change and ×, date chips, Delete beside Save when editing)." },
+    "n4": { "page": "r1", "x": 2210, "y": 4400, "w": 420, "size": "m", "fill": "orange", "text": "To pick: the add and edit form.\n\nA: the Watched sheet's shape: a header with the poster, the text, Quote as a switch row, the Progress as a row with Change and ×, date chips (Today, Yesterday, Other date), Save at the bottom, Delete beside it when editing.\nB: write first: Cancel · title · Save on top, a tall text box, then one row of chips under it (Quote, the date, the Progress with ×).\n\nBoth: no autosave; the Progress filled in from In Progress; the counter from 1,800 characters; a dialog from md." }
+  },
+  "designSystems": []
+}

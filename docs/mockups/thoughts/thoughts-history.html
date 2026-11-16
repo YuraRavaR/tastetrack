@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thoughts · History on a Media Item's page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87); --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75); --input: oklch(0.85 0.015 75); --ink: oklch(0.22 0.02 60);
+  --ring: oklch(0.55 0.012 55); --destructive: oklch(0.46 0.18 25);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85); --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%); --input: oklch(1 0 0 / 15%); --ink: #fff;
+    --ring: oklch(0.66 0.012 60); --destructive: oklch(0.66 0.2 22);
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic14 { width: 14px; height: 14px; }
+.ic16 { width: 16px; height: 16px; }
+
+/* Header and the bottom tab bar, as every page has them (navigation/). */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo svg { width: 34px; height: 34px; color: var(--ink); }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.nav { display: none; gap: 4px; }
+.nav a { height: 36px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); }
+.account { margin-left: auto; width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); display: grid; place-items: center; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border); z-index: 5; }
+.tabbar a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.tabbar .ic { width: 24px; height: 24px; }
+
+/* The page column (film-banner/). Only the History section is drawn; the rest is a placeholder. */
+.page { max-width: 1008px; margin: 0 auto; padding: 14px 16px 0; }
+.context { display: flex; gap: 12px; align-items: center; }
+.thumb { width: 40px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); flex: none; background: var(--muted); display: grid; place-items: center; color: var(--muted-foreground); }
+.typeset { background: var(--primary-soft); color: var(--foreground); font-size: 7px; font-weight: 700; line-height: 1.15; padding: 5px 4px; place-items: start; }
+.context h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.context p { margin: 2px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.rest { margin-top: 12px; height: 44px; border: 1px dashed var(--input); border-radius: 12px; display: grid; place-items: center; padding: 0 12px; text-align: center; font-size: 13px; color: var(--muted-foreground); }
+
+/* History: one bordered list of Log Entries and Thoughts, newest first. */
+.history { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.history-head { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.btn { height: 40px; padding: 0 12px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 600; border: 1px solid var(--border); background: var(--card); cursor: pointer; white-space: nowrap; }
+.add { margin-left: auto; }
+.list { margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.list > li { position: relative; display: flex; gap: 8px; align-items: flex-start; padding: 10px 4px 10px 12px; }
+.list > li + li { border-top: 1px solid var(--border); }
+.col { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; padding-top: 2px; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 14px; }
+.date { font-weight: 500; }
+.state { font-size: 13px; color: var(--muted-foreground); }
+.progress { font-size: 12px; font-weight: 600; padding: 1px 7px; border-radius: 6px; background: var(--muted); font-variant-numeric: tabular-nums; }
+.badge { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--muted); }
+.review { margin: 0; font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.text { margin: 0; font-size: 15px; line-height: 1.45; max-width: 68ch; white-space: pre-line; overflow-wrap: anywhere; }
+.text.quote { font-style: italic; }
+.kind { color: var(--muted-foreground); }
+.kind.quote { color: var(--primary-strong); }
+.more { width: 44px; height: 44px; border-radius: 10px; border: 0; background: transparent; color: var(--muted-foreground); display: grid; place-items: center; flex: none; margin-top: -6px; cursor: pointer; }
+.more[aria-expanded="true"] { background: var(--muted); color: var(--foreground); }
+.stars { display: inline-flex; gap: 1px; color: var(--primary); }
+.star { position: relative; width: 14px; height: 14px; }
+.star svg { position: absolute; inset: 0; width: 14px; height: 14px; }
+.star .o { fill: none; stroke: var(--input); stroke-width: 2; }
+.star .f { fill: currentColor; }
+.star .half { position: absolute; inset: 0; width: 7px; overflow: hidden; }
+.empty { display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; border: 1px dashed var(--input); border-radius: 12px; padding: 20px 16px; }
+.empty p { margin: 0; }
+.empty .hint { font-size: 14px; color: var(--muted-foreground); max-width: 46ch; }
+/* The ⋯ menu, as a Log Entry's (DropdownMenu). */
+.menu { position: absolute; right: 8px; top: 46px; z-index: 3; min-width: 168px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px oklch(0 0 0 / 22%); padding: 4px; }
+.menu button { width: 100%; min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; font-size: 14px; text-align: left; }
+.menu button:first-child { background: var(--muted); }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px -4px; }
+.menu .danger { color: var(--destructive); }
+
+@media (min-width: 640px) {
+  .page { padding: 24px 24px 0; }
+  .rest { height: 56px; font-size: 14px; }
+  .history { margin-top: 22px; }
+  h2 { font-size: 20px; }
+  .list > li { padding: 10px 4px 10px 14px; }
+}
+@media (min-width: 768px) {
+  body { padding-bottom: 40px; }
+  .bar { padding: 0 24px; height: 64px; }
+  .logo svg { width: 36px; height: 36px; }
+  .wm { font-size: 17px; }
+  .nav { display: flex; }
+  .tabbar { display: none; }
+  .btn { height: 36px; }
+  .more { width: 40px; height: 40px; margin-top: -4px; }
+}
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="logo" href="#" aria-label="TasteTrack"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span></a><nav class="nav" aria-label="Sections"><a href="#" aria-current="page">Saved</a><a href="#">Collections</a><a href="#">Search</a></nav><button class="account" aria-label="Account menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></button></div></header>
+<main class="page" id="page"></main>
+<nav class="tabbar" aria-label="Sections"><a href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" style="fill: currentColor"></path></svg>Saved</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+<script>
+// Each state is one Media Item's History. Open with #series, #film, #not-saved, #empty or #menu;
+// no hash is a book read for the second time (Piranesi).
+const icons = {
+  thought: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>',
+  quote: '<path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/>',
+  add: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M12 7v6"/><path d="M9 10h6"/>',
+  more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  edit: '<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  film: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/>',
+};
+const svg = (name, cls = "ic") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${icons[name]}</svg>`;
+const starPath = '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>';
+const stars = (r) => `<span class="stars" role="img" aria-label="Rating ${r} of 5">${[1, 2, 3, 4, 5].map((n) =>
+  `<span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="o">${starPath}</g></svg>${r >= n ? `<svg viewBox="0 0 24 24" aria-hidden="true"><g class="f">${starPath}</g></svg>` : r >= n - 0.5 ? `<span class="half"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="f">${starPath}</g></svg></span>` : ""}</span>`).join("")}</span>`;
+
+const log = (date, rating, review, revisit) => ({ log: true, date, rating, review, revisit });
+const thought = (date, state, progress, text, quote) => ({ date, state, progress, text, quote });
+
+const items = {
+  book: {
+    title: "Piranesi", facts: "2020 · Susanna Clarke · Reading, p. 168", cover: "https://covers.openlibrary.org/b/id/10226290-M.jpg",
+    rest: "Banner, About, the Reading card and actions: book-progress/ and catalog-details/", revisit: "Reread",
+    entries: [
+      thought("15 Nov 2026", "while reading", "p. 142", "The Beauty of the House is immeasurable; its Kindness infinite.", true),
+      thought("20 Oct 2026", "while reading", "p. 34", "Took me thirty pages to stop fighting the capital letters. Now I like them.\nEvery Statue in the Halls seems to be waiting for something, and by the end of the first part I was waiting with them."),
+      thought("4 Feb 2024", "after reading", "", "Still thinking about the statues. Read it again in winter."),
+      log("2 Feb 2024", 5, "Read it in two evenings. Strange and very kind."),
+      thought("10 Jan 2024", "while on your Reading list", "", "Marta: read it in one go if you can."),
+    ],
+  },
+  series: {
+    title: "Severance", facts: "2022 · Apple TV+ · Watching S2 · E5", cover: "https://image.tmdb.org/t/p/w342/pPHpeI2X1qEd1CS1SeyrdhZ4qnT.jpg",
+    rest: "Banner, About, the Watching card and actions: series-progress/ and catalog-details/",
+    entries: [
+      thought("16 Nov 2026", "while watching", "S2 · E5", "Season 2 drags until episode 5. From there it's the best thing on TV this year."),
+      thought("2 Nov 2026", "while watching", "S2 · E1", "The work is mysterious and important.", true),
+      thought("28 Sep 2026", "while on your Watchlist", "", "Olena says season 1 is perfect and the finale is worth the wait."),
+    ],
+  },
+  film: {
+    title: "Spirit: Stallion of the Cimarron", facts: "2002 · 1h 24m · Watched twice", cover: "https://image.tmdb.org/t/p/w342/bBEkKDQFianNYwGWR7gJfPVakmG.jpg",
+    rest: "Banner, stats, About and actions: film-banner/ and catalog-details/", revisit: "Rewatch",
+    entries: [
+      thought("14 Nov 2026", "after watching", "", "No talking horse, just Bryan Adams. Somehow that's why it works."),
+      log("9 Nov 2026", 3.5, "Better than I remembered. The train sequence still holds up.", true),
+      thought("21 Oct 2026", "while on your Watchlist", "", "Olena says it's her favourite."),
+      log("No date", 4, ""),
+    ],
+  },
+  notSaved: {
+    title: "Kafka on the Shore", facts: "2002 · Haruki Murakami", typeset: true,
+    rest: "Banner, About, Want to read and actions: books/ and catalog-details/",
+    entries: [thought("16 Nov 2026", "", "", "Sometimes fate is like a small sandstorm that keeps changing directions.", true)],
+  },
+  empty: {
+    title: "Perfect Days", facts: "2023 · 2h 4m", noPoster: true,
+    rest: "Banner, About, Watched and actions: film-banner/ and catalog-details/", entries: [],
+    hint: "Mark it Watched to keep the date, Rating and Review here, or add a thought at any time, even before you watch.",
+  },
+};
+
+function row(e, item, menuOpen) {
+  if (e.log) {
+    return `<li><div class="col"><div class="meta"><span class="date">${e.date}</span>${stars(e.rating)}${e.revisit ? `<span class="badge">${item.revisit}</span>` : ""}</div>${e.review ? `<p class="review">${e.review}</p>` : ""}</div><button class="more" aria-label="Actions for ${e.date}">${svg("more")}</button></li>`;
+  }
+  const kind = e.quote ? `<svg class="ic ic14 kind quote" viewBox="0 0 24 24" role="img" aria-label="Quote">${icons.quote}</svg>` : `<svg class="ic ic14 kind" viewBox="0 0 24 24" role="img" aria-label="Thought">${icons.thought}</svg>`;
+  const text = e.quote ? `“${e.text}”` : e.text;
+  const menu = menuOpen ? `<div class="menu" role="menu"><button role="menuitem">${svg("edit", "ic ic16")}Edit</button><hr><button role="menuitem" class="danger">${svg("trash", "ic ic16")}Delete</button></div>` : "";
+  return `<li><div class="col"><div class="meta">${kind}<span class="date">${e.date}</span>${e.state ? `<span class="state">${e.state}</span>` : ""}${e.progress ? `<span class="progress">${e.progress}</span>` : ""}</div><p class="text${e.quote ? " quote" : ""}">${text}</p></div><button class="more" aria-label="Actions for your thought of ${e.date}" aria-expanded="${menuOpen}">${svg("more")}</button>${menu}</li>`;
+}
+
+function render() {
+  const hash = location.hash.slice(1);
+  const key = { series: "series", film: "film", "not-saved": "notSaved", empty: "empty" }[hash] ?? "book";
+  const item = items[key];
+  const thumb = item.cover ? `<img class="thumb" src="${item.cover}" alt="">` : item.typeset ? `<div class="thumb typeset" aria-hidden="true">${item.title}</div>` : `<div class="thumb" aria-hidden="true">${svg("film")}</div>`;
+  const body = item.entries.length
+    ? `<ul class="list" aria-labelledby="history">${item.entries.map((e, i) => row(e, item, hash === "menu" && i === 0)).join("")}</ul>`
+    : `<div class="empty"><p style="font-weight: 600">Nothing here yet</p><p class="hint">${item.hint}</p></div>`;
+  document.getElementById("page").innerHTML =
+    `<div class="context">${thumb}<div><h1>${item.title}</h1><p>${item.facts}</p></div></div><div class="rest">${item.rest}</div>` +
+    `<section class="history"><div class="history-head"><h2 id="history">History</h2><button class="btn add">${svg("add", "ic ic16")}Add a thought</button></div>${body}</section>`;
+}
+addEventListener("hashchange", render);
+render();
+</script>
+</body>
+</html>

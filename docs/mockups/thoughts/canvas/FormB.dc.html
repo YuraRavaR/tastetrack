@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add a thought · phone · B</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.66 0.012 60);--destructive:oklch(0.66 0.2 22);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--input:oklch(0.85 0.015 75);--ring:oklch(0.55 0.012 55);--destructive:oklch(0.46 0.18 25);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:390px}
+.ph{width:390px;height:844px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;box-sizing:border-box}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.scrim{position:absolute;inset:0;background:oklch(0 0 0 / 55%)}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:48px;background:var(--card);border-radius:28px 28px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 32px oklch(0 0 0 / 30%)}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}.ic16{width:16px;height:16px}
+.bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px 8px 8px 4px;border-bottom:1px solid var(--border)}
+.bt{margin:0;font-size:16px;font-weight:600;text-align:center}
+.btn{height:44px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:15px;font-weight:600;border:1px solid var(--border);background:var(--background);color:inherit;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.btn.gh{background:transparent;border-color:transparent;color:var(--muted-foreground)}
+.btn.pr{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground);height:40px}
+.btn.dis{opacity:0.5}
+.btn.del{background:transparent;border-color:transparent;color:var(--destructive);width:100%}
+.ctx{display:flex;gap:10px;align-items:center;padding:12px 16px 0}
+.th{width:28px;height:42px;border-radius:5px;object-fit:cover;border:1px solid var(--border);flex:none;box-sizing:border-box}
+.ctt{font-size:15px;font-weight:600}
+.cts{font-size:13px;color:var(--muted-foreground)}
+.ta{flex:1;font:inherit;font-size:17px;line-height:1.5;color:inherit;background:transparent;border:0;padding:12px 16px;resize:none;box-sizing:border-box;width:100%;outline:none}
+.ta.q{font-style:italic}
+.tools{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--border)}
+.chip{height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--background);font:inherit;font-size:14px;font-weight:600;color:inherit;display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.chip.on{border-color:var(--primary-strong);background:var(--primary-soft)}
+.chip.add{border-style:dashed;color:var(--muted-foreground);background:transparent}
+.chip .cx{display:grid;place-items:center;width:24px;height:24px;margin-right:-6px;border-radius:999px;color:var(--muted-foreground)}
+.cnt{margin-left:auto;font-size:13px;color:var(--muted-foreground);font-variant-numeric:tabular-nums}
+.cnt.bad{color:var(--destructive);font-weight:600}
+.err{margin:0 16px 8px;font-size:14px;color:var(--destructive)}
+.pop{position:absolute;left:12px;right:12px;bottom:62px;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 32px oklch(0 0 0 / 30%);padding:12px;display:flex;align-items:flex-end;gap:10px}
+.pf{display:flex;flex-direction:column;gap:4px;flex:1}
+.lbl{font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.num{height:44px;font:inherit;font-size:17px;font-weight:700;color:inherit;background:var(--background);border:1px solid var(--ring);border-radius:12px;box-shadow:0 0 0 3px oklch(0.66 0.012 60 / 35%);padding:0 12px;box-sizing:border-box;width:100%}
+.safe{height:22px}
+</style>
+</helmet>
+<div style="width: 2110px; display: flex; gap: 40px; align-items: flex-start">
+<sc-for list="{{phones}}" as="p" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{p.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><span class="wm">Taste<br>Track</span></header>
+<div class="scrim"></div>
+<div class="sheet" role="dialog" aria-label="{{p.heading}}">
+<div class="bar"><button class="btn gh" style="justify-self: start">Cancel</button><h2 class="bt">{{p.heading}}</h2><button class="{{p.saveClass}}" style="justify-self: end">Save</button></div>
+<div class="ctx"><img class="th" src="{{p.img}}" alt=""><div><div class="ctt">{{p.title}}</div><div class="cts">{{p.sub}}</div></div></div>
+<textarea class="{{p.taClass}}" aria-label="Thought" placeholder="What's on your mind?">{{p.text}}</textarea>
+<sc-if value="{{p.over}}" hint-placeholder-val="{{false}}"><p class="err">A thought holds up to 2,000 characters.</p></sc-if>
+<div class="tools">
+<sc-if value="{{p.pop}}" hint-placeholder-val="{{false}}"><div class="pop"><label class="pf"><span class="lbl">Page</span><input class="num" inputmode="numeric" value="142"></label><button class="btn gh">Remove</button><button class="btn">Done</button></div></sc-if>
+<button class="{{p.quoteClass}}" aria-pressed="{{p.quoteOn}}"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg>Quote</button>
+<button class="chip"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg>{{p.date}}</button>
+<sc-if value="{{p.progress}}" hint-placeholder-val="{{true}}"><span class="chip"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>{{p.progress}}<span class="cx" aria-label="{{p.clearLabel}}" role="img"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></span></span></sc-if>
+<sc-if value="{{p.add}}" hint-placeholder-val="{{false}}"><button class="chip add"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>{{p.add}}</button></sc-if>
+<sc-if value="{{p.count}}" hint-placeholder-val="{{false}}"><span class="{{p.cntClass}}">{{p.count}}</span></sc-if>
+</div>
+<sc-if value="{{p.editing}}" hint-placeholder-val="{{false}}"><div style="padding: 0 12px; border-top: 1px solid var(--border)"><button class="btn del"><svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>Delete thought</button></div></sc-if>
+<div class="safe"></div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":2110,"height":880}}'>
+class Component extends DCLogic {
+renderVals() {
+const long = "There is a passage in the middle of the second part where he walks the Drowned Halls at low tide and counts the statues aloud, and I realised I had been counting with him. ".repeat(12);
+const base = { taClass: "ta", quoteOn: "false", quoteClass: "chip", saveClass: "btn pr", heading: "New thought", date: "Today", cntClass: "cnt" };
+const book = { img: "/_blob/67b56f1faf3786bd88d99498d1d3a59b", title: "Piranesi", sub: "Susanna Clarke · reading", clearLabel: "Remove the page" };
+return {
+theme: this.props.theme ?? "dark",
+phones: [
+{ ...base, cap: "B · New, while watching: the episode filled in", img: "/_blob/860f7beb13c4eee65a17878165d3e569", title: "Severance", sub: "Apple TV+ · watching", text: "", progress: "S2 · E5", clearLabel: "Remove the episode" },
+{ ...base, ...book, cap: "B · A quote, changing the page", text: "The Beauty of the House is immeasurable; its Kindness infinite.", taClass: "ta q", quoteOn: "true", quoteClass: "chip on", progress: "p. 142", pop: true },
+{ ...base, ...book, cap: "B · The page removed", text: "Took me thirty pages to stop fighting the capital letters. Now I like them.", progress: "", add: "Page" },
+{ ...base, ...book, cap: "B · Editing: an earlier date, the counter, Delete", heading: "Edit thought", text: long.slice(0, 1962), date: "2 Nov 2026", progress: "p. 142", count: "1,962 / 2,000", editing: true },
+{ ...base, cap: "B · A film has no Progress chip; too long", img: "/_blob/a7105c3481e72306053592373ae7eb4b", title: "Spirit: Stallion of the Cimarron", sub: "2002 · 1h 24m", text: long.slice(0, 2014), progress: "", over: true, count: "2,014 / 2,000", cntClass: "cnt bad", saveClass: "btn pr dis" }
+]
+};
+}
+}
+</script>
+</body>
+</html>
