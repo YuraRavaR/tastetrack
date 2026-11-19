@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A game's page, states · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1820px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;position:relative;z-index:2}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}
+.ic22{width:22px;height:22px}
+.bn{height:230px;position:relative;overflow:hidden}
+.bn img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;display:block;-webkit-mask-image:linear-gradient(to bottom,#000 45%,transparent 100%);mask-image:linear-gradient(to bottom,#000 45%,transparent 100%)}
+.bn img.blur{filter:blur(24px) saturate(1.3);transform:scale(1.3)}
+.top{display:flex;gap:14px;align-items:flex-end;padding:0 16px;margin-top:-92px;position:relative}
+.top.flat{margin-top:20px}
+.pst{width:104px;height:156px;border-radius:8px;object-fit:cover;border:1px solid var(--border);box-shadow:0 10px 24px oklch(0 0 0 / 40%);flex:none;box-sizing:border-box}
+.ts{background:var(--primary-soft);position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:16px 12px 13px;box-shadow:none}
+.ts::after{content:"";position:absolute;inset:6px;border:1px solid var(--primary-strong);opacity:0.45;border-radius:4px}
+.ts b{font-size:14px;line-height:1.2}
+.ts span{font-size:11px;color:var(--muted-foreground)}
+.tb{display:flex;flex-direction:column;gap:5px;min-width:0;padding-bottom:2px}
+.t1{margin:0;font-size:22px;line-height:1.15;font-weight:700;letter-spacing:-0.01em}
+.fx{font-size:14px;line-height:1.35;color:var(--muted-foreground)}
+.body{padding:16px 16px 24px;display:flex;flex-direction:column;gap:16px}
+.ov{font-size:15px;line-height:1.5;margin:0;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.mr{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+.mr a{color:var(--primary-strong);text-decoration:none}
+.src{margin-left:auto;font-size:13px;color:var(--primary-strong);display:flex;align-items:center;gap:4px;text-decoration:none}
+.dl{display:grid;grid-template-columns:92px minmax(0,1fr);gap:6px 12px;font-size:15px;line-height:1.4;margin:0}
+.dl dt{color:var(--muted-foreground)}
+.dl dd{margin:0}
+.pc{border:1px solid var(--primary-strong);background:var(--primary-soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.pcl{display:flex;align-items:center;gap:10px}
+.pci{width:36px;height:36px;border-radius:10px;background:var(--card);color:var(--primary-strong);display:grid;place-items:center}
+.pct{display:flex;flex-direction:column;gap:1px;flex:1}
+.pct b{font-size:16px}
+.pct span{font-size:13px;color:var(--muted-foreground)}
+.pen{width:40px;height:40px;border:0;background:none;color:var(--muted-foreground);display:grid;place-items:center}
+.pcb{display:flex;gap:8px}
+.pcb .btn{flex:1;justify-content:center}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.btn{height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--background);color:inherit;font:inherit;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:7px;box-sizing:border-box;text-decoration:none}
+.pri{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.on{border-color:var(--primary-strong);color:var(--primary-strong)}
+.hh{display:flex;align-items:center;justify-content:space-between}
+.h2{font-size:18px;font-weight:600;margin:0}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.empty b{font-size:15px}
+.empty span{font-size:14px;color:var(--muted-foreground);line-height:1.4;max-width:300px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tbi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tbi.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600;border:0}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{s.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+
+<sc-if value="{{s.art}}" hint-placeholder-val="{{true}}"><div class="bn"><img src="{{s.art}}" alt=""></div></sc-if>
+<sc-if value="{{s.blur}}" hint-placeholder-val="{{false}}"><div class="bn"><img class="blur" src="{{s.cover}}" alt=""></div></sc-if>
+
+<sc-if value="{{s.cover}}" hint-placeholder-val="{{true}}">
+<div class="top"><img class="pst" src="{{s.cover}}" alt="{{s.title}} cover"><div class="tb"><h1 class="t1">{{s.title}}</h1><span class="fx">{{s.facts}}</span></div></div>
+</sc-if>
+<sc-if value="{{s.noCover}}" hint-placeholder-val="{{false}}">
+<div class="top flat"><span class="pst ts" role="img" aria-label="No cover"><b>{{s.title}}</b><span>{{s.dev}}</span></span><div class="tb"><h1 class="t1">{{s.title}}</h1><span class="fx">{{s.facts}}</span></div></div>
+</sc-if>
+
+<div class="body">
+<p class="ov">{{s.summary}}</p>
+<div class="mr"><a href="#">More</a><a href="#" class="src">From IGDB<svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3"></path></svg></a></div>
+<dl class="dl"><dt>Genres</dt><dd>{{s.genres}}</dd></dl>
+
+<sc-if value="{{s.playing}}" hint-placeholder-val="{{true}}">
+<div class="pc">
+<div class="pcl"><span class="pci"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></span><span class="pct"><b>Playing</b><span>Since 3 November 2026</span></span><button class="pen" aria-label="Change the start date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path></svg></button></div>
+<div class="pcb"><button class="btn pri"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Finished</button><button class="btn">Stop playing</button></div>
+</div>
+<div class="acts"><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button></div>
+</sc-if>
+
+<sc-if value="{{s.before}}" hint-placeholder-val="{{false}}">
+<div class="acts">
+<button class="btn pri"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Played</button>
+<sc-if value="{{s.planned}}" hint-placeholder-val="{{false}}"><button class="btn on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="fill: currentColor"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Want to play</button></sc-if>
+<sc-if value="{{s.notPlanned}}" hint-placeholder-val="{{true}}"><button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Want to play</button></sc-if>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg>Start playing</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button>
+</div>
+</sc-if>
+
+<div class="hh"><h2 class="h2">History</h2><button class="btn" style="height: 40px; font-size: 14px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>Add a thought</button></div>
+<div class="empty"><b>Nothing here yet</b><span>Mark it Played to keep the date, Rating and Review here, or add a thought at any time, even before you play.</span></div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tbi on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tbi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tbi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+theme: this.props.theme ?? 'dark',
+screens: [
+{ cap: 'Playing: the Playing card', playing: true, art: '/_blob/855d56b50cb8b8b4dc15c01da2d53b14', cover: '/_blob/4aa50b44eda97f204d1e2a4d339f3518', title: 'S.T.A.L.K.E.R. 2: Heart of Chornobyl', facts: '2024 · GSC Game World · PC, PS5, Series X|S', genres: 'Shooter, Role-playing (RPG), Adventure', summary: 'S.T.A.L.K.E.R. 2: Heart of Chornobyl is the unforgiving FPS survival adventure in a dark science-fiction open world. Scavenge for gear and resources, hunt for wonders, make hard decisions to survive and pave the path through the Chornobyl Anomalous Zone.' },
+{ cap: 'No art: the blurred cover is the banner', before: true, notPlanned: true, blur: true, art: '', cover: '/_blob/dea49fd4c50b35bf0bc00fe64d230fb3', title: 'Final Fantasy VII', facts: '1997 · Square Product Development Division 1 · PS1', genres: 'Role-playing (RPG), Adventure', summary: 'Final Fantasy VII (note: this is the original Japan-exclusive version) is a role-playing game set in a post-modern, steampunk world where technology and fantasy elements coexist. Players control Cloud Strife, an ex-soldier who joins the eco-terrorist group AVALANCHE to oppose Shinra Inc., a corporation draining the planet’s life energy.' },
+{ cap: 'No cover and no art: no banner (in the Backlog)', before: true, planned: true, noCover: true, art: '', cover: '', title: '80’s Disco Brawl', dev: 'Witenovastudio', facts: '2026 · Witenovastudio · PS4', genres: 'Music, Hack and slash/Beat ’em up, Arcade', summary: '80’s Disco Brawl is a rhythm-based beat ’em up that throws you into the spotlight of the wildest dance floor in history, where every fight is a rhythm, every hit a beat, and every move a performance. Step into a world where combat and music collide, and your timing becomes your greatest weapon.' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

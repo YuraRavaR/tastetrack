@@ -1,0 +1,37 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-19T21:20:00Z" },
+  "title": "TasteTrack Games",
+  "launch": { "view": "canvas", "page": "r1" },
+  "pages": [
+    { "id": "r1", "name": "Round 1 · Games screens" }
+  ],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1290, "h": 1560, "page": "r1", "title": "Saved · phone · A, B, C: four tiles" },
+    "SavedWeb.dc.html": { "x": 0, "y": 1680, "w": 1280, "h": 1040, "page": "r1", "title": "Saved · web · the 2×2 grid and the rows in progress" },
+    "SearchPhone.dc.html": { "x": 0, "y": 3140, "w": 1290, "h": 1500, "page": "r1", "title": "Search · phone · A, B, C: a game's row" },
+    "SearchStates.dc.html": { "x": 0, "y": 4760, "w": 1290, "h": 1240, "page": "r1", "title": "Search · phone · a Cyrillic query, nothing found, the IGDB credit" },
+    "GamePhone.dc.html": { "x": 0, "y": 6420, "w": 1290, "h": 2000, "page": "r1", "title": "The game page · phone · A, B, C: facts, About and the IGDB link" },
+    "GameStates.dc.html": { "x": 0, "y": 8540, "w": 1290, "h": 1900, "page": "r1", "title": "The game page · phone · Playing, no art, no cover" },
+    "GameWeb.dc.html": { "x": 0, "y": 10560, "w": 1280, "h": 1500, "page": "r1", "title": "The game page · web · A" },
+    "Banner.dc.html": { "x": 0, "y": 12180, "w": 1280, "h": 1150, "page": "r1", "title": "Which picture makes the banner" },
+    "NoCover.dc.html": { "x": 0, "y": 13750, "w": 1290, "h": 1000, "page": "r1", "title": "A game without a cover · 1, 2, 3" }
+  },
+  "order": ["Main.dc.html", "SavedWeb.dc.html", "SearchPhone.dc.html", "SearchStates.dc.html", "GamePhone.dc.html", "GameStates.dc.html", "GameWeb.dc.html", "Banner.dc.html", "NoCover.dc.html"],
+  "notes": {
+    "t1": { "kind": "title1", "page": "r1", "x": 0, "y": -300, "maxW": 1290, "text": "Saved: four tiles and Playing now" },
+    "t2": { "kind": "title1", "page": "r1", "x": 0, "y": 2840, "maxW": 1290, "text": "Search on Games" },
+    "t3": { "kind": "title1", "page": "r1", "x": 0, "y": 6120, "maxW": 1290, "text": "A game's page" },
+    "t4": { "kind": "title1", "page": "r1", "x": 0, "y": 13450, "maxW": 1290, "text": "A game without a cover" },
+    "n0": { "page": "r1", "x": 1400, "y": 0, "w": 440, "size": "m", "fill": "teal", "text": "All game data is real IGDB data from 2026-11-19: titles, years, developers, platforms, genres, summaries, covers and art.\n\nTweaks switches each board between dark and light.\n\nDrawn only what games add. Backlog and Played tabs, the Played sheet, Collections and Share Links follow books and series." },
+    "n1": { "page": "r1", "x": 1400, "y": 560, "w": 440, "size": "m", "fill": "orange", "text": "To pick: the tiles on a phone (spec: a 2×2 grid).\n\nA: 2×2, each tile a small fan of three covers over the name and counts.\nB: 2×2, no fan on a phone: the icon, the name and the counts on two lines. The fan comes back from md.\nC: one tile per row, as today, only shorter (2×2 from md only).\n\nPlaying now sits after Reading now and Watching now, the order of the tiles. A Playing row is the Reading now row: cover, title, \"Developer · since 3 November\", a chevron. No Progress." },
+    "n2": { "page": "r1", "x": 1400, "y": 3140, "w": 440, "size": "m", "fill": "orange", "text": "To pick: what a result row says.\n\nA: one muted line, \"1997 · PS1\", \"2024 · PC, PS5, Series X|S +1\".\nB: the year on the line, the platforms as small outlined tags.\nC: two lines: \"1997 · Square Product Development Division 1\", then the platforms. Search would need the developer too (one more expanded field in the same request)." },
+    "n3": { "page": "r1", "x": 1400, "y": 3900, "w": 440, "size": "m", "fill": "gray", "text": "The platforms' order (IGDB returns them unsorted: Series X|S, PS4, Switch 2, PC, PS5, XONE, Switch for The Witcher 3):\nPC first, then PlayStation old to new, Xbox old to new, Nintendo old to new, then the rest by name. So The Witcher 3 reads \"PC, PS4, PS5 +4\", as the spec has it.\n\nAbbreviations are IGDB's own (\"XONE\", \"Series X|S\", \"famicom\"). Keep them, or map a few?" },
+    "n4": { "page": "r1", "x": 1400, "y": 6420, "w": 440, "size": "m", "fill": "orange", "text": "To pick: the facts, About and the IGDB link.\n\nA: the facts line under the title, platforms cut at three with \"+4\"; About is the film's: the summary cut with More, then a Genres row; \"From IGDB\" at About's foot is the link (where films say \"From TMDB\").\nB: the facts line is year · developer; About gets rows as a film's Director and Cast: Platforms (all of them) and Genres. \"View on IGDB\" is an outline button among the actions.\nC: the facts line lists every platform, wrapping; genres as tags over the summary; the link is a credit line under About: \"Game details from IGDB\"." },
+    "n5": { "page": "r1", "x": 1400, "y": 7400, "w": 440, "size": "m", "fill": "gray", "text": "Buttons follow books: Played (primary; \"Played again\" once played), Want to play (the Backlog bookmark), Start playing (\"Start replaying\" once played), Add to collection.\n\nPlaying card: \"Playing · Since 3 November 2026\", Finished (opens Played and ends Playing), Stop playing.\n\nStat tiles once played: Played (Once, Twice…), Your rating, First played." },
+    "n6": { "page": "r1", "x": 1400, "y": 12180, "w": 440, "size": "m", "fill": "red", "text": "Found while drawing: the spec's rule \"the first artwork, else the first screenshot\" picks a 128×128 icon for The Witcher 3 and a transparent logo for Disco Elysium (IGDB's first artworks).\n\nIGDB tags each artwork with a type (artwork_type): key art without logo, key art with logo, artwork, concept art, logos, icons, covers, infographics.\n\nTo pick: 1 the spec as written; 2 key art first, never a logo, icon or cover, then a screenshot; 3 always a screenshot.\n\nThe pick goes into ADR-0012 and #251." },
+    "picks": { "page": "r1", "x": 1900, "y": 0, "w": 440, "size": "m", "fill": "green", "text": "Picked 2026-11-19:\nSaved tiles: A (2×2, a small fan over the name).\nSearch row: A (one line: year · platforms, \"+N\" past three).\nThe game page: A (facts cut at three, \"From IGDB\" is the link, a Genres row).\nThe banner: 2, key art first (by artwork_type), never a logo, icon or cover; then the first screenshot; then the blurred cover.\nNo cover: 1, typeset as a book." },
+    "n7": { "page": "r1", "x": 1400, "y": 13750, "w": 440, "size": "m", "fill": "orange", "text": "To pick: the placeholder when IGDB has no cover.\n\n1: typeset, as a book: the title, the developer at the foot, a thin frame.\n2: one quiet icon, as a series (a gamepad on soft gold).\n3: a game case: a band at the top with the first platform, the title under it.\n\nReal games without a cover: 80's Disco Brawl (2026, PS4, Witenovastudio) and Fantasy Zone: Boss no Gyakushuu (2001, Mobile, Sonic Team). Neither has art, so the page has no banner (drawn on the Playing, no art, no cover board)." }
+  },
+  "designSystems": []
+}

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A game without a cover</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.col{width:390px;box-sizing:border-box;padding:18px 16px;background:var(--background);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;gap:14px;min-height:900px}
+.lbl{font-size:13px;font-weight:600;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.04em}
+.ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pl{position:relative;box-sizing:border-box;border:1px solid var(--border);background:var(--primary-soft);overflow:hidden;flex:none;display:flex;flex-direction:column}
+.ty{justify-content:space-between}
+.ty .fr{position:absolute;border:1px solid var(--primary-strong);opacity:0.45;border-radius:3px}
+.ty b{line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical}
+.ty i{font-style:normal;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icn{align-items:center;justify-content:center;color:var(--primary-strong)}
+.cs .band{background:var(--primary);color:var(--primary-foreground);font-weight:800;letter-spacing:0.06em;display:flex;align-items:center;justify-content:center;flex:none}
+.cs b{line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical}
+.row{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);background:var(--card);border-radius:14px;padding:12px}
+.rx{display:flex;flex-direction:column;gap:4px;min-width:0}
+.rt{font-weight:600;font-size:16px;line-height:1.3}
+.rm{font-size:14px;color:var(--muted-foreground)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.gi{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;line-height:1.25}
+.gi img{width:100%;aspect-ratio:2/3;border-radius:8px;object-fit:cover;border:1px solid var(--border);box-sizing:border-box;display:block}
+.gi small{font-weight:500;color:var(--muted-foreground);font-size:12px}
+.pg{display:flex;gap:14px;align-items:flex-end}
+.pgt{font-size:20px;font-weight:700;line-height:1.15}
+.now{display:flex;align-items:center;gap:12px;border:1px solid var(--border);background:var(--card);border-radius:16px;padding:10px}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.cap}}</div>
+<div class="tt col" data-theme="{{theme}}">
+
+<span class="lbl">Search row · phone, 72×108</span>
+<div class="row">
+<sc-for list="{{v.s72}}" as="p" hint-placeholder-count="1">
+<sc-if value="{{p.ty}}" hint-placeholder-val="{{true}}"><span class="pl ty" role="img" aria-label="No cover" style="{{p.box}}"><span class="fr" style="{{p.frame}}"></span><b style="{{p.title}}">{{p.name}}</b><i style="{{p.dev}}">{{p.devName}}</i></span></sc-if>
+<sc-if value="{{p.icn}}" hint-placeholder-val="{{false}}"><span class="pl icn" role="img" aria-label="No cover" style="{{p.box}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="{{p.icon}}"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></span></sc-if>
+<sc-if value="{{p.cs}}" hint-placeholder-val="{{false}}"><span class="pl cs" role="img" aria-label="No cover" style="{{p.box}}"><span class="band" style="{{p.band}}">{{p.plat}}</span><b style="{{p.title}}">{{p.name}}</b></span></sc-if>
+</sc-for>
+<div class="rx"><span class="rt">80’s Disco Brawl</span><span class="rm">2026 · PS4</span></div>
+</div>
+
+<span class="lbl">Search row · web, 48×72</span>
+<div class="row" style="align-items: center">
+<sc-for list="{{v.s48}}" as="p" hint-placeholder-count="1">
+<sc-if value="{{p.ty}}" hint-placeholder-val="{{true}}"><span class="pl ty" role="img" aria-label="No cover" style="{{p.box}}"><span class="fr" style="{{p.frame}}"></span><b style="{{p.title}}">{{p.name}}</b><i style="{{p.dev}}">{{p.devName}}</i></span></sc-if>
+<sc-if value="{{p.icn}}" hint-placeholder-val="{{false}}"><span class="pl icn" role="img" aria-label="No cover" style="{{p.box}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="{{p.icon}}"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></span></sc-if>
+<sc-if value="{{p.cs}}" hint-placeholder-val="{{false}}"><span class="pl cs" role="img" aria-label="No cover" style="{{p.box}}"><span class="band" style="{{p.band}}">{{p.plat}}</span><b style="{{p.title}}">{{p.name}}</b></span></sc-if>
+</sc-for>
+<div class="rx"><span class="rt">Fantasy Zone: Boss no Gyakushuu</span><span class="rm">2001 · Mobile</span></div>
+</div>
+
+<span class="lbl">Poster grid (Backlog, a Collection)</span>
+<div class="grid">
+<span class="gi"><img src="/_blob/43a2df972936621f78e98afe9a56ea0b" alt="">The Witcher 3: Wild Hunt<small>CD Projekt RED</small></span>
+<sc-for list="{{v.grid}}" as="p" hint-placeholder-count="2">
+<span class="gi">
+<sc-if value="{{p.ty}}" hint-placeholder-val="{{true}}"><span class="pl ty" role="img" aria-label="No cover" style="{{p.box}}"><span class="fr" style="{{p.frame}}"></span><b style="{{p.title}}">{{p.name}}</b><i style="{{p.dev}}">{{p.devName}}</i></span></sc-if>
+<sc-if value="{{p.icn}}" hint-placeholder-val="{{false}}"><span class="pl icn" role="img" aria-label="No cover" style="{{p.box}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="{{p.icon}}"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></span></sc-if>
+<sc-if value="{{p.cs}}" hint-placeholder-val="{{false}}"><span class="pl cs" role="img" aria-label="No cover" style="{{p.box}}"><span class="band" style="{{p.band}}">{{p.plat}}</span><b style="{{p.title}}">{{p.name}}</b></span></sc-if>
+{{p.name}}<small>{{p.devName}}</small>
+</span>
+</sc-for>
+</div>
+
+<span class="lbl">The game's page, 104×156</span>
+<div class="pg">
+<sc-for list="{{v.page}}" as="p" hint-placeholder-count="1">
+<sc-if value="{{p.ty}}" hint-placeholder-val="{{true}}"><span class="pl ty" role="img" aria-label="No cover" style="{{p.box}}"><span class="fr" style="{{p.frame}}"></span><b style="{{p.title}}">{{p.name}}</b><i style="{{p.dev}}">{{p.devName}}</i></span></sc-if>
+<sc-if value="{{p.icn}}" hint-placeholder-val="{{false}}"><span class="pl icn" role="img" aria-label="No cover" style="{{p.box}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="{{p.icon}}"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></span></sc-if>
+<sc-if value="{{p.cs}}" hint-placeholder-val="{{false}}"><span class="pl cs" role="img" aria-label="No cover" style="{{p.box}}"><span class="band" style="{{p.band}}">{{p.plat}}</span><b style="{{p.title}}">{{p.name}}</b></span></sc-if>
+</sc-for>
+<div class="rx"><span class="pgt">80’s Disco Brawl</span><span class="rm">2026 · Witenovastudio · PS4</span></div>
+</div>
+
+<span class="lbl">Playing now, 48×72</span>
+<div class="now">
+<sc-for list="{{v.s48b}}" as="p" hint-placeholder-count="1">
+<sc-if value="{{p.ty}}" hint-placeholder-val="{{true}}"><span class="pl ty" role="img" aria-label="No cover" style="{{p.box}}"><span class="fr" style="{{p.frame}}"></span><b style="{{p.title}}">{{p.name}}</b><i style="{{p.dev}}">{{p.devName}}</i></span></sc-if>
+<sc-if value="{{p.icn}}" hint-placeholder-val="{{false}}"><span class="pl icn" role="img" aria-label="No cover" style="{{p.box}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="{{p.icon}}"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></span></sc-if>
+<sc-if value="{{p.cs}}" hint-placeholder-val="{{false}}"><span class="pl cs" role="img" aria-label="No cover" style="{{p.box}}"><span class="band" style="{{p.band}}">{{p.plat}}</span><b style="{{p.title}}">{{p.name}}</b></span></sc-if>
+</sc-for>
+<div class="rx"><span class="rt">80’s Disco Brawl</span><span class="rm">Witenovastudio · since 18 November</span></div>
+</div>
+
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+const disco = { name: '80’s Disco Brawl', devName: 'Witenovastudio', plat: 'PS4' };
+const zone = { name: 'Fantasy Zone: Boss no Gyakushuu', devName: 'Sonic Team', plat: 'MOBILE' };
+const sizes = {
+s72: { w: 72, h: 108, r: 5, pad: '12px 9px 9px', fs: 11, lines: 4, dfs: 9, inset: 5, band: 18, bfs: 8, icon: 26 },
+s48: { w: 48, h: 72, r: 4, pad: '6px 5px', fs: 8, lines: 6, dfs: 0, inset: 0, band: 13, bfs: 6, icon: 20 },
+grid: { w: 0, h: 0, r: 8, pad: '16px 12px 13px', fs: 14, lines: 5, dfs: 11, inset: 6, band: 26, bfs: 11, icon: 34 },
+page: { w: 104, h: 156, r: 8, pad: '16px 12px 13px', fs: 14, lines: 5, dfs: 11, inset: 6, band: 26, bfs: 11, icon: 34 }
+};
+const make = (kind, s, g) => {
+const box = (s.w ? 'width: ' + s.w + 'px; height: ' + s.h + 'px;' : 'width: 100%; aspect-ratio: 2 / 3;') + ' border-radius: ' + s.r + 'px;' + (kind === 'ty' ? ' padding: ' + s.pad + ';' : '');
+return {
+...g,
+ty: kind === 'ty', icn: kind === 'icn', cs: kind === 'cs',
+box,
+frame: s.inset ? 'inset: ' + s.inset + 'px' : 'display: none',
+title: 'font-size: ' + s.fs + 'px; -webkit-line-clamp: ' + s.lines + ';' + (kind === 'cs' ? ' padding: ' + Math.round(s.fs * 0.7) + 'px ' + Math.round(s.fs * 0.6) + 'px;' : ''),
+dev: s.dfs ? 'font-size: ' + s.dfs + 'px' : 'display: none',
+icon: 'width: ' + s.icon + 'px; height: ' + s.icon + 'px; stroke-width: 1.6',
+band: 'height: ' + s.band + 'px; font-size: ' + s.bfs + 'px'
+};
+};
+const v = (kind, cap) => ({
+cap,
+s72: [make(kind, sizes.s72, disco)],
+s48: [make(kind, sizes.s48, zone)],
+s48b: [make(kind, sizes.s48, disco)],
+grid: [make(kind, sizes.grid, disco), make(kind, sizes.grid, zone)],
+page: [make(kind, sizes.page, disco)]
+});
+return {
+theme: this.props.theme ?? 'dark',
+variants: [
+v('ty', '1 · Typeset, as a book'),
+v('icn', '2 · One quiet icon, as a series'),
+v('cs', '3 · A game case: the platform on a band')
+]
+};
+}
+}
+</script>
+</body>
+</html>
