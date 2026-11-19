@@ -9,7 +9,7 @@ Terms marked _(planned)_ are not in the MVP but are part of the model's language
 ### Catalog
 
 **Media Item**:
-A single work (a film, a book, a series or a game, and later an album) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port or a DLC; a remake or a remaster is a game of its own.
+A single work (a film, a book, a series or a game, and later an album) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port, a DLC or an expansion, while a remake, a remaster or a standalone expansion is a game of its own.
 _Avoid_: Movie, title, film (as a generic term), content, item
 
 **Media Type**:
