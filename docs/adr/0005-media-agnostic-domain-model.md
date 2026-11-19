@@ -1,6 +1,6 @@
 # Media-agnostic domain model from day one
 
-Only films ship in the MVP, yet the domain model is built around a generic Media Item with a Media Type, not around "Film". Books follow films (ADR-0011), then series (ADR-0004), then albums and games, each with its own External Source, and retrofitting a film-shaped schema and vocabulary later would mean a data migration and a rename across the whole codebase. (Revised 2026-11-09, when books were specified, and 2026-11-15, when series were.)
+Only films ship in the MVP, yet the domain model is built around a generic Media Item with a Media Type, not around "Film". Books follow films (ADR-0011), then series (ADR-0004), then games (ADR-0012), then albums, each with its own External Source, and retrofitting a film-shaped schema and vocabulary later would mean a data migration and a rename across the whole codebase. (Revised 2026-11-09, when books were specified, 2026-11-15, when series were, and 2026-11-19, when games were put before albums, #248.)
 
 ## Consequences
 
