@@ -39,16 +39,16 @@ The static pages load covers and art from `images.igdb.com`, `image.tmdb.org` an
 - **Tiles:** four, in a 2×2 grid at every width, in the order Films, Books, Series, Games.
   - **On a phone** (below `md`) each tile is 206 px tall, 14 px padding: a fan of three covers (52×78, the outer two turned 9°) centred at the top, then the name (20 px, 700), then the counts (13 px, muted), which wrap. The icon is hidden.
   - **From `md`** the tile is today's: 220 px tall, the icon at the top left, the name (30 px) and counts at the bottom left, the fan (96×144) at the right.
-- **The Games tile:** the gamepad icon (`Gamepad2`), "Games", and "5 to play · 3 playing · 12 played". The "playing" count shows only while at least one game is Playing (`#not-playing`). The fan shows the three games last added to the Backlog.
-- **Playing now:** after "Reading now" and "Watching now", the order of the tiles. Each row is the "Reading now" row: the cover (48 px wide), the title (one line, cut with an ellipsis), "Developer · since 3 November", a chevron. No Progress, so no bar and no button. Two columns from `md`. Hidden when nothing is Playing.
+- **The Games tile:** the gamepad icon (`Gamepad2`), "Games", and "5 to play · 3 playing · 12 played". The "playing" count shows only while at least one game is In Progress (`#not-playing`). The fan shows the three games last added to the Backlog.
+- **Playing now:** after "Reading now" and "Watching now", the order of the tiles. Each row is the "Reading now" row: the cover (48 px wide), the title (one line, cut with an ellipsis), "Developer · since 3 November", a chevron. No Progress, so no bar and no button. Two columns from `md`. Hidden when no game is In Progress.
 
 ## Search on Games
 
 - **Chips:** the segmented control with four segments: Films, Books, Series, Games. Music is not shown until it is built.
 - **Field:** placeholder "Title in English". The hint with an empty field: "Type a game's English title to search your Saved and IGDB." (`#empty`).
-- **In your Saved** first, as for the other types. The status line: "★ 4.5 · Played", "Playing", "Backlog", or a Collection's name.
+- **In your Saved** first, as for the other types. The status line, the first that applies, as books': "★ 4.5 · Played" (or "★ 4.5 · Backlog" when it is in the Backlog again), "Playing", "Backlog", or a Collection's name.
 - **From IGDB** with the count, one card of rows. Each row: the cover (72×108 on a phone, 48×72 from `md`), the title, then **"year · platforms"**, then **Mark played**, the **Want to play** bookmark toggle, and **Add to collection**. The whole row opens the game's page (#165).
-  - **Platforms:** at most three, then "+N" for the rest ("2015 · PC, PS4, PS5 +4"). Their order: PC first, then PlayStation from oldest to newest, then Xbox, then Nintendo, each from oldest to newest, then the rest by name. Each platform shows IGDB's abbreviation, or its name when it has none ("XONE", "Series X|S", "famicom", "ZXS").
+  - **Platforms:** at most three, then "+N" for the rest ("2015 · PC, PS4, PS5 +4"), in ADR-0012's order (PC, PlayStation, Xbox, Nintendo, then the rest), each as IGDB abbreviates it ("XONE", "Series X|S", "famicom", "ZXS").
   - **No year** (IGDB has no `first_release_date`): the platforms alone ("ZXS"). **No platforms:** the year alone. Neither: no line.
 - **Cyrillic queries** show what IGDB returns: "сталкер" finds the S.T.A.L.K.E.R. games through their Russian alternative names (`#cyrillic`).
 - **Nothing found** (`#nomatch`): the empty box with the gamepad icon, "No games found for “відьмак”.", then "Try the English title: IGDB knows games by their English names.", then "Can't find it? Add manually".
@@ -66,18 +66,12 @@ The film's page, with [`film-banner/`](../film-banner/)'s layout and [`catalog-d
 - **Actions:**
   - Before a first Played: **Played** (primary, a check), **Want to play** (the Backlog toggle), **Start playing**, **Add to collection**.
   - Once played: **Played again** (a replay icon), **Want to play**, **Start replaying**, **Add to collection**.
-  - While Playing (`#playing`): the Playing card, as books' Reading card: the gamepad icon, "Playing", "Since 3 November 2026", a pencil to change the start date, then **Finished** (primary; opens the Played sheet and ends Playing) and **Stop playing** (ends Playing, no Log Entry). Only **Add to collection** stays under it.
+  - While Playing (`#playing`): the Playing card, as books' Reading card: the gamepad icon, "Playing", "Since 3 November 2026", a pencil to change the start date, then **Finished** (primary; opens the Played sheet and ends In Progress) and **Stop playing** (clears In Progress, no Log Entry). Only **Add to collection** stays under it.
 - **History** (`thoughts/`): a Log Entry from a second Played on carries the "Replay" badge. Empty: "Nothing here yet" and "Mark it Played to keep the date, Rating and Review here, or add a thought at any time, even before you play."
 
 ## The banner's picture
 
-ADR-0012 changes with this pick: the first match, in this order.
-
-1. An artwork whose `artwork_type` is key art without logo (2), then key art with logo (3), then artwork (1), then concept art (4), and which is landscape (wider than tall). Within a type, IGDB's order.
-2. The first screenshot.
-3. None: the page shows the cover, blurred, or no banner without a cover.
-
-Never a logo (5, 6, 7, 13), an icon (12, 14), a cover (9, 10, 11) or an infographic (8). An artwork with no type counts as artwork (1).
+Rule 2, key art first: ADR-0012's **The banner** holds the rule and the artwork types it takes and skips. `games-covers.html` shows what it picks for four games.
 
 ## A game without a cover
 
@@ -98,4 +92,7 @@ The typeset cover books have (`books/`): `bg-primary-soft`, `border-border`, a t
 
 ## Open questions
 
-None that #251 or #252 depends on. A note for #251: IGDB's `game_status != 6` leaves out games with no status at all, which is most of them ("witcher 3" finds nothing). The filter needs `(game_status = null | game_status != 6)`. ADR-0012 now says so.
+1. **The platforms' order.** Drawn PC first, then PlayStation, Xbox and Nintendo, each from oldest to newest, then the rest by name, so The Witcher 3 reads "PC, PS4, PS5 +4" as #248 has it. It was a note on the canvas, not a pick.
+2. **IGDB's abbreviations.** Drawn as IGDB has them ("XONE", "Series X|S", "famicom", "ZXS"). Keep them, or map a few to friendlier names ("Xbox One", "Famicom")?
+
+A note for #251: IGDB's `game_status != 6` leaves out games with no status at all, which is most of them ("witcher 3" finds nothing). The filter needs `(game_status = null | game_status != 6)`, as ADR-0012 now says.
