@@ -222,8 +222,8 @@ const UserMarks = {
 // External Source has none; titleLanguage says which language that query ran in. posterUrl is the
 // cover's thumbnail, whatever the Media Type calls its cover. authors are a book's, as names in
 // the source's order; a film has none. platforms are a game's, each by its abbreviation, in the
-// source's order; a result of any other Media Type leaves them out. mediaItemId is the work's Media Item, null until
-// it joins the catalog.
+// source's order; a result of any other Media Type leaves them out. mediaItemId is the work's
+// Media Item, null until it joins the catalog.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -503,6 +503,7 @@ export const SeriesMediaItem = z
   })
   .openapi("SeriesMediaItem");
 
+// A game's Media Item, its metadata a game's.
 export const GameMediaItem = z
   .object({
     id: z.int().openapi({ example: 45 }),

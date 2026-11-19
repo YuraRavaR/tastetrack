@@ -1,6 +1,7 @@
 import {
   BacklogResponse,
   CatalogSearchResponse,
+  type CatalogSearchResult,
   InProgressResponse,
   ItemHistoryResponse,
   LibraryResponse,
@@ -20,12 +21,14 @@ import { test as base, expect } from "../support/fixtures";
 import { alien } from "../support/scenarios/films";
 import {
   callsRealIgdb,
+  crisisCoreReunionId,
   finalFantasy7,
-  finalFantasy7Cancelled,
-  finalFantasy7Famicom,
+  finalFantasy7CancelledId,
+  finalFantasy7FamicomId,
   finalFantasy7Id,
-  finalFantasy7International,
-  finalFantasy7Port,
+  finalFantasy7InternationalId,
+  finalFantasy7PortId,
+  finalFantasy7RemakeId,
   gameReference,
   gameSearchResult,
   gameSearchResults,
@@ -34,10 +37,11 @@ import {
   spiritGlaiveId,
   stalker,
   stalkerId,
+  thronebreakerId,
   witcher3,
   witcher3Id,
 } from "../support/scenarios/games";
-import { testHooksHeaders } from "../support/test-hooks-secret";
+import { withoutSecrets } from "../support/test-hooks-secret";
 
 // Locally the Worker calls an IGDB fake with fixed data; on staging, the real IGDB. So these tests
 // use only the games the fake mirrors, and skip what only the fake can promise.
@@ -78,17 +82,38 @@ test("of the games with one title, search shows the games of their own, not an e
 }) => {
   const results = await gameSearchResults(loggedInApi, "final fantasy vii");
 
-  const ids = results.map((result: { externalReference: { id: string } }) => {
-    return result.externalReference.id;
-  });
-  expect(ids).toEqual(expect.arrayContaining([finalFantasy7Id, finalFantasy7Famicom]));
-  for (const hidden of [finalFantasy7International, finalFantasy7Port, finalFantasy7Cancelled]) {
+  const ids = results.map((result: CatalogSearchResult) => result.externalReference.id);
+  expect(ids).toEqual(expect.arrayContaining([finalFantasy7Id, finalFantasy7FamicomId]));
+  for (const hidden of [
+    finalFantasy7InternationalId,
+    finalFantasy7PortId,
+    finalFantasy7CancelledId,
+  ]) {
     expect(ids).not.toContain(hidden);
   }
-  const famicom = results.find((r: { externalReference: { id: string } }) => {
-    return r.externalReference.id === finalFantasy7Famicom;
-  });
+  const famicom = results.find(
+    (r: CatalogSearchResult) => r.externalReference.id === finalFantasy7FamicomId,
+  );
   expect(famicom).toMatchObject({ title: "Final Fantasy VII", year: 2005, platforms: ["famicom"] });
+});
+
+test("a remake, a remaster and a standalone expansion are games of their own in search", async ({
+  loggedInApi,
+}) => {
+  const finalFantasy = await gameSearchResults(loggedInApi, "final fantasy vii");
+  const witcher = await gameSearchResults(loggedInApi, "witcher");
+
+  const ids = (results: CatalogSearchResult[]) => results.map((r) => r.externalReference.id);
+  expect(ids(finalFantasy)).toEqual(
+    expect.arrayContaining([finalFantasy7RemakeId, crisisCoreReunionId]),
+  );
+  expect(ids(witcher)).toEqual(expect.arrayContaining([witcher3Id, thronebreakerId]));
+  expect(
+    finalFantasy.find((r: CatalogSearchResult) => r.externalReference.id === finalFantasy7RemakeId),
+  ).toMatchObject({
+    title: "Final Fantasy VII Remake",
+    year: 2020,
+  });
 });
 
 test("a Cyrillic query finds a game by its Russian name, titled in English, and none by a Ukrainian one", async ({
@@ -234,12 +259,7 @@ test("without the Twitch secrets, game search and add are a 502, and films still
 }) => {
   test.skip(callsRealIgdb(), "Only a local Worker can be run without its secrets");
   const result = await gameSearchResult(loggedInApi, "stalker", stalkerId);
-  const withoutTwitch = {
-    headers: {
-      ...testHooksHeaders(),
-      "X-Test-Without-Secrets": "TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET",
-    },
-  };
+  const withoutTwitch = withoutSecrets("TWITCH_CLIENT_ID", "TWITCH_CLIENT_SECRET");
 
   const search = loggedInApi.catalog.searchCatalog(
     { mediaType: "game", query: "stalker" },
@@ -261,6 +281,8 @@ test("without the Twitch secrets, game search and add are a 502, and films still
   expect([200, 201]).toContain((await filmAdded).status());
 });
 
+// The Worker holds one token for every request, so this is the only test that makes the fake
+// refuse it, and two copies of it can't run at once: prove it with --workers=1.
 test("the Worker reuses its IGDB token across calls, and gets a new one when IGDB refuses it", async ({
   loggedInApi,
 }) => {

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect } from "@playwright/test";
-import type { ExternalReference, NewManualGameRequest } from "@shared/api";
+import type { CatalogSearchResult, ExternalReference, NewManualGameRequest } from "@shared/api";
 import type { ApiClient } from "../api/ApiClient";
 import { expectBody } from "../api/responses";
 
@@ -19,21 +19,22 @@ export function callsRealIgdb(): boolean {
   }
 }
 
+// A game's External Reference, by its IGDB ID.
 export function gameReference(id: string) {
   return { source: "igdb", mediaType: "game", id } as const satisfies ExternalReference;
 }
 
+// The IGDB results of a game search, as the Worker answers them.
 export async function gameSearchResults(client: ApiClient, query: string) {
   const search = client.catalog.searchCatalog({ mediaType: "game", query });
   return (await expectBody(search)).results;
 }
 
+// One game among the results of a search, which must find it.
 export async function gameSearchResult(client: ApiClient, query: string, id: string) {
   const results = await gameSearchResults(client, query);
-  const result = results.find((r: { externalReference: { id: string } }) => {
-    return r.externalReference.id === id;
-  });
-  expect(result, `IGDB game ${id} among the results for "${query}"`).toBeDefined();
+  const result = results.find((r: CatalogSearchResult) => r.externalReference.id === id);
+  if (!result) throw new Error(`IGDB game ${id} isn't among the results for "${query}"`);
   return result;
 }
 
@@ -64,13 +65,19 @@ export const finalFantasy7Id = "393025";
 export const finalFantasy7 = (client: ApiClient) => {
   return game(client, "final fantasy vii", finalFantasy7Id);
 };
-export const finalFantasy7International = "427";
-export const finalFantasy7Port = "207026";
-export const finalFantasy7Famicom = "2406";
-export const finalFantasy7Cancelled = "381337";
+export const finalFantasy7InternationalId = "427";
+export const finalFantasy7PortId = "207026";
+export const finalFantasy7FamicomId = "2406";
+export const finalFantasy7CancelledId = "381337";
+// Games of their own though IGDB ties each to another: a remake, a remaster and a standalone
+// expansion.
+export const finalFantasy7RemakeId = "11169";
+export const crisisCoreReunionId = "205201";
+export const thronebreakerId = "107300";
 // A game without a cover, artworks or screenshots.
 export const spiritGlaiveId = "365395";
 
+// An image on IGDB's CDN in one of its sizes, as the Worker links it.
 export function igdbImage(size: string, imageId: string) {
   return `https://images.igdb.com/igdb/image/upload/t_${size}/${imageId}.jpg`;
 }

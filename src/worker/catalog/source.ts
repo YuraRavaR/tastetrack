@@ -13,8 +13,7 @@ import type {
 } from "../../shared/api";
 
 // The Worker configuration the sources read, base URLs and credentials, as Env has it, and its
-// database. Spelt out,
-// since the operator scripts compile this without Env.
+// database. Spelt out, since the operator scripts compile this without Env.
 export interface CatalogEnv {
   TMDB_BASE_URL: string;
   TMDB_ACCESS_TOKEN?: string | undefined;
@@ -94,9 +93,11 @@ export interface CatalogSource<M extends MediaType> {
   emptyExtra: CacheExtras[M];
   // The cover in the sizes the app shows it, from its reference.
   coverUrls(coverRef: string | null): CoverUrls | null;
-  // Whether the Worker has what calling the source takes, such as its key. Without it, search and
-  // add answer 502, rather than add keeping a search result it can never fill in.
-  configured(env: CatalogEnv): boolean;
+  // For a source whose add refuses to run without its credentials, whether the Worker has them:
+  // without them, add answers 502, as search does, rather than keep a search result it can never
+  // fill in, so a missing secret is easy to spot (ADR-0012). A source without it adds from the
+  // search result whatever the reason its details call failed.
+  configured?(env: CatalogEnv): boolean;
   // How a failed response counts, by its HTTP status.
   classifyFailure(status: number): SourceFailure;
   // A cache entry as the API shows it.

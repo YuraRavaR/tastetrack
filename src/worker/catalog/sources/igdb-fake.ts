@@ -14,8 +14,8 @@ interface FakeGame {
   id: number;
   name: string;
   alternativeNames?: string[];
-  // IGDB's IDs: 0 main game, 1 DLC, 2 expansion, 3 bundle, 5 mod, 10 expanded game, 11 port,
-  // 14 update; a game_status of 6 is cancelled.
+  // IGDB's IDs: 0 main game, 1 DLC, 2 expansion, 3 bundle, 4 standalone expansion, 5 mod, 8 remake,
+  // 9 remaster, 10 expanded game, 11 port, 14 update; a game_status of 6 is cancelled.
   gameType: number;
   gameStatus?: number;
   versionParent?: number;
@@ -33,7 +33,8 @@ interface FakeGame {
   screenshots: string[];
 }
 
-const witcherPlatforms: FakeGame["platforms"] = [
+// The platforms of a game on sale today, as The Witcher 3 and Crisis Core's remaster list them.
+const currentPlatforms: FakeGame["platforms"] = [
   ["Series X|S", "Xbox Series X|S"],
   ["PS4", "PlayStation 4"],
   ["Switch 2", "Nintendo Switch 2"],
@@ -56,7 +57,7 @@ const games: FakeGame[] = [
     gameType: 0,
     firstReleaseDate: 1431993600,
     cover: "coaarl",
-    platforms: witcherPlatforms,
+    platforms: currentPlatforms,
     companies: [
       { name: "WB Games", developer: false },
       { name: "cdp.pl", developer: false },
@@ -135,7 +136,7 @@ const games: FakeGame[] = [
     parentGame: 1942,
     firstReleaseDate: 1464566400,
     cover: "co2lgo",
-    platforms: witcherPlatforms.filter(([abbreviation]) => abbreviation !== "Switch 2"),
+    platforms: currentPlatforms.filter(([abbreviation]) => abbreviation !== "Switch 2"),
     companies: [cdProjektRed],
     genres: witcherGenres,
     url: "https://www.igdb.com/games/the-witcher-3-wild-hunt-blood-and-wine",
@@ -163,7 +164,7 @@ const games: FakeGame[] = [
     parentGame: 1942,
     firstReleaseDate: 1444608000,
     cover: "co1t7q",
-    platforms: witcherPlatforms.filter(([abbreviation]) => abbreviation !== "Switch 2"),
+    platforms: currentPlatforms.filter(([abbreviation]) => abbreviation !== "Switch 2"),
     companies: [cdProjektRed],
     genres: witcherGenres,
     url: "https://www.igdb.com/games/the-witcher-3-wild-hunt-hearts-of-stone",
@@ -202,6 +203,35 @@ const games: FakeGame[] = [
     url: "https://www.igdb.com/games/the-witcher-3-wild-hunt-new-quest-fools-gold",
     artworks: [],
     screenshots: ["scdh2w", "scsry9"],
+  },
+  // A standalone expansion, a game of its own, though it has a parent game.
+  {
+    id: 107300,
+    name: "Thronebreaker: The Witcher Tales",
+    gameType: 4,
+    parentGame: 19474,
+    firstReleaseDate: 1540252800,
+    cover: "co1qsk",
+    platforms: [
+      ["PS4", "PlayStation 4"],
+      ["Android", "Android"],
+      ["PC", "PC (Microsoft Windows)"],
+      ["iOS", "iOS"],
+      ["XONE", "Xbox One"],
+      ["Switch", "Nintendo Switch"],
+    ],
+    companies: [cdProjektRed],
+    genres: [
+      "Puzzle",
+      "Role-playing (RPG)",
+      "Strategy",
+      "Turn-based strategy (TBS)",
+      "Adventure",
+      "Card & Board Game",
+    ],
+    url: "https://www.igdb.com/games/thronebreaker-the-witcher-tales",
+    artworks: ["ar8hq", "ar8hr"],
+    screenshots: ["djx8jtil83afqtzqj6qa", "ykbfjkhqobxasarq5gt2"],
   },
   // A game with a Russian alternative name, which a Cyrillic query matches, and no Ukrainian one.
   // Its developer isn't the first of its companies.
@@ -319,6 +349,44 @@ const games: FakeGame[] = [
     url: "https://www.igdb.com/games/final-fantasy-vii--1",
     artworks: [],
     screenshots: ["xjwibri1jvrigpy7se8u", "fmjaj3nputmnfpq9rgfm"],
+  },
+  // ...the 2020 remake, and a remaster of another of its games, each a game of its own...
+  {
+    id: 11169,
+    name: "Final Fantasy VII Remake",
+    gameType: 8,
+    parentGame: 427,
+    firstReleaseDate: 1586476800,
+    cover: "cobcwt",
+    platforms: [
+      ["Series X|S", "Xbox Series X|S"],
+      ["PS4", "PlayStation 4"],
+      ["Switch 2", "Nintendo Switch 2"],
+      ["PC", "PC (Microsoft Windows)"],
+      ["PS5", "PlayStation 5"],
+    ],
+    companies: [{ name: "Square Enix Creative Business Unit I", developer: true }],
+    genres: ["Role-playing (RPG)", "Adventure"],
+    url: "https://www.igdb.com/games/final-fantasy-vii-remake",
+    artworks: ["ar5c45", "ar5s4"],
+    screenshots: ["sc6viw", "sc6viz"],
+  },
+  {
+    id: 205201,
+    name: "Crisis Core: Final Fantasy VII - Reunion",
+    gameType: 9,
+    parentGame: 2407,
+    firstReleaseDate: 1670889600,
+    cover: "cobjb3",
+    platforms: currentPlatforms,
+    companies: [
+      { name: "Tose", developer: true },
+      { name: "Square Enix Creative Business Unit I", developer: true },
+    ],
+    genres: ["Role-playing (RPG)"],
+    url: "https://www.igdb.com/games/crisis-core-final-fantasy-vii-reunion",
+    artworks: ["ar1vdj"],
+    screenshots: ["schgic", "schgib"],
   },
   // ...and the cancelled Super Famicom one.
   {
@@ -507,6 +575,11 @@ let refusedBefore = 0;
 
 const tokenPattern = /^fake-igdb-token-(\d+)-\d+$/;
 
+// A token the fake takes, granted now, for a test to store as the Worker's own.
+export function igdbFakeToken(): string {
+  return `fake-igdb-token-${Math.max(Date.now(), refusedBefore)}-0`;
+}
+
 function accepted(authorization: string | undefined): boolean {
   const grantedAt = tokenPattern.exec(authorization?.replace(/^Bearer /, "") ?? "")?.[1];
   return grantedAt !== undefined && Number(grantedAt) >= refusedBefore;
@@ -530,8 +603,9 @@ igdbFake.post("/oauth2/token", async (c) => {
     return c.json({ status: 400, message: "unsupported grant type" }, 400);
   }
   if (!form.get("client_id")) return c.json({ status: 400, message: "missing client id" }, 400);
-  if (!form.get("client_secret"))
+  if (!form.get("client_secret")) {
     return c.json({ status: 403, message: "invalid client secret" }, 403);
+  }
   granted += 1;
   // A grant in the same millisecond as a refusal would be refused.
   const grantedAt = Math.max(Date.now(), refusedBefore);

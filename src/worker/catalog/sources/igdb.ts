@@ -58,6 +58,7 @@ const IgdbGame = z.object({
 
 type IgdbGame = z.infer<typeof IgdbGame>;
 
+// A game as the details query asks for it, every field it has expanded.
 const IgdbGameDetails = IgdbGame.extend({
   involved_companies: z
     .array(z.object({ developer: z.boolean(), company: z.object({ name: z.string() }) }))
@@ -69,6 +70,7 @@ const IgdbGameDetails = IgdbGame.extend({
   screenshots: z.array(IgdbImage).optional(),
 });
 
+// The year it first came out on any platform, in UTC, as IGDB's dates are.
 function yearOf(game: IgdbGame): number | null {
   if (game.first_release_date === undefined) return null;
   return new Date(game.first_release_date * 1000).getUTCFullYear();
@@ -85,6 +87,7 @@ function platformsOf(game: IgdbGame): string[] {
 const mediaItemsOnly =
   "game_type = (0,4,8,9) & version_parent = null & (game_status = null | game_status != 6)";
 
+// What a search result shows, and what a game's entry holds besides.
 const searchFields = [
   "name",
   "first_release_date",
@@ -117,12 +120,15 @@ function classifyFailure(status: number): SourceFailure {
   return "temporary";
 }
 
+// IGDB takes a Twitch application's ID and secret; without them the Worker never calls it.
 function configured(env: CatalogEnv): boolean {
   return Boolean(env.TWITCH_CLIENT_ID && env.TWITCH_CLIENT_SECRET);
 }
 
+const day = 24 * 60 * 60 * 1000;
+
 // A token with fewer than this many days left is renewed, well before Twitch's 60 days run out.
-const renewalMargin = 7 * 24 * 60 * 60 * 1000;
+const renewalMargin = 7 * day;
 
 function usable(token: SourceToken | null, refused: string | null): token is SourceToken {
   return (
@@ -132,6 +138,7 @@ function usable(token: SourceToken | null, refused: string | null): token is Sou
   );
 }
 
+// Twitch's answer to a client credentials grant: the token, and how many seconds it lasts.
 const TwitchToken = z.object({ access_token: z.string().min(1), expires_in: z.number() });
 
 // A new access token from Twitch, for the client credentials, kept in D1 for every invocation to
@@ -160,8 +167,19 @@ async function requestToken(env: CatalogEnv): Promise<SourceToken> {
     accessToken: granted.data.access_token,
     expiresAt: new Date(Date.now() + granted.data.expires_in * 1000),
   };
-  await storeToken(env.DB, "igdb", token);
+  // A token D1 failed to keep still works for this isolate, which holds it.
+  await storeToken(env.DB, "igdb", token).catch((error: unknown) => console.error(error));
   return token;
+}
+
+// The token D1 keeps, or null when it keeps none. D1 failing to answer makes the call fail as a
+// source that didn't answer would.
+async function keptToken(env: CatalogEnv): Promise<SourceToken | null> {
+  try {
+    return await storedToken(env.DB, "igdb");
+  } catch (error) {
+    throw new SourceUnavailable("IGDB's token couldn't be read", "temporary", { cause: error });
+  }
 }
 
 // The token this isolate last used, and the lookup under way, so that the requests of one page
@@ -170,19 +188,22 @@ let held: SourceToken | null = null;
 let lookup: Promise<SourceToken> | null = null;
 
 // A token to call IGDB with: the one held, else the one in D1, else a new one, but never
-// `refused`, the token IGDB has just answered 401 to.
-function accessToken(env: CatalogEnv, refused: string | null): Promise<SourceToken> {
-  if (usable(held, refused)) return Promise.resolve(held);
+// `refused`, the token IGDB has just answered 401 to. A call that joins a lookup another started
+// before IGDB refused that token, and gets it back, looks up again.
+async function accessToken(env: CatalogEnv, refused: string | null): Promise<SourceToken> {
+  if (usable(held, refused)) return held;
   lookup ??= (async () => {
-    const stored = await storedToken(env.DB, "igdb");
+    const stored = await keptToken(env);
     held = usable(stored, refused) ? stored : await requestToken(env);
     return held;
   })().finally(() => {
     lookup = null;
   });
-  return lookup;
+  const token = await lookup;
+  return token.accessToken === refused ? accessToken(env, refused) : token;
 }
 
+// One POST of an Apicalypse query to IGDB's games, with the token.
 async function call(env: CatalogEnv, token: SourceToken, query: string): Promise<Response> {
   try {
     return await fetch(`${env.IGDB_BASE_URL}/games`, {
@@ -286,7 +307,7 @@ export const igdbGames: CatalogSource<"game"> = {
   externalSource: "igdb",
   mediaType: "game",
   refreshCost: 1,
-  maxEntryAge: 21 * 24 * 60 * 60 * 1000,
+  maxEntryAge: 21 * day,
   search: searchGames,
   details: gameDetails,
   coverRefOf: coverIdOf,

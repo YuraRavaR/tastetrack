@@ -9,3 +9,9 @@ export function testHooksHeaders() {
     throw new Error("Set TEST_HOOKS_SECRET to run tests against a deployed URL (README)");
   return { "X-Test-Hooks-Secret": secret };
 }
+
+// The options for a request the Worker answers without these secrets of its own, as on a
+// deployment the Operator hasn't set them on.
+export function withoutSecrets(...names: ("TWITCH_CLIENT_ID" | "TWITCH_CLIENT_SECRET")[]) {
+  return { headers: { ...testHooksHeaders(), "X-Test-Without-Secrets": names.join(", ") } };
+}

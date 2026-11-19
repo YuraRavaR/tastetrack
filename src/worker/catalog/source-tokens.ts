@@ -5,6 +5,7 @@ import { type AnyD1Database, drizzle } from "drizzle-orm/d1";
 import { sourceTokens } from "../../db/schema";
 import type { ExternalSource } from "../../shared/api";
 
+// An access token, and when the source stops taking it.
 export interface SourceToken {
   accessToken: string;
   expiresAt: Date;

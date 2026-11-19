@@ -16,7 +16,6 @@ import { searchLanguage } from "./search-language";
 import {
   backdropUrls,
   classifyFailure,
-  configured,
   get,
   maxEntryAge,
   posterPathOf,
@@ -229,7 +228,6 @@ export const tmdbSeries: CatalogSource<"series"> = {
     cast: [],
   },
   coverUrls: posterUrls,
-  configured,
   classifyFailure,
   metadataOf: (entry) => ({
     ...shownTitles(entry),

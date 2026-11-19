@@ -12,7 +12,7 @@ import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./ac
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { byCacheKey } from "./catalog/media-items";
 import { sourceNamed } from "./catalog/registry";
-import { igdbFakeTokens, sourceFakes } from "./catalog/source-fakes";
+import { callsIgdbFake, igdbFakeTokens, sourceFakes } from "./catalog/source-fakes";
 import { type AppEnv, requestHasTestHooksAccess, testHooksOn } from "./env";
 import { fillBacklog, removeBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
@@ -189,7 +189,7 @@ testHooks.delete("/catalog-cache/:source/:mediaType/:externalId", async (c) => {
 // so far, as Twitch does once it revokes them, so tests can see the Worker renew its token after a
 // 401 and reuse it otherwise. Only where the Worker calls the fake.
 testHooks.use("/igdb-fake/*", async (c, next) => {
-  if (!c.env.IGDB_BASE_URL.includes("/api/test/igdb/")) return c.notFound();
+  if (!callsIgdbFake(c.env)) return c.notFound();
   await next();
 });
 

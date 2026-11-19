@@ -22,9 +22,13 @@ sourceFakes.use("/openlibrary/*", async (c, next) => {
 });
 sourceFakes.route("/openlibrary", openLibraryFake);
 
-// IGDB's fake answers Twitch's token calls too.
+// Whether the Worker calls the IGDB fake, which answers Twitch's token calls too.
+export function callsIgdbFake(env: Pick<Env, "IGDB_BASE_URL">): boolean {
+  return env.IGDB_BASE_URL.includes("/api/test/igdb/");
+}
+
 sourceFakes.use("/igdb/*", async (c, next) => {
-  if (!c.env.IGDB_BASE_URL.includes("/api/test/igdb/")) return c.notFound();
+  if (!callsIgdbFake(c.env)) return c.notFound();
   await next();
 });
 sourceFakes.route("/igdb", igdbFake);

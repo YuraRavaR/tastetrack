@@ -23,7 +23,10 @@ import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
 import { addFromSearch, catalogMediaItems } from "./media-items";
-import { igdbFake } from "./sources/igdb-fake";
+import { sourceOf } from "./registry";
+import { SourceUnavailable } from "./source";
+import { storeToken } from "./source-tokens";
+import { igdbFake, igdbFakeToken } from "./sources/igdb-fake";
 import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
 
@@ -168,14 +171,7 @@ async function series(
 
 // Adds a catalog-backed game with IGDB id `id`.
 async function game(id: string, options: Work = {}): Promise<void> {
-  const extra = {
-    developer: null,
-    platforms: [],
-    genres: [],
-    summary: null,
-    url: null,
-    bannerRef: null,
-  };
+  const extra = sourceOf("game").emptyExtra;
   await work({ source: "igdb", mediaType: "game", id }, `Game ${id}`, extra, options);
 }
 
@@ -380,14 +376,10 @@ function useSourceFakes(): void {
     subrequests = 0;
     // A token the IGDB fake takes, as the Worker keeps one between runs, so that only a test that
     // says so asks Twitch for one.
-    const token = {
-      accessToken: `fake-igdb-token-${Date.now()}-0`,
+    await storeToken(database.binding, "igdb", {
+      accessToken: igdbFakeToken(),
       expiresAt: new Date(Date.now() + 50 * day),
-    };
-    await db
-      .insert(sourceTokens)
-      .values({ source: "igdb", ...token })
-      .onConflictDoUpdate({ target: sourceTokens.source, set: token });
+    });
     // Each failed details call is logged; the tests say which fail.
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
@@ -616,13 +608,26 @@ describe("a cron run", () => {
     expect(stalker?.metadata).toMatchObject({ developer: "GSC Game World", year: 2007 });
   });
 
-  it("counts a game IGDB answers with no game as unavailable, and one it fails on too", async () => {
+  it("takes a game IGDB answers with no game as gone, and one it fails on as worth trying again", async () => {
     // IGDB has no game 404404, and the fake fails on 999000001 the way IGDB does when it is down.
     await game("404404", { in: "log", cached: { updated: daysAgo(10) } });
     await game("999000001", { in: "log", cached: { updated: daysAgo(9) } });
 
     expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 2, deleted: 0 });
     expect(subrequests).toBe(2);
+    // What the cron logs of each: only the empty answer counts toward unavailability.
+    const failures = vi
+      .mocked(console.error)
+      .mock.calls.flat()
+      .filter((logged) => logged instanceof SourceUnavailable)
+      .map(({ message, failure }) => ({ message, failure }));
+    expect(failures).toHaveLength(2);
+    expect(failures).toEqual(
+      expect.arrayContaining([
+        { message: "IGDB has no game 404404", failure: "gone" },
+        { message: "IGDB /games answered 500", failure: "temporary" },
+      ]),
+    );
     expect(await loggedTitles()).toEqual(["Game 404404", "Game 999000001"]);
     const nextRun = new Date(now.getTime() + 15 * 60 * 1000);
     expect(await dueForRefresh(db, nextRun)).toEqual([

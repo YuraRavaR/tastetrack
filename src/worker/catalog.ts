@@ -82,7 +82,7 @@ const addRoute = createRoute({
     "Makes the catalog-backed Media Item for the result's External Reference, or finds the one " +
     "that exists, and fills its metadata with one details call to its External Source. If that " +
     "call fails, the result is added anyway, with the metadata the search result carries; " +
-    "unless the Worker lacks what calling the source takes, such as its key.",
+    "but a game isn't added while the Worker lacks the Twitch credentials IGDB takes.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -105,7 +105,7 @@ const addRoute = createRoute({
     502: {
       content: { "application/json": { schema: ErrorResponse } },
       description:
-        "The Worker can't call the External Source, as without its key (`catalog_unavailable`)",
+        "The Worker lacks the credentials the External Source takes (`catalog_unavailable`)",
     },
   },
 });
@@ -320,7 +320,7 @@ catalogRoutes.openapi(searchRoute, async (c) => {
 
 catalogRoutes.openapi(addRoute, async (c) => {
   const result = c.req.valid("json");
-  if (!sourceOf(result.externalReference.mediaType).configured(c.env)) {
+  if (sourceOf(result.externalReference.mediaType).configured?.(c.env) === false) {
     console.error(`The ${result.externalReference.source} source isn't configured`);
     return c.json({ error: "catalog_unavailable" }, 502);
   }
