@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Which picture makes the banner</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary-strong:oklch(0.84 0.16 90);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary-strong:oklch(0.52 0.11 80);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75)}
+.wrap{width:1280px;box-sizing:border-box;padding:28px;background:var(--background);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;gap:22px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.hdc{display:flex;flex-direction:column;gap:4px}
+.hdc b{font-size:18px}
+.hdc span{font-size:14px;line-height:1.4;color:var(--muted-foreground)}
+.cell{display:flex;flex-direction:column;gap:8px}
+.frame{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--background);padding-bottom:14px}
+.bn{height:220px;overflow:hidden}
+.bn img{width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block;-webkit-mask-image:linear-gradient(to bottom,#000 45%,transparent 100%);mask-image:linear-gradient(to bottom,#000 45%,transparent 100%)}
+.top{display:flex;gap:12px;align-items:flex-end;padding:0 14px;margin-top:-70px;position:relative}
+.pst{width:72px;height:108px;border-radius:6px;object-fit:cover;border:1px solid var(--border);box-shadow:0 8px 20px oklch(0 0 0 / 40%);flex:none;box-sizing:border-box}
+.t1{font-size:18px;font-weight:700;line-height:1.2}
+.why{font-size:13px;line-height:1.4;color:var(--muted-foreground)}
+.why b{color:var(--foreground);font-weight:600}
+.row{font-size:15px;font-weight:600;color:var(--muted-foreground);margin-bottom:-8px}
+</style>
+</helmet>
+<div class="tt wrap" data-theme="{{theme}}">
+<div class="grid">
+<div class="hdc"><b>1 · The spec as written</b><span>The first artwork, else the first screenshot. IGDB's order is the order they were added, whatever their type.</span></div>
+<div class="hdc"><b>2 · Key art first</b><span>By artwork_type: key art without logo, key art with logo, artwork, concept art; landscape only. Never a logo, icon, cover or infographic. Then the first screenshot.</span></div>
+<div class="hdc"><b>3 · Always a screenshot</b><span>The first screenshot: always 16:9 gameplay, never a logo. Less like a poster, and screenshots are often busy or dark.</span></div>
+</div>
+<div class="row">The Witcher 3: Wild Hunt</div>
+<div class="grid">
+<sc-for list="{{witcher}}" as="c" hint-placeholder-count="3">
+<div class="cell"><div class="frame"><div class="bn"><img src="{{c.src}}" alt=""></div><div class="top"><img class="pst" src="/_blob/43a2df972936621f78e98afe9a56ea0b" alt=""><span class="t1">The Witcher 3: Wild Hunt</span></div></div><span class="why">{{c.why}}</span></div>
+</sc-for>
+</div>
+<div class="row">Disco Elysium</div>
+<div class="grid">
+<sc-for list="{{disco}}" as="c" hint-placeholder-count="3">
+<div class="cell"><div class="frame"><div class="bn"><img src="{{c.src}}" alt=""></div><div class="top"><img class="pst" src="/_blob/13b2c7e2b7e842e60f244baac4c8b28c" alt=""><span class="t1">Disco Elysium</span></div></div><span class="why">{{c.why}}</span></div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1280,"height":1150}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+theme: this.props.theme ?? 'dark',
+witcher: [
+{ src: '/_blob/78da092fcb6f2ec706028e3afa887f2f', why: 'ar6ijr: type “Icon”, 128×128, stretched to 1008 px on the web.' },
+{ src: '/_blob/9a91a052f85cea02a87f1b62bdc361ae', why: 'ar3lzk: “Key art without logo”, 10681×7874.' },
+{ src: '/_blob/a5090509b3e55515b97c26d8b28cfb91', why: 'sctj8u: the first screenshot, 2560×1440.' }
+],
+disco: [
+{ src: '/_blob/7160ca14fea15094297d97884340fbdd', why: 'ar4pd7: “Game logo (color)” with a transparent background, which the JPEG turns black.' },
+{ src: '/_blob/167f463e28ef05e3ea4fac98311b70e2', why: 'ar4ytw: “Key art without logo”, 1920×620.' },
+{ src: '/_blob/af3595869e2530e698d27da1dd84f73e', why: 'qfml0sjr…: the first screenshot, 1920×1080.' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

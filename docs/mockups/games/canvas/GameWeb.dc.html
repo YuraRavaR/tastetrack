@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A game's page · web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.web{width:1280px;min-height:1500px;background:var(--background);box-sizing:border-box;border:1px solid var(--border)}
+.hd{height:64px;background:var(--background);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 136px;gap:10px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.nav{display:flex;gap:4px;margin-left:28px}
+.nav a{height:40px;padding:0 14px;border-radius:10px;display:flex;align-items:center;font-size:15px;font-weight:500;color:var(--muted-foreground);text-decoration:none}
+.av{margin-left:auto;width:40px;height:40px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}
+.col{width:1008px;margin:0 auto;padding:24px 0 48px}
+.bn{height:470px;overflow:hidden}
+.bn img{width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(to bottom,#000 45%,transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(to bottom,#000 45%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect}
+.top{display:flex;gap:30px;align-items:flex-end;margin-top:-180px;position:relative}
+.pst{width:176px;height:264px;border-radius:12px;object-fit:cover;border:1px solid var(--border);box-shadow:0 14px 34px oklch(0 0 0 / 45%);flex:none;box-sizing:border-box}
+.tb{display:flex;flex-direction:column;gap:8px;min-width:0;padding-bottom:4px}
+.t1{margin:0;font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-0.015em}
+.fx{font-size:16px;color:var(--muted-foreground)}
+.body{display:flex;flex-direction:column;gap:18px;margin-top:24px;max-width:720px}
+.ov{font-size:16px;line-height:1.55;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mr{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
+.mr a{color:var(--primary-strong);text-decoration:none}
+.src{margin-left:auto;font-size:13px;color:var(--primary-strong);display:flex;align-items:center;gap:4px;text-decoration:none}
+.dl{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 12px;font-size:15px;margin:0}
+.dl dt{color:var(--muted-foreground)}
+.dl dd{margin:0}
+.stats{display:grid;grid-template-columns:repeat(3,180px);gap:10px}
+.stat{border:1px solid var(--border);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.sl{font-size:13px;color:var(--muted-foreground)}
+.sv{font-size:22px;font-weight:700;display:flex;align-items:center;gap:6px}
+.star{color:var(--primary-strong);display:inline-flex;align-items:center;gap:3px}
+.acts{display:flex;flex-wrap:wrap;gap:10px}
+.btn{height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--background);color:inherit;font:inherit;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:7px;box-sizing:border-box}
+.pri{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.hh{display:flex;align-items:center;justify-content:space-between;margin-top:30px;margin-bottom:12px}
+.h2{font-size:20px;font-weight:600;margin:0}
+.hist{border:1px solid var(--border);background:var(--card);border-radius:14px;display:flex;flex-direction:column}
+.he{display:flex;flex-direction:column;gap:4px;padding:12px 6px 12px 16px;border-top:1px solid var(--border);position:relative}
+.he:first-child{border-top:0}
+.hl{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500}
+.badge{height:22px;padding:0 8px;border-radius:999px;background:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;color:var(--muted-foreground)}
+.rv{font-size:14px;color:var(--muted-foreground)}
+.dots{position:absolute;right:6px;top:8px;width:40px;height:40px;display:grid;place-items:center;color:var(--muted-foreground)}
+.ft{border-top:1px solid var(--border);padding:24px 0 32px}
+.ftc{width:1008px;margin:0 auto;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted-foreground)}
+.tmdb{display:inline-block;background:var(--foreground);color:var(--background);font-weight:800;font-size:12px;padding:3px 7px;border-radius:5px;width:max-content;letter-spacing:0.04em}
+.ft a{color:var(--foreground);text-decoration:underline;font-weight:500}
+</style>
+</helmet>
+<div class="tt web" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span>
+<nav class="nav" aria-label="Sections"><a href="#">Saved</a><a href="#">Collections</a><a href="#">Search</a></nav>
+<span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<main class="col">
+<div class="bn"><img src="/_blob/9a91a052f85cea02a87f1b62bdc361ae" alt=""></div>
+<div class="top"><img class="pst" src="/_blob/43a2df972936621f78e98afe9a56ea0b" alt="The Witcher 3: Wild Hunt cover"><div class="tb"><h1 class="t1">The Witcher 3: Wild Hunt</h1><span class="fx">2015 · CD Projekt RED · PC, PS4, PS5 +4</span></div></div>
+<div class="body">
+<p class="ov">The Witcher 3: Wild Hunt is an open-world action role-playing game developed by CD Projekt Red. Set in a dark fantasy world, the game follows Geralt of Rivia, a monster hunter searching for his adopted daughter, Ciri, while navigating political conflicts and supernatural threats. Gameplay features exploration, combat, character progression, and branching narratives shaped by player choices. Widely acclaimed for its writing, world-building, and depth, it is considered one of the most influential RPGs of its generation.</p>
+<div class="mr"><a href="#">More</a><a href="#" class="src">From IGDB<svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3"></path></svg></a></div>
+<dl class="dl"><dt>Genres</dt><dd>Role-playing (RPG), Adventure</dd></dl>
+<div class="stats">
+<div class="stat"><span class="sl">Played</span><span class="sv">Twice</span></div>
+<div class="stat"><span class="sl">Your rating</span><span class="sv"><span class="star"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="fill: currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></span>5</span></div>
+<div class="stat"><span class="sl">First played</span><span class="sv">2016</span></div>
+</div>
+<div class="acts">
+<button class="btn pri"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>Played again</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Want to play</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg>Start replaying</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>Add to collection</button>
+</div>
+</div>
+<div class="hh"><h2 class="h2">History</h2><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>Add a thought</button></div>
+<div class="hist">
+<div class="he"><span class="hl">14 March 2024 <span class="star"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true" style="fill: currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg>5</span><span class="badge">Replay</span></span><span class="rv">Next-gen on PS5, with Blood and Wine this time. Toussaint alone is worth it.</span><span class="dots"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></span></div>
+<div class="he"><span class="hl">2 June 2016 <span class="star"><svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true" style="fill: currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg>4.5</span></span><span class="dots"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></span></div>
+</div>
+</main>
+<footer class="ft"><div class="ftc"><span class="tmdb">TMDB</span><span>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</span><span>Book data and covers from <a href="#">Open Library</a>. Game data and covers from <a href="#">IGDB</a>.</span><span>v0.15.0</span></div></footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+return { theme: this.props.theme ?? 'dark' };
+}
+}
+</script>
+</body>
+</html>
