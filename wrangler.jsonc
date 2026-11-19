@@ -7,7 +7,11 @@
 // a secret on staging and production, set with `wrangler secret put` (see README). Book search
 // calls OPEN_LIBRARY_BASE_URL the same way: the real Open Library everywhere except `local`, which
 // searches the Open Library fake. OPEN_LIBRARY_CONTACT, how Open Library can reach the Operator
-// (ADR-0011), is each deployment's own and so a secret on staging and production too. The Worker
+// (ADR-0011), is each deployment's own and so a secret on staging and production too. Game search
+// calls IGDB_BASE_URL with an access token from TWITCH_TOKEN_URL, both the real ones everywhere
+// except `local`, which calls the IGDB fake for both with placeholder credentials; the Twitch
+// application's TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET are secrets on staging and production
+// (ADR-0012). The Worker
 // runs first for the API and for Share Link pages (/s/*), whose <head> it fills in on the app's
 // HTML from the ASSETS binding (ADR-0008); everything else is served as static assets. The Cron
 // Trigger refreshes the catalog cache every 15 minutes (ADR-0004) and clears login failures that no
@@ -29,7 +33,9 @@
   },
   "vars": {
     "TMDB_BASE_URL": "https://api.themoviedb.org/3",
-    "OPEN_LIBRARY_BASE_URL": "https://openlibrary.org"
+    "OPEN_LIBRARY_BASE_URL": "https://openlibrary.org",
+    "IGDB_BASE_URL": "https://api.igdb.com/v4",
+    "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token"
   },
   "d1_databases": [
     {
@@ -58,7 +64,11 @@
         "TMDB_BASE_URL": "http://localhost:8787/api/test/tmdb/3",
         "TMDB_ACCESS_TOKEN": "fake-tmdb-token",
         "OPEN_LIBRARY_BASE_URL": "http://localhost:8787/api/test/openlibrary",
-        "OPEN_LIBRARY_CONTACT": "operator@tastetrack.invalid"
+        "OPEN_LIBRARY_CONTACT": "operator@tastetrack.invalid",
+        "IGDB_BASE_URL": "http://localhost:8787/api/test/igdb/v4",
+        "TWITCH_TOKEN_URL": "http://localhost:8787/api/test/igdb/oauth2/token",
+        "TWITCH_CLIENT_ID": "fake-twitch-client-id",
+        "TWITCH_CLIENT_SECRET": "fake-twitch-client-secret"
       }
     },
     "staging": {
@@ -76,7 +86,9 @@
       "vars": {
         "TEST_HOOKS": "1",
         "TMDB_BASE_URL": "https://api.themoviedb.org/3",
-        "OPEN_LIBRARY_BASE_URL": "https://openlibrary.org"
+        "OPEN_LIBRARY_BASE_URL": "https://openlibrary.org",
+        "IGDB_BASE_URL": "https://api.igdb.com/v4",
+        "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token"
       }
     }
   }

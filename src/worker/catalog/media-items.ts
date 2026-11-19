@@ -118,6 +118,17 @@ function fromManual(
         lastAiredEpisode: null,
         nextAirDate: null,
       };
+    case "game":
+      return {
+        ...titles,
+        ukrainianTitle: null,
+        coverUrls: null,
+        backdropUrls: null,
+        developer: null,
+        platforms: [],
+        genres: [],
+        url: null,
+      };
   }
 }
 

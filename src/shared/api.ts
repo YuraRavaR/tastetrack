@@ -166,12 +166,12 @@ export const InviteCodesResponse = z
 export type InviteCodesResponse = z.infer<typeof InviteCodesResponse>;
 
 // The catalog is searched through the External Source of each Media Type: TMDB for films and
-// series, Open Library for books.
-export const MediaType = z.enum(["film", "book", "series"]).openapi({ example: "film" });
+// series, Open Library for books, IGDB for games.
+export const MediaType = z.enum(["film", "book", "series", "game"]).openapi({ example: "film" });
 
 export type MediaType = z.infer<typeof MediaType>;
 
-export const ExternalSource = z.enum(["tmdb", "openlibrary"]).openapi({ example: "tmdb" });
+export const ExternalSource = z.enum(["tmdb", "openlibrary", "igdb"]).openapi({ example: "tmdb" });
 
 export type ExternalSource = z.infer<typeof ExternalSource>;
 
@@ -221,8 +221,9 @@ const UserMarks = {
 // The title is the Localized Title in the query's language, or the Original Title when the
 // External Source has none; titleLanguage says which language that query ran in. posterUrl is the
 // cover's thumbnail, whatever the Media Type calls its cover. authors are a book's, as names in
-// the source's order; a film has none. mediaItemId is the work's Media Item, null until it joins
-// the catalog.
+// the source's order; a film has none. platforms are a game's, each by its abbreviation, in the
+// source's order; a result of any other Media Type leaves them out. mediaItemId is the work's Media Item, null until
+// it joins the catalog.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -234,6 +235,10 @@ export const CatalogSearchResult = z
     }),
     titleLanguage: z.enum(["en", "uk"]).openapi({ example: "uk" }),
     authors: z.array(z.string()).openapi({ example: [] }),
+    platforms: z
+      .array(z.string())
+      .optional()
+      .openapi({ example: ["PC", "PS4", "PS5"], description: "A game's alone" }),
     mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
     ...UserMarks,
   })
@@ -243,10 +248,11 @@ export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
 
 // A search result as the client got it, to add its work to the catalog. The details call
 // replaces what it says; it stands in only when that call fails. Its External Reference names a
-// Media Type's own External Source, with an id as that source writes them. authors, mediaItemId
-// and the User's marks, if sent, are ignored.
+// Media Type's own External Source, with an id as that source writes them. authors, platforms,
+// mediaItemId and the User's marks, if sent, are ignored.
 export const AddCatalogItemRequest = CatalogSearchResult.omit({
   authors: true,
+  platforms: true,
   mediaItemId: true,
   inLog: true,
   inBacklog: true,
@@ -279,6 +285,14 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
           .string()
           .regex(/^\d{1,12}$/)
           .openapi({ example: "87108" }),
+      }),
+      z.object({
+        source: z.literal("igdb"),
+        mediaType: z.literal("game"),
+        id: z
+          .string()
+          .regex(/^\d{1,12}$/)
+          .openapi({ example: "1942" }),
       }),
     ]),
     title: z.string().trim().min(1).max(500).openapi({ example: "Чужий" }),
@@ -411,6 +425,52 @@ export const SeriesMetadata = FilmMetadata.pick({ posterUrls: true, backdropUrls
 
 export type SeriesMetadata = z.infer<typeof SeriesMetadata>;
 
+// A game's metadata from the External Source, where a game is the work across all its platforms,
+// never an edition, a port or a DLC (ADR-0012). It has one title, IGDB's name, which is its
+// Original Title too, and never a Ukrainian one. The year is the year it first came out on any
+// platform. The cover comes in a size for a thumbnail and one for a grid or the game's page, and
+// the backdrop, the game's own art, in a size for a phone's banner and one for a larger screen's.
+// developer is the first company IGDB credits as one; platforms are each platform's abbreviation,
+// in IGDB's order; url is the game's page on IGDB. All but the title, the year and the cover are
+// unknown until the details call succeeds. Its summary is for its page alone (GameAbout).
+export const GameMetadata = z
+  .object({
+    title: z.string().openapi({ example: "The Witcher 3: Wild Hunt" }),
+    originalTitle: z.string().openapi({ example: "The Witcher 3: Wild Hunt" }),
+    ukrainianTitle: z.null(),
+    year: z.int().nullable().openapi({ example: 2015 }),
+    coverUrls: z
+      .object({
+        small: z.url().openapi({
+          example: "https://images.igdb.com/igdb/image/upload/t_cover_big/coaarl.jpg",
+        }),
+        large: z.url().openapi({
+          example: "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/coaarl.jpg",
+        }),
+      })
+      .nullable(),
+    backdropUrls: z
+      .object({
+        small: z.url().openapi({
+          example: "https://images.igdb.com/igdb/image/upload/t_720p/ar6ijr.jpg",
+        }),
+        large: z.url().openapi({
+          example: "https://images.igdb.com/igdb/image/upload/t_1080p/ar6ijr.jpg",
+        }),
+      })
+      .nullable(),
+    developer: z.string().nullable().openapi({ example: "CD Projekt RED" }),
+    platforms: z.array(z.string()).openapi({ example: ["PC", "PS4", "PS5"] }),
+    genres: z.array(z.string()).openapi({ example: ["Role-playing (RPG)", "Adventure"] }),
+    url: z
+      .url()
+      .nullable()
+      .openapi({ example: "https://www.igdb.com/games/the-witcher-3-wild-hunt" }),
+  })
+  .openapi("GameMetadata");
+
+export type GameMetadata = z.infer<typeof GameMetadata>;
+
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
 // metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
@@ -443,8 +503,17 @@ export const SeriesMediaItem = z
   })
   .openapi("SeriesMediaItem");
 
+export const GameMediaItem = z
+  .object({
+    id: z.int().openapi({ example: 45 }),
+    mediaType: z.literal("game"),
+    externalReference: ExternalReference.nullable(),
+    metadata: GameMetadata.nullable(),
+  })
+  .openapi("GameMediaItem");
+
 export const MediaItem = z
-  .discriminatedUnion("mediaType", [FilmMediaItem, BookMediaItem, SeriesMediaItem])
+  .discriminatedUnion("mediaType", [FilmMediaItem, BookMediaItem, SeriesMediaItem, GameMediaItem])
   .openapi("MediaItem");
 
 export type MediaItem = z.infer<typeof MediaItem>;
@@ -583,11 +652,27 @@ export const NewManualSeriesRequest = z
 
 export type NewManualSeriesRequest = z.input<typeof NewManualSeriesRequest>;
 
+// A game has a title, an Original Title and a year, as a series does: its platforms and developer
+// aren't asked for.
+export const NewManualGameRequest = z
+  .object({
+    mediaType: z.literal("game"),
+    title: ManualTitle,
+    originalTitle: ManualOriginalTitle.default(null),
+    year: ManualFilmYear.default(null),
+    allowDuplicate: z.boolean().default(false),
+  })
+  .strict()
+  .openapi("NewManualGameRequest");
+
+export type NewManualGameRequest = z.input<typeof NewManualGameRequest>;
+
 export const NewManualMediaItemRequest = z
   .discriminatedUnion("mediaType", [
     NewManualFilmRequest,
     NewManualBookRequest,
     NewManualSeriesRequest,
+    NewManualGameRequest,
   ])
   .openapi("NewManualMediaItemRequest");
 
@@ -597,8 +682,8 @@ export type NewManualMediaItem = z.output<typeof NewManualMediaItemRequest>;
 
 // Only the fields given change, by the same rules as a new one; a null or empty Original Title,
 // or a null year or runtime, clears it. The Media Type can't change, and the Worker refuses the
-// details of another Media Type: a book's runtime or genres, a film's or a series' authors, a
-// series' runtime or genres, or a film's or a series' year before films.
+// details of another Media Type: a book's runtime or genres, a film's, a series' or a game's
+// authors, a series' or a game's runtime or genres, or a year before films for any but a book.
 export const ManualMediaItemEditRequest = z
   .object({
     title: ManualTitle.optional(),
@@ -1025,9 +1110,21 @@ export const BookAbout = z
   })
   .openapi("BookAbout");
 
+// What a game's page shows in its About block: IGDB's summary, unedited, and its genres, in
+// IGDB's order.
+export const GameAbout = z
+  .object({
+    mediaType: z.literal("game"),
+    summary: z.string().nullable().openapi({
+      example: "The Witcher 3: Wild Hunt is an open-world action role-playing game…",
+    }),
+    genres: z.array(z.string()).openapi({ example: ["Role-playing (RPG)", "Adventure"] }),
+  })
+  .openapi("GameAbout");
+
 // What a Media Item's page shows in its About block, by its Media Type.
 export const About = z
-  .discriminatedUnion("mediaType", [FilmAbout, SeriesAbout, BookAbout])
+  .discriminatedUnion("mediaType", [FilmAbout, SeriesAbout, BookAbout, GameAbout])
   .openapi("About");
 
 export type About = z.infer<typeof About>;

@@ -273,6 +273,8 @@ export const openLibraryBooks: CatalogSource<"book"> = {
   coverRefOf: coverIdOf,
   emptyExtra: { authors: [] },
   coverUrls,
+  // Without the Operator's contact, no request is made (get).
+  configured: (env) => Boolean(env.OPEN_LIBRARY_CONTACT),
   classifyFailure,
   metadataOf: (entry) => ({
     ...shownTitles(entry),

@@ -43,8 +43,11 @@ const searchRoute = createRoute({
   path: "/catalog/search",
   summary: "Search the catalog by title, in English or Ukrainian",
   description:
-    "One TMDB search in the query's language: uk-UA when the query has a Cyrillic letter, " +
-    "otherwise en-US. Results come in TMDB's order, titled in that language, with their Media " +
+    "One search of the Media Type's External Source. TMDB and Open Library search in the " +
+    "query's language: Ukrainian when the query has a Cyrillic letter, otherwise English. IGDB " +
+    "has English titles alone, and finds only games that are Media Items: no editions, ports, " +
+    "DLC, bundles, mods or cancelled games. Results come in the source's order, titled in that " +
+    "language, with their Media " +
     "Item's id once they are in the catalog, and marked with what the User has of them: whether " +
     "they have a Log Entry for it, with the Current Rating and how many they have, whether it is " +
     "in their Backlog, and their own Lists holding it, oldest first. Before them, to be listed " +
@@ -77,8 +80,9 @@ const addRoute = createRoute({
   summary: "Add a search result to the catalog, or find it there",
   description:
     "Makes the catalog-backed Media Item for the result's External Reference, or finds the one " +
-    "that exists, and fills its metadata with one TMDB details call. If that call fails, the " +
-    "result is added anyway, with the metadata the search result carries.",
+    "that exists, and fills its metadata with one details call to its External Source. If that " +
+    "call fails, the result is added anyway, with the metadata the search result carries; " +
+    "unless the Worker lacks what calling the source takes, such as its key.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: {
@@ -98,6 +102,11 @@ const addRoute = createRoute({
       description: "The request body is malformed",
     },
     401: unauthenticatedResponse,
+    502: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "The Worker can't call the External Source, as without its key (`catalog_unavailable`)",
+    },
   },
 });
 
@@ -310,7 +319,12 @@ catalogRoutes.openapi(searchRoute, async (c) => {
 });
 
 catalogRoutes.openapi(addRoute, async (c) => {
-  const added = await addFromSearch(c.var.db, c.env, c.req.valid("json"), c.var.now);
+  const result = c.req.valid("json");
+  if (!sourceOf(result.externalReference.mediaType).configured(c.env)) {
+    console.error(`The ${result.externalReference.source} source isn't configured`);
+    return c.json({ error: "catalog_unavailable" }, 502);
+  }
+  const added = await addFromSearch(c.var.db, c.env, result, c.var.now);
   return c.json({ mediaItem: added.mediaItem }, added.created ? 201 : 200);
 });
 

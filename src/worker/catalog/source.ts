@@ -1,6 +1,7 @@
 // What every catalog source module gives (ADR-0005): one module per External Source in
 // ./sources/, and the only code that knows that source's API. Shared code reaches a source
 // through the registry alone.
+import type { AnyD1Database } from "drizzle-orm/d1";
 import type { CacheExtras } from "../../db/schema";
 import type {
   About,
@@ -11,7 +12,8 @@ import type {
   MediaType,
 } from "../../shared/api";
 
-// The Worker configuration the sources read, base URLs and credentials, as Env has it. Spelt out,
+// The Worker configuration the sources read, base URLs and credentials, as Env has it, and its
+// database. Spelt out,
 // since the operator scripts compile this without Env.
 export interface CatalogEnv {
   TMDB_BASE_URL: string;
@@ -19,6 +21,13 @@ export interface CatalogEnv {
   OPEN_LIBRARY_BASE_URL: string;
   // How Open Library can reach the Operator, which every request to it carries (ADR-0011).
   OPEN_LIBRARY_CONTACT?: string | undefined;
+  IGDB_BASE_URL: string;
+  // Where IGDB's access tokens come from, and the Twitch application they are for (ADR-0012).
+  TWITCH_TOKEN_URL: string;
+  TWITCH_CLIENT_ID?: string | undefined;
+  TWITCH_CLIENT_SECRET?: string | undefined;
+  // Where a source keeps the access token it was given (source_tokens).
+  DB: AnyD1Database;
 }
 
 // A search result before what the app holds about it, its Media Item and the User's Log, Backlog
@@ -85,6 +94,9 @@ export interface CatalogSource<M extends MediaType> {
   emptyExtra: CacheExtras[M];
   // The cover in the sizes the app shows it, from its reference.
   coverUrls(coverRef: string | null): CoverUrls | null;
+  // Whether the Worker has what calling the source takes, such as its key. Without it, search and
+  // add answer 502, rather than add keeping a search result it can never fill in.
+  configured(env: CatalogEnv): boolean;
   // How a failed response counts, by its HTTP status.
   classifyFailure(status: number): SourceFailure;
   // A cache entry as the API shows it.

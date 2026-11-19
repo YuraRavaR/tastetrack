@@ -9,6 +9,7 @@ import {
   lists,
   logEntries,
   mediaItems,
+  sourceTokens,
   users,
 } from "../../db/schema";
 import type {
@@ -22,6 +23,7 @@ import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
 import { addFromSearch, catalogMediaItems } from "./media-items";
+import { igdbFake } from "./sources/igdb-fake";
 import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
 
@@ -36,7 +38,7 @@ let database: TestDatabase;
 let db: DrizzleD1Database;
 let userId: number;
 // A List of each Media Type.
-let listIds: { film: number; book: number; series: number };
+let listIds: { film: number; book: number; series: number; game: number };
 
 beforeAll(async () => {
   database = await openTestDatabase();
@@ -65,16 +67,17 @@ beforeEach(async () => {
     .returning();
   if (!user) throw new Error("no user");
   userId = user.id;
-  const [films, books, series] = await db
+  const [films, books, series, games] = await db
     .insert(lists)
     .values([
       { userId, kind: "list", mediaType: "film", name: "F", nameKey: "f", createdAt: now },
       { userId, kind: "list", mediaType: "book", name: "B", nameKey: "b", createdAt: now },
       { userId, kind: "list", mediaType: "series", name: "S", nameKey: "s", createdAt: now },
+      { userId, kind: "list", mediaType: "game", name: "G", nameKey: "g", createdAt: now },
     ])
     .returning();
-  if (!films || !books || !series) throw new Error("no lists");
-  listIds = { film: films.id, book: books.id, series: series.id };
+  if (!films || !books || !series || !games) throw new Error("no lists");
+  listIds = { film: films.id, book: books.id, series: series.id, game: games.id };
 });
 
 interface Work {
@@ -161,6 +164,19 @@ async function series(
     cast: [],
   };
   await work({ source: "tmdb", mediaType: "series", id }, `Series ${id}`, extra, options);
+}
+
+// Adds a catalog-backed game with IGDB id `id`.
+async function game(id: string, options: Work = {}): Promise<void> {
+  const extra = {
+    developer: null,
+    platforms: [],
+    genres: [],
+    summary: null,
+    url: null,
+    bannerRef: null,
+  };
+  await work({ source: "igdb", mediaType: "game", id }, `Game ${id}`, extra, options);
 }
 
 // A film's metadata, of a Media Item that should be one.
@@ -334,12 +350,20 @@ describe("which cache entries the cron refreshes", () => {
   });
 });
 
-// The sources' configuration: each is the fake the `local` Worker searches, reached through fetch.
+// The sources' configuration: each is the fake the `local` Worker searches, reached through fetch,
+// and the database where IGDB's token is kept.
 const env = {
   TMDB_BASE_URL: "http://tmdb.test/3",
   TMDB_ACCESS_TOKEN: "fake-tmdb-token",
   OPEN_LIBRARY_BASE_URL: "http://openlibrary.test",
   OPEN_LIBRARY_CONTACT: "operator@tastetrack.invalid",
+  IGDB_BASE_URL: "http://igdb.test/v4",
+  TWITCH_TOKEN_URL: "http://igdb.test/oauth2/token",
+  TWITCH_CLIENT_ID: "fake-twitch-client-id",
+  TWITCH_CLIENT_SECRET: "fake-twitch-client-secret",
+  get DB() {
+    return database.binding;
+  },
 };
 
 // The metadata titles the User's Log shows, in Log Order.
@@ -352,14 +376,28 @@ let subrequests = 0;
 
 // Points fetch at the sources' fakes for each test in the enclosing describe, and counts the calls.
 function useSourceFakes(): void {
-  beforeEach(() => {
+  beforeEach(async () => {
     subrequests = 0;
+    // A token the IGDB fake takes, as the Worker keeps one between runs, so that only a test that
+    // says so asks Twitch for one.
+    const token = {
+      accessToken: `fake-igdb-token-${Date.now()}-0`,
+      expiresAt: new Date(Date.now() + 50 * day),
+    };
+    await db
+      .insert(sourceTokens)
+      .values({ source: "igdb", ...token })
+      .onConflictDoUpdate({ target: sourceTokens.source, set: token });
     // Each failed details call is logged; the tests say which fail.
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
       subrequests += 1;
       const url = input instanceof Request ? input.url : String(input);
-      const fake = url.startsWith(env.OPEN_LIBRARY_BASE_URL) ? openLibraryFake : tmdbFake;
+      const fakes = [
+        [env.OPEN_LIBRARY_BASE_URL, openLibraryFake],
+        ["http://igdb.test", igdbFake],
+      ] as const;
+      const fake = fakes.find(([base]) => url.startsWith(base))?.[1] ?? tmdbFake;
       return fake.request(url, init);
     });
   });
@@ -549,6 +587,78 @@ describe("a cron run", () => {
     expect(await loggedTitles()).toEqual(expect.arrayContaining(["Alien", "Тигролови"]));
   });
 
+  it("refreshes a game past its 21 days with IGDB's details, for one subrequest", async () => {
+    await game("1942", { in: "list", cached: { updated: daysAgo(22) } });
+    await game("320", { in: "log", cached: { updated: daysAgo(20) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 2, failed: 0, deleted: 0 });
+    expect(subrequests).toBe(2);
+    const [witcher, stalker] = await catalogMediaItems(db, env, [1, 2], now);
+    expect(subrequests).toBe(2);
+    expect(witcher?.metadata).toEqual({
+      title: "The Witcher 3: Wild Hunt",
+      originalTitle: "The Witcher 3: Wild Hunt",
+      ukrainianTitle: null,
+      year: 2015,
+      coverUrls: {
+        small: "https://images.igdb.com/igdb/image/upload/t_cover_big/coaarl.jpg",
+        large: "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/coaarl.jpg",
+      },
+      backdropUrls: {
+        small: "https://images.igdb.com/igdb/image/upload/t_720p/ar6ijr.jpg",
+        large: "https://images.igdb.com/igdb/image/upload/t_1080p/ar6ijr.jpg",
+      },
+      developer: "CD Projekt RED",
+      platforms: ["Series X|S", "PS4", "Switch 2", "PC", "PS5", "XONE", "Switch"],
+      genres: ["Role-playing (RPG)", "Adventure"],
+      url: "https://www.igdb.com/games/the-witcher-3-wild-hunt",
+    });
+    expect(stalker?.metadata).toMatchObject({ developer: "GSC Game World", year: 2007 });
+  });
+
+  it("counts a game IGDB answers with no game as unavailable, and one it fails on too", async () => {
+    // IGDB has no game 404404, and the fake fails on 999000001 the way IGDB does when it is down.
+    await game("404404", { in: "log", cached: { updated: daysAgo(10) } });
+    await game("999000001", { in: "log", cached: { updated: daysAgo(9) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 2, deleted: 0 });
+    expect(subrequests).toBe(2);
+    expect(await loggedTitles()).toEqual(["Game 404404", "Game 999000001"]);
+    const nextRun = new Date(now.getTime() + 15 * 60 * 1000);
+    expect(await dueForRefresh(db, nextRun)).toEqual([
+      expect.objectContaining({ externalId: "404404" }),
+      expect.objectContaining({ externalId: "999000001" }),
+    ]);
+  });
+
+  it("deletes a game's entry past its 21 days that it couldn't refresh", async () => {
+    await game("404404", { in: "log", cached: { updated: daysAgo(22) } });
+    await game("404405", { in: "log", cached: { updated: daysAgo(20) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 2, deleted: 1 });
+    expect(await loggedTitles()).toEqual([null, "Game 404405"]);
+  });
+
+  it("asks Twitch for a token once the one it keeps has fewer than 7 days left, and keeps it", async () => {
+    await game("1942", { in: "list", cached: { updated: daysAgo(10) } });
+    await game("320", { in: "list", cached: { updated: daysAgo(9) } });
+    const [before] = await db.select().from(sourceTokens);
+    // 44 days on, the token kept has 6 left.
+    vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 44 * day });
+
+    try {
+      expect(await refreshCache(db, env, now)).toMatchObject({ refreshed: 2 });
+      expect(subrequests).toBe(1 + 2);
+      const [kept] = await db.select().from(sourceTokens);
+      expect(kept?.accessToken).not.toBe(before?.accessToken);
+      expect(kept?.expiresAt.getTime()).toBeGreaterThan(Date.now() + 59 * day);
+      await refreshCache(db, env, new Date(now.getTime() + 8 * day));
+      expect(subrequests).toBe(1 + 2 + 2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("keeps a book's entry it couldn't refresh, however old: only TMDB's entries expire", async () => {
     // Neither fake knows these.
     await book("OL404404W", { in: "log", cached: { updated: daysAgo(400) } });
@@ -663,6 +773,30 @@ describe("a read", () => {
         { season: 4, episodeCount: 13 },
         { season: 5, episodeCount: 16 },
       ],
+    });
+  });
+
+  it("adds a game from search with one subrequest, its details holding its banner and developer", async () => {
+    const added = await addFromSearch(
+      db,
+      env,
+      {
+        externalReference: { source: "igdb", mediaType: "game", id: "320" },
+        title: "S.T.A.L.K.E.R.: Shadow of Chernobyl",
+        originalTitle: "S.T.A.L.K.E.R.: Shadow of Chernobyl",
+        year: 2007,
+        posterUrl: null,
+        titleLanguage: "en",
+      },
+      now,
+    );
+
+    expect(subrequests).toBe(1);
+    expect(added.mediaItem.metadata).toMatchObject({
+      developer: "GSC Game World",
+      platforms: ["PS4", "PC", "XONE", "Switch"],
+      coverUrls: { small: "https://images.igdb.com/igdb/image/upload/t_cover_big/coa4s4.jpg" },
+      backdropUrls: { large: "https://images.igdb.com/igdb/image/upload/t_1080p/ar3uc9.jpg" },
     });
   });
 

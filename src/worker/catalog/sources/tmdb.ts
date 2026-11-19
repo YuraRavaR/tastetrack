@@ -117,6 +117,11 @@ export function classifyFailure(status: number): SourceFailure {
   return "temporary";
 }
 
+// TMDB takes a key.
+export function configured(env: CatalogEnv): boolean {
+  return Boolean(env.TMDB_ACCESS_TOKEN);
+}
+
 export async function get(env: CatalogEnv, path: string, params: Record<string, string>) {
   if (!env.TMDB_ACCESS_TOKEN) {
     throw new SourceUnavailable("TMDB_ACCESS_TOKEN is not set", "access");
@@ -210,6 +215,7 @@ export const tmdbFilms: CatalogSource<"film"> = {
   coverRefOf: posterPathOf,
   emptyExtra: { backdropPath: null, runtime: null, genres: null },
   coverUrls: posterUrls,
+  configured,
   classifyFailure,
   metadataOf: (entry) => ({
     ...shownTitles(entry),

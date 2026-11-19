@@ -3,7 +3,7 @@ import { appMeta } from "../db/schema";
 import { type ErrorResponse, HealthResponse } from "../shared/api";
 import { auth } from "./auth";
 import { catalogRoutes } from "./catalog";
-import { type AppEnv, withClock, withDatabase } from "./env";
+import { type AppEnv, withClock, withDatabase, withTestSecrets } from "./env";
 import { inProgressRoutes } from "./in-progress";
 import { inviteCodeRoutes } from "./invite-codes";
 import { libraryRoutes } from "./library";
@@ -34,6 +34,7 @@ export const app = new OpenAPIHono<AppEnv>({
 
 app.use(withDatabase);
 app.use(withClock);
+app.use(withTestSecrets);
 
 app.openapi(healthRoute, async (c) => {
   await c.var.db.select().from(appMeta).limit(1);

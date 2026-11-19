@@ -65,6 +65,16 @@ export class TestHooksController extends BaseController {
     });
   }
 
+  // How many access tokens the IGDB fake has granted the Worker so far: { granted }.
+  getIgdbFakeTokens(options?: RequestOptions) {
+    return this.requestContext.get(endpoints.testHooks.igdbFakeTokens, withSecret(options));
+  }
+
+  // Makes the IGDB fake refuse every token it has granted, as Twitch does once it revokes them.
+  refuseIgdbFakeTokens(options?: RequestOptions) {
+    return this.requestContext.post(endpoints.testHooks.igdbFakeTokenRefusal, withSecret(options));
+  }
+
   fillBacklog(username: string, count: number, options?: RequestOptions) {
     return this.requestContext.post(endpoints.testHooks.backlog(username), {
       ...withSecret(options),

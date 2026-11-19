@@ -4,6 +4,7 @@ import { and, eq, gte, lt, or, type SQL, sql } from "drizzle-orm";
 import { catalogCache } from "../../db/schema";
 import type { About, MediaItem, MediaType } from "../../shared/api";
 import type { AnyCatalogSource, CatalogEntry, CatalogSource } from "./source";
+import { igdbGames } from "./sources/igdb";
 import { openLibraryBooks } from "./sources/open-library";
 import { tmdbFilms } from "./sources/tmdb";
 import { tmdbSeries } from "./sources/tmdb-series";
@@ -13,6 +14,7 @@ const sources: { [M in MediaType]: CatalogSource<M> } = {
   film: tmdbFilms,
   book: openLibraryBooks,
   series: tmdbSeries,
+  game: igdbGames,
 };
 
 // The source of a Media Type's catalog-backed Media Items.

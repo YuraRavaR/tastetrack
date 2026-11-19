@@ -14,6 +14,10 @@ import { visibilities } from "../shared/lists";
 import type { Progress } from "../shared/progress";
 import { thoughtStates } from "../shared/thoughts";
 
+// The Media Types and External Sources, as the columns that hold them name them (src/shared/api.ts).
+const mediaTypes = ["film", "book", "series", "game"] as const;
+const externalSources = ["tmdb", "openlibrary", "igdb"] as const;
+
 // Deployment-wide settings as key/value pairs. The health check reads it to
 // prove the migrations have been applied.
 export const appMeta = sqliteTable("app_meta", {
@@ -116,8 +120,8 @@ export const mediaItems = sqliteTable(
   "media_items",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    mediaType: text("media_type", { enum: ["film", "book", "series"] }).notNull(),
-    externalSource: text("external_source", { enum: ["tmdb", "openlibrary"] }),
+    mediaType: text("media_type", { enum: mediaTypes }).notNull(),
+    externalSource: text("external_source", { enum: externalSources }),
     externalId: text("external_id"),
     ownerId: integer("owner_id").references(() => users.id, { onDelete: "cascade" }),
     title: text("title"),
@@ -198,11 +202,26 @@ export interface SeriesCacheExtra {
   cast: string[];
 }
 
+// What only a game's cache entry has, from its one details call (ADR-0012): its developer, the
+// first company IGDB credits as one; its platforms, each by its abbreviation, or its name when it
+// has none, in IGDB's order; its genres; its IGDB page; and bannerRef, the image ID of its first
+// artwork, else its first screenshot. The summary and genres are for its About block. A row filled
+// from a search result alone has none of these.
+export interface GameCacheExtra {
+  developer: string | null;
+  platforms: string[];
+  genres: string[];
+  summary: string | null;
+  url: string | null;
+  bannerRef: string | null;
+}
+
 // What a cache entry's `extra` holds, by its Media Type.
 export interface CacheExtras {
   film: FilmCacheExtra;
   book: BookCacheExtra;
   series: SeriesCacheExtra;
+  game: GameCacheExtra;
 }
 
 export type CacheExtra = CacheExtras[keyof CacheExtras];
@@ -219,8 +238,8 @@ export type CacheExtra = CacheExtras[keyof CacheExtras];
 export const catalogCache = sqliteTable(
   "catalog_cache",
   {
-    externalSource: text("external_source", { enum: ["tmdb", "openlibrary"] }).notNull(),
-    mediaType: text("media_type", { enum: ["film", "book", "series"] }).notNull(),
+    externalSource: text("external_source", { enum: externalSources }).notNull(),
+    mediaType: text("media_type", { enum: mediaTypes }).notNull(),
     externalId: text("external_id").notNull(),
     englishTitle: text("english_title"),
     ukrainianTitle: text("ukrainian_title"),
@@ -234,6 +253,15 @@ export const catalogCache = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.externalSource, table.mediaType, table.externalId] })],
 );
+
+// The access tokens an External Source gives the Worker, one per source, reused until fewer than
+// a few days are left on them (ADR-0012): IGDB's, from Twitch. Disposable, like the catalog cache:
+// a Worker that finds none asks the source for a new one.
+export const sourceTokens = sqliteTable("source_tokens", {
+  source: text("source", { enum: externalSources }).primaryKey(),
+  accessToken: text("access_token").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+});
 
 // One time a User experienced a Media Item. The Rating is stored in half stars, 1 to 10. The date
 // is an optional calendar day, YYYY-MM-DD. createdAt never changes, so it settles Log Order among
@@ -330,7 +358,7 @@ export const lists = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     kind: text("kind", { enum: ["backlog", "list"] }).notNull(),
-    mediaType: text("media_type", { enum: ["film", "book", "series"] }).notNull(),
+    mediaType: text("media_type", { enum: mediaTypes }).notNull(),
     name: text("name"),
     nameKey: text("name_key"),
     description: text("description"),

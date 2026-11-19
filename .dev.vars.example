@@ -11,3 +11,10 @@
 # both of these; the contact is an email address or URL where Open Library can reach you.
 # OPEN_LIBRARY_BASE_URL=https://openlibrary.org
 # OPEN_LIBRARY_CONTACT=
+
+# The `local` env calls an IGDB fake for games and their Twitch token, and takes any credentials.
+# To search the real IGDB locally, set all four; the ID and secret are your Twitch application's.
+# IGDB_BASE_URL=https://api.igdb.com/v4
+# TWITCH_TOKEN_URL=https://id.twitch.tv/oauth2/token
+# TWITCH_CLIENT_ID=
+# TWITCH_CLIENT_SECRET=

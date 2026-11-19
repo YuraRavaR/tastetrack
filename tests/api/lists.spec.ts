@@ -377,6 +377,27 @@ test("a List loads in the same number of queries for 1 book as for 500, on a col
   expect(fiveHundred).toBe(one);
 });
 
+test("a List loads in the same number of queries for 1 game as for 500, on a cold cache", async ({
+  loggedInApi,
+}) => {
+  // The placeholders have no cache entry, so the page fetches what it may from IGDB.
+  const queriesForListOf = async (games: number) => {
+    const list = await createList(loggedInApi, { name: `${games} games`, mediaType: "game" });
+    expect((await loggedInApi.testHooks.fillList(list.id, games)).status()).toBe(204);
+    const response = await loggedInApi.lists.getList(list.id);
+    expect(await response.json()).toMatchObject({
+      list: { mediaType: "game", items: { length: games } },
+    });
+    return response.headers()["x-d1-query-count"];
+  };
+
+  const one = await queriesForListOf(1);
+  const fiveHundred = await queriesForListOf(500);
+
+  expect(one).toMatch(/^\d+$/);
+  expect(fiveHundred).toBe(one);
+});
+
 test("a List loads in the same number of queries for 1 series as for 500, on a cold cache", async ({
   loggedInApi,
 }) => {

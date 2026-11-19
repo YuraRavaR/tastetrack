@@ -13,6 +13,18 @@ const TEST_NOW_HEADER = "X-Test-Now";
 
 const TEST_HOOKS_SECRET_HEADER = "X-Test-Hooks-Secret";
 
+// With test hooks on, a request with their secret can also leave out External Sources' secrets,
+// comma-separated, as on a deployment the Operator hasn't set them on, so tests can see what
+// still works without them.
+const TEST_WITHOUT_SECRETS_HEADER = "X-Test-Without-Secrets";
+
+const sourceSecrets = [
+  "TMDB_ACCESS_TOKEN",
+  "OPEN_LIBRARY_CONTACT",
+  "TWITCH_CLIENT_ID",
+  "TWITCH_CLIENT_SECRET",
+] as const;
+
 export type AppEnv = {
   Bindings: Env;
   Variables: { db: DrizzleD1Database; now: Date };
@@ -62,5 +74,18 @@ export const withClock = createMiddleware<AppEnv>(async (c, next) => {
     return c.json({ error: "invalid_test_now" } satisfies ErrorResponse, 400);
   }
   c.set("now", now);
+  await next();
+});
+
+export const withTestSecrets = createMiddleware<AppEnv>(async (c, next) => {
+  const header = requestHasTestHooksAccess(c)
+    ? c.req.header(TEST_WITHOUT_SECRETS_HEADER)
+    : undefined;
+  if (header === undefined) return next();
+  const names = header.split(",").map((name) => name.trim());
+  if (!names.every((name) => (sourceSecrets as readonly string[]).includes(name))) {
+    return c.json({ error: "invalid_test_without_secrets" } satisfies ErrorResponse, 400);
+  }
+  c.env = { ...c.env, ...Object.fromEntries(names.map((name) => [name, undefined])) };
   await next();
 });

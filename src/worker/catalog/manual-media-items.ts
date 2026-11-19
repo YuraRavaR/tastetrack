@@ -39,8 +39,8 @@ function manualColumns(fields: ManualMediaItemEditRequest) {
 }
 
 // Whether `fields` are details a Media Item of the type can have: a year no more than five years
-// from now, and none before films for a film or a series; a runtime and genres only for a film,
-// and authors only for a book.
+// from now, and none before films for any but a book; a runtime and genres only for a film, and
+// authors only for a book. A series or a game has a title and a year alone.
 function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest, now: Date) {
   const { year } = fields;
   if (year != null && year > latestFilmYear(now)) return false;
@@ -50,6 +50,7 @@ function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest,
     case "book":
       return fields.runtime === undefined && fields.genres === undefined;
     case "series":
+    case "game":
       return (
         fields.runtime === undefined &&
         fields.genres === undefined &&
