@@ -82,13 +82,27 @@ pnpm exec wrangler secret put OPEN_LIBRARY_CONTACT               # production
 
 The `local` env searches an Open Library fake with fixed data (`src/worker/catalog/sources/open-library-fake.ts`), mounted among the test hooks at `/api/test/openlibrary`, with a placeholder contact. To search the real Open Library locally, set `OPEN_LIBRARY_BASE_URL` and `OPEN_LIBRARY_CONTACT` in `.dev.vars`. The fake's works mirror real ones, so the API tests pass against both. Covers are loaded by the browser from `covers.openlibrary.org`, never by the Worker.
 
+## IGDB
+
+Game search calls IGDB (ADR-0012) at `IGDB_BASE_URL`, with an access token from Twitch's `TWITCH_TOKEN_URL`, both set per env in `wrangler.jsonc`. The token is for one Twitch application, registered by an Operator with two-factor authentication on their Twitch account as a Confidential client, whose ID and secret are the secrets `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET`. The Worker keeps the token in D1 (`source_tokens`) and asks Twitch for a new one only when fewer than 7 days are left on it, or after IGDB answers 401. Without the secrets, game search and adding a game answer `catalog_unavailable`, and the rest of the app works on. Staging and production each need both once, before the release that brings games:
+
+```sh
+pnpm exec wrangler secret put TWITCH_CLIENT_ID --env staging
+pnpm exec wrangler secret put TWITCH_CLIENT_SECRET --env staging
+pnpm exec wrangler secret put TWITCH_CLIENT_ID                   # production
+pnpm exec wrangler secret put TWITCH_CLIENT_SECRET               # production
+```
+
+The `local` env calls an IGDB fake with fixed data (`src/worker/catalog/sources/igdb-fake.ts`) for both, mounted among the test hooks at `/api/test/igdb`, with placeholder credentials; it accepts any, so real ones in `.dev.vars` change nothing. To search the real IGDB locally, set `IGDB_BASE_URL`, `TWITCH_TOKEN_URL` and the two secrets in `.dev.vars`. The fake's games mirror real ones. Covers and banners are loaded by the browser from `images.igdb.com`, never by the Worker.
+
 ## Test hooks
 
 `TEST_HOOKS=1` turns on test-only surfaces, which stay out of the OpenAPI spec and are a JSON 404 or ignored with hooks off. Staging is public, so all but the first answer only a request whose `X-Test-Hooks-Secret` header matches the `TEST_HOOKS_SECRET` secret; without it they behave as with hooks off (ADR-0010):
 
 - the `X-D1-Query-Count` response header, which needs no secret;
 - the `X-Test-Now` request header, an ISO time the Worker treats as now, so tests can step past session expiry;
-- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `POST /api/test/users/:username/backlog` and `POST /api/test/lists/:listId/items`, which fill a User's Backlog or a List with placeholder films so tests reach the 1,000-item limit, read-outs of what the API never reports, such as a User's password iterations and who invited them, `DELETE /api/test/catalog-cache/:source/:mediaType/:id`, which takes one Media Item's entry out of the catalog cache so tests can load a page on a cold cache, and the TMDB and Open Library fakes, which the `local` Worker calls without the secret and which only a Worker with `TMDB_BASE_URL` or `OPEN_LIBRARY_BASE_URL` pointing at them serves.
+- the `X-Test-Without-Secrets` request header, a comma-separated list of the Twitch secrets (`TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`) the Worker leaves out for that request, so tests can see what still works on a deployment without them;
+- the routes under `/api/test/`, including `POST /api/test/users`, which creates a seed User without an Invite Code, `POST /api/test/users/:username/backlog` and `POST /api/test/lists/:listId/items`, which fill a User's Backlog or a List with placeholder films so tests reach the 1,000-item limit, read-outs of what the API never reports, such as a User's password iterations and who invited them, `DELETE /api/test/catalog-cache/:source/:mediaType/:id`, which takes one Media Item's entry out of the catalog cache so tests can load a page on a cold cache, `GET /api/test/igdb-fake/tokens` and `POST /api/test/igdb-fake/token-refusal`, which count the IGDB fake's tokens and make it refuse them all, and the TMDB, Open Library and IGDB fakes, which the `local` Worker calls without the secret and which only a Worker with `TMDB_BASE_URL`, `OPEN_LIBRARY_BASE_URL` or `IGDB_BASE_URL` pointing at them serves.
 
 Test seed Users therefore exist only in local and staging. The factories in `tests/support/scenarios/users.ts` give each Playwright worker one seed User, which issues an Invite Code for every other test User; those register through the public API like real ones, each with a unique Username, so tests share no mutable fixtures.
 

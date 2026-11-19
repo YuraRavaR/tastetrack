@@ -1,4 +1,4 @@
-import { BookOpen, Clapperboard, type LucideIcon, Tv } from "lucide-react";
+import { BookOpen, Clapperboard, Gamepad2, type LucideIcon, Tv } from "lucide-react";
 import type { MediaType } from "../../shared/api";
 import type { ProgressMediaType as WorkerProgressMediaType } from "../../shared/catalog";
 
@@ -7,14 +7,15 @@ const mediaTypeIcons: Record<MediaType, LucideIcon> = {
   film: Clapperboard,
   book: BookOpen,
   series: Tv,
+  game: Gamepad2,
 };
 
 export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
   return mediaTypeIcons[mediaType];
 }
 
-// The Media Types each section offers, in the one order they all keep. Music and Games stay out
-// until each has an ADR choosing its External Source.
+// The Media Types each section offers, in the one order they all keep. Games are in the API and
+// stay out until their UI; music stays out until an ADR chooses its External Source.
 export const searchMediaTypes: readonly MediaType[] = ["film", "book", "series"];
 export const listsMediaTypes: readonly MediaType[] = ["film", "book", "series"];
 export const savedMediaTypes: readonly MediaType[] = ["film", "book", "series"];
@@ -28,16 +29,23 @@ const keepings: Record<MediaType, readonly Keeping[]> = {
   film: ["plan", "log", "collect", "addByHand"],
   book: ["plan", "log", "collect", "addByHand"],
   series: ["plan", "log", "collect", "addByHand"],
+  // None until the games UI: no section offers games yet.
+  game: [],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {
   return keepings[mediaType].includes(keeping);
 }
 
-// Whether a new Log Entry for a Media Item the User has logged before starts as a Revisit. A film
-// or a book logged again is most often seen again from the start; a series most often goes on
-// with a new season, which is no Revisit (ADR-0005).
-const revisitsByDefault: Record<MediaType, boolean> = { film: true, book: true, series: false };
+// Whether a new Log Entry for a Media Item the User has logged before starts as a Revisit. A film,
+// a book or a game logged again is most often experienced again from the start; a series most
+// often goes on with a new season, which is no Revisit (ADR-0005).
+const revisitsByDefault: Record<MediaType, boolean> = {
+  film: true,
+  book: true,
+  series: false,
+  game: true,
+};
 
 export function startsAsRevisit(mediaType: MediaType): boolean {
   return revisitsByDefault[mediaType];

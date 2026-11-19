@@ -20,7 +20,12 @@ export type CoverShape = "2:3";
 
 // A new Media Type doesn't compile until it has a cover shape. A book's cover is cropped to a
 // poster's, whatever shape its image has.
-const coverShapes: Record<MediaType, CoverShape> = { film: "2:3", book: "2:3", series: "2:3" };
+const coverShapes: Record<MediaType, CoverShape> = {
+  film: "2:3",
+  book: "2:3",
+  series: "2:3",
+  game: "2:3",
+};
 
 export function coverShape(mediaType: MediaType): CoverShape {
   return coverShapes[mediaType];
@@ -36,13 +41,14 @@ export interface Cover {
   mediaType: MediaType;
 }
 
-// What each Media Type calls its cover: a film's or a series' poster, a book's cover.
+// What each Media Type calls its cover: a film's or a series' poster, a book's or a game's cover.
 function coverUrlsOf(mediaItem: MediaItem): CoverUrls | null {
   switch (mediaItem.mediaType) {
     case "film":
     case "series":
       return mediaItem.metadata?.posterUrls ?? null;
     case "book":
+    case "game":
       return mediaItem.metadata?.coverUrls ?? null;
   }
 }

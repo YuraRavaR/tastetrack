@@ -4,6 +4,7 @@
 // for a Worker that searches it: staging, which searches the real sources, has none.
 import { Hono } from "hono";
 import type { AppEnv } from "../env";
+import { igdbFake, igdbFakeTokens } from "./sources/igdb-fake";
 import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
 
@@ -20,3 +21,17 @@ sourceFakes.use("/openlibrary/*", async (c, next) => {
   await next();
 });
 sourceFakes.route("/openlibrary", openLibraryFake);
+
+// Whether the Worker calls the IGDB fake, which answers Twitch's token calls too.
+export function callsIgdbFake(env: Pick<Env, "IGDB_BASE_URL">): boolean {
+  return env.IGDB_BASE_URL.includes("/api/test/igdb/");
+}
+
+sourceFakes.use("/igdb/*", async (c, next) => {
+  if (!callsIgdbFake(c.env)) return c.notFound();
+  await next();
+});
+sourceFakes.route("/igdb", igdbFake);
+
+// What a test can see and change of the IGDB fake's tokens, through the test hooks.
+export { igdbFakeTokens };

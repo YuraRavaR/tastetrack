@@ -158,5 +158,13 @@ export function aboutProps(about: AboutData): AboutProps {
         credits: [],
         source: t("about.fromOpenLibrary"),
       };
+    // A game's summary is in English alone, and its genres stand where a film's credits do.
+    case "game":
+      return {
+        tagline: { en: null, uk: null },
+        overview: { en: about.summary, uk: null },
+        credits: [{ label: t("about.genres"), names: about.genres }],
+        source: t("about.fromIgdb"),
+      };
   }
 }

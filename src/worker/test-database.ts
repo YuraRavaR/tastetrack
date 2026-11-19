@@ -9,6 +9,8 @@ const migrationsDir = join(import.meta.dirname, "../../migrations");
 
 export interface TestDatabase {
   db: DrizzleD1Database;
+  // The same database as the binding the Worker has, for code that takes one.
+  binding: D1Database;
   dispose(): Promise<void>;
 }
 
@@ -24,5 +26,5 @@ export async function openTestDatabase(): Promise<TestDatabase> {
       .filter(Boolean);
     await proxy.env.DB.batch(statements.map((statement) => proxy.env.DB.prepare(statement)));
   }
-  return { db: drizzle(proxy.env.DB), dispose: () => proxy.dispose() };
+  return { db: drizzle(proxy.env.DB), binding: proxy.env.DB, dispose: () => proxy.dispose() };
 }

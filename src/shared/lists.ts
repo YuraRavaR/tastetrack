@@ -59,6 +59,7 @@ const backlogNames: Record<MediaType, string> = {
   film: "Watchlist",
   book: "Reading list",
   series: "Watchlist",
+  game: "Backlog",
 };
 
 // Names a List can't have, so that it can't be mistaken for a Backlog: the UI's name for the

@@ -64,8 +64,8 @@ export const maxManualMediaItems = 1_000;
 export const maxMetadataFills = 10;
 
 // The Media Types a User can have In Progress: started and not yet finished (ADR-0005). A film is
-// watched in one sitting, so it has none.
-export const progressMediaTypes = ["book", "series"] as const;
+// watched in one sitting, so it has none. A game has one without Progress.
+export const progressMediaTypes = ["book", "series", "game"] as const;
 
 export type ProgressMediaType = (typeof progressMediaTypes)[number];
 
