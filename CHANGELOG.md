@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.0](https://github.com/YuraRavaR/tastetrack/compare/v0.14.0...v0.15.0) (2026-11-20)
+
+
+### Features
+
+* **catalog:** games in the API, from IGDB ([#255](https://github.com/YuraRavaR/tastetrack/issues/255)) ([de3086d](https://github.com/YuraRavaR/tastetrack/commit/de3086d69dce853b8465857f8a1de2c4a1d1aa5d))
+* **games:** games in Search, on their page, in Saved and in Collections ([#257](https://github.com/YuraRavaR/tastetrack/issues/257)) ([6c5c75b](https://github.com/YuraRavaR/tastetrack/commit/6c5c75bfa1542588663983c120883e5d651a4dab))
+
 ## [0.14.0](https://github.com/YuraRavaR/tastetrack/compare/v0.13.0...v0.14.0) (2026-11-16)
 
 
