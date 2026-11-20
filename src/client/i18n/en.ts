@@ -604,6 +604,8 @@ export const en = {
   "note.cancel": "Cancel",
   "note.unavailable": "Couldn't save. Please try again.",
   "itemHistory.loading": "Loading…",
+  // A Media Item's page on a phone: back to where the User came from, or to Saved.
+  "itemHistory.back": "Back",
   // Shown before the Media Item, and so its Media Type, is known.
   "itemHistory.unavailable": "Couldn't load this page. Please try again.",
   "itemHistory.notFound": "There's nothing here. It may have been deleted.",
