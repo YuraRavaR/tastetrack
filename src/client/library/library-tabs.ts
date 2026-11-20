@@ -1,8 +1,8 @@
 // A Library's tabs, in lifecycle order and each in its default order: the Backlog by Date added,
 // what is In Progress by when it was started, and every Media Item the User experienced, once
 // each, by Last watched. The UI calls a film's "Watchlist" and "Watched", a book's "Reading
-// list", "Reading" and "Read" and a series' "Watchlist", "Watching" and "Watched", and so do their
-// addresses.
+// list", "Reading" and "Read", a series' "Watchlist", "Watching" and "Watched" and a game's
+// "Backlog", "Playing" and "Played", and so do their addresses.
 import type { LibraryItem, MediaItem, MediaType } from "../../shared/api";
 import { inLogOrder } from "../../shared/log";
 import { can, canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
@@ -107,8 +107,7 @@ const tabSlugs: Record<MediaType, Record<Exclude<LibraryTab, "inProgress">, stri
   film: { backlog: "watchlist", experienced: "watched" },
   book: { backlog: "reading-list", inProgress: "reading", experienced: "read" },
   series: { backlog: "watchlist", inProgress: "watching", experienced: "watched" },
-  // Its In Progress tab, "playing", comes with the games UI, which lets a User start a game.
-  game: { backlog: "backlog", experienced: "played" },
+  game: { backlog: "backlog", inProgress: "playing", experienced: "played" },
 };
 
 // A Media Type's tabs' words: none for a tab it doesn't have.

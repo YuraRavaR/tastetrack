@@ -74,6 +74,7 @@ class InProgressCard extends ScopedComponent {
   readonly finishedButton = this.root.getByRole("button", { name: "Finished" });
   readonly stopReadingButton = this.root.getByRole("button", { name: "Stop reading" });
   readonly stopWatchingButton = this.root.getByRole("button", { name: "Stop watching" });
+  readonly stopPlayingButton = this.root.getByRole("button", { name: "Stop playing" });
   readonly checkButton = this.root.getByRole("button", { name: /^Mark S\d+ · E\d+ watched$/ });
   // Named with its count, such as "15 of 62 episodes watched".
   readonly bar = this.root.getByRole("img", { name: /episodes watched$/ });
@@ -231,6 +232,24 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly watchingCard = new InProgressCard(
     this.main.getByRole("region", { name: "Watching", exact: true }),
   );
+  // A game's actions.
+  readonly playedButton = this.main.getByRole("button", { name: "Played", exact: true });
+  readonly playedAgainButton = this.main.getByRole("button", { name: "Played again" });
+  readonly wantToPlayButton = this.main.getByRole("button", {
+    name: "Want to play",
+    pressed: false,
+  });
+  readonly onBacklogButton = this.main.getByRole("button", {
+    name: "On your Backlog",
+    pressed: true,
+  });
+  readonly startPlayingButton = this.main.getByRole("button", { name: "Start playing" });
+  readonly startReplayingButton = this.main.getByRole("button", { name: "Start replaying" });
+  readonly playingCard = new InProgressCard(
+    this.main.getByRole("region", { name: "Playing", exact: true }),
+  );
+  // The link to a game's page on IGDB, in its About block, or under its facts without one.
+  readonly igdbLink = this.main.getByRole("link", { name: "From IGDB" });
   readonly startDateDialog = new StartDateDialog(
     this.page.getByRole("dialog", { name: "Change the start date" }),
   );
@@ -241,6 +260,8 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly deleteFilmButton = this.main.getByRole("button", { name: "Delete film" });
   // Only for a series the User added themselves.
   readonly editSeriesButton = this.main.getByRole("button", { name: "Edit series" });
+  // Only for a game the User added themselves.
+  readonly editGameButton = this.main.getByRole("button", { name: "Edit game" });
   // Only for a book the User added themselves.
   readonly editBookButton = this.main.getByRole("button", { name: "Edit book" });
   readonly deleteBookButton = this.main.getByRole("button", { name: "Delete book" });

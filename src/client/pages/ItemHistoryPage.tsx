@@ -6,7 +6,7 @@ import type { ItemHistoryResponse, LogEntry, Thought } from "../../shared/api";
 import * as api from "../api";
 import { filmTitleAndYear } from "../catalog/film-label";
 import { can } from "../catalog/media-types";
-import { About, aboutProps } from "../components/About";
+import { About, aboutIsEmpty, aboutProps, SourceLink } from "../components/About";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { DeleteThoughtDialog } from "../components/DeleteThoughtDialog";
@@ -94,11 +94,28 @@ export function ItemHistoryPage() {
   const history = historyNewestFirst(logEntries, thoughts);
   const manual = mediaItem.externalReference === null;
   const loggable = can(mediaItem.mediaType, "log");
+  // A game's source links to its page on IGDB. With nothing else to show, its About block gives way
+  // to that link under the facts line (`docs/mockups/games/`).
+  const sourceUrl = mediaItem.mediaType === "game" ? (mediaItem.metadata?.url ?? null) : null;
+  const shownAbout = about && aboutProps(about);
+  const aboutShown = shownAbout && !(sourceUrl && aboutIsEmpty(shownAbout)) ? shownAbout : null;
   return (
     <div className="flex flex-col gap-4.5 sm:gap-5.5">
-      <FilmBanner mediaItem={mediaItem} />
+      <FilmBanner
+        mediaItem={mediaItem}
+        sourceLink={
+          sourceUrl &&
+          !aboutShown && (
+            <SourceLink
+              source={t("about.fromIgdb")}
+              url={sourceUrl}
+              className="-ml-2.5 self-start"
+            />
+          )
+        }
+      />
       <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
-        {about && <About {...aboutProps(about)} />}
+        {aboutShown && <About {...aboutShown} sourceUrl={sourceUrl} />}
         {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
         <FilmActions
           history={state.history}

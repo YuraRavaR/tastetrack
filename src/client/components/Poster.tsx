@@ -5,6 +5,7 @@ import {
   type CoverShape,
   coverOf,
   coverShape,
+  hasTypesetCover,
   placeholderFor,
   typesetCoverOf,
 } from "../catalog/cover";
@@ -87,15 +88,21 @@ const typesets: Record<PosterSize, Typeset> = {
     author: `${roomy.author} sm:text-[13px]`,
   },
   grid: roomy,
-  fan: compact,
+  // Saved's fan is 52 px wide on a phone, room for the title alone (`docs/mockups/games/`).
+  fan: {
+    box: `${titleOnly.box} md:px-2.25 md:pt-3 md:pb-2.25 md:text-[11px]`,
+    frame: `${titleOnly.frame} md:block md:inset-1.25`,
+    title: `${titleOnly.title} md:line-clamp-4`,
+    author: `${titleOnly.author} md:line-clamp-1 md:text-[9px]`,
+  },
   collage: compact,
 };
 
 // A Media Item's cover, a film's poster or a book's cover, or a placeholder when it has none. A
 // film's is an icon: only the grid and large sizes have room for its caption too, the large one
 // (the film page's) only from `sm`, and `showCaption={false}` leaves it out, as under controls
-// laid over the poster. A book's is a cover set in type: its title at the top and its first author
-// at the foot, inside a thin frame.
+// laid over the poster. A book's or a game's is a cover set in type: its title at the top and its
+// first author or its developer at the foot, inside a thin frame.
 export function Poster({
   subject,
   size,
@@ -118,7 +125,7 @@ export function Poster({
     );
   }
 
-  if (cover.mediaType === "book") {
+  if (hasTypesetCover(cover.mediaType)) {
     const { title, author } = typesetCoverOf(subject);
     const typeset = typesets[size];
     return (

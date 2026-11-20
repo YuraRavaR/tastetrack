@@ -5,7 +5,7 @@ import { WatchingRow } from "../components/WatchingRow";
 import { BasePage } from "./BasePage";
 
 // The Media Types Saved has a tile for.
-export type MediaTypeName = "Films" | "Books" | "Series";
+export type MediaTypeName = "Films" | "Books" | "Series" | "Games";
 
 // A Media Type's tile: its name is the link that opens its Backlog's tab, described by the counts
 // of its tabs. With nothing saved it also offers "Find a film", "Find a book" or "Find a series".
@@ -14,6 +14,7 @@ export class MediaTypeTile extends ScopedComponent {
   readonly findFilmLink = this.root.getByRole("link", { name: "Find a film" });
   readonly findBookLink = this.root.getByRole("link", { name: "Find a book" });
   readonly findSeriesLink = this.root.getByRole("link", { name: "Find a series" });
+  readonly findGameLink = this.root.getByRole("link", { name: "Find a game" });
   // The fan of covers is hidden from assistive technology, being the Backlog's covers again, so
   // they are found by tag: one img per Media Item with a cover.
   readonly coverImages = this.root.locator("img");
@@ -41,6 +42,9 @@ export class SavedPage extends BasePage {
   // The series the User is watching, one row each.
   readonly watchingNow = this.main.getByRole("region", { name: "Watching now" });
   readonly watchingNowRows = this.watchingNow.getByRole("listitem");
+  // The games the User is playing, one row each, a link to its page.
+  readonly playingNow = this.main.getByRole("region", { name: "Playing now" });
+  readonly playingNowRows = this.playingNow.getByRole("listitem");
   readonly toast = new Toast(this.page.getByRole("status"));
 
   // A row of Watching now, by its series' title.

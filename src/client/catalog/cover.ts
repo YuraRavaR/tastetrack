@@ -90,6 +90,14 @@ const placeholders: readonly Placeholder[] = [
   { icon: Glasses, caption: "poster.caption.incognito" },
 ];
 
+// The Media Types whose missing cover is set in type, as a book's cover would be; the others show
+// a placeholder icon.
+const typesetMediaTypes: readonly MediaType[] = ["book", "game"];
+
+export function hasTypesetCover(mediaType: MediaType): boolean {
+  return typesetMediaTypes.includes(mediaType);
+}
+
 // One of the placeholders, the same for a Media Item every time, by its id. A search result that
 // names no Media Item gets the film icon.
 export function placeholderFor(mediaItemId: number | null): Placeholder {
@@ -97,8 +105,8 @@ export function placeholderFor(mediaItemId: number | null): Placeholder {
   return placeholders[mediaItemId % placeholders.length] ?? filmPlaceholder;
 }
 
-// What a cover set in type says where a book has no image: its title, and its first author as
-// shown. Null where unknown.
+// What a cover set in type says where a book or a game has no image: its title, and a book's first
+// author as shown or a game's developer. Null where unknown.
 export interface TypesetCover {
   title: string | null;
   author: string | null;
@@ -109,10 +117,18 @@ export function typesetCoverOf(subject: MediaItem | Found): TypesetCover {
     return { title: subject.title, author: firstAuthor(subject.authors) };
   }
   const mediaItem = "kind" in subject ? subject.mediaItem : subject;
-  return {
-    title: mediaItem.metadata?.title ?? null,
-    author: mediaItem.mediaType === "book" ? firstAuthor(mediaItem.metadata?.authors) : null,
-  };
+  return { title: mediaItem.metadata?.title ?? null, author: makerOf(mediaItem) };
+}
+
+function makerOf(mediaItem: MediaItem): string | null {
+  switch (mediaItem.mediaType) {
+    case "book":
+      return firstAuthor(mediaItem.metadata?.authors);
+    case "game":
+      return mediaItem.metadata?.developer ?? null;
+    default:
+      return null;
+  }
 }
 
 function firstAuthor(authors: readonly string[] | undefined): string | null {

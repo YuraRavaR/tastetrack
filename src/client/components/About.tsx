@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,9 @@ export interface AboutProps {
   credits: CreditRow[];
   // Where the texts come from, such as "From TMDB".
   source: string;
+  // The Media Item's page at its source, which the source's name then links to, as a game's on
+  // IGDB; none for a film, a series or a book.
+  sourceUrl?: string | null;
 }
 
 // More, Less and the language switch: text links in the accent colour, 44 px tall to tap.
@@ -34,7 +38,7 @@ const linkClass =
 // the overview's paragraphs run together, so the cut never ends on an empty line. English comes
 // first, and the language picked isn't remembered; an overview only in Ukrainian shows with no
 // switch, and in Ukrainian the tagline is the Ukrainian one or none.
-export function About({ tagline, overview, credits, source }: AboutProps) {
+export function About({ tagline, overview, credits, source, sourceUrl = null }: AboutProps) {
   const [picked, setPicked] = useState<"en" | "uk">("en");
   const [open, setOpen] = useState(false);
   const [overflows, setOverflows] = useState(false);
@@ -108,7 +112,11 @@ export function About({ tagline, overview, credits, source }: AboutProps) {
             {t(language === "en" ? "about.ukrainian" : "about.english")}
           </Button>
         )}
-        <span className="ml-auto text-muted-foreground text-xs sm:text-[13px]">{source}</span>
+        {sourceUrl ? (
+          <SourceLink source={source} url={sourceUrl} className="-mr-2.5 ml-auto" />
+        ) : (
+          <span className="ml-auto text-muted-foreground text-xs sm:text-[13px]">{source}</span>
+        )}
       </div>
       {rows.length > 0 && (
         <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-[14px] leading-[1.4] sm:gap-x-3.5 sm:text-[15px]">
@@ -121,6 +129,41 @@ export function About({ tagline, overview, credits, source }: AboutProps) {
         </dl>
       )}
     </section>
+  );
+}
+
+// The source's name as a link to the Media Item's page there, in a new tab: "From IGDB", with the
+// external-link icon.
+export function SourceLink({
+  source,
+  url,
+  className,
+}: {
+  source: string;
+  url: string;
+  className?: string;
+}) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(
+        "inline-flex h-11 items-center gap-1.5 rounded-lg px-2.5 font-semibold text-[14px] text-primary-strong underline-offset-4 hover:underline sm:text-[15px] [&>svg]:size-4",
+        className,
+      )}
+    >
+      {source}
+      <ExternalLink aria-hidden />
+    </a>
+  );
+}
+
+// Whether an About block would show nothing but its source: no tagline, overview or credits.
+export function aboutIsEmpty({ tagline, overview, credits }: AboutProps): boolean {
+  return (
+    [tagline.en, tagline.uk, overview.en, overview.uk].every((text) => text === null) &&
+    credits.every((row) => row.names.length === 0)
   );
 }
 

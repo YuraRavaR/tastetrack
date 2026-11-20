@@ -10,9 +10,9 @@ import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import {
   type Found,
-  foundAuthorsAndYear,
   foundKey,
   foundRowTitle,
+  foundSubtitle,
   mediaItemKey,
   mediaItemOf,
 } from "../catalog/found";
@@ -136,16 +136,14 @@ function AddFilms({ list, onAdded }: { list: List; onAdded: () => Promise<void> 
           >
             {search.results.map((found) => {
               const key = foundKey(found);
-              const authorsAndYear = foundAuthorsAndYear(found);
+              const subtitle = foundSubtitle(found);
               return (
                 <li key={key} className="flex items-center gap-3 px-3 py-2">
                   <Poster subject={found} size="thumbnail" />
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="break-words">{foundRowTitle(found)}</span>
-                    {authorsAndYear && (
-                      <span className="break-words text-muted-foreground text-sm">
-                        {authorsAndYear}
-                      </span>
+                    {subtitle && (
+                      <span className="break-words text-muted-foreground text-sm">{subtitle}</span>
                     )}
                     {inList.has(key) && (
                       <Badge variant="soft">

@@ -9,7 +9,7 @@ export class SearchResultRow extends ScopedComponent {
   readonly noCoverPlaceholder = this.root.getByRole("img", { name: "No cover" });
   // Every control but the title.
   readonly actionButtons = this.root.getByRole("button", {
-    name: /^(Mark|Watched|Read|Want to|Add to)/,
+    name: /^(Mark|Watched|Read|Played|Want to|Add to)/,
   });
   readonly markWatchedButton = this.root.getByRole("button", { name: "Mark watched" });
   readonly watchedAgainButton = this.root.getByRole("button", { name: "Watched again" });
@@ -28,6 +28,11 @@ export class SearchResultRow extends ScopedComponent {
     name: "Want to read",
     pressed: true,
   });
+  // A game's, whose bookmark puts it on the Backlog.
+  readonly markPlayedButton = this.root.getByRole("button", { name: "Mark played" });
+  readonly playedAgainButton = this.root.getByRole("button", { name: "Played again" });
+  readonly wantToPlayButton = this.root.getByRole("button", { name: "Want to play" });
+  readonly onBacklogButton = this.root.getByRole("button", { name: "Want to play", pressed: true });
   readonly addToListButton = this.root.getByRole("button", { name: "Add to collection" });
   // On a List's page: adds the film to that List, which then says so.
   readonly addButton = this.root.getByRole("button", { name: "Add", exact: true });
@@ -65,6 +70,11 @@ export class SearchResultRow extends ScopedComponent {
   // A chip linking to one of the Lists the film is on.
   listChip(listName: string) {
     return this.root.getByRole("link", { name: listName, exact: true });
+  }
+
+  // Any text in the row, such as a game's year and platforms, "1997 · PS1".
+  text(content: string) {
+    return this.root.getByText(content, { exact: true });
   }
 
   // How many more Lists the film is on than the chips show: "+1".

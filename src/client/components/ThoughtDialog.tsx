@@ -39,7 +39,7 @@ import {
 import * as api from "../api";
 import { filmName } from "../catalog/film-label";
 import { mediaItemYearAndRuntime } from "../catalog/found";
-import { canProgress, type ProgressMediaType } from "../catalog/media-types";
+import { hasProgress, type ProgressKind } from "../catalog/media-types";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { progressLabel } from "../in-progress/progress-label";
@@ -135,7 +135,7 @@ function ThoughtForm({
   const [today] = useState(userToday);
   const [text, setText] = useState(thought?.text ?? "");
   const [quote, setQuote] = useState(thought?.quote ?? false);
-  const started = canProgress(mediaType) ? progressFor(inProgress?.progress, mediaType) : null;
+  const started = hasProgress(mediaType) ? progressFor(inProgress?.progress, mediaType) : null;
   const [progress, setProgress] = useState<Progress | null>(thought ? thought.progress : started);
   const [date, setDate] = useState(() => logDateValue(thought?.date ?? today, today));
   const [saving, setSaving] = useState(false);
@@ -257,7 +257,7 @@ function ThoughtForm({
             aria-describedby={ids.quoteHint}
           />
         </div>
-        {canProgress(mediaType) && (
+        {hasProgress(mediaType) && (
           <ProgressRow
             mediaType={mediaType}
             started={started}
@@ -353,7 +353,7 @@ function ProgressRow({
   onChange,
   applyRef,
 }: {
-  mediaType: ProgressMediaType;
+  mediaType: ProgressKind;
   started: Progress | null;
   value: Progress | null;
   onChange: (progress: Progress | null) => void;
