@@ -1,9 +1,9 @@
 import { ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useId, useState } from "react";
 import { Link } from "react-router";
-import type { LibraryItem, MediaItem, MediaType } from "../../shared/api";
+import type { LibraryItem, MediaType } from "../../shared/api";
 import * as api from "../api";
-import { authorName } from "../catalog/book-label";
+import { makerOf } from "../catalog/cover";
 import { canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
 import { BookProgressLine } from "../components/BookProgress";
 import { MediaTypeTile, type TileState } from "../components/MediaTypeTile";
@@ -15,11 +15,10 @@ import { libraryTile } from "../library/library-tabs";
 import { usePageTitle } from "../navigation/page-title";
 import { itemPath } from "../navigation/paths";
 
-// Saved at "/": one tile per Media Type Saved offers, in the order every section keeps, each opening
-// its tabs, in a 2×2 grid at every width (`docs/mockups/games/`). The heading names the list of
-// tiles. Under them, for each Media Type that has In
-// Progress, what the User has In Progress, if anything (`docs/mockups/books/`,
-// `docs/mockups/series-progress/`). Being the home
+// Saved at "/": one tile per Media Type Saved offers, in the order every section keeps, each
+// opening its tabs, in a 2×2 grid at every width (`docs/mockups/games/`). The heading names the
+// list of tiles. Under them, for each Media Type that has In Progress, what the User has In
+// Progress, if anything (`docs/mockups/books/`, `docs/mockups/series-progress/`). Being the home
 // page, its title is the app's name alone.
 export function SavedPage() {
   const headingId = useId();
@@ -122,28 +121,14 @@ function InProgressNow({
   );
 }
 
-// Who made a Media Item, as its row names them: a book's first author, a game's developer.
-function makerOf(mediaItem: MediaItem): string | null {
-  switch (mediaItem.mediaType) {
-    case "book": {
-      const firstAuthor = mediaItem.metadata?.authors[0];
-      return firstAuthor ? authorName(firstAuthor) : null;
-    }
-    case "game":
-      return mediaItem.metadata?.developer ?? null;
-    default:
-      return null;
-  }
-}
-
 // What a row says under its title: the first author or the developer and since when, "Susanna
 // Clarke · since Oct 12", "GSC Game World · since 3 November", leaving out whichever is unknown.
 function rowMeta({ mediaItem, inProgress }: LibraryItem): string | null {
-  const author = makerOf(mediaItem);
+  const maker = makerOf(mediaItem);
   const date = inProgress?.startDate ? formatCalendarDayAndMonth(inProgress.startDate) : null;
-  if (author && date) return t("inProgress.authorAndSince", { author, date });
+  if (maker && date) return t("inProgress.authorAndSince", { author: maker, date });
   if (date) return t("inProgress.since", { date });
-  return author;
+  return maker;
 }
 
 function InProgressRow({ item }: { item: LibraryItem }) {

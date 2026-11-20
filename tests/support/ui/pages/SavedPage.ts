@@ -45,6 +45,11 @@ export class SavedPage extends BasePage {
   // The games the User is playing, one row each, a link to its page.
   readonly playingNow = this.main.getByRole("region", { name: "Playing now" });
   readonly playingNowRows = this.playingNow.getByRole("listitem");
+
+  // A row of Playing now, by its game's title, a link to the game's page.
+  playingNowRow(title: string) {
+    return this.playingNowRows.filter({ hasText: title }).getByRole("link");
+  }
   readonly toast = new Toast(this.page.getByRole("status"));
 
   // A row of Watching now, by its series' title.

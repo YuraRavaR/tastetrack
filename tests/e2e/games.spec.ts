@@ -261,7 +261,7 @@ test("Start playing makes a game Playing, which Saved lists under Playing now, a
     /^The Witcher 3: Wild Hunt\s*CD Projekt RED · since /,
     /^S\.T\.A\.L\.K\.E\.R\.: Shadow of Chernobyl\s*GSC Game World · since Nov 3$/,
   ]);
-  await savedPage.playingNowRows.first().getByRole("link").click();
+  await savedPage.playingNowRow("The Witcher 3: Wild Hunt").click();
   await expect(page).toHaveURL(filmPage.path(witcher.id));
 
   await card.stopPlayingButton.click();
@@ -280,6 +280,24 @@ test("Start playing makes a game Playing, which Saved lists under Playing now, a
   await expect(savedPage.playingNow).toHaveCount(0);
   await libraryPage.goto("Playing");
   await expect(libraryPage.tabs).toHaveText(["Backlog0", "Playing0", "Played0"]);
+});
+
+test("Undo takes back Start playing, and puts the game back on the Backlog", async ({
+  loggedInUi: ui,
+  loggedInApi: api,
+}) => {
+  const witcher = await witcher3(api);
+  await plan(api, witcher.id);
+  const { filmPage } = ui;
+  await filmPage.goto(witcher.id);
+
+  await filmPage.startPlayingButton.click();
+  await expect(filmPage.playingCard.root).toBeVisible();
+  await filmPage.toast.undo();
+
+  await expect(filmPage.playingCard.root).toHaveCount(0);
+  await expect(filmPage.onBacklogButton).toBeVisible();
+  await expect(filmPage.startPlayingButton).toBeVisible();
 });
 
 test("Finished records a Log Entry and ends Playing, and a second Played starts as a Replay", async ({

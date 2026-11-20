@@ -39,7 +39,7 @@ import {
 import * as api from "../api";
 import { filmName } from "../catalog/film-label";
 import { mediaItemYearAndRuntime } from "../catalog/found";
-import { hasProgress, type ProgressKind } from "../catalog/media-types";
+import { hasProgress, type MediaTypeWithProgress } from "../catalog/media-types";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { progressLabel } from "../in-progress/progress-label";
@@ -353,7 +353,7 @@ function ProgressRow({
   onChange,
   applyRef,
 }: {
-  mediaType: ProgressKind;
+  mediaType: MediaTypeWithProgress;
   started: Progress | null;
   value: Progress | null;
   onChange: (progress: Progress | null) => void;

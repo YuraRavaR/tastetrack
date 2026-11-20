@@ -24,6 +24,7 @@ const leadingPlatforms: readonly string[] = [
   "XONE",
   "Series X|S",
   // Nintendo
+  "G&W",
   "NES",
   "famicom",
   "FDS",
@@ -32,10 +33,12 @@ const leadingPlatforms: readonly string[] = [
   "SFAM",
   "VB",
   "N64",
+  "64DD",
   "GBC",
   "GBA",
   "NGC",
   "NDS",
+  "DSi",
   "Wii",
   "3DS",
   "WiiU",
@@ -44,6 +47,7 @@ const leadingPlatforms: readonly string[] = [
   "Switch 2",
 ];
 
+// A platform's place among the leading ones; any other platform comes after them all.
 function rank(platform: string): number {
   const index = leadingPlatforms.indexOf(platform);
   return index === -1 ? leadingPlatforms.length : index;

@@ -90,12 +90,17 @@ const placeholders: readonly Placeholder[] = [
   { icon: Glasses, caption: "poster.caption.incognito" },
 ];
 
-// The Media Types whose missing cover is set in type, as a book's cover would be; the others show
-// a placeholder icon.
-const typesetMediaTypes: readonly MediaType[] = ["book", "game"];
+// Whether a Media Type's missing cover is set in type, as a book's is, rather than shown as a
+// placeholder icon. A new Media Type doesn't compile until it says.
+const typesetCovers: Record<MediaType, boolean> = {
+  film: false,
+  book: true,
+  series: false,
+  game: true,
+};
 
 export function hasTypesetCover(mediaType: MediaType): boolean {
-  return typesetMediaTypes.includes(mediaType);
+  return typesetCovers[mediaType];
 }
 
 // One of the placeholders, the same for a Media Item every time, by its id. A search result that
@@ -105,22 +110,24 @@ export function placeholderFor(mediaItemId: number | null): Placeholder {
   return placeholders[mediaItemId % placeholders.length] ?? filmPlaceholder;
 }
 
-// What a cover set in type says where a book or a game has no image: its title, and a book's first
-// author as shown or a game's developer. Null where unknown.
+// What a cover set in type says where a book or a game has no image: its title, and its maker,
+// a book's first author as shown or a game's developer. Null where unknown.
 export interface TypesetCover {
   title: string | null;
-  author: string | null;
+  maker: string | null;
 }
 
 export function typesetCoverOf(subject: MediaItem | Found): TypesetCover {
   if ("kind" in subject && subject.kind === "catalog") {
-    return { title: subject.title, author: firstAuthor(subject.authors) };
+    return { title: subject.title, maker: firstAuthor(subject.authors) };
   }
   const mediaItem = "kind" in subject ? subject.mediaItem : subject;
-  return { title: mediaItem.metadata?.title ?? null, author: makerOf(mediaItem) };
+  return { title: mediaItem.metadata?.title ?? null, maker: makerOf(mediaItem) };
 }
 
-function makerOf(mediaItem: MediaItem): string | null {
+// Who made a Media Item, as its cover and rows name them: a book's first author as shown, a game's
+// developer. Null for a film or a series, and where unknown.
+export function makerOf(mediaItem: MediaItem): string | null {
   switch (mediaItem.mediaType) {
     case "book":
       return firstAuthor(mediaItem.metadata?.authors);

@@ -44,32 +44,32 @@ const imageSizes: Record<PosterSize, CoverImageSize> = {
 };
 
 // What a cover set in type takes at each size: its padding and its title's size, how far in its
-// frame sits, how many lines its title may take, and its author's size and lines. The smallest
+// frame sits, how many lines its title may take, and its maker's size and lines. The smallest
 // have room for the title alone.
 interface Typeset {
   box: string;
   frame: string;
   title: string;
-  author: string;
+  maker: string;
 }
 
 const titleOnly: Typeset = {
   box: "px-1.25 py-1.5 text-[8px]",
   frame: "hidden",
   title: "line-clamp-6",
-  author: "hidden",
+  maker: "hidden",
 };
 const compact: Typeset = {
   box: "px-2.25 pt-3 pb-2.25 text-[11px]",
   frame: "inset-1.25",
   title: "line-clamp-4",
-  author: "line-clamp-1 text-[9px]",
+  maker: "line-clamp-1 text-[9px]",
 };
 const roomy: Typeset = {
   box: "px-3 pt-4 pb-3.25 text-sm",
   frame: "inset-1.5",
   title: "line-clamp-5",
-  author: "line-clamp-2 text-[11px]",
+  maker: "line-clamp-2 text-[11px]",
 };
 
 const typesets: Record<PosterSize, Typeset> = {
@@ -79,13 +79,13 @@ const typesets: Record<PosterSize, Typeset> = {
     box: `${compact.box} md:px-1.25 md:py-1.5 md:text-[8px]`,
     frame: `${compact.frame} md:hidden`,
     title: `${compact.title} md:line-clamp-6`,
-    author: `${compact.author} md:hidden`,
+    maker: `${compact.maker} md:hidden`,
   },
   large: {
     box: `${roomy.box} sm:px-4.5 sm:pt-6 sm:pb-5 sm:text-[22px]`,
     frame: `${roomy.frame} sm:inset-2`,
     title: roomy.title,
-    author: `${roomy.author} sm:text-[13px]`,
+    maker: `${roomy.maker} sm:text-[13px]`,
   },
   grid: roomy,
   // Saved's fan is 52 px wide on a phone, room for the title alone (`docs/mockups/games/`).
@@ -93,7 +93,7 @@ const typesets: Record<PosterSize, Typeset> = {
     box: `${titleOnly.box} md:px-2.25 md:pt-3 md:pb-2.25 md:text-[11px]`,
     frame: `${titleOnly.frame} md:block md:inset-1.25`,
     title: `${titleOnly.title} md:line-clamp-4`,
-    author: `${titleOnly.author} md:line-clamp-1 md:text-[9px]`,
+    maker: `${titleOnly.maker} md:line-clamp-1 md:text-[9px]`,
   },
   collage: compact,
 };
@@ -126,7 +126,7 @@ export function Poster({
   }
 
   if (hasTypesetCover(cover.mediaType)) {
-    const { title, author } = typesetCoverOf(subject);
+    const { title, maker } = typesetCoverOf(subject);
     const typeset = typesets[size];
     return (
       <div
@@ -145,8 +145,8 @@ export function Poster({
           )}
         />
         <b className={cn("[overflow-wrap:anywhere]", typeset.title)}>{title}</b>
-        {author && (
-          <span className={cn("mt-auto text-muted-foreground", typeset.author)}>{author}</span>
+        {maker && (
+          <span className={cn("mt-auto text-muted-foreground", typeset.maker)}>{maker}</span>
         )}
       </div>
     );

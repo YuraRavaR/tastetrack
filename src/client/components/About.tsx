@@ -144,18 +144,12 @@ export function SourceLink({
   className?: string;
 }) {
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer"
-      className={cn(
-        "inline-flex h-11 items-center gap-1.5 rounded-lg px-2.5 font-semibold text-[14px] text-primary-strong underline-offset-4 hover:underline sm:text-[15px] [&>svg]:size-4",
-        className,
-      )}
-    >
-      {source}
-      <ExternalLink aria-hidden />
-    </a>
+    <Button asChild variant="ghost" className={cn(linkClass, "gap-1.5", className)}>
+      <a href={url} target="_blank" rel="noreferrer">
+        {source}
+        <ExternalLink aria-hidden />
+      </a>
+    </Button>
   );
 }
 

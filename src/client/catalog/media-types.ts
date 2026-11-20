@@ -68,10 +68,11 @@ export function canProgress(mediaType: MediaType): mediaType is ProgressMediaTyp
 
 // The Media Types whose In Progress holds Progress: a series' episode and a book's page. A game is
 // played without one (ADR-0012).
-export type ProgressKind = Progress["mediaType"];
+export type MediaTypeWithProgress = Progress["mediaType"];
 
-const progressKinds: readonly ProgressKind[] = ["book", "series"];
+const mediaTypesWithProgress: Record<MediaTypeWithProgress, true> = { book: true, series: true };
 
-export function hasProgress(mediaType: MediaType): mediaType is ProgressKind {
-  return (progressKinds as readonly MediaType[]).includes(mediaType);
+// Whether a Media Type's In Progress holds Progress.
+export function hasProgress(mediaType: MediaType): mediaType is MediaTypeWithProgress {
+  return mediaType in mediaTypesWithProgress;
 }

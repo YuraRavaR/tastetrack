@@ -115,13 +115,19 @@ export function foundSubtitle(found: Found): string | null {
   }
 }
 
-// The Media Types whose rows name a result without its year, which follows on the next line.
-const namedWithoutYear: readonly MediaType[] = ["book", "game"];
+// Whether a Media Type's rows name a result without its year, which follows on the next line. A
+// new Media Type doesn't compile until it says.
+const namedWithoutYear: Record<MediaType, boolean> = {
+  film: false,
+  book: true,
+  series: false,
+  game: true,
+};
 
 // What a result's row is titled: a film or a series by its label, "Alien (1979)", and a book or a
 // game by its name alone, since its year is on the next line.
 export function foundRowTitle(found: Found): string {
-  return namedWithoutYear.includes(foundMediaType(found)) ? foundName(found) : foundLabel(found);
+  return namedWithoutYear[foundMediaType(found)] ? foundName(found) : foundLabel(found);
 }
 
 // The film's Media Item, adding a source's result to the catalog first; null when that fails.

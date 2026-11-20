@@ -22,7 +22,7 @@ export class UserMediaItemMatches extends ScopedComponent {
 }
 
 // A Media Type chip's name.
-export type MediaTypeChip = "Films" | "Books" | "Series" | "Games";
+type MediaTypeChip = "Films" | "Books" | "Series" | "Games";
 
 // A Media Type in Search's address, unless it is films.
 type SearchMediaType = "book" | "series" | "game";

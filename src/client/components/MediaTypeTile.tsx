@@ -57,7 +57,7 @@ export function MediaTypeTile({ mediaType, state }: { mediaType: MediaType; stat
         // Above the link stretched over the tile, so it opens Search rather than the tabs.
         <Button
           asChild
-          className="relative mt-3.5 h-11 rounded-xl px-3 font-semibold md:mt-3.5 md:justify-self-start md:px-4.5 md:[grid-area:action]"
+          className="relative mt-3.5 h-11 rounded-xl px-3 font-semibold md:justify-self-start md:px-4.5 md:[grid-area:action]"
         >
           <Link to={searchPathOf(mediaType)}>
             <Search aria-hidden />
