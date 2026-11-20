@@ -5,7 +5,7 @@ import { expect, test } from "../support/fixtures";
 // with its own icon and name. A static file, so a missing one would fall through to the app's
 // index.html, which no browser takes for a manifest.
 
-const link = '<link rel="manifest" href="/manifest.webmanifest" />';
+const manifestLink = '<link rel="manifest" href="/manifest.webmanifest" />';
 
 test("/manifest.webmanifest is served as a manifest that installs TasteTrack full screen", async ({
   request,
@@ -58,7 +58,7 @@ test("every page of the app links the manifest", async ({ request }) => {
   for (const path of ["/", "/saved/films/watchlist"]) {
     const html = await (await request.get(path)).text();
 
-    expect(html, path).toContain(link);
+    expect(html, path).toContain(manifestLink);
   }
 });
 
@@ -72,5 +72,5 @@ test("a Share Link's page keeps the manifest's link", async ({ loggedInApi }) =>
 
   const sharePage = await (await loggedInApi.sharedLists.getSharedListPage(token)).text();
 
-  expect(sharePage).toContain(link);
+  expect(sharePage).toContain(manifestLink);
 });

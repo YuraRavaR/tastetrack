@@ -8,11 +8,11 @@ import { Poster } from "./Poster";
 // What opens a Media Item's page: a film's or a series' backdrop, or a game's art, whole, at 16:9,
 // fading into the page, with the poster pulled up over its bottom edge and the title beside it. On
 // a phone the picture runs edge to edge under the page's Back, out of the page's padding; from `sm`
-// it fills the column. A film or a series with a poster and no backdrop, and every book with a cover,
-// since a book has no backdrop, shows the cover in the picture's place, blurred: scaled past the
-// picture's edges, so the blur's soft border is cropped away. Without either there is no picture,
-// and the poster row starts at the top. The picture's box and the poster's size are fixed, so the
-// page doesn't move when the images arrive.
+// it fills the column. A film or a series with a poster and no backdrop, and every book with a
+// cover, since a book has no backdrop, shows the cover in the picture's place, blurred: scaled past
+// the picture's edges, so the blur's soft border is cropped away. Without either there is no
+// picture, and the poster row starts at the top. The picture's box and the poster's size are fixed,
+// so the page doesn't move when the images arrive.
 export function FilmBanner({
   mediaItem,
   sourceLink,
@@ -47,7 +47,8 @@ export function FilmBanner({
       <div
         className={cn(
           "relative flex items-end gap-3.5 sm:gap-7 sm:px-6",
-          // Without a picture the row sits right under Back on a phone, 40 px under the header from sm.
+          // Without a picture the row sits right under Back on a phone, and 40 px under the header
+          // from sm.
           pictureImage ? "-mt-18 sm:-mt-43" : "sm:mt-4",
         )}
       >

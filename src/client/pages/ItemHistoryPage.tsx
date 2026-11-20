@@ -41,14 +41,15 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
   }
 }
 
-// One Media Item's page, its Item History: on a phone Back, then a banner with its title, then, indented with it from
-// `sm`, what it is about when the Worker says, tiles for how the User watched and rated it, the
-// actions they can take on it, and its History: every Log Entry and Thought, newest first, each of
-// which can be edited or deleted, and Add a thought, which writes a new one. A Media Item with no
-// Log Entries has no tiles, and one with neither says what will show in History. After a new entry
-// or Thought, an edit or a delete it reloads, so the order and the Current Rating are always the
-// Worker's. A Media Item the User added manually can be edited too, or deleted with everything
-// that goes with it. A Media Type that can't be logged has the banner and its actions alone.
+// One Media Item's page, its Item History: on a phone, Back, then a banner with its title, then,
+// indented with it from `sm`, what it is about when the Worker says, tiles for how the User watched
+// and rated it, the actions they can take on it, and its History: every Log Entry and Thought,
+// newest first, each of which can be edited or deleted, and Add a thought, which writes a new one.
+// A Media Item with no Log Entries has no tiles, and one with neither says what will show in
+// History. After a new entry or Thought, an edit or a delete it reloads, so the order and the
+// Current Rating are always the Worker's. A Media Item the User added manually can be edited too,
+// or deleted with everything that goes with it. A Media Type that can't be logged has the banner
+// and its actions alone.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();
