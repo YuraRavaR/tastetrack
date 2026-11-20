@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import packageJson from "../../package.json" with { type: "json" };
 import type { ApiClient } from "../support/api/ApiClient";
 import { expectBody } from "../support/api/responses";
+import { manualBook } from "../support/scenarios/books";
 import { alien } from "../support/scenarios/films";
 import type { TestUser } from "../support/scenarios/users";
 import { settledBoxOf } from "../support/ui/boxes";
@@ -229,6 +230,46 @@ test.describe("on a phone", () => {
     for (const item of await items.all()) expect(await heightOf(item)).toBeGreaterThanOrEqual(44);
   });
 
+  // An installed app has no browser Back, and Search's tab opens an empty Search, so a Media
+  // Item's page has a Back of its own.
+  test("Back on a film's page opened from Search returns to the results of the same query", async ({
+    page,
+    ui,
+    loggedInApi: api,
+  }) => {
+    const film = await alien(api);
+    const { searchPage, filmPage } = ui;
+    await searchPage.goto();
+    await searchPage.search("alien");
+    await searchPage.searchResults.link("Alien (1979)").click();
+    await expect(page).toHaveURL(filmPage.path(film.id));
+
+    await filmPage.backLink.click();
+
+    await expect(page).toHaveURL(searchPage.path("alien"));
+    await expect(searchPage.searchBox).toHaveValue("alien");
+    await expect(searchPage.searchResults.link("Alien (1979)")).toBeVisible();
+  });
+
+  test("Back on a book's page opened from a pasted link goes to Saved's Books, after logging in", async ({
+    page,
+    ui,
+    api,
+    registeredUser,
+  }) => {
+    expect((await api.auth.login(registeredUser)).status()).toBe(200);
+    const book = await manualBook(api, { title: "Доця", year: 2019 });
+    expect((await api.auth.logout()).status()).toBe(204);
+    const { filmPage, loginPage, libraryPage } = ui;
+    await filmPage.goto(book.id);
+    await loginPage.logIn(registeredUser);
+    await expect(filmPage.heading).toContainText("Доця");
+
+    await filmPage.backLink.click();
+
+    await expect(page).toHaveURL(libraryPage.path("Reading list"));
+  });
+
   test("the footer credits TMDB and shows the app version", async ({ loggedInUi: ui }) => {
     await ui.libraryPage.goto();
 
@@ -251,6 +292,22 @@ test.describe("from md", () => {
     loggedInApi: api,
   }) => {
     await expectCurrentSectionWithin(ui.listPage.header.mainNav, ui, api);
+  });
+
+  test("a film's page has Back on a phone only: from md the browser's is the way", async ({
+    page,
+    ui,
+    loggedInApi: api,
+  }) => {
+    const film = await alien(api);
+    await ui.filmPage.goto(film.id);
+    await expect(ui.filmPage.heading).toBeVisible();
+
+    await expect(ui.filmPage.backLink).toBeHidden();
+
+    await page.setViewportSize({ width: 402, height: 874 });
+
+    await expect(ui.filmPage.backLink).toBeVisible();
   });
 
   test("the account button shows the Display Name and opens the account menu", async ({

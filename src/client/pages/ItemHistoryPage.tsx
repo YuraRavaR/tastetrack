@@ -7,6 +7,7 @@ import * as api from "../api";
 import { filmTitleAndYear } from "../catalog/film-label";
 import { can } from "../catalog/media-types";
 import { About, aboutIsEmpty, aboutProps, SourceLink } from "../components/About";
+import { BackLink } from "../components/BackLink";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
 import { DeleteThoughtDialog } from "../components/DeleteThoughtDialog";
@@ -40,14 +41,15 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
   }
 }
 
-// One Media Item's page, its Item History: a banner with its title, then, indented with it from
-// `sm`, what it is about when the Worker says, tiles for how the User watched and rated it, the
-// actions they can take on it, and its History: every Log Entry and Thought, newest first, each of
-// which can be edited or deleted, and Add a thought, which writes a new one. A Media Item with no
-// Log Entries has no tiles, and one with neither says what will show in History. After a new entry
-// or Thought, an edit or a delete it reloads, so the order and the Current Rating are always the
-// Worker's. A Media Item the User added manually can be edited too, or deleted with everything
-// that goes with it. A Media Type that can't be logged has the banner and its actions alone.
+// One Media Item's page, its Item History: on a phone, Back, then a banner with its title, then,
+// indented with it from `sm`, what it is about when the Worker says, tiles for how the User watched
+// and rated it, the actions they can take on it, and its History: every Log Entry and Thought,
+// newest first, each of which can be edited or deleted, and Add a thought, which writes a new one.
+// A Media Item with no Log Entries has no tiles, and one with neither says what will show in
+// History. After a new entry or Thought, an edit or a delete it reloads, so the order and the
+// Current Rating are always the Worker's. A Media Item the User added manually can be edited too,
+// or deleted with everything that goes with it. A Media Type that can't be logged has the banner
+// and its actions alone.
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();
@@ -101,19 +103,22 @@ export function ItemHistoryPage() {
   const aboutShown = shownAbout && !(sourceUrl && aboutIsEmpty(shownAbout)) ? shownAbout : null;
   return (
     <div className="flex flex-col gap-4.5 sm:gap-5.5">
-      <FilmBanner
-        mediaItem={mediaItem}
-        sourceLink={
-          sourceUrl &&
-          !aboutShown && (
-            <SourceLink
-              source={t("about.fromIgdb")}
-              url={sourceUrl}
-              className="-ml-2.5 self-start"
-            />
-          )
-        }
-      />
+      <div className="flex flex-col gap-1">
+        <BackLink mediaType={mediaItem.mediaType} />
+        <FilmBanner
+          mediaItem={mediaItem}
+          sourceLink={
+            sourceUrl &&
+            !aboutShown && (
+              <SourceLink
+                source={t("about.fromIgdb")}
+                url={sourceUrl}
+                className="-ml-2.5 self-start"
+              />
+            )
+          }
+        />
+      </div>
       <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
         {aboutShown && <About {...aboutShown} sourceUrl={sourceUrl} />}
         {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}

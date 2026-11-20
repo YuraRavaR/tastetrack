@@ -182,6 +182,9 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly anyPath = /\/items\/\d+$/;
 
   readonly heading = this.main.getByRole("heading", { level: 1 });
+  // "‹ Back" above the banner on a phone: to where the User came from, or to Saved of the Media
+  // Item's Media Type when they opened the page directly.
+  readonly backLink = this.main.getByRole("link", { name: "Back", exact: true });
   // The picture the banner opens with: the backdrop, or the poster blurred when there is none.
   readonly picture = this.main.locator("picture");
   readonly pictureImage = this.picture.locator("img");

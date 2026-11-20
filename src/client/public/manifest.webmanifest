@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "TasteTrack",
+  "short_name": "TasteTrack",
+  "description": "Keep track of the films you want to watch and the ones you've seen.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#fffdf9",
+  "background_color": "#f9f4ec",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

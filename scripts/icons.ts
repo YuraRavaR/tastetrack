@@ -1,9 +1,11 @@
 // Redraws the bitmap icons from src/client/public/favicon.svg, in its light colours, and the link
 // card: `pnpm exec tsx scripts/icons.ts`. favicon.ico is the mark at 32×32 on no ground, for
 // browsers without SVG favicons; apple-touch-icon.png is the mark at 180×180 on the light
-// --background, padded so the rounding iOS adds never cuts it. og-image.png is the 1200×630 card
-// a link shows in a messenger, as docs/mockups/logo/ draws it: the logo and the slogan, always
-// light. Commit them with the SVG.
+// --background, padded so the rounding iOS adds never cuts it. icon-192.png and icon-512.png are
+// the web app manifest's icons, drawn as apple-touch-icon.png is, and icon-maskable-512.png the one
+// Android cuts to its launcher's shape, the mark inside the safe zone: the middle circle, 80% of
+// the side across. og-image.png is the 1200×630 card a link shows in a messenger, as
+// docs/mockups/logo/ draws it: the logo and the slogan, always light. Commit them with the SVG.
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -96,6 +98,15 @@ async function card() {
 writeFileSync(join(publicDir, "favicon.ico"), ico(await draw(32, 32), 32));
 // 100 of 180: about the share of the tile the mark takes in docs/mockups/logo/logo.html.
 writeFileSync(join(publicDir, "apple-touch-icon.png"), await draw(180, 100, background));
+// The manifest's icons for any use, in apple-touch-icon.png's proportion.
+for (const size of [192, 512]) {
+  writeFileSync(
+    join(publicDir, `icon-${size}.png`),
+    await draw(size, Math.round((size * 100) / 180), background),
+  );
+}
+// Half the side: the mark's corners then lie 35% of the side from the middle, inside the safe zone.
+writeFileSync(join(publicDir, "icon-maskable-512.png"), await draw(512, 256, background));
 writeFileSync(join(publicDir, "og-image.png"), await card());
 
 await browser.close();

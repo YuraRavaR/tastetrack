@@ -60,6 +60,10 @@ It prompts for the Username, ends every session of theirs and prints a random Te
 
 Logging in sets an HttpOnly `session` cookie (`Secure` over HTTPS, `SameSite=Lax`). The database keeps only the SHA-256 of the session token. A session is valid for 30 days from the User's last authenticated request, and logging out deletes it on the server.
 
+## Installing on a phone
+
+The app has a web app manifest (`src/client/public/manifest.webmanifest`), so it installs on a phone's home screen and opens full screen with its own icon and name: on an iPhone with Share → Add to Home Screen in Safari, on Android with Chrome's Install app. On an iPhone the installed app keeps its own cookies, apart from Safari's, so a User logs in once inside it, even when already logged in in Safari. There is no service worker: the app needs the network, as in a browser.
+
 ## TMDB
 
 Film search calls TMDB (ADR-0004) at `TMDB_BASE_URL`, set per env in `wrangler.jsonc`, with the secret `TMDB_ACCESS_TOKEN`: TMDB's "API Read Access Token" (Settings → API), sent as a bearer token. Staging and production use the real TMDB, so each needs the secret once:
