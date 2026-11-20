@@ -253,7 +253,7 @@ test("the chips are one control the width of the field, with equal thumb-sized s
   const { searchPage } = ui;
   await page.setViewportSize({ width: 402, height: 874 });
   await searchPage.goto(undefined, "book");
-  const chips = ["Films", "Books", "Series"] as const;
+  const chips = ["Films", "Books", "Series", "Games"] as const;
 
   const [field, control] = await Promise.all([
     box(searchPage.searchBox),

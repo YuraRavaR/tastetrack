@@ -126,7 +126,7 @@ test("the Books tile counts the Reading list and fans out its latest covers, one
 
   await savedPage.goto();
 
-  await expect(savedPage.tiles).toHaveCount(3);
+  await expect(savedPage.tiles).toHaveCount(4);
   const books = savedPage.tile("Books");
   await expect(books.root).toContainText("4 to read · 0 read");
   await expect(books.link).toHaveAccessibleDescription("4 to read · 0 read");

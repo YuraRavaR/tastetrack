@@ -8,6 +8,7 @@ import * as api from "../api";
 import { mediaWord } from "../i18n/media-words";
 import { authorsAndYear } from "./book-label";
 import { filmLabel, filmName, filmYearAndRuntime } from "./film-label";
+import { yearAndPlatforms } from "./game-label";
 
 // A work that search found: one of the User's own Manual Media Items, or an External Source's
 // result, which joins the catalog once a User acts on it, if none has yet.
@@ -88,21 +89,45 @@ export function mediaItemYearAndRuntime(mediaItem: MediaItem): string | null {
   return filmYearAndRuntime({ year: metadata.year, runtime: runtime ?? null });
 }
 
-// "Іван Багряний · 1946", as authorsAndYear writes it: what a book's row says under its title.
-// Null for a film, whose year is in its title.
-export function foundAuthorsAndYear(found: Found): string | null {
-  if (foundMediaType(found) !== "book") return null;
-  if (found.kind === "catalog") return authorsAndYear(found);
+// What a result's row says under its title: a book's authors and year, "Іван Багряний · 1946", as
+// authorsAndYear writes it, and a game's year and platforms, "2015 · PC, PS4, PS5 +4", as
+// yearAndPlatforms does. Null for a film or a series, whose year is in its title.
+export function foundSubtitle(found: Found): string | null {
+  if (found.kind === "catalog") {
+    switch (found.externalReference.mediaType) {
+      case "book":
+        return authorsAndYear(found);
+      case "game":
+        return yearAndPlatforms({ year: found.year, platforms: found.platforms ?? [] });
+      default:
+        return null;
+    }
+  }
   const { mediaItem } = found;
-  return mediaItem.mediaType === "book" && mediaItem.metadata
-    ? authorsAndYear(mediaItem.metadata)
-    : null;
+  if (!mediaItem.metadata) return null;
+  switch (mediaItem.mediaType) {
+    case "book":
+      return authorsAndYear(mediaItem.metadata);
+    case "game":
+      return yearAndPlatforms(mediaItem.metadata);
+    default:
+      return null;
+  }
 }
 
-// What a result's row is titled: a film by its label, "Alien (1979)", and a book by its name
-// alone, since its year follows its authors on the next line.
+// Whether a Media Type's rows name a result without its year, which follows on the next line. A
+// new Media Type doesn't compile until it says.
+const namedWithoutYear: Record<MediaType, boolean> = {
+  film: false,
+  book: true,
+  series: false,
+  game: true,
+};
+
+// What a result's row is titled: a film or a series by its label, "Alien (1979)", and a book or a
+// game by its name alone, since its year is on the next line.
 export function foundRowTitle(found: Found): string {
-  return foundMediaType(found) === "book" ? foundName(found) : foundLabel(found);
+  return namedWithoutYear[foundMediaType(found)] ? foundName(found) : foundLabel(found);
 }
 
 // The film's Media Item, adding a source's result to the catalog first; null when that fails.

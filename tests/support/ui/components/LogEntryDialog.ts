@@ -13,6 +13,8 @@ export class LogEntryDialog extends ScopedComponent {
   readonly seriesRevisitHint = this.root.getByText("You've watched it from the start before");
   // A book's, which the UI calls a Reread.
   readonly bookRevisitSwitch = this.root.getByRole("switch", { name: "Reread" });
+  // A game's, which the UI calls a Replay.
+  readonly gameRevisitSwitch = this.root.getByRole("switch", { name: "Replay" });
   readonly reviewInput = this.root.getByLabel("Review");
   readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
   readonly dateError = this.root.getByText("That isn't a valid date.");

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link, Outlet, useLocation, useMatch } from "react-router";
 import { cn } from "@/lib/utils";
 import { version } from "../../../package.json";
@@ -10,15 +11,15 @@ import { AccountMenu } from "./AccountMenu";
 import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 
 // The frame of every page: a header above a content column, and a footer with the credit TMDB's
-// terms require (ADR-0004), Open Library's credit under it (ADR-0011) and the app version, which
-// from `md` ends the credit's line. Header and footer stop at `max-w-6xl`, which Saved
-// uses for its tiles and grids of posters, Collections for its cards, one Collection and a Share
-// Link's page for their grids; every other page keeps the narrower column, Search one a little
-// wider for its grid of covers, and a film's page wider still (960 px of content from `sm`) for
-// its backdrop. Logged out, the header holds only the logo, and on a Share Link's page a "Log in"
-// link that comes back to it. A logged-in User gets the sections, in a bottom tab bar on a phone
-// and in the header from `md`, and the account menu. A User who must set a new password gets
-// only the account menu, to log out.
+// terms require (ADR-0004), Open Library's credit under it (ADR-0011), IGDB's under that (ADR-0012)
+// and the app version, which from `md` ends the last credit's line. Header and footer stop at
+// `max-w-6xl`, which Saved uses for its tiles and grids of posters, Collections for its cards, one
+// Collection and a Share Link's page for their grids; every other page keeps the narrower column,
+// Search one a little wider for its grid of covers, and a film's page wider still (960 px of
+// content from `sm`) for its backdrop. Logged out, the header holds only the logo, and on a Share
+// Link's page a "Log in" link that comes back to it. A logged-in User gets the sections, in a
+// bottom tab bar on a phone and in the header from `md`, and the account menu. A User who must set
+// a new password gets only the account menu, to log out.
 export function AppLayout() {
   const { state } = useAuth();
   const authenticated = state.status === "authenticated";
@@ -95,16 +96,14 @@ export function AppLayout() {
           <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
             <p>
               {tRich("attribution.openLibrary", {
-                link: (text) => (
-                  <a
-                    href="https://openlibrary.org/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-foreground underline underline-offset-2"
-                  >
-                    {text}
-                  </a>
-                ),
+                link: (text) => <CreditLink href="https://openlibrary.org/">{text}</CreditLink>,
+              })}
+            </p>
+          </div>
+          <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+            <p>
+              {tRich("attribution.igdb", {
+                link: (text) => <CreditLink href="https://www.igdb.com/">{text}</CreditLink>,
               })}
             </p>
             <p className="shrink-0 md:ml-auto">{t("app.version", { version })}</p>
@@ -113,5 +112,19 @@ export function AppLayout() {
       </footer>
       {authenticated && <SectionTabBar />}
     </div>
+  );
+}
+
+// An External Source's name in its credit, linking to the source in a new tab.
+function CreditLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="text-foreground underline underline-offset-2"
+    >
+      {children}
+    </a>
   );
 }

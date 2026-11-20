@@ -6,7 +6,16 @@ import { WatchingRow } from "../components/WatchingRow";
 import { BasePage } from "./BasePage";
 
 // A film's tabs and a book's; a series has a film's, and Watching between them.
-export type LibraryTab = "Watchlist" | "Watching" | "Watched" | "Reading list" | "Reading" | "Read";
+export type LibraryTab =
+  | "Watchlist"
+  | "Watching"
+  | "Watched"
+  | "Reading list"
+  | "Reading"
+  | "Read"
+  | "Backlog"
+  | "Playing"
+  | "Played";
 
 // The chips above the grid: the sort, then the filters; Genre only for films, Rating only on
 // Watched.
@@ -14,19 +23,25 @@ export type LibraryChip = "Sort" | "Genre" | "Decade" | "Rating";
 
 // Each tab's word in the address, and the word of the Media Type it is on unless a series' tab is
 // asked for.
-const tabPaths: Record<LibraryTab, { slug: string; mediaType: "films" | "books" | "series" }> = {
+const tabPaths: Record<
+  LibraryTab,
+  { slug: string; mediaType: "films" | "books" | "series" | "games" }
+> = {
   Watchlist: { slug: "watchlist", mediaType: "films" },
   Watching: { slug: "watching", mediaType: "series" },
   Watched: { slug: "watched", mediaType: "films" },
   "Reading list": { slug: "reading-list", mediaType: "books" },
   Reading: { slug: "reading", mediaType: "books" },
   Read: { slug: "read", mediaType: "books" },
+  Backlog: { slug: "backlog", mediaType: "games" },
+  Playing: { slug: "playing", mediaType: "games" },
+  Played: { slug: "played", mediaType: "games" },
 };
 
-// Saved for one Media Type: a film's Watchlist and Watched tabs, a book's Reading list, Reading
-// and Read, and a series' Watchlist and Watched, each a grid of covers, and a series' Watching, a
-// list of rows. A film's tab and a series' have one name, so a series' is named with its Media
-// Type.
+// Saved for one Media Type: a film's Watchlist and Watched tabs, a book's Reading list, Reading and
+// Read, a series' Watchlist and Watched and a game's Backlog, Playing and Played, each a grid of
+// covers, and a series' Watching, a list of rows. A film's tab and a series' have one name, so a
+// series' is named with its Media Type.
 export class LibraryPage extends BasePage<[tab?: LibraryTab, mediaType?: "series"]> {
   path(tab: LibraryTab = "Watchlist", mediaType?: "series") {
     const { slug, mediaType: tabMediaType } = tabPaths[tab];

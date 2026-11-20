@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { Link } from "react-router";
 import type { LibraryItem, MediaType } from "../../shared/api";
 import * as api from "../api";
-import { authorName } from "../catalog/book-label";
+import { makerOf } from "../catalog/cover";
 import { canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
 import { BookProgressLine } from "../components/BookProgress";
 import { MediaTypeTile, type TileState } from "../components/MediaTypeTile";
@@ -15,10 +15,10 @@ import { libraryTile } from "../library/library-tabs";
 import { usePageTitle } from "../navigation/page-title";
 import { itemPath } from "../navigation/paths";
 
-// Saved at "/": one tile per Media Type Saved offers, in the order every section keeps, each opening
-// its tabs. The heading names the list of tiles. Under them, for each Media Type that has In
-// Progress, what the User has In Progress, if anything (`docs/mockups/books/`,
-// `docs/mockups/series-progress/`). Being the home
+// Saved at "/": one tile per Media Type Saved offers, in the order every section keeps, each
+// opening its tabs, in a 2×2 grid at every width (`docs/mockups/games/`). The heading names the
+// list of tiles. Under them, for each Media Type that has In Progress, what the User has In
+// Progress, if anything (`docs/mockups/books/`, `docs/mockups/series-progress/`). Being the home
 // page, its title is the app's name alone.
 export function SavedPage() {
   const headingId = useId();
@@ -29,7 +29,7 @@ export function SavedPage() {
       <h1 id={headingId} className="font-bold text-3xl tracking-tight md:text-4xl">
         {t("saved.title")}
       </h1>
-      <ul aria-labelledby={headingId} className="grid gap-3.5 md:grid-cols-2 md:gap-5">
+      <ul aria-labelledby={headingId} className="grid grid-cols-2 gap-3 md:gap-5">
         {savedMediaTypes.map((mediaType) => (
           <li key={mediaType} className="grid">
             <MediaTypeTile mediaType={mediaType} state={tiles[mediaType]} />
@@ -96,9 +96,9 @@ function useTiles(): [Record<MediaType, TileState>, (mediaType: MediaType) => Pr
   return [tiles, reload];
 }
 
-// "Reading now": one row per Media Item In Progress, the latest started first, each opening its
-// page and showing its Progress under the author (`docs/mockups/book-progress/`). Two columns from
-// `md`.
+// "Reading now" or "Playing now": one row per Media Item In Progress, the latest started first,
+// each opening its page and showing a book's Progress under its author
+// (`docs/mockups/book-progress/`); a game has none (`docs/mockups/games/`). Two columns from `md`.
 function InProgressNow({
   mediaType,
   items,
@@ -121,22 +121,22 @@ function InProgressNow({
   );
 }
 
-// What a row says under its title: the first author and since when, "Susanna Clarke · since Oct
-// 12", leaving out whichever is unknown.
+// What a row says under its title: the first author or the developer and since when, "Susanna
+// Clarke · since Oct 12", "GSC Game World · since 3 November", leaving out whichever is unknown.
 function rowMeta({ mediaItem, inProgress }: LibraryItem): string | null {
-  const firstAuthor = mediaItem.mediaType === "book" ? mediaItem.metadata?.authors[0] : undefined;
-  const author = firstAuthor ? authorName(firstAuthor) : null;
+  const maker = makerOf(mediaItem);
   const date = inProgress?.startDate ? formatCalendarDayAndMonth(inProgress.startDate) : null;
-  if (author && date) return t("inProgress.authorAndSince", { author, date });
+  if (maker && date) return t("inProgress.authorAndSince", { author: maker, date });
   if (date) return t("inProgress.since", { date });
-  return author;
+  return maker;
 }
 
 function InProgressRow({ item }: { item: LibraryItem }) {
   const { mediaItem } = item;
   const meta = rowMeta(item);
   return (
-    <li className="grid">
+    // A column of minmax(0, 1fr), so a long title is cut rather than widening the page.
+    <li className="grid grid-cols-1">
       <Link
         to={itemPath(mediaItem.id)}
         className="flex items-center gap-3.5 rounded-xl border bg-card p-2.5 pr-4 hover:border-muted-foreground"

@@ -20,13 +20,13 @@ import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import {
   type Found,
-  foundAuthorsAndYear,
   foundKey,
   foundLabel,
   foundManual,
   foundMediaItemId,
   foundMediaType,
   foundRowTitle,
+  foundSubtitle,
   mediaItemOf,
 } from "../catalog/found";
 import { can, canProgress } from "../catalog/media-types";
@@ -40,7 +40,7 @@ import {
   withoutUserMediaItems,
 } from "../catalog/user-media-items";
 import { mediaWord, progressWord } from "../i18n/media-words";
-import { t } from "../i18n/t";
+import { type MessageId, t } from "../i18n/t";
 import { itemPath, listPath } from "../navigation/paths";
 import { EmptyState } from "./EmptyState";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
@@ -73,6 +73,9 @@ const noMatchIcons: Record<MediaType, LucideIcon> = {
   series: Tv,
   game: Gamepad2,
 };
+
+// What Search adds when it finds no game: IGDB knows games by their English names alone.
+const noMatchHints: Partial<Record<MediaType, MessageId>> = { game: "search.englishTitleHint" };
 
 // What Search finds of one Media Type as the User types, with no button, for the query in the URL.
 // The User's Media Items that match, those in their Library or on their Lists, come first, "In
@@ -343,6 +346,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
         <EmptyState
           icon={noMatchIcons[mediaType]}
           message={mediaWord(mediaType, "searchNoMatch", { query: trimmed })}
+          hint={noMatchHints[mediaType] && t(noMatchHints[mediaType])}
           action={
             addable
               ? {
@@ -459,10 +463,12 @@ function UserMediaItemStatusLine({ item }: { item: UserMediaItem }) {
     );
   }
   if (status.kind === "inProgress") {
-    // Only a Media Type that has In Progress can be In Progress.
+    // Only a Media Type that has In Progress can be In Progress. A game being played shows its
+    // gamepad, as its Playing card does.
+    const InProgressIcon = mediaType === "game" ? Gamepad2 : BookOpen;
     return (
       canProgress(mediaType) && (
-        <StatusLine icon={<BookOpen aria-hidden className="size-3.5" />}>
+        <StatusLine icon={<InProgressIcon aria-hidden className="size-3.5" />}>
           {progressWord(mediaType, "inProgress")}
         </StatusLine>
       )
@@ -534,7 +540,7 @@ function SearchResult({
   const { currentRating, logEntryCount } = log;
   const inLog = logEntryCount > 0;
   const name = foundRowTitle(found);
-  const authorsAndYear = foundAuthorsAndYear(found);
+  const subtitle = foundSubtitle(found);
 
   return (
     <li className="relative flex items-start gap-3 p-3 md:items-center">
@@ -559,8 +565,8 @@ function SearchResult({
               {name}
             </button>
           )}
-          {authorsAndYear && (
-            <span className="break-words text-muted-foreground text-sm">{authorsAndYear}</span>
+          {subtitle && (
+            <span className="break-words text-muted-foreground text-sm">{subtitle}</span>
           )}
           <span className="relative flex flex-wrap items-center gap-x-2 text-xs empty:hidden">
             {found.kind === "manual" && (

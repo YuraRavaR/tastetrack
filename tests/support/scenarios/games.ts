@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import type { CatalogSearchResult, ExternalReference, NewManualGameRequest } from "@shared/api";
 import type { ApiClient } from "../api/ApiClient";
 import { expectBody } from "../api/responses";
@@ -76,8 +76,15 @@ export const crisisCoreReunionId = "205201";
 export const thronebreakerId = "107300";
 // A game without a cover, artworks or screenshots.
 export const spiritGlaiveId = "365395";
+export const spiritGlaive = (client: ApiClient) => game(client, "spirit glaive", spiritGlaiveId);
 
 // An image on IGDB's CDN in one of its sizes, as the Worker links it.
 export function igdbImage(size: string, imageId: string) {
   return `https://images.igdb.com/igdb/image/upload/t_${size}/${imageId}.jpg`;
+}
+
+// Holds back every image from IGDB's CDN, which the IGDB fake links to as IGDB does, so that
+// browser tests never load them.
+export async function holdImages(page: Page): Promise<void> {
+  await page.route("https://images.igdb.com/**", () => {});
 }

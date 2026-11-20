@@ -1,18 +1,27 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
 import { coverOf } from "../catalog/cover";
 import { FilmFacts, FilmTitle } from "./FilmTitle";
 import { Poster } from "./Poster";
 
-// What opens a Media Item's page: a film's or a series' backdrop whole, at 16:9, fading into the
-// page, with the poster pulled up over its bottom edge and the title beside it. On a phone the
-// picture runs edge to edge under the header, out of the page's padding; from `sm` it fills the
-// column. A film or a series with a poster and no backdrop, and every book with a cover, since a
-// book has no backdrop, shows the cover in the picture's place, blurred: scaled past the
+// What opens a Media Item's page: a film's or a series' backdrop, or a game's art, whole, at 16:9,
+// fading into the page, with the poster pulled up over its bottom edge and the title beside it. On
+// a phone the picture runs edge to edge under the header, out of the page's padding; from `sm` it
+// fills the column. A film or a series with a poster and no backdrop, and every book with a cover,
+// since a book has no backdrop, shows the cover in the picture's place, blurred: scaled past the
 // picture's edges, so the blur's soft border is cropped away. Without either there is no picture,
 // and the poster row starts at the top. The picture's box and the poster's size are fixed, so the
 // page doesn't move when the images arrive.
-export function FilmBanner({ mediaItem }: { mediaItem: MediaItem }) {
+export function FilmBanner({
+  mediaItem,
+  sourceLink,
+}: {
+  mediaItem: MediaItem;
+  // A link to the Media Item's page at its source, under the facts, as a game's without an About
+  // block has.
+  sourceLink?: ReactNode;
+}) {
   const backdrop = mediaItem.mediaType === "book" ? null : mediaItem.metadata?.backdropUrls;
   const posterUrl = coverOf(mediaItem, "large").url;
   const pictureImage = backdrop ? (
@@ -48,6 +57,7 @@ export function FilmBanner({ mediaItem }: { mediaItem: MediaItem }) {
             <FilmTitle mediaItem={mediaItem} />
           </h1>
           <FilmFacts mediaItem={mediaItem} />
+          {sourceLink}
         </div>
       </div>
     </div>

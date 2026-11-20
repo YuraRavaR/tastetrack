@@ -21,6 +21,7 @@ export type ListAction =
   | "Reorder films"
   | "Reorder books"
   | "Reorder series"
+  | "Reorder games"
   | "Share"
   | "Share Link"
   | "Delete collection";
@@ -71,7 +72,9 @@ class ShareLinkDialog extends ScopedComponent {
 // have an Add button, or say it is in the List already. A bottom sheet on a phone, a dialog
 // from md.
 class AddFilmsDialog extends ScopedComponent {
-  readonly searchBox = this.root.getByRole("searchbox", { name: /^Search (films|books|series)$/ });
+  readonly searchBox = this.root.getByRole("searchbox", {
+    name: /^Search (films|books|series|games)$/,
+  });
   readonly searchResults = new SearchResults(
     this.root.getByRole("list", { name: "Search results" }),
   );
@@ -126,6 +129,8 @@ export class ListPage extends BasePage<[listId: number]> {
   readonly addBooksButton = this.main.getByRole("button", { name: "Add books" }).first();
   // And for a List of series.
   readonly addSeriesButton = this.main.getByRole("button", { name: "Add series" }).first();
+  // And for a List of games.
+  readonly addGamesButton = this.main.getByRole("button", { name: "Add games" }).first();
   // The way back to Collections.
   readonly backLink = this.main.getByRole("link", { name: "All Collections" });
   // Any search on the page itself, outside the Add films dialog.
@@ -167,6 +172,10 @@ export class ListPage extends BasePage<[listId: number]> {
 
   addSeriesDialog(listName: string) {
     return new AddFilmsDialog(this.page.getByRole("dialog", { name: `Add series to ${listName}` }));
+  }
+
+  addGamesDialog(listName: string) {
+    return new AddFilmsDialog(this.page.getByRole("dialog", { name: `Add games to ${listName}` }));
   }
 
   noteDialog(filmLabel: string) {

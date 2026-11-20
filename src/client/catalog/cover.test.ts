@@ -146,20 +146,20 @@ describe("a book's cover", () => {
   it("set in type, says the title and the first author, without stress marks", () => {
     expect(typesetCoverOf(voroshilovgrad)).toEqual({
       title: "Voroshilovgrad",
-      author: "Сергій Вікторович Жадан",
+      maker: "Сергій Вікторович Жадан",
     });
     expect(typesetCoverOf(fromOpenLibrary)).toEqual({
       title: "Himn demokratychnoï molodi",
-      author: "Сергій Вікторович Жадан",
+      maker: "Сергій Вікторович Жадан",
     });
   });
 
   it("set in type, says what is known of a book without metadata or authors", () => {
     expect(typesetCoverOf({ ...voroshilovgrad, metadata: null })).toEqual({
       title: null,
-      author: null,
+      maker: null,
     });
-    expect(typesetCoverOf({ ...fromOpenLibrary, authors: [] }).author).toBeNull();
+    expect(typesetCoverOf({ ...fromOpenLibrary, authors: [] }).maker).toBeNull();
   });
 });
 

@@ -10,15 +10,17 @@ type EmptyStateAction = { label: string; icon?: LucideIcon; outline?: boolean } 
   | { onClick: () => void }
 );
 
-// The one quiet pattern of every empty page or tab: an icon in a circle, one line and one button,
-// where there is something to do about it.
+// The one quiet pattern of every empty page or tab: an icon in a circle, one line, a muted `hint`
+// under it where one helps, and one button, where there is something to do about it.
 export function EmptyState({
   icon: Icon,
   message,
+  hint,
   action,
 }: {
   icon: LucideIcon;
   message: string;
+  hint?: string | undefined;
   action?: EmptyStateAction | undefined;
 }) {
   return (
@@ -26,7 +28,14 @@ export function EmptyState({
       <span className="flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary-strong md:size-16">
         <Icon aria-hidden className="size-6 md:size-7" />
       </span>
-      <p className="max-w-75 text-base leading-snug md:max-w-none md:text-lg">{message}</p>
+      <div className="flex flex-col gap-1.5">
+        <p className="max-w-75 text-base leading-snug md:max-w-none md:text-lg">{message}</p>
+        {hint && (
+          <p className="max-w-75 text-muted-foreground text-sm leading-snug md:max-w-none md:text-base">
+            {hint}
+          </p>
+        )}
+      </div>
       {action && <EmptyStateButton action={action} />}
     </div>
   );
