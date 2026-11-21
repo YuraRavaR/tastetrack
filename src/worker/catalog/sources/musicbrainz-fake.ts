@@ -229,6 +229,74 @@ const releaseGroups: FakeReleaseGroup[] = [
     releases: 1,
     cover: false,
   },
+  // The Dark Side of the Moon, which MusicBrainz ranks behind two tributes that name it in their
+  // titles, one of them a plain studio album.
+  {
+    id: "b4ad465f-6abf-4496-a881-c6764732c8a4",
+    title: "A Tribute to Pink Floyd’s Dark Side of the Moon",
+    primaryType: "Album",
+    secondaryTypes: ["Compilation"],
+    firstReleaseDate: "2003",
+    credits: [{ name: "E.S.P", artistId: "6140e50b-09c7-46af-89e5-801e816ab813" }],
+    releases: 1,
+    cover: true,
+  },
+  {
+    id: "6d3d6885-651b-3d8e-a67b-7832248abb52",
+    title: "The String Quartet Tribute to Pink Floyd’s The Dark Side of the Moon",
+    primaryType: "Album",
+    firstReleaseDate: "2003-04-29",
+    credits: [
+      {
+        name: "Vitamin String Quartet",
+        joinphrase: " feat. ",
+        artistId: "56cfe6aa-b464-43d2-bec7-8ec52f313e7d",
+      },
+      { name: "The Section", artistId: "2b5929bc-ffbf-496b-a66f-90dae13cbfe7" },
+    ],
+    releases: 2,
+    cover: true,
+  },
+  {
+    id: "f5093c06-23e3-404f-aeaa-40f72885ee3a",
+    title: "The Dark Side of the Moon",
+    primaryType: "Album",
+    firstReleaseDate: "1973-03-24",
+    credits: [{ name: "Pink Floyd", artistId: "83d91898-7763-47d7-b03b-b92132375c47" }],
+    releases: 152,
+    cover: true,
+  },
+  // MTV Unplugged in New York, a live album, which MusicBrainz ranks first, then a plain studio
+  // album of covers of its songs, and another artist's live album of the same title.
+  {
+    id: "fb3770f6-83fb-32b7-85c4-1f522a92287e",
+    title: "MTV Unplugged in New York",
+    primaryType: "Album",
+    secondaryTypes: ["Live"],
+    firstReleaseDate: "1994-10-31",
+    credits: [{ name: "Nirvana", artistId: "5b11f4ce-a62d-471e-81fc-a69a8278c7da" }],
+    releases: 46,
+    cover: true,
+  },
+  {
+    id: "9be783c7-57c1-4555-ab44-188b569bae04",
+    title: "A Tribute to Nirvana, The Songs of MTV Unplugged in New York",
+    primaryType: "Album",
+    firstReleaseDate: "2025-02-07",
+    credits: [{ name: "Various Artists", artistId: "89ad4ac3-39f7-470e-963a-56509c546377" }],
+    releases: 1,
+    cover: true,
+  },
+  {
+    id: "f81f334b-69d6-3fc1-87d3-d4d7d19d9cc5",
+    title: "MTV Unplugged in New York",
+    primaryType: "Album",
+    secondaryTypes: ["Live"],
+    firstReleaseDate: "2009-05-22",
+    credits: [{ name: "Sportfreunde Stiller", artistId: "35581de7-591f-424f-9c64-7b22fd45605e" }],
+    releases: 4,
+    cover: true,
+  },
   // The release group a merged one became.
   {
     id: "9cd2811d-a999-326e-8945-a8b6b44b9e92",
