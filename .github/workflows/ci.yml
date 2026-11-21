@@ -67,8 +67,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # Its own job, so it starts on a fresh local D1: the backup test exports the whole database,
-  # which after the API tests took about 40 seconds.
+  # Apart from the API tests, which fill a D1: the backup test exports the whole database, and
+  # after the API tests that took about 40 seconds.
   cli:
     name: Operator CLI tests
     runs-on: ubuntu-latest
