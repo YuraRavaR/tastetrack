@@ -107,6 +107,8 @@ Wikidata as a primary source (it could fill descriptions and labels), TheAudioDB
 
 ## Open questions for the user
 
+All seven were answered in the #266 grilling on 2026-11-21 and are recorded in ADR-0013: albums and EPs, no singles; live albums, soundtracks and compilations are albums of their own; artists are names, with their MBIDs kept; the Original Title alone; search in the Worker; no About block; no Progress.
+
 1. Albums only, or EPs and singles too? Kalush Orchestra's best-known work is a single.
 2. Compilations, live albums and soundtracks: separate Media Items, hidden, or a later decision?
 3. Artists as metadata only, like book authors, with no artist pages?
@@ -119,7 +121,7 @@ Wikidata as a primary source (it could fill descriptions and labels), TheAudioDB
 
 **Why.** The 2026-11-16 checks ran from a home IP. In production the Worker calls MusicBrainz from Cloudflare's shared egress IPs, where other people's traffic spends the same per-IP limit. #266 set the rule: search moves to the browser if more than 10% of searches still get 503 after one retry.
 
-**How.** A throwaway Worker, `tastetrack-mb-check-267` on `*.workers.dev`, outside TasteTrack's deployments, deployed with the Operator's approval and deleted after the run. Each call sent `User-Agent: TasteTrack/0.16.0 (<contact>)`, with the repository URL as the contact. Every call went through one queue, at least 1.1 s after the previous one, and a 503 was retried once through the same queue. The checks ran in two invocations, to stay under Workers Free's 50 subrequests each: 20 searches from 08:32 UTC (33 s), then 20 lookups and the merge checks from 08:33 UTC (31 s).
+**How.** A throwaway Worker, `tastetrack-mb-check-267` on `*.workers.dev`, outside TasteTrack's deployments, deployed with the Operator's approval and deleted after the run. Each call sent `User-Agent: TasteTrack/0.16.0 (<contact>)`, with the repository URL as the contact for this check (TasteTrack itself sends the Operator's contact, ADR-0013). Every call went through one queue, at least 1.1 s after the previous one, and a 503 was retried once through the same queue. The checks ran in two invocations, to stay under Workers Free's 50 subrequests each: 20 searches from 08:32 UTC (33 s), then 20 lookups and the merge checks from 08:33 UTC (31 s).
 
 **Results.**
 
@@ -128,7 +130,7 @@ Wikidata as a primary source (it could fill descriptions and labels), TheAudioDB
 | Release-group search | 20 | 11 (55%) | 1 (5%) |
 | Release-group lookup | 20 | 5 (25%) | 0 |
 
-**Outcome: search stays in the Worker.** 5% is under the 10% rule. Throttling on the first try is common, so the single retry is required, not optional.
+5% is under the 10% rule, so search stays in the Worker. Throttling on the first try is common, so the single retry is required, not optional.
 
 **Searches** used `/release-group/?query=(<q>) AND (primarytype:album OR primarytype:ep)&limit=10`. Artist names in the query still match with the type filter in place. Top hit, or the place of the album meant:
 
@@ -164,7 +166,7 @@ Wikidata as a primary source (it could fill descriptions and labels), TheAudioDB
 | `a51b25f4-2dc1-4787-b779-51abcdb170ff` | 301, `Location` `…/release-group/9cd2811d-a999-326e-8945-a8b6b44b9e92?…` | 200, `id` 9cd2811d…, Bye Bye Birdie |
 | `263247fc-e4a1-3164-9100-04c790e0a812` | 301, `Location` `…/release-group/2eb7ce56-2c3a-34a2-b587-d9072d4b0e1c?…` | 200, `id` 2eb7ce56…, Nö Sleep at All |
 
-The `Location` keeps the query, `inc` included. The followed request is made by `fetch` itself, without the queue's interval, and both answered 200. The Cover Art Archive answers an old MBID with the same 307 to the same image as the new one (checked from a home IP).
+The `Location` keeps the query, `inc` included. The followed request is made by `fetch` itself, without the queue's interval, and both answered 200. ADR-0013 has the source follow the 301 itself, through its queue. The Cover Art Archive answers an old MBID with the same 307 to the same image as the new one (checked from a home IP).
 
 **Covers.** `coverartarchive.org/release-group/<mbid>/front-250` for the 20 looked-up release groups: 18 answered 307, 2 answered 404 (Abbey Road Remix and The Bedouin Reworks Of Dakhabrakha). It answers with `access-control-allow-origin: *`.
 
