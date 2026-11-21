@@ -32,7 +32,7 @@ import {
 } from "./catalog/manual-media-items";
 import { addFromSearch, catalogMediaItems, mediaItemIdsByExternalId } from "./catalog/media-items";
 import { sourceOf } from "./catalog/registry";
-import { type CatalogSearchMatch, SourceUnavailable } from "./catalog/source";
+import { type CatalogSearchMatch, SourceBusy, SourceUnavailable } from "./catalog/source";
 import type { AppEnv } from "./env";
 import { plannedExternalIds } from "./lists/backlog";
 import { listsHolding } from "./lists/user-lists";
@@ -46,8 +46,11 @@ const searchRoute = createRoute({
     "One search of the Media Type's External Source. TMDB and Open Library search in the " +
     "query's language: Ukrainian when the query has a Cyrillic letter, otherwise English. IGDB " +
     "has English titles alone, and finds only games that are Media Items: no editions, ports, " +
-    "DLC, bundles, mods or cancelled games. Results come in the source's order, titled in that " +
-    "language, with their Media " +
+    "DLC, bundles, mods or cancelled games. MusicBrainz has one title for an album, in its " +
+    "original script, and finds only albums and EPs, never singles or spoken word; it ranks " +
+    "albums before EPs, and plain ones before live albums, soundtracks, compilations and the " +
+    "like, and is called one request at a time, about a second apart. Results come in the " +
+    "source's order, titled in that language, with their Media " +
     "Item's id once they are in the catalog, and marked with what the User has of them: whether " +
     "they have a Log Entry for it, with the Current Rating and how many they have, whether it is " +
     "in their Backlog, and their own Lists holding it, oldest first. Before them, to be listed " +
@@ -70,6 +73,12 @@ const searchRoute = createRoute({
     502: {
       content: { "application/json": { schema: ErrorResponse } },
       description: "The External Source didn't answer (`catalog_unavailable`)",
+    },
+    503: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "MusicBrainz is busy: it answered 503 twice, and asking again in a moment may work " +
+        "(`catalog_busy`)",
     },
   },
 });
@@ -275,6 +284,7 @@ catalogRoutes.openapi(searchRoute, async (c) => {
     await manual.catch(() => undefined);
     if (!(error instanceof SourceUnavailable)) throw error;
     console.error(error);
+    if (error instanceof SourceBusy) return c.json({ error: "catalog_busy" }, 503);
     return c.json({ error: "catalog_unavailable" }, 502);
   }
   const ids = matches.map((match) => match.externalReference.id);

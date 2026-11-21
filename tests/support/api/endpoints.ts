@@ -72,6 +72,7 @@ export const endpoints = {
     openLibraryFakeSearch: "/api/test/openlibrary/search.json?q=alien",
     igdbFakeTokens: "/api/test/igdb-fake/tokens",
     igdbFakeTokenRefusal: "/api/test/igdb-fake/token-refusal",
+    musicBrainzFakeRateLimited: "/api/test/musicbrainz-fake/rate-limited",
     passwordReset: (username: string) => `/api/test/users/${username}/password-reset`,
     passwordIterations: (username: string) => `/api/test/users/${username}/password-iterations`,
     invitedBy: (username: string) => `/api/test/users/${username}/invited-by`,

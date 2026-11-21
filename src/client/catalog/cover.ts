@@ -25,6 +25,8 @@ const coverShapes: Record<MediaType, CoverShape> = {
   book: "2:3",
   series: "2:3",
   game: "2:3",
+  // An album's cover is square, which its UI brings.
+  album: "2:3",
 };
 
 export function coverShape(mediaType: MediaType): CoverShape {
@@ -41,7 +43,8 @@ export interface Cover {
   mediaType: MediaType;
 }
 
-// What each Media Type calls its cover: a film's or a series' poster, a book's or a game's cover.
+// What each Media Type calls its cover: a film's or a series' poster, a book's, a game's or an
+// album's cover.
 function coverUrlsOf(mediaItem: MediaItem): CoverUrls | null {
   switch (mediaItem.mediaType) {
     case "film":
@@ -49,6 +52,7 @@ function coverUrlsOf(mediaItem: MediaItem): CoverUrls | null {
       return mediaItem.metadata?.posterUrls ?? null;
     case "book":
     case "game":
+    case "album":
       return mediaItem.metadata?.coverUrls ?? null;
   }
 }
@@ -97,6 +101,8 @@ const typesetCovers: Record<MediaType, boolean> = {
   book: true,
   series: false,
   game: true,
+  // Settled with the albums UI.
+  album: true,
 };
 
 export function hasTypesetCover(mediaType: MediaType): boolean {

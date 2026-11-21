@@ -18,3 +18,10 @@
 # TWITCH_TOKEN_URL=https://id.twitch.tv/oauth2/token
 # TWITCH_CLIENT_ID=
 # TWITCH_CLIENT_SECRET=
+
+# The `local` env calls a MusicBrainz fake for albums, and a Cover Art Archive fake for their
+# covers, 50 ms apart. To call the real ones locally, set all three; MusicBrainz takes no key, and
+# is told who is asking with OPEN_LIBRARY_CONTACT.
+# MUSICBRAINZ_BASE_URL=https://musicbrainz.org/ws/2
+# COVER_ART_ARCHIVE_BASE_URL=https://coverartarchive.org
+# MUSICBRAINZ_INTERVAL_MS=1100

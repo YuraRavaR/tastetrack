@@ -21,6 +21,14 @@ const TEST_WITHOUT_SECRETS_HEADER = "X-Test-Without-Secrets";
 // The secrets that header may leave out.
 const removableSecrets = ["TWITCH_CLIENT_ID", "TWITCH_CLIENT_SECRET"] as const;
 
+// With test hooks on and the Worker calling the MusicBrainz fake, a request with their secret can
+// have the fake answer 503 to its first 1 or 2 MusicBrainz calls, as MusicBrainz does when it is
+// busy, and no other request's (ADR-0013).
+const TEST_MUSICBRAINZ_BUSY_HEADER = "X-Test-MusicBrainz-Busy";
+
+// Where the MusicBrainz fake is mounted, under which /busy/<times>/<id>/ makes it busy.
+const musicBrainzFakePath = "/api/test/musicbrainz/";
+
 export type AppEnv = {
   Bindings: Env;
   Variables: { db: DrizzleD1Database; now: Date };
@@ -70,6 +78,22 @@ export const withClock = createMiddleware<AppEnv>(async (c, next) => {
     return c.json({ error: "invalid_test_now" } satisfies ErrorResponse, 400);
   }
   c.set("now", now);
+  await next();
+});
+
+// Points the request's MusicBrainz calls at the fake's busy path, for the number of 503s its
+// X-Test-MusicBrainz-Busy header asks for, under an id of its own.
+export const withTestMusicBrainzBusy = createMiddleware<AppEnv>(async (c, next) => {
+  const header = requestHasTestHooksAccess(c)
+    ? c.req.header(TEST_MUSICBRAINZ_BUSY_HEADER)
+    : undefined;
+  if (header === undefined) return next();
+  const base = c.env.MUSICBRAINZ_BASE_URL;
+  if (!["1", "2"].includes(header) || !base.includes(musicBrainzFakePath)) {
+    return c.json({ error: "invalid_test_musicbrainz_busy" } satisfies ErrorResponse, 400);
+  }
+  const busy = `${musicBrainzFakePath}busy/${header}/${crypto.randomUUID()}/`;
+  c.env = { ...c.env, MUSICBRAINZ_BASE_URL: base.replace(musicBrainzFakePath, busy) };
   await next();
 });
 

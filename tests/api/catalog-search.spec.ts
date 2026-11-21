@@ -234,7 +234,7 @@ test("an empty or overlong query, or an unknown Media Type, is a 400", async ({ 
   for (const params of [
     { mediaType: "film", query: "   " },
     { mediaType: "film", query: "a".repeat(101) },
-    { mediaType: "album", query: "alien" },
+    { mediaType: "podcast", query: "alien" },
     { mediaType: "film" },
   ]) {
     const response = await loggedInApi.catalog.searchCatalog(params as never);

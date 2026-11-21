@@ -25,6 +25,12 @@ export interface CatalogEnv {
   TWITCH_TOKEN_URL: string;
   TWITCH_CLIENT_ID?: string | undefined;
   TWITCH_CLIENT_SECRET?: string | undefined;
+  // Where albums and their covers come from, and how many milliseconds apart MusicBrainz is
+  // called, 1100 when unset (ADR-0013). MusicBrainz is told who is asking with the Operator
+  // contact Open Library has.
+  MUSICBRAINZ_BASE_URL: string;
+  COVER_ART_ARCHIVE_BASE_URL: string;
+  MUSICBRAINZ_INTERVAL_MS?: string | undefined;
   // Where a source keeps the access token it was given (source_tokens).
   DB: AnyD1Database;
 }
@@ -63,6 +69,14 @@ export class SourceUnavailable extends Error {
   }
 }
 
+// The source said it is too busy to answer now, even when asked again: worth trying again in a
+// moment, which a search tells the User (ADR-0013).
+export class SourceBusy extends SourceUnavailable {
+  constructor(message: string) {
+    super(message, "temporary");
+  }
+}
+
 // The metadata a Media Item of this Media Type has.
 type MetadataOf<M extends MediaType> = NonNullable<
   Extract<MediaItem, { mediaType: M }>["metadata"]
@@ -79,6 +93,9 @@ export interface CatalogSource<M extends MediaType> {
   mediaType: M;
   // How many subrequests refreshing one entry makes, for the cron's budget.
   refreshCost: number;
+  // For a source that must be called slowly, the most of a cron run's budget its entries may take;
+  // the rest is left to the other sources (ADR-0013). Without it, its entries take what they need.
+  refreshShare?: number;
   // How long an entry may be kept from when it was last filled, in milliseconds; null for no
   // limit. Past it no read shows the entry, whether or not the cron has deleted it yet.
   maxEntryAge: number | null;
@@ -89,7 +106,7 @@ export interface CatalogSource<M extends MediaType> {
   // What a search result alone says, for when the details call fails: its cover reference back
   // out of the cover URL search gave, or null for any other URL, so a client can't make the app
   // show images from elsewhere, and an empty `extra`.
-  coverRefOf(searchCoverUrl: string | null): string | null;
+  coverRefOf(searchCoverUrl: string | null, env: CatalogEnv): string | null;
   emptyExtra: CacheExtras[M];
   // The cover in the sizes the app shows it, from its reference.
   coverUrls(coverRef: string | null): CoverUrls | null;

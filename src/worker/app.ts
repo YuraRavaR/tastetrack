@@ -3,7 +3,13 @@ import { appMeta } from "../db/schema";
 import { type ErrorResponse, HealthResponse } from "../shared/api";
 import { auth } from "./auth";
 import { catalogRoutes } from "./catalog";
-import { type AppEnv, withClock, withDatabase, withoutTestSecrets } from "./env";
+import {
+  type AppEnv,
+  withClock,
+  withDatabase,
+  withoutTestSecrets,
+  withTestMusicBrainzBusy,
+} from "./env";
 import { inProgressRoutes } from "./in-progress";
 import { inviteCodeRoutes } from "./invite-codes";
 import { libraryRoutes } from "./library";
@@ -12,6 +18,7 @@ import { logRoutes } from "./log";
 import { meRoutes } from "./me";
 import { testHooks } from "./test-hooks";
 import { thoughtRoutes } from "./thoughts";
+import { appVersion } from "./version";
 
 const healthRoute = createRoute({
   method: "get",
@@ -35,6 +42,7 @@ export const app = new OpenAPIHono<AppEnv>({
 app.use(withDatabase);
 app.use(withClock);
 app.use(withoutTestSecrets);
+app.use(withTestMusicBrainzBusy);
 
 app.openapi(healthRoute, async (c) => {
   await c.var.db.select().from(appMeta).limit(1);
@@ -56,7 +64,7 @@ app.doc31("/openapi.json", {
   openapi: "3.1.0",
   info: {
     title: "TasteTrack API",
-    version: "0.16.0", // x-release-please-version
+    version: appVersion,
   },
 });
 

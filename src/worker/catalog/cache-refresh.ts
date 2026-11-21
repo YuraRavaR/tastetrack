@@ -14,9 +14,14 @@ import type { CatalogEnv } from "./source";
 // one run makes at most this many across all sources, with room to spare (ADR-0011).
 export const refreshBudget = 40;
 
-// What refreshing an entry costs, in subrequests: its source says.
+// What refreshing an entry costs, in subrequests, and the most of a run its source's entries may
+// take, if it limits them: its source says.
 function sourceRefreshCost(key: CacheKey): number {
   return sourceOf(key.mediaType).refreshCost;
+}
+
+function sourceRefreshShare(key: CacheKey): number | undefined {
+  return sourceOf(key.mediaType).refreshShare;
 }
 
 const day = 24 * 60 * 60 * 1000;
@@ -126,7 +131,9 @@ function queue(db: DrizzleD1Database, where: SQL | undefined, budget: number): P
 //    from a search result alone that the cron has tried.
 // The second queue then gets what the third leaves. A queue stops at its first entry that doesn't
 // fit, so none jumps the order, and the batch ends there, but for the second queue's share. An
-// entry in two queues is refreshed once. A referenced Media Item with no entry isn't due: the
+// entry whose source has spent its own share of the run, as albums have after 10 subrequests, is
+// passed over instead, so the other sources' entries behind it still fit. An entry in two queues
+// is refreshed once. A referenced Media Item with no entry isn't due: the
 // first page to show it fills it.
 // Nothing reads an unreferenced entry, so it is never refreshed.
 export async function dueForRefresh(
@@ -134,6 +141,7 @@ export async function dueForRefresh(
   now: Date,
   budget = refreshBudget,
   refreshCost: (key: CacheKey) => number = sourceRefreshCost,
+  refreshShare: (key: CacheKey) => number | undefined = sourceRefreshShare,
 ): Promise<CacheKey[]> {
   const [searchResults, dailySeries, weekOld] = await Promise.all([
     queue(db, untried, budget),
@@ -158,6 +166,8 @@ export async function dueForRefresh(
   const due: CacheKey[] = [];
   const picked = new Set<string>();
   let spent = 0;
+  // What each source with a share has spent of it, by its Media Type.
+  const spentBySource = new Map<string, number>();
   // Takes entries from `entries` while they fit within `limit` subrequests, and says whether it
   // stopped at one that doesn't.
   function take(entries: CacheKey[], limit: number): boolean {
@@ -165,8 +175,12 @@ export async function dueForRefresh(
       const id = cacheKeyId(key);
       if (picked.has(id)) continue;
       const cost = refreshCost(key);
+      const share = refreshShare(key);
+      const sourceSpent = spentBySource.get(key.mediaType) ?? 0;
+      if (share !== undefined && sourceSpent + cost > share) continue;
       if (spent + cost > limit) return true;
       spent += cost;
+      spentBySource.set(key.mediaType, sourceSpent + cost);
       picked.add(id);
       due.push(key);
     }

@@ -67,6 +67,7 @@ function useTiles(): [Record<MediaType, TileState>, (mediaType: MediaType) => Pr
     book: loading,
     series: loading,
     game: loading,
+    album: loading,
   });
 
   useEffect(() => {

@@ -6,7 +6,7 @@
   "initial-version": "0.1.0",
   "packages": {
     ".": {
-      "extra-files": ["src/worker/app.ts"]
+      "extra-files": ["src/worker/version.ts"]
     }
   }
 }

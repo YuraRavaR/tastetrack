@@ -101,6 +101,7 @@ const typeSlugs: Record<MediaType, string> = {
   book: "books",
   series: "series",
   game: "games",
+  album: "albums",
 };
 const tabSlugs: Record<MediaType, Record<Exclude<LibraryTab, "inProgress">, string>> &
   Record<ProgressMediaType, Record<LibraryTab, string>> = {
@@ -108,6 +109,7 @@ const tabSlugs: Record<MediaType, Record<Exclude<LibraryTab, "inProgress">, stri
   book: { backlog: "reading-list", inProgress: "reading", experienced: "read" },
   series: { backlog: "watchlist", inProgress: "watching", experienced: "watched" },
   game: { backlog: "backlog", inProgress: "playing", experienced: "played" },
+  album: { backlog: "listening-list", experienced: "listened" },
 };
 
 // A Media Type's tabs' words: none for a tab it doesn't have.
