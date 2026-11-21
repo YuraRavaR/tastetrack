@@ -30,11 +30,13 @@ export type ListAction =
 export type ShareLinkQuestion = "Make a new link?" | "Stop sharing?";
 
 // Sharing a List, opened from its ⋯ menu: a button that makes a Share Link, then the link to copy,
-// with ways to replace it or stop sharing, each asked about inside the dialog.
+// or to send through the phone's share sheet where there is one, with ways to replace it or stop
+// sharing, each asked about inside the dialog.
 class ShareLinkDialog extends ScopedComponent {
   readonly shareButton = this.root.getByRole("button", { name: "Share", exact: true });
   readonly linkField = this.root.getByRole("textbox", { name: "Share Link" });
   readonly copyButton = this.root.getByRole("button", { name: /^(Copy link|Copied)$/ });
+  readonly sendLinkButton = this.root.getByRole("button", { name: "Send link" });
   readonly newLinkButton = this.root.getByRole("button", { name: "New link" });
   readonly stopSharingButton = this.root.getByRole("button", { name: "Stop sharing" });
   readonly closeButton = this.root.getByRole("button", { name: "Close" });

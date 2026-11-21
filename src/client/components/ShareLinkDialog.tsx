@@ -1,4 +1,4 @@
-import { Check, Copy, Link2 } from "lucide-react";
+import { Check, Copy, Link2, Share } from "lucide-react";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -52,10 +52,17 @@ type Action = keyof typeof actions;
 const buttonRowClasses = "grid grid-cols-2 gap-2.5 md:flex md:justify-end";
 const smallButtonClasses = "h-11 md:h-9";
 
+// The phone's share sheet, in iOS Safari, Android Chrome and the installed app; most desktop
+// browsers have none.
+function canShare() {
+  return typeof navigator.share === "function";
+}
+
 type SharedList = Pick<List, "id" | "name" | "shareLink">;
 
 // Sharing one of the User's Lists (`docs/mockups/collections/`, `#share`): a button that makes a
 // Share Link, and once there is one, the link to copy and buttons to replace it or stop sharing.
+// Where the browser has a share sheet, Send link opens it with the link beside Copy link (#259).
 // Each of those asks first, inside the dialog, since anyone holding the old link loses it. After
 // each change `onChanged` reloads the List, so the link shown is always the Worker's, on the app's
 // own origin. A bottom sheet on a phone, a centred dialog from `md`. The dialog unmounts its sheet
@@ -86,6 +93,7 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
   const [failed, setFailed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState<Action | null>(null);
+  const sharing = canShare();
   const ids = useId();
   const input = useRef<HTMLInputElement>(null);
   const shareButton = useRef<HTMLButtonElement>(null);
@@ -131,6 +139,17 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
       setCopied(true);
     } catch {
       // Without clipboard access, the link is selected for the User to copy themselves.
+      input.current?.select();
+    }
+  }
+
+  async function send(url: string) {
+    try {
+      await navigator.share({ title: list.name, url });
+    } catch (error) {
+      // Closing the sheet without sharing is the User's choice, not a failure.
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      // Otherwise the link is selected for the User to copy, as without clipboard access.
       input.current?.select();
     }
   }
@@ -182,14 +201,23 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
                 onFocus={(event) => event.currentTarget.select()}
                 className="h-11 md:h-10"
               />
-              <Button
-                ref={copyButton}
-                className={cn(sheetMainButtonClasses, "shrink-0")}
-                onClick={() => copy(shareLink.url)}
-              >
-                {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
-                {t(copied ? "share.copied" : "share.copy")}
-              </Button>
+              <div className={cn("shrink-0", sharing && "grid grid-cols-2 gap-2.5 md:flex")}>
+                {sharing && (
+                  <Button className={sheetMainButtonClasses} onClick={() => send(shareLink.url)}>
+                    <Share aria-hidden />
+                    {t("share.send")}
+                  </Button>
+                )}
+                <Button
+                  ref={copyButton}
+                  variant={sharing ? "outline" : "default"}
+                  className={cn(sheetMainButtonClasses, "w-full md:w-auto")}
+                  onClick={() => copy(shareLink.url)}
+                >
+                  {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+                  {t(copied ? "share.copied" : "share.copy")}
+                </Button>
+              </div>
             </div>
             {failure}
             <div className={buttonRowClasses}>
