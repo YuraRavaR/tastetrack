@@ -13,9 +13,9 @@ permissions:
 env:
   WRANGLER_SEND_METRICS: "false"
 
-# The tests run in three jobs side by side, each with the local Wrangler servers of its own, and
-# the `tests` job at the end carries the check the `Protect main` ruleset requires. A job that
-# runs takes about 2 minutes; a stalled download fails it at its timeout, not after GitHub's
+# The tests run in six jobs side by side, each with the local Wrangler servers and local D1 of its
+# own, and the `tests` job at the end carries the check the `Protect main` ruleset requires. A job
+# that runs takes about 2 minutes; a stalled download fails it at its timeout, not after GitHub's
 # 6 hours.
 jobs:
   commits:
@@ -35,7 +35,7 @@ jobs:
         run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
 
   checks:
-    name: Lint, types, unit, API and CLI tests
+    name: Lint, types, unit, API and smoke tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -55,16 +55,8 @@ jobs:
       - name: API and smoke tests against local Wrangler
         run: pnpm exec playwright test --project=api --project=smoke
 
-      # On its own and one test at a time: the CLI writes to the local D1 through
-      # `wrangler d1 execute`, which beside the dev server's other writes fails with SQLITE_BUSY.
-      # Its own output and report folders keep the API tests' traces.
-      - name: Operator CLI tests against local Wrangler
-        env:
-          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-cli
-        run: pnpm exec playwright test --project=cli --workers=1 --output=test-results-cli
-
       # Keeps the traces of failed attempts, including tests that passed only on retry.
-      - name: Upload Playwright traces and reports
+      - name: Upload Playwright traces and report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
@@ -72,15 +64,47 @@ jobs:
           path: |
             test-results/
             playwright-report/
-            test-results-cli/
-            playwright-report-cli/
           if-no-files-found: ignore
           retention-days: 14
 
-  e2e:
-    name: E2E tests
+  # Its own job, so it starts on a fresh local D1: the backup test exports the whole database,
+  # which after the API tests took about 40 seconds.
+  cli:
+    name: Operator CLI tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+
+      # One test at a time: the CLI writes to the local D1 through `wrangler d1 execute`, which
+      # beside the dev server's other writes fails with SQLITE_BUSY.
+      - name: Operator CLI tests against local Wrangler
+        run: pnpm exec playwright test --project=cli --workers=1
+
+      - name: Upload Playwright traces and report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-local-cli
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Three shards, each with its own Wrangler servers and local D1, so each D1 takes as many
+  # concurrent writes as one did before. Playwright splits them by file, and no file holds more
+  # than about a tenth of the tests.
+  e2e:
+    name: E2E tests (${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
 
@@ -89,13 +113,13 @@ jobs:
           playwright: "true"
 
       - name: E2E tests in Chromium against local Wrangler
-        run: pnpm exec playwright test --project=e2e
+        run: pnpm exec playwright test --project=e2e --shard=${{ matrix.shard }}/3
 
       - name: Upload Playwright traces and report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-local-e2e
+          name: playwright-local-e2e-${{ matrix.shard }}
           path: |
             test-results/
             playwright-report/
@@ -137,7 +161,7 @@ jobs:
   # and passes only when all of them passed.
   tests:
     name: Lint, types and tests
-    needs: [checks, e2e, mobile]
+    needs: [checks, cli, e2e, mobile]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -146,7 +170,7 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "checks, e2e, mobile: $RESULTS"
+          echo "checks, cli, e2e, mobile: $RESULTS"
           for result in $RESULTS; do
             [ "$result" = success ] || exit 1
           done
