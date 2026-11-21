@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Square covers in grids · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;height:1280px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic16{width:16px;height:16px}
+.ic22{width:22px;height:22px}
+.pc{padding:12px 16px 96px;display:flex;flex-direction:column;gap:14px}
+.back{display:inline-flex;align-items:center;gap:2px;font-size:15px;font-weight:500;color:var(--muted-foreground);text-decoration:none;height:32px}
+.h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.sub{font-size:14px;color:var(--muted-foreground);margin-top:-8px}
+.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:var(--muted);border-radius:14px;padding:4px}
+.tab{height:40px;border:0;background:none;color:inherit;font:inherit;font-size:15px;font-weight:500;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab span{color:var(--muted-foreground);font-weight:500}
+.tab.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px oklch(0 0 0 / 18%)}
+.chips{display:flex;gap:8px}
+.chip{height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:inherit;font:inherit;font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px}
+.btn{height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--background);color:inherit;font:inherit;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:7px;box-sizing:border-box}
+.pri{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.ib{width:44px;padding:0;justify-content:center}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 10px;list-style:none;margin:0;padding:0}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px;list-style:none;margin:0;padding:0}
+.cell{display:flex;flex-direction:column;gap:6px;text-decoration:none;min-width:0}
+.sq{width:100%;aspect-ratio:1/1;border-radius:6px;object-fit:cover;border:1px solid var(--border);box-sizing:border-box;display:block}
+.ct{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ca{font-size:12px;line-height:1.3;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g2 .ct{font-size:15px}
+.g2 .ca{font-size:13px}
+.ts{width:100%;aspect-ratio:1/1;border-radius:6px;box-sizing:border-box;background:var(--primary-soft);border:1px solid var(--border);position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:11px 10px 9px;overflow:hidden}
+.ts::after{content:"";position:absolute;inset:5px;border:1px solid color-mix(in oklch, var(--primary-strong) 45%, transparent);border-radius:3px}
+.ts b{font-size:13px;line-height:1.15;font-weight:700}
+.ts i{font-style:normal;font-size:10px;color:var(--muted-foreground)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tbi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tbi.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{frames}}" as="f" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{f.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<sc-if value="{{f.library}}" hint-placeholder-val="{{true}}">
+<a href="#" class="back"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Saved</a>
+<h1 class="h1">Albums</h1>
+<div class="tabs" role="tablist"><button class="tab on" role="tab" aria-selected="true">Listening list <span>7</span></button><button class="tab" role="tab" aria-selected="false">Listened <span>14</span></button></div>
+<div class="chips"><button class="chip">Date added<svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><button class="chip">Decade<svg class="ic ic16" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div>
+</sc-if>
+<sc-if value="{{f.collection}}" hint-placeholder-val="{{false}}">
+<a href="#" class="back"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Collections</a>
+<h1 class="h1">Albums to start with Ukrainian rock</h1>
+<span class="sub">7 albums</span>
+<div style="display: flex; gap: 8px"><button class="btn pri"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>Share link</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Add albums</button><button class="btn ib" aria-label="More"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></button></div>
+</sc-if>
+<ul class="{{f.grid}}">
+<sc-for list="{{f.items}}" as="it" hint-placeholder-count="7">
+<li><a href="#" class="cell">
+<sc-if value="{{it.src}}" hint-placeholder-val="{{true}}"><img class="sq" src="{{it.src}}" alt=""></sc-if>
+<sc-if value="{{it.none}}" hint-placeholder-val="{{false}}"><span class="ts" role="img" aria-label="No cover"><b>{{it.title}}</b><i>{{it.artist}}</i></span></sc-if>
+<span class="ct">{{it.title}}</span><span class="ca">{{it.artist}}</span>
+</a></li>
+</sc-for>
+</ul>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="{{f.savedTab}}"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="{{f.listsTab}}"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tbi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1360}}'>
+class Component extends DCLogic {
+renderVals() {
+const norm = (xs) => xs.map((x) => ({ ...x, src: x.src || '', none: !x.src }));
+const backlog = norm([
+{ title: 'QIRIM', artist: 'Jamala', src: '/_blob/8a2be7a620670db54eb4d970f9aaef61' },
+{ title: 'HOTIN', artist: 'KALUSH', src: '/_blob/f9a582126866df7430ed2418537e4276' },
+{ title: 'The Road', artist: 'DakhaBrakha', src: '/_blob/f2455baa325ca42efbb676891ba1f08d' },
+{ title: 'Interstellar: Original Motion Picture Soundtrack', artist: 'Hans Zimmer', src: '/_blob/ab545624c97fec07824f07b1bce84a0b' },
+{ title: 'Live From Madison Square Garden', artist: 'Eric Clapton & Steve Winwood', src: '/_blob/e413a15f22d1c67c7fc03cb74ca2b7df' },
+{ title: 'Abbey Road Remix', artist: 'The Beatles' },
+{ title: 'На межі', artist: 'ДахаБраха', src: '/_blob/4c0f9a0721b4b372568aae9df64428dc' }
+]);
+const rock = norm([
+{ title: 'Модель', artist: 'Океан Ельзи', src: '/_blob/d9142a426a313afceebed33bd7876f6b' },
+{ title: 'Міра', artist: 'Океан Ельзи', src: '/_blob/23defaf4531e7eb4a410109f55548a7a' },
+{ title: 'Земля', artist: 'Океан Ельзи', src: '/_blob/cc5576064c2c51e81d658516739d28fa' },
+{ title: 'Меломанія', artist: 'Бумбокс', src: '/_blob/629a79b9f058993faa288158ec30d421' },
+{ title: 'Голий король', artist: 'Бумбокс', src: '/_blob/15b31ab208715765e868ff829128b410' },
+{ title: 'Tviй формат', artist: 'Океан Ельзи', src: '/_blob/6acb431396d4dfd6d2768e5dc03269f2' },
+{ title: 'Dolce Vita', artist: 'Океан Ельзи', src: '/_blob/3bdc9fb2060d6eb38c9bc8c345d18983' }
+]);
+return {
+theme: this.props.theme ?? 'dark',
+frames: [
+{ cap: 'A · Three columns, as posters', library: true, grid: 'g3', items: backlog, savedTab: 'tbi on', listsTab: 'tbi' },
+{ cap: 'B · Two columns, larger squares', library: true, grid: 'g2', items: backlog, savedTab: 'tbi on', listsTab: 'tbi' },
+{ cap: 'A in a Collection', collection: true, grid: 'g3', items: rock, savedTab: 'tbi', listsTab: 'tbi on' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

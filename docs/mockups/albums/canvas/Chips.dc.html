@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Five Media Type chips</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:14px}
+.web{width:1280px;background:var(--background);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-sizing:border-box;padding:28px 0 32px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.lab{font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted-foreground)}
+.field{height:48px;border:1px solid var(--border);background:var(--card);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:16px;color:var(--muted-foreground)}
+.btn{height:40px;padding:0 14px;border-radius:12px;border:0;background:var(--primary);color:var(--primary-foreground);font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
+.seg{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;gap:2px;background:var(--muted);border-radius:14px;padding:4px;border:0;margin:0;min-width:0}
+.sg{height:56px;border:0;background:none;color:inherit;font:inherit;font-size:13px;font-weight:500;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0}
+.sg.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px oklch(0 0 0 / 18%)}
+.sg.on svg{color:var(--primary-strong)}
+.pills{display:flex;gap:8px;overflow:hidden;border:0;padding:0;margin:0 -16px 0 0;min-width:0}
+.pill{height:40px;flex:none;padding:0 14px 0 12px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:inherit;font:inherit;font-size:14px;font-weight:500;display:flex;align-items:center;gap:7px}
+.pill.on{background:var(--primary-soft);border-color:var(--primary-strong);color:var(--primary-strong);font-weight:600}
+.icoseg{display:flex;gap:2px;background:var(--muted);border-radius:14px;padding:4px;border:0;margin:0}
+.is{height:48px;flex:1;border:0;background:none;color:var(--muted-foreground);font:inherit;font-size:14px;font-weight:600;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0}
+.is.on{flex:2.4;background:var(--card);color:var(--foreground);box-shadow:0 1px 3px oklch(0 0 0 / 18%)}
+.is.on svg{color:var(--primary-strong)}
+.row{display:flex;align-items:center;justify-content:space-between}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<span class="lab">Search</span>
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><span>Album and artist</span></label>
+<sc-if value="{{v.a}}" hint-placeholder-val="{{true}}">
+<fieldset class="seg" aria-label="Media Type"><sc-for list="{{chips}}" as="c" hint-placeholder-count="5"><button class="{{c.segClass}}" aria-pressed="{{c.pressed}}"><sc-if value="{{c.film}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></sc-if><sc-if value="{{c.book}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></sc-if><sc-if value="{{c.series}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></sc-if><sc-if value="{{c.game}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></sc-if><sc-if value="{{c.album}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></sc-if>{{c.name}}</button></sc-for></fieldset>
+</sc-if>
+<sc-if value="{{v.b}}" hint-placeholder-val="{{false}}">
+<fieldset class="pills" aria-label="Media Type"><sc-for list="{{chips}}" as="c" hint-placeholder-count="5"><button class="{{c.pillClass}}" aria-pressed="{{c.pressed}}"><sc-if value="{{c.film}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></sc-if><sc-if value="{{c.book}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></sc-if><sc-if value="{{c.series}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></sc-if><sc-if value="{{c.game}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></sc-if><sc-if value="{{c.album}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></sc-if>{{c.name}}</button></sc-for></fieldset>
+</sc-if>
+<sc-if value="{{v.c}}" hint-placeholder-val="{{false}}">
+<fieldset class="icoseg" aria-label="Media Type"><sc-for list="{{chips}}" as="c" hint-placeholder-count="5"><button class="{{c.isClass}}" aria-pressed="{{c.pressed}}" aria-label="{{c.name}}"><sc-if value="{{c.film}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></sc-if><sc-if value="{{c.book}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></sc-if><sc-if value="{{c.series}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></sc-if><sc-if value="{{c.game}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></sc-if><sc-if value="{{c.album}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></sc-if><sc-if value="{{c.pressed}}" hint-placeholder-val="{{false}}"><span>{{c.name}}</span></sc-if></button></sc-for></fieldset>
+</sc-if>
+<span class="lab" style="margin-top: 14px">Collections</span>
+<div class="row"><h1 class="h1">Collections</h1><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>New</button></div>
+<sc-if value="{{v.a}}" hint-placeholder-val="{{true}}">
+<fieldset class="seg" aria-label="Media Type"><sc-for list="{{chipsBooks}}" as="c" hint-placeholder-count="5"><button class="{{c.segClass}}" aria-pressed="{{c.pressed}}"><sc-if value="{{c.film}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></sc-if><sc-if value="{{c.book}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></sc-if><sc-if value="{{c.series}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></sc-if><sc-if value="{{c.game}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></sc-if><sc-if value="{{c.album}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></sc-if>{{c.name}}</button></sc-for></fieldset>
+</sc-if>
+<sc-if value="{{v.b}}" hint-placeholder-val="{{false}}">
+<fieldset class="pills" aria-label="Media Type"><sc-for list="{{chipsBooks}}" as="c" hint-placeholder-count="5"><button class="{{c.pillClass}}" aria-pressed="{{c.pressed}}">{{c.name}}</button></sc-for></fieldset>
+</sc-if>
+<sc-if value="{{v.c}}" hint-placeholder-val="{{false}}">
+<fieldset class="icoseg" aria-label="Media Type"><sc-for list="{{chipsBooks}}" as="c" hint-placeholder-count="5"><button class="{{c.isClass}}" aria-pressed="{{c.pressed}}" aria-label="{{c.name}}"><sc-if value="{{c.film}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></sc-if><sc-if value="{{c.book}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></sc-if><sc-if value="{{c.series}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></sc-if><sc-if value="{{c.game}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></sc-if><sc-if value="{{c.album}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></sc-if><sc-if value="{{c.pressed}}" hint-placeholder-val="{{false}}"><span>{{c.name}}</span></sc-if></button></sc-for></fieldset>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">A on the web · the control under the field, 784 px (52rem column)</div>
+<div class="tt web" data-theme="{{theme}}">
+<div style="width: 784px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px">
+<h1 class="h1" style="font-size: 34px">Search</h1>
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><span>Album and artist</span></label>
+<fieldset class="seg" aria-label="Media Type"><sc-for list="{{chips}}" as="c" hint-placeholder-count="5"><button class="{{c.segClass}}" aria-pressed="{{c.pressed}}"><sc-if value="{{c.film}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></sc-if><sc-if value="{{c.book}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></sc-if><sc-if value="{{c.series}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></sc-if><sc-if value="{{c.game}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></sc-if><sc-if value="{{c.album}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></sc-if>{{c.name}}</button></sc-for></fieldset>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const types = [
+{ name: 'Films', film: true }, { name: 'Books', book: true }, { name: 'Series', series: true },
+{ name: 'Games', game: true }, { name: 'Albums', album: true }
+];
+const chipsFor = (current) => types.map((t) => {
+const on = t.name === current;
+return { ...t, pressed: on, segClass: on ? 'sg on' : 'sg', pillClass: on ? 'pill on' : 'pill', isClass: on ? 'is on' : 'is' };
+});
+return {
+theme: this.props.theme ?? 'dark',
+chips: chipsFor('Albums'),
+chipsBooks: chipsFor('Films'),
+variants: [
+{ cap: 'A · Five equal segments, icon over label', a: true },
+{ cap: 'B · A scrolling row of pills', b: true },
+{ cap: 'C · Icons, the pressed one named', c: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>

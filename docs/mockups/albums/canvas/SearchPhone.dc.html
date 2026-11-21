@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search on Albums · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;min-height:1500px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic12{width:12px;height:12px}
+.ic22{width:22px;height:22px}
+.pc{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
+.h1{margin:4px 0 0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.field{height:48px;border:1px solid var(--border);background:var(--card);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 6px 0 14px;font-size:16px}
+.clr{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center;border:0;color:inherit}
+.seg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;background:var(--muted);border-radius:14px;padding:4px;border:0;margin:0}
+.sg{height:56px;border:0;background:none;color:inherit;font:inherit;font-size:13px;font-weight:500;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0}
+.sg.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px oklch(0 0 0 / 18%)}
+.sg.on svg{color:var(--primary-strong)}
+.bh{display:flex;align-items:baseline;gap:6px;font-weight:700;font-size:16px;margin-top:4px}
+.bh span{font-weight:500;font-size:14px;color:var(--muted-foreground)}
+.sv{width:120px;display:flex;flex-direction:column;gap:5px;font-size:14px;text-decoration:none}
+.sv img{width:120px;height:120px;border-radius:8px;object-fit:cover;border:1px solid var(--border);box-sizing:border-box}
+.sv b{font-weight:600;line-height:1.25}
+.st{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--primary-strong)}
+.card{border:1px solid var(--border);background:var(--card);border-radius:14px;display:flex;flex-direction:column;list-style:none;margin:0;padding:0}
+.row{display:flex;gap:12px;padding:12px;align-items:flex-start;border-top:1px solid var(--border)}
+.row:first-child{border-top:0}
+.cv{width:72px;height:72px;border-radius:5px;object-fit:cover;border:1px solid var(--border);flex:none;box-sizing:border-box}
+.ts{width:72px;height:72px;border-radius:5px;flex:none;box-sizing:border-box;background:var(--primary-soft);border:1px solid var(--border);position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:8px 8px 7px;overflow:hidden}
+.ts::after{content:"";position:absolute;inset:4px;border:1px solid color-mix(in oklch, var(--primary-strong) 45%, transparent);border-radius:2px}
+.ts b{font-size:9px;line-height:1.15;font-weight:700;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ts i{font-style:normal;font-size:8px;line-height:1.1;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rx{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.rt{font-weight:600;font-size:16px;line-height:1.3;text-decoration:none}
+.rm{font-size:14px;line-height:1.35;color:var(--muted-foreground)}
+.ra{font-size:14px;line-height:1.35}
+.tag{height:20px;padding:0 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;color:var(--muted-foreground);box-sizing:border-box;margin-left:6px;vertical-align:1px}
+.acts{display:flex;gap:6px;margin-top:6px}
+.btn{height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--border);background:var(--background);color:inherit;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;box-sizing:border-box}
+.ib{width:44px;padding:0;justify-content:center}
+.cf{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted-foreground)}
+.ft{border-top:1px solid var(--border);padding:20px 16px 96px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.4;color:var(--muted-foreground)}
+.tmdb{display:inline-block;background:var(--foreground);color:var(--background);font-weight:800;font-size:12px;padding:3px 7px;border-radius:5px;width:max-content;letter-spacing:0.04em}
+.ft a{color:var(--foreground);text-decoration:underline;font-weight:500}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tbi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tbi.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<h1 class="h1">Search</h1>
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--muted-foreground)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><span>beatles abbey road</span><button class="clr" aria-label="Clear"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></label>
+<fieldset class="seg" aria-label="Media Type">
+<button class="sg" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>Films</button>
+<button class="sg" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Books</button>
+<button class="sg" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg>Series</button>
+<button class="sg" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg>Games</button>
+<button class="sg on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg>Albums</button>
+</fieldset>
+<div class="bh">In your Saved <span>1</span></div>
+<a href="#" class="sv"><img src="/_blob/6b013e7ecc6b344302e562f90dd5e705" alt=""><b>Abbey Road</b><span class="st"><svg class="ic ic12" viewBox="0 0 24 24" aria-hidden="true" style="fill: currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg>5 · Listened</span></a>
+<div class="bh">From MusicBrainz <span>11</span></div>
+<ul class="card">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+<li class="row">
+<sc-if value="{{r.src}}" hint-placeholder-val="{{true}}"><img class="cv" src="{{r.src}}" alt=""></sc-if>
+<sc-if value="{{r.none}}" hint-placeholder-val="{{false}}"><span class="ts" role="img" aria-label="No cover"><b>{{r.title}}</b><i>{{r.artist}}</i></span></sc-if>
+<div class="rx">
+<a href="#" class="rt">{{r.title}}</a>
+<sc-if value="{{v.a}}" hint-placeholder-val="{{true}}"><span class="rm">{{r.lineA}}</span></sc-if>
+<sc-if value="{{v.b}}" hint-placeholder-val="{{false}}"><span class="ra">{{r.artist}}</span><sc-if value="{{r.lineB}}" hint-placeholder-val="{{true}}"><span class="rm">{{r.lineB}}</span></sc-if></sc-if>
+<sc-if value="{{v.c}}" hint-placeholder-val="{{false}}"><span class="ra">{{r.artist}}</span><span class="rm">{{r.year}}<sc-if value="{{r.type}}" hint-placeholder-val="{{false}}"><span class="tag">{{r.type}}</span></sc-if></span></sc-if>
+<div class="acts">
+<button class="btn">Mark listened</button>
+<button class="btn ib" aria-label="Want to listen"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg></button>
+<button class="btn ib" aria-label="Add to collection"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg></button>
+</div>
+</div>
+</li>
+</sc-for>
+</ul>
+<div class="cf">Can't find it? <button class="btn" style="height: 40px">Add manually</button></div>
+</div>
+<footer class="ft"><span class="tmdb">TMDB</span><span>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</span><span>Book data and covers from <a href="#">Open Library</a>.</span><span>Game data and covers from <a href="#">IGDB</a>.</span><span>Album data from <a href="#">MusicBrainz</a>.</span><span>v0.17.0</span></footer>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tbi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tbi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tbi on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1560}}'>
+class Component extends DCLogic {
+renderVals() {
+// "beatles abbey road" on MusicBrainz, 2026-11-21, ranked as ADR-0013 says; Abbey Road (1969) is in Saved, so left out here.
+const raw = [
+{ title: 'The Beatles’ Abbey Road but with the Earthbound Sound font', artist: 'Vorticaunt', year: '2023', src: '/_blob/ecb0c3013870257ea4ecf05b2fff8f76' },
+{ title: 'Enjoy The Beatles!', artist: 'Abbey Road', year: '1994' },
+{ title: 'The Alternate Abbey Road', artist: 'The Beatles', year: '2000', src: '/_blob/7341bb009e2e501c908bfefa2963180f' },
+{ title: 'Abbey Road Working Version', artist: 'The Beatles', year: '' },
+{ title: 'Abbey Road Remix', artist: 'The Beatles', year: '2012', type: 'Remix' }
+];
+const rows = raw.map((r) => {
+const tail = [r.year, r.type].filter(Boolean).join(' · ');
+return { ...r, src: r.src || '', none: !r.src, type: r.type || '', lineA: [r.artist, r.year, r.type].filter(Boolean).join(' · '), lineB: tail };
+});
+return {
+theme: this.props.theme ?? 'dark',
+rows,
+variants: [
+{ cap: 'A · One line: artist · year · type', a: true },
+{ cap: 'B · The artist, then year · type', b: true },
+{ cap: 'C · The artist, then the year and a type tag', c: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>

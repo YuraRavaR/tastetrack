@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>An album without a cover</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--disc:oklch(0.13 0.008 60);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--disc:oklch(0.24 0.01 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-sizing:border-box;padding:20px 16px 24px;display:flex;flex-direction:column;gap:14px}
+.lab{font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted-foreground);margin-top:6px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic14{width:14px;height:14px}
+.top{display:flex;gap:14px;align-items:flex-end}
+.tb{display:flex;flex-direction:column;gap:5px;min-width:0}
+.t1{margin:0;font-size:22px;line-height:1.15;font-weight:700}
+.fx{font-size:14px;color:var(--muted-foreground)}
+.mb{font-size:14px;font-weight:600;color:var(--primary-strong);display:inline-flex;align-items:center;gap:4px;text-decoration:none}
+.row{display:flex;gap:12px;padding:12px;border:1px solid var(--border);background:var(--card);border-radius:14px;align-items:flex-start}
+.rt{font-weight:600;font-size:16px;line-height:1.3}
+.rm{font-size:14px;color:var(--muted-foreground)}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cell{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sq{width:100%;aspect-ratio:1/1;border-radius:6px;object-fit:cover;border:1px solid var(--border);box-sizing:border-box;display:block}
+.ct{font-size:13px;font-weight:600;line-height:1.25}
+.ca{font-size:12px;color:var(--muted-foreground)}
+.nc{position:relative;box-sizing:border-box;border-radius:6px;overflow:hidden;flex:none;aspect-ratio:1/1}
+.s72{width:72px}.s136{width:136px;border-radius:8px}.sfull{width:100%}
+.n1{background:var(--primary-soft);border:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between}
+.n1::after{content:"";position:absolute;inset:5px;border:1px solid color-mix(in oklch, var(--primary-strong) 45%, transparent);border-radius:3px}
+.n1 b{font-weight:700;line-height:1.15}
+.n1 i{font-style:normal;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s72.n1{padding:8px 8px 7px}.s72.n1 b{font-size:9px}.s72.n1 i{font-size:8px}
+.sfull.n1{padding:11px 10px 9px}.sfull.n1 b{font-size:13px}.sfull.n1 i{font-size:10px}
+.s136.n1{padding:14px 12px 11px}.s136.n1 b{font-size:16px}.s136.n1 i{font-size:12px}
+.n2{background:var(--primary-soft);border:1px solid var(--border);display:grid;place-items:center;color:var(--primary-strong)}
+.n2 svg{width:38%;height:38%;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.n3{background:var(--muted);border:1px solid var(--border)}
+.n3 .disc{position:absolute;top:8%;bottom:8%;right:-26%;aspect-ratio:1/1;border-radius:999px;background:repeating-radial-gradient(circle at center, var(--disc) 0 2px, color-mix(in oklch, var(--disc) 82%, white) 2px 3px)}
+.n3 .disc::after{content:"";position:absolute;inset:36%;border-radius:999px;background:var(--primary)}
+.n3 .sl{position:absolute;left:0;top:0;bottom:0;width:78%;background:var(--primary-soft);border-right:1px solid var(--border);box-shadow:4px 0 10px oklch(0 0 0 / 25%);display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box}
+.n3 b{font-weight:700;line-height:1.15}
+.n3 i{font-style:normal;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s72.n3 .sl{padding:7px 6px}.s72.n3 b{font-size:8px}.s72.n3 i{font-size:7px}
+.sfull.n3 .sl{padding:10px 8px}.sfull.n3 b{font-size:12px}.sfull.n3 i{font-size:9px}
+.s136.n3 .sl{padding:13px 10px}.s136.n3 b{font-size:15px}.s136.n3 i{font-size:11px}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<span class="lab">The page (no cover, so no banner)</span>
+<div class="top">
+<sc-if value="{{v.one}}" hint-placeholder-val="{{true}}"><span class="nc n1 s136" role="img" aria-label="No cover"><b>Abbey Road Remix</b><i>The Beatles</i></span></sc-if>
+<sc-if value="{{v.two}}" hint-placeholder-val="{{false}}"><span class="nc n2 s136" role="img" aria-label="No cover"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></span></sc-if>
+<sc-if value="{{v.three}}" hint-placeholder-val="{{false}}"><span class="nc n3 s136" role="img" aria-label="No cover"><span class="disc"></span><span class="sl"><b>Abbey Road Remix</b><i>The Beatles</i></span></span></sc-if>
+<div class="tb"><h1 class="t1">Abbey Road Remix</h1><span class="fx">2012 · The Beatles · Remix</span><a href="#" class="mb">On MusicBrainz<svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a></div>
+</div>
+<span class="lab">A Search row</span>
+<div class="row">
+<sc-if value="{{v.one}}" hint-placeholder-val="{{true}}"><span class="nc n1 s72" role="img" aria-label="No cover"><b>Enjoy The Beatles!</b><i>Abbey Road</i></span></sc-if>
+<sc-if value="{{v.two}}" hint-placeholder-val="{{false}}"><span class="nc n2 s72" role="img" aria-label="No cover"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></span></sc-if>
+<sc-if value="{{v.three}}" hint-placeholder-val="{{false}}"><span class="nc n3 s72" role="img" aria-label="No cover"><span class="disc"></span><span class="sl"><b>Enjoy The Beatles!</b><i>Abbey Road</i></span></span></sc-if>
+<div style="display: flex; flex-direction: column; gap: 3px"><span class="rt">Enjoy The Beatles!</span><span class="rm">Abbey Road · 1994</span></div>
+</div>
+<span class="lab">A grid, beside covers</span>
+<div class="g3">
+<div class="cell"><img class="sq" src="/_blob/f9a582126866df7430ed2418537e4276" alt=""><span class="ct">HOTIN</span><span class="ca">KALUSH</span></div>
+<div class="cell">
+<sc-if value="{{v.one}}" hint-placeholder-val="{{true}}"><span class="nc n1 sfull" role="img" aria-label="No cover"><b>Abbey Road Remix</b><i>The Beatles</i></span></sc-if>
+<sc-if value="{{v.two}}" hint-placeholder-val="{{false}}"><span class="nc n2 sfull" role="img" aria-label="No cover"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></span></sc-if>
+<sc-if value="{{v.three}}" hint-placeholder-val="{{false}}"><span class="nc n3 sfull" role="img" aria-label="No cover"><span class="disc"></span><span class="sl"><b>Abbey Road Remix</b><i>The Beatles</i></span></span></sc-if>
+<span class="ct">Abbey Road Remix</span><span class="ca">The Beatles</span></div>
+<div class="cell"><img class="sq" src="/_blob/4c0f9a0721b4b372568aae9df64428dc" alt=""><span class="ct">На межі</span><span class="ca">ДахаБраха</span></div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+theme: this.props.theme ?? 'dark',
+variants: [
+{ cap: '1 · Typeset, as a book', one: true },
+{ cap: '2 · One quiet icon, as a series', two: true },
+{ cap: '3 · A record sleeve, the disc peeking out', three: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>
