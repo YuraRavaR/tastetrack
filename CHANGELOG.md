@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.17.0](https://github.com/YuraRavaR/tastetrack/compare/v0.16.0...v0.17.0) (2026-11-21)
+
+
+### Features
+
+* **albums:** albums in Search, on their page, in Saved and in Collections ([#275](https://github.com/YuraRavaR/tastetrack/issues/275)) ([d7eea7b](https://github.com/YuraRavaR/tastetrack/commit/d7eea7bd8deca41792fdbcd0224bf6b930ee542c))
+* **catalog:** albums in the API, from MusicBrainz ([#273](https://github.com/YuraRavaR/tastetrack/issues/273)) ([872fd36](https://github.com/YuraRavaR/tastetrack/commit/872fd36668d6e50c757e5d611441b4fa0b25eed0)), closes [#269](https://github.com/YuraRavaR/tastetrack/issues/269)
+
+
+### Bug Fixes
+
+* **catalog:** rank the album the query names above tributes to it ([#276](https://github.com/YuraRavaR/tastetrack/issues/276)) ([fce6981](https://github.com/YuraRavaR/tastetrack/commit/fce6981589468cbd57317a35bc62530de55a7064))
+
 ## [0.16.0](https://github.com/YuraRavaR/tastetrack/compare/v0.15.0...v0.16.0) (2026-11-21)
 
 
