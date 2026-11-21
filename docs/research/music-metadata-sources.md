@@ -4,6 +4,8 @@
 
 **Checked** 2026-11-16, against official docs and the live APIs. This is a short pass, not an exhaustive survey: claims marked _not checked_ were not verified.
 
+**Outcome.** MusicBrainz was chosen in #266 and recorded in ADR-0013. A check from a throwaway Worker and a CORS check on 2026-11-21 (below) settled the rate limit, merges and CORS, and search stays in the Worker.
+
 ## Recommendation
 
 **MusicBrainz for identity, search and metadata, and the Cover Art Archive for covers.** It is the only candidate that is free with no key, whose data is CC0, and that models an album as one entity over all its editions (the **release group**, the analog of an Open Library work). It found every Ukrainian album we tried, in Cyrillic, and gives a Wikidata link that can lead to a description.
@@ -100,10 +102,12 @@ Wikidata as a primary source (it could fill descriptions and labels), TheAudioDB
 - **Cover:** `https://coverartarchive.org/release-group/{mbid}/front-500` straight from the browser, with a placeholder on 404.
 - **Identification:** `User-Agent: TasteTrack/<version> (<Operator contact>)` read from Worker configuration, as in ADR-0011.
 - **503** means we were throttled, either by IP or globally: it's temporary and never counts toward unavailability. A cron run costs 1 subrequest an album (more if descriptions come from Wikidata), but it must keep to 1 a second, so it can't spend its 40 subrequests in a burst.
-- **Merges and deletions:** MusicBrainz merges entities and keeps the old MBID as a redirect. How the API answers for a merged or deleted release group was _not checked_.
-- **Fallback for the rate limit:** cache search results for a short time, or call search from the browser instead of the Worker, so the per-IP limit applies to the user's own IP. Each needs a decision and a check that MusicBrainz allows browser CORS: _not checked_.
+- **Merges and deletions:** MusicBrainz merges entities and keeps the old MBID as a redirect. A merged release group answers 301 to the new one (checked 2026-11-21, below). How it answers for a deleted one was _not checked_.
+- **Fallback for the rate limit:** cache search results for a short time, or call search from the browser instead of the Worker, so the per-IP limit applies to the user's own IP. Each needs a decision. MusicBrainz allows browser CORS (checked 2026-11-21, below).
 
 ## Open questions for the user
+
+All seven were answered in the #266 grilling on 2026-11-21 and are recorded in ADR-0013: albums and EPs, no singles; live albums, soundtracks and compilations are albums of their own; artists are names, with their MBIDs kept; the Original Title alone; search in the Worker; no About block; no Progress.
 
 1. Albums only, or EPs and singles too? Kalush Orchestra's best-known work is a single.
 2. Compilations, live albums and soundtracks: separate Media Items, hidden, or a later decision?
@@ -112,6 +116,63 @@ Wikidata as a primary source (it could fill descriptions and labels), TheAudioDB
 5. Search from the Worker, or from the browser, to escape the shared-IP limit?
 6. Is a description (About block) needed for albums at launch?
 7. Does a future Progress for albums (track N of M) matter? A release has a track list, but a release group doesn't: you would have to pick one release.
+
+## Check from a Worker (2026-11-21)
+
+**Why.** The 2026-11-16 checks ran from a home IP. In production the Worker calls MusicBrainz from Cloudflare's shared egress IPs, where other people's traffic spends the same per-IP limit. #266 set the rule: search moves to the browser if more than 10% of searches still get 503 after one retry.
+
+**How.** A throwaway Worker, `tastetrack-mb-check-267` on `*.workers.dev`, outside TasteTrack's deployments, deployed with the Operator's approval and deleted after the run. Each call sent `User-Agent: TasteTrack/0.16.0 (<contact>)`, with the repository URL as the contact for this check (TasteTrack itself sends the Operator's contact, ADR-0013). Every call went through one queue, at least 1.1 s after the previous one, and a 503 was retried once through the same queue. The checks ran in two invocations, to stay under Workers Free's 50 subrequests each: 20 searches from 08:32 UTC (33 s), then 20 lookups and the merge checks from 08:33 UTC (31 s).
+
+**Results.**
+
+| | Calls | 503 on the first try | 503 after one retry |
+|---|---|---|---|
+| Release-group search | 20 | 11 (55%) | 1 (5%) |
+| Release-group lookup | 20 | 5 (25%) | 0 |
+
+5% is under the 10% rule, so search stays in the Worker. Throttling on the first try is common, so the single retry is required, not optional.
+
+**Searches** used `/release-group/?query=(<q>) AND (primarytype:album OR primarytype:ep)&limit=10`. Artist names in the query still match with the type filter in place. Top hit, or the place of the album meant:
+
+| Query | Result |
+|---|---|
+| Океан Ельзи Земля | Земля, Океан Ельзи, 2013, Album: first |
+| Бумбокс Family бізнес | Family бізнес, Бумбокс, 2006, Album: first |
+| Воплі Відоплясова Музіка | Музіка, 1997, Album: first (the 1996 single is filtered out) |
+| Jinjer Wallflowers | Wallflowers, 2021, Album: first |
+| 1944 Jamala | 1944, EP (2016-05-07) first, then the Album (2016-06-10) |
+| Kalush Orchestra | 503 twice |
+| Radiohead OK Computer | OK Computer, 1997, Album: first |
+| Abbey Road Beatles | Abbey Road, 1969, Album: first; Abbey Road Remix (Album + Remix) second |
+| Pink Floyd Dark Side of the Moon | Two tribute albums first; Pink Floyd third |
+| DakhaBrakha | The Bedouin Reworks Of Dakhabrakha (EP) first, then The Road and Ptakh (Albums) |
+| Скрябін Кінець фільму | Кінець фільму, 2015, EP + Compilation: first |
+| Ruslana Wild Dances | Wild Dances, 2004, Album: first |
+| The Hardkiss Залізна ластівка | Залiзна ластiвка, 2018, Album: first (MusicBrainz spells it with a Latin "i") |
+| Христина Соловій Жива вода | Жива вода, 2015, Album: first |
+| Daft Punk Random Access Memories | A Vitamin String Quartet tribute first; Daft Punk second |
+| Kendrick Lamar To Pimp a Butterfly | To Pimp a Butterfly, 2015, Album: first |
+| Taylor Swift 1989 | A lullaby tribute and two karaoke albums (Album + Remix); her album not in the top 3 |
+| Miles Davis Kind of Blue | Kind of Blue, 1959, Album: first |
+| Земля | Анна Ворфоломеева (EP), Butterfly Temple, then Океан Ельзи third |
+| Abbey Road | Abbey's Road (Ada Montellanico), Various Artists, then the Beatles third |
+
+**Lookups** used `/release-group/<mbid>?inc=artist-credits+url-rels+aliases` for 20 MBIDs from the searches. All 20 answered with the MBID asked for.
+
+**Merges.** Wikidata marks some MusicBrainz release-group IDs as deprecated with the reason "redirect". Two of them were looked up from the Worker:
+
+| Old MBID | `redirect: "manual"` | Followed |
+|---|---|---|
+| `a51b25f4-2dc1-4787-b779-51abcdb170ff` | 301, `Location` `…/release-group/9cd2811d-a999-326e-8945-a8b6b44b9e92?…` | 200, `id` 9cd2811d…, Bye Bye Birdie |
+| `263247fc-e4a1-3164-9100-04c790e0a812` | 301, `Location` `…/release-group/2eb7ce56-2c3a-34a2-b587-d9072d4b0e1c?…` | 200, `id` 2eb7ce56…, Nö Sleep at All |
+
+The `Location` keeps the query, `inc` included. The followed request is made by `fetch` itself, without the queue's interval, and both answered 200. ADR-0013 has the source follow the 301 itself, through its queue. The Cover Art Archive answers an old MBID with the same 307 to the same image as the new one (checked from a home IP).
+
+**Covers.** `coverartarchive.org/release-group/<mbid>/front-250` for the 20 looked-up release groups: 18 answered 307, 2 answered 404 (Abbey Road Remix and The Bedouin Reworks Of Dakhabrakha). It answers with `access-control-allow-origin: *`.
+
+## CORS check (2026-11-21)
+
+MusicBrainz answers a release-group search with `access-control-allow-origin: *`, and its CORS preflight allows the request headers `Authorization, Content-Type, User-Agent`. A browser page could call search itself, so the limit would apply to the User's own IP. Chrome and Safari don't let a page set its own User-Agent, so such calls would be known to MusicBrainz only by their Origin.
 
 ## Raw live results (2026-11-16)
 

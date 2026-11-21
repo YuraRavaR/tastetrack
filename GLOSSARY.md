@@ -1,6 +1,6 @@
 # TasteTrack
 
-A personal tracker for taste in media: users record what they have watched, read and played (later listened to), keep lists of what they want to get to, and share selected lists with others.
+A personal tracker for taste in media: users record what they have watched, read, played and listened to, keep lists of what they want to get to, and share selected lists with others.
 
 Terms marked _(planned)_ are not in the MVP but are part of the model's language already.
 
@@ -9,15 +9,15 @@ Terms marked _(planned)_ are not in the MVP but are part of the model's language
 ### Catalog
 
 **Media Item**:
-A single work (a film, a book, a series or a game, and later an album) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port, a DLC or an expansion, while a remake, a remaster or a standalone expansion is a game of its own.
+A single work (a film, a book, a series, a game or an album) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port, a DLC or an expansion, while a remake, a remaster or a standalone expansion is a game of its own. An album is the work across all its editions, never one release, while a live album or a compilation is an album of its own.
 _Avoid_: Movie, title, film (as a generic term), content, item
 
 **Media Type**:
-The kind of work a Media Item is: film, book, series and game; album is planned.
+The kind of work a Media Item is: film, book, series, game and album.
 _Avoid_: Category, kind, format
 
 **External Source**:
-The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films and series, Open Library for books, and IGDB for games.
+The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films and series, Open Library for books, IGDB for games, and MusicBrainz for albums.
 _Avoid_: Provider, database, API
 
 **External Reference**:
@@ -55,7 +55,7 @@ One record of a User having experienced a Media Item, with a required Rating and
 _Avoid_: Watch, view, diary entry, log (for a single record)
 
 **Experienced**:
-The User action that creates a Log Entry ("Watched" for films and series, "Read" for books, and "Played" for games in the UI).
+The User action that creates a Log Entry ("Watched" for films and series, "Read" for books, "Played" for games, and "Listened" for albums in the UI).
 _Avoid_: Watched (as a domain term), seen, consumed
 
 **In Progress**:
@@ -67,7 +67,7 @@ How far a User has got in a Media Item that is In Progress, in a shape set by it
 _Avoid_: Position, bookmark, checkpoint, episode tracking
 
 **Revisit**:
-A Log Entry the User has marked as a repeat experience of a Media Item ("Rewatch" for films and series, "Reread" for books, and "Replay" for games in the UI). A new Log Entry for a series after a new season is not a Revisit unless the User marks it so.
+A Log Entry the User has marked as a repeat experience of a Media Item ("Rewatch" for films and series, "Reread" for books, "Replay" for games, and "Relisten" for albums in the UI). A new Log Entry for a series after a new season is not a Revisit unless the User marks it so.
 _Avoid_: Rewatch, reread, replay, relisten (UI words only)
 
 **Rating**:
@@ -121,11 +121,11 @@ Optional free text attached to a List Item.
 _Avoid_: Review (that is for Log Entries), Thought (that is for a Media Item), comment, annotation
 
 **Backlog**:
-A system List of the Media Items a User plans to experience; one per User per Media Type, which cannot be deleted or renamed ("Watchlist" for films and series, "Reading list" for books, and "Backlog" for games in the UI).
+A system List of the Media Items a User plans to experience; one per User per Media Type, which cannot be deleted or renamed ("Watchlist" for films and series, "Reading list" for books, "Backlog" for games, and "Listening list" for albums in the UI).
 _Avoid_: Watchlist (as a domain term), queue, to-do list
 
 **Planned**:
-The User action that adds a Media Item to their Backlog without creating a Log Entry ("Want to watch" for films and series, "Want to read" for books, and "Want to play" for games in the UI).
+The User action that adds a Media Item to their Backlog without creating a Log Entry ("Want to watch" for films and series, "Want to read" for books, "Want to play" for games, and "Want to listen" for albums in the UI).
 _Avoid_: Want to watch (as a domain term), bookmarked, saved
 
 ### Sharing and social
