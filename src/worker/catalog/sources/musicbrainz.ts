@@ -66,6 +66,8 @@ const ReleaseGroup = z.object({
   "primary-type": z.string().nullish(),
   "secondary-types": z.array(z.string()).nullish(),
   "artist-credit": ArtistCredit.optional(),
+  // How many releases it has; a search gives it, a lookup doesn't.
+  count: z.number().nullish(),
 });
 
 type ReleaseGroup = z.infer<typeof ReleaseGroup>;
@@ -121,23 +123,32 @@ function wordsOf(text: string): string[] {
 
 const articles = new Set(["the", "a", "an"]);
 
-// Whether every word of a name is in the query, its articles aside: "The Beatles" is in
-// "abbey road beatles", and "The Dark Side of the Moon" in "pink floyd dark side of the moon".
-function namedIn(queryWords: Set<string>, name: string): boolean {
+// The words of a name the query holds, its articles aside, if it holds every one: "The Beatles" is
+// in "abbey road beatles", and "The Dark Side of the Moon" in "pink floyd dark side of the moon".
+// Null if the query lacks any.
+function namedIn(queryWords: Set<string>, name: string): string[] | null {
   const words = wordsOf(name);
   const significant = words.filter((word) => !articles.has(word));
   const asked = significant.length > 0 ? significant : words;
-  return asked.length > 0 && asked.every((word) => queryWords.has(word));
+  return asked.length > 0 && asked.every((word) => queryWords.has(word)) ? asked : null;
 }
 
-// How much of a release group the query names: one for its title, one for any of its credited
-// artists. A tribute names the original in its own title ("The String Quartet Tribute to Pink
-// Floyd’s The Dark Side of the Moon"), which MusicBrainz ranks high, so the album whose title and
-// artist the query names outranks it whatever their types.
+// How much of a release group the query names: one for its title, and one for any of its credited
+// artists in the words the title left. A tribute names the original in its own title ("The String
+// Quartet Tribute to Pink Floyd’s The Dark Side of the Moon"), which MusicBrainz ranks high, so the
+// album whose title and artist the query names outranks it whatever their types. A word counts
+// once, so "OK Computer" names the title of an EP "Computer" by Computer, not its artist too.
 function namedByQuery(queryWords: Set<string>, group: ReleaseGroup): number {
-  const title = namedIn(queryWords, group.title) ? 1 : 0;
-  const artist = (group["artist-credit"] ?? []).some((credit) => namedIn(queryWords, credit.name));
-  return title + (artist ? 1 : 0);
+  const title = namedIn(queryWords, group.title);
+  const left = new Set([...queryWords].filter((word) => !title?.includes(word)));
+  const artist = (group["artist-credit"] ?? []).some((credit) => namedIn(left, credit.name));
+  return (title ? 1 : 0) + (artist ? 1 : 0);
+}
+
+// How many releases a release group has, as a search counts them: an album pressed and reissued
+// many times is the one people mean, and a duplicate someone entered by mistake has one.
+function releasesOf(group: ReleaseGroup): number {
+  return group.count ?? 0;
 }
 
 // The year of the first release, from a date MusicBrainz writes as YYYY, YYYY-MM or YYYY-MM-DD.
@@ -283,7 +294,7 @@ const mediaItemsOnly = "(primarytype:album OR primarytype:ep)";
 
 // The first matches that are Media Items, reranked: the ones whose title and artist the query names
 // first, then those that name one of the two; within each, albums before EPs, plain ones before the
-// rest, then in MusicBrainz's order. A Cyrillic query is sent as typed and finds albums titled in
+// rest, then the ones with more releases, then in MusicBrainz's order. A Cyrillic query is sent as typed and finds albums titled in
 // their original script; an album has one title, so the query's language only says which it ran in.
 async function searchAlbums(env: CatalogEnv, query: string): Promise<CatalogSearchMatch[]> {
   const path = "/release-group/";
@@ -307,8 +318,12 @@ async function searchAlbums(env: CatalogEnv, query: string): Promise<CatalogSear
       order,
       named: namedByQuery(queryWords, found.group),
       rank: rank(found.group, found.primaryType),
+      releases: releasesOf(found.group),
     }))
-    .sort((a, b) => b.named - a.named || a.rank - b.rank || a.order - b.order);
+    .sort(
+      (a, b) =>
+        b.named - a.named || a.rank - b.rank || b.releases - a.releases || a.order - b.order,
+    );
   const titleLanguage = searchLanguage(query) === "uk-UA" ? "uk" : "en";
   return ranked.map(({ group, primaryType }) => ({
     externalReference: { source: "musicbrainz", mediaType: "album", id: group.id },
