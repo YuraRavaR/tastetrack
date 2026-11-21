@@ -122,6 +122,8 @@ const namedWithoutYear: Record<MediaType, boolean> = {
   book: true,
   series: false,
   game: true,
+  // Settled with the albums UI.
+  album: true,
 };
 
 // What a result's row is titled: a film or a series by its label, "Alien (1979)", and a book or a

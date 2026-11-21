@@ -11,7 +11,10 @@
 // calls IGDB_BASE_URL with an access token from TWITCH_TOKEN_URL, both the real ones everywhere
 // except `local`, which calls the IGDB fake for both with placeholder credentials; the Twitch
 // application's TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET are secrets on staging and production
-// (ADR-0012). The Worker
+// (ADR-0012). Album search calls MUSICBRAINZ_BASE_URL, and album covers are linked from
+// COVER_ART_ARCHIVE_BASE_URL, both the real ones everywhere except `local`, which calls their
+// fakes and waits MUSICBRAINZ_INTERVAL_MS between calls instead of 1.1 s, which the fake holds it
+// to; MusicBrainz takes no key, so albums have no secret (ADR-0013). The Worker
 // runs first for the API and for Share Link pages (/s/*), whose <head> it fills in on the app's
 // HTML from the ASSETS binding (ADR-0008); everything else is served as static assets. The Cron
 // Trigger refreshes the catalog cache every 15 minutes (ADR-0004) and clears login failures that no
@@ -35,7 +38,9 @@
     "TMDB_BASE_URL": "https://api.themoviedb.org/3",
     "OPEN_LIBRARY_BASE_URL": "https://openlibrary.org",
     "IGDB_BASE_URL": "https://api.igdb.com/v4",
-    "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token"
+    "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token",
+    "MUSICBRAINZ_BASE_URL": "https://musicbrainz.org/ws/2",
+    "COVER_ART_ARCHIVE_BASE_URL": "https://coverartarchive.org"
   },
   "d1_databases": [
     {
@@ -68,7 +73,10 @@
         "IGDB_BASE_URL": "http://localhost:8787/api/test/igdb/v4",
         "TWITCH_TOKEN_URL": "http://localhost:8787/api/test/igdb/oauth2/token",
         "TWITCH_CLIENT_ID": "fake-twitch-client-id",
-        "TWITCH_CLIENT_SECRET": "fake-twitch-client-secret"
+        "TWITCH_CLIENT_SECRET": "fake-twitch-client-secret",
+        "MUSICBRAINZ_BASE_URL": "http://localhost:8787/api/test/musicbrainz/ws/2",
+        "COVER_ART_ARCHIVE_BASE_URL": "http://localhost:8787/api/test/coverartarchive",
+        "MUSICBRAINZ_INTERVAL_MS": "50"
       }
     },
     "staging": {
@@ -88,7 +96,9 @@
         "TMDB_BASE_URL": "https://api.themoviedb.org/3",
         "OPEN_LIBRARY_BASE_URL": "https://openlibrary.org",
         "IGDB_BASE_URL": "https://api.igdb.com/v4",
-        "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token"
+        "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token",
+        "MUSICBRAINZ_BASE_URL": "https://musicbrainz.org/ws/2",
+        "COVER_ART_ARCHIVE_BASE_URL": "https://coverartarchive.org"
       }
     }
   }

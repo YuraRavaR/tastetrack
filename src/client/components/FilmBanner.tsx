@@ -22,7 +22,10 @@ export function FilmBanner({
   // block has.
   sourceLink?: ReactNode;
 }) {
-  const backdrop = mediaItem.mediaType === "book" ? null : mediaItem.metadata?.backdropUrls;
+  const backdrop =
+    mediaItem.mediaType === "book" || mediaItem.mediaType === "album"
+      ? null
+      : mediaItem.metadata?.backdropUrls;
   const posterUrl = coverOf(mediaItem, "large").url;
   const pictureImage = backdrop ? (
     <>

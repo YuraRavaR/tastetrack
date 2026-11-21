@@ -63,5 +63,8 @@ function factsOf(mediaItem: MediaItem): string | null {
       return seriesFacts(mediaItem.metadata);
     case "game":
       return gameFacts(mediaItem.metadata);
+    // An album's facts come with its UI.
+    case "album":
+      return null;
   }
 }

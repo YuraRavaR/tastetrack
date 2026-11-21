@@ -129,6 +129,19 @@ function fromManual(
         genres: [],
         url: null,
       };
+    case "album": {
+      const artists = manual.authors ?? [];
+      return {
+        ...titles,
+        ukrainianTitle: null,
+        coverUrls: null,
+        artistCredit: artists.length > 0 ? artists.join(", ") : null,
+        artists,
+        primaryType: null,
+        secondaryTypes: [],
+        url: null,
+      };
+    }
   }
 }
 
@@ -173,7 +186,7 @@ function byExternalReference({ source, mediaType, id }: ExternalReference) {
 // What a search result alone says about a work: its title in the language the search ran in,
 // unless that is just the source falling back to the Original Title, and its cover. Nothing of
 // what only its Media Type has.
-function fromSearchResult(result: AddCatalogItemRequest): CatalogEntry {
+function fromSearchResult(result: AddCatalogItemRequest, env: CatalogEnv): CatalogEntry {
   const source = sourceOf(result.externalReference.mediaType);
   const translated = result.title !== result.originalTitle ? result.title : null;
   return {
@@ -181,7 +194,7 @@ function fromSearchResult(result: AddCatalogItemRequest): CatalogEntry {
     ukrainianTitle: result.titleLanguage === "uk" ? translated : null,
     originalTitle: result.originalTitle,
     year: result.year,
-    coverRef: source.coverRefOf(result.posterUrl),
+    coverRef: source.coverRefOf(result.posterUrl, env),
     extra: source.emptyExtra,
   };
 }
@@ -316,7 +329,7 @@ export async function addFromSearch(
       if (!(error instanceof SourceUnavailable)) throw error;
       console.error(error);
       if (!shown) {
-        metadata = fromSearchResult(result);
+        metadata = fromSearchResult(result, env);
         const columns = { ...metadata, updatedAt: now, detailedAt: null, checkedAt: null };
         await db
           .insert(catalogCache)

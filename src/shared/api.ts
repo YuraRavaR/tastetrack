@@ -166,12 +166,16 @@ export const InviteCodesResponse = z
 export type InviteCodesResponse = z.infer<typeof InviteCodesResponse>;
 
 // The catalog is searched through the External Source of each Media Type: TMDB for films and
-// series, Open Library for books, IGDB for games.
-export const MediaType = z.enum(["film", "book", "series", "game"]).openapi({ example: "film" });
+// series, Open Library for books, IGDB for games, MusicBrainz for albums.
+export const MediaType = z
+  .enum(["film", "book", "series", "game", "album"])
+  .openapi({ example: "film" });
 
 export type MediaType = z.infer<typeof MediaType>;
 
-export const ExternalSource = z.enum(["tmdb", "openlibrary", "igdb"]).openapi({ example: "tmdb" });
+export const ExternalSource = z
+  .enum(["tmdb", "openlibrary", "igdb", "musicbrainz"])
+  .openapi({ example: "tmdb" });
 
 export type ExternalSource = z.infer<typeof ExternalSource>;
 
@@ -222,8 +226,9 @@ const UserMarks = {
 // External Source has none; titleLanguage says which language that query ran in. posterUrl is the
 // cover's thumbnail, whatever the Media Type calls its cover. authors are a book's, as names in
 // the source's order; a film has none. platforms are a game's, each by its abbreviation, in the
-// source's order; a result of any other Media Type leaves them out. mediaItemId is the work's
-// Media Item, null until it joins the catalog.
+// source's order; a result of any other Media Type leaves them out. artistCredit, primaryType and
+// secondaryTypes are an album's, as AlbumMetadata has them, and a result of any other Media Type
+// leaves them out. mediaItemId is the work's Media Item, null until it joins the catalog.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -239,6 +244,19 @@ export const CatalogSearchResult = z
       .array(z.string())
       .optional()
       .openapi({ example: ["PC", "PS4", "PS5"], description: "A game's alone" }),
+    artistCredit: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "Океан Ельзи", description: "An album's alone" }),
+    primaryType: z
+      .enum(["Album", "EP"])
+      .optional()
+      .openapi({ example: "Album", description: "An album's alone" }),
+    secondaryTypes: z
+      .array(z.string())
+      .optional()
+      .openapi({ example: [], description: "An album's alone" }),
     mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
     ...UserMarks,
   })
@@ -249,10 +267,13 @@ export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
 // A search result as the client got it, to add its work to the catalog. The details call
 // replaces what it says; it stands in only when that call fails. Its External Reference names a
 // Media Type's own External Source, with an id as that source writes them. authors, platforms,
-// mediaItemId and the User's marks, if sent, are ignored.
+// an album's credit and types, mediaItemId and the User's marks, if sent, are ignored.
 export const AddCatalogItemRequest = CatalogSearchResult.omit({
   authors: true,
   platforms: true,
+  artistCredit: true,
+  primaryType: true,
+  secondaryTypes: true,
   mediaItemId: true,
   inLog: true,
   inBacklog: true,
@@ -293,6 +314,14 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
           .string()
           .regex(/^\d{1,12}$/)
           .openapi({ example: "1942" }),
+      }),
+      z.object({
+        source: z.literal("musicbrainz"),
+        mediaType: z.literal("album"),
+        id: z
+          .string()
+          .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+          .openapi({ example: "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8" }),
       }),
     ]),
     title: z.string().trim().min(1).max(500).openapi({ example: "Чужий" }),
@@ -471,6 +500,47 @@ export const GameMetadata = z
 
 export type GameMetadata = z.infer<typeof GameMetadata>;
 
+// An album's metadata from the External Source, where an album is a MusicBrainz release group, the
+// work across all its editions, never one release (ADR-0013). It has one title, MusicBrainz's,
+// which is its Original Title too, and never a Ukrainian one. The year is the year of its first
+// release. The cover is square, from the Cover Art Archive, in a size for a thumbnail and one for a
+// grid or the album's page; it is linked whether or not the archive has one, and an image that
+// doesn't load shows the album placeholder. artistCredit is the credit as MusicBrainz shows it,
+// each credited name followed by its join phrase, and artists the credited names alone, in its
+// order; a Manual Media Item's artists are its User's, joined by commas into its credit.
+// primaryType is Album or EP, and secondaryTypes say what else it is, such as Live or Soundtrack;
+// url is its release group on MusicBrainz. All but the title, the year and the cover are unknown
+// until the details call succeeds.
+export const AlbumMetadata = z
+  .object({
+    title: z.string().openapi({ example: "Земля" }),
+    originalTitle: z.string().openapi({ example: "Земля" }),
+    ukrainianTitle: z.null(),
+    year: z.int().nullable().openapi({ example: 2013 }),
+    coverUrls: z
+      .object({
+        small: z.url().openapi({
+          example:
+            "https://coverartarchive.org/release-group/080f0c63-6e0b-42d0-917d-e22d1d4bdaf8/front-250",
+        }),
+        large: z.url().openapi({
+          example:
+            "https://coverartarchive.org/release-group/080f0c63-6e0b-42d0-917d-e22d1d4bdaf8/front-500",
+        }),
+      })
+      .nullable(),
+    artistCredit: z.string().nullable().openapi({ example: "Океан Ельзи" }),
+    artists: z.array(z.string()).openapi({ example: ["Океан Ельзи"] }),
+    primaryType: z.enum(["Album", "EP"]).nullable().openapi({ example: "Album" }),
+    secondaryTypes: z.array(z.string()).openapi({ example: [] }),
+    url: z.url().nullable().openapi({
+      example: "https://musicbrainz.org/release-group/080f0c63-6e0b-42d0-917d-e22d1d4bdaf8",
+    }),
+  })
+  .openapi("AlbumMetadata");
+
+export type AlbumMetadata = z.infer<typeof AlbumMetadata>;
+
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
 // metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
@@ -513,8 +583,24 @@ export const GameMediaItem = z
   })
   .openapi("GameMediaItem");
 
+// An album's Media Item, its metadata an album's.
+export const AlbumMediaItem = z
+  .object({
+    id: z.int().openapi({ example: 46 }),
+    mediaType: z.literal("album"),
+    externalReference: ExternalReference.nullable(),
+    metadata: AlbumMetadata.nullable(),
+  })
+  .openapi("AlbumMediaItem");
+
 export const MediaItem = z
-  .discriminatedUnion("mediaType", [FilmMediaItem, BookMediaItem, SeriesMediaItem, GameMediaItem])
+  .discriminatedUnion("mediaType", [
+    FilmMediaItem,
+    BookMediaItem,
+    SeriesMediaItem,
+    GameMediaItem,
+    AlbumMediaItem,
+  ])
   .openapi("MediaItem");
 
 export type MediaItem = z.infer<typeof MediaItem>;
@@ -668,12 +754,29 @@ export const NewManualGameRequest = z
 
 export type NewManualGameRequest = z.input<typeof NewManualGameRequest>;
 
+// An album has a title, an Original Title, a year and its artists, which take a book's authors'
+// field and rules (ADR-0013).
+export const NewManualAlbumRequest = z
+  .object({
+    mediaType: z.literal("album"),
+    title: ManualTitle,
+    originalTitle: ManualOriginalTitle.default(null),
+    year: ManualFilmYear.default(null),
+    authors: ManualAuthors.default([]).openapi({ example: ["Океан Ельзи"] }),
+    allowDuplicate: z.boolean().default(false),
+  })
+  .strict()
+  .openapi("NewManualAlbumRequest");
+
+export type NewManualAlbumRequest = z.input<typeof NewManualAlbumRequest>;
+
 export const NewManualMediaItemRequest = z
   .discriminatedUnion("mediaType", [
     NewManualFilmRequest,
     NewManualBookRequest,
     NewManualSeriesRequest,
     NewManualGameRequest,
+    NewManualAlbumRequest,
   ])
   .openapi("NewManualMediaItemRequest");
 
@@ -683,8 +786,9 @@ export type NewManualMediaItem = z.output<typeof NewManualMediaItemRequest>;
 
 // Only the fields given change, by the same rules as a new one; a null or empty Original Title,
 // or a null year or runtime, clears it. The Media Type can't change, and the Worker refuses the
-// details of another Media Type: a book's runtime or genres, a film's, a series' or a game's
-// authors, a series' or a game's runtime or genres, or a year before films for any but a book.
+// details of another Media Type: a book's or an album's runtime or genres, a film's, a series' or
+// a game's authors, a series', a game's or an album's runtime or genres, or a year before films for
+// any but a book. An album's authors are its artists.
 export const ManualMediaItemEditRequest = z
   .object({
     title: ManualTitle.optional(),

@@ -147,7 +147,7 @@ test("a List needs a name of up to 100 characters, a known Media Type and a shor
     { name: "   ", mediaType: "film" },
     { name: "x".repeat(101), mediaType: "film" },
     { name: "Horror" },
-    { name: "Horror", mediaType: "album" },
+    { name: "Horror", mediaType: "podcast" },
     { name: "Horror", mediaType: "film", description: "x".repeat(1001) },
   ]) {
     const response = await loggedInApi.lists.createList(data as never);
@@ -387,6 +387,27 @@ test("a List loads in the same number of queries for 1 game as for 500, on a col
     const response = await loggedInApi.lists.getList(list.id);
     expect(await response.json()).toMatchObject({
       list: { mediaType: "game", items: { length: games } },
+    });
+    return response.headers()["x-d1-query-count"];
+  };
+
+  const one = await queriesForListOf(1);
+  const fiveHundred = await queriesForListOf(500);
+
+  expect(one).toMatch(/^\d+$/);
+  expect(fiveHundred).toBe(one);
+});
+
+test("a List loads in the same number of queries for 1 album as for 500, on a cold cache", async ({
+  loggedInApi,
+}) => {
+  // The placeholders have no cache entry, so the page fetches what it may from MusicBrainz.
+  const queriesForListOf = async (albums: number) => {
+    const list = await createList(loggedInApi, { name: `${albums} albums`, mediaType: "album" });
+    expect((await loggedInApi.testHooks.fillList(list.id, albums)).status()).toBe(204);
+    const response = await loggedInApi.lists.getList(list.id);
+    expect(await response.json()).toMatchObject({
+      list: { mediaType: "album", items: { length: albums } },
     });
     return response.headers()["x-d1-query-count"];
   };

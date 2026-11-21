@@ -27,6 +27,11 @@ import { sourceOf } from "./registry";
 import { SourceUnavailable } from "./source";
 import { storeToken } from "./source-tokens";
 import { igdbFake, igdbFakeToken } from "./sources/igdb-fake";
+import {
+  musicBrainzFake,
+  musicBrainzFakeCalls,
+  musicBrainzFakeFailing,
+} from "./sources/musicbrainz-fake";
 import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
 
@@ -41,7 +46,7 @@ let database: TestDatabase;
 let db: DrizzleD1Database;
 let userId: number;
 // A List of each Media Type.
-let listIds: { film: number; book: number; series: number; game: number };
+let listIds: { film: number; book: number; series: number; game: number; album: number };
 
 beforeAll(async () => {
   database = await openTestDatabase();
@@ -70,17 +75,18 @@ beforeEach(async () => {
     .returning();
   if (!user) throw new Error("no user");
   userId = user.id;
-  const [films, books, series, games] = await db
+  const [films, books, series, games, albums] = await db
     .insert(lists)
     .values([
       { userId, kind: "list", mediaType: "film", name: "F", nameKey: "f", createdAt: now },
       { userId, kind: "list", mediaType: "book", name: "B", nameKey: "b", createdAt: now },
       { userId, kind: "list", mediaType: "series", name: "S", nameKey: "s", createdAt: now },
       { userId, kind: "list", mediaType: "game", name: "G", nameKey: "g", createdAt: now },
+      { userId, kind: "list", mediaType: "album", name: "A", nameKey: "a", createdAt: now },
     ])
     .returning();
-  if (!films || !books || !series || !games) throw new Error("no lists");
-  listIds = { film: films.id, book: books.id, series: series.id, game: games.id };
+  if (!films || !books || !series || !games || !albums) throw new Error("no lists");
+  listIds = { film: films.id, book: books.id, series: series.id, game: games.id, album: albums.id };
 });
 
 interface Work {
@@ -174,6 +180,28 @@ async function game(id: string, options: Work = {}): Promise<void> {
   const extra = sourceOf("game").emptyExtra;
   await work({ source: "igdb", mediaType: "game", id }, `Game ${id}`, extra, options);
 }
+
+// Adds a catalog-backed album with release-group MBID `id`.
+async function album(id: string, options: Work = {}): Promise<void> {
+  const extra = sourceOf("album").emptyExtra;
+  await work({ source: "musicbrainz", mediaType: "album", id }, `Album ${id}`, extra, options);
+}
+
+// Release groups the MusicBrainz fake has, each a Media Item.
+const albumIds = [
+  "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8",
+  "c70b84d2-1538-44c5-a7f0-71ed32508e92",
+  "c0b2899c-41ab-4907-abf0-ff1962477ff2",
+  "004a4e79-ac6c-448a-9d7f-b1b1714aa22a",
+  "42ef6001-3113-440c-ae7c-3667c7351e35",
+  "9162580e-5df4-32de-80cc-f45a8d8a9b1d",
+  "eabb68b3-d57c-359a-8215-91f38d365da5",
+  "b7f51377-4088-43bc-beb7-58705d9af90e",
+  "68b61f05-aa49-4dda-9cdc-1104e4541aed",
+  "d9e73c6c-2fd9-4652-b1b1-87031957d705",
+  "4513c7b9-854e-457f-81d6-3dbeb001beb8",
+  "67210625-2acc-4689-8b76-a43181af8a10",
+];
 
 // A film's metadata, of a Media Item that should be one.
 function filmMetadata(mediaItem: MediaItem | undefined): FilmMetadata | null {
@@ -357,10 +385,18 @@ const env = {
   TWITCH_TOKEN_URL: "http://igdb.test/oauth2/token",
   TWITCH_CLIENT_ID: "fake-twitch-client-id",
   TWITCH_CLIENT_SECRET: "fake-twitch-client-secret",
+  MUSICBRAINZ_BASE_URL: "http://musicbrainz.test/ws/2",
+  COVER_ART_ARCHIVE_BASE_URL: "http://coverartarchive.test",
+  MUSICBRAINZ_INTERVAL_MS: "20",
   get DB() {
     return database.binding;
   },
 };
+
+// The calls made to MusicBrainz, each from when it was made to when it was answered, and the most
+// that were under way at once.
+let musicBrainzCalls: { start: number; end: number }[] = [];
+let musicBrainzAtOnce = 0;
 
 // The metadata titles the User's Log shows, in Log Order.
 async function loggedTitles(): Promise<(string | null)[]> {
@@ -382,9 +418,23 @@ function useSourceFakes(): void {
     });
     // Each failed details call is logged; the tests say which fail.
     vi.spyOn(console, "error").mockImplementation(() => undefined);
-    vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+    musicBrainzCalls = [];
+    musicBrainzAtOnce = 0;
+    let underWay = 0;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
       subrequests += 1;
       const url = input instanceof Request ? input.url : String(input);
+      if (url.startsWith("http://musicbrainz.test")) {
+        const call = { start: Date.now(), end: 0 };
+        underWay += 1;
+        musicBrainzAtOnce = Math.max(musicBrainzAtOnce, underWay);
+        const path = url.slice("http://musicbrainz.test".length);
+        const response = await musicBrainzFake.request(path, init, env);
+        underWay -= 1;
+        call.end = Date.now();
+        musicBrainzCalls.push(call);
+        return response;
+      }
       const fakes = [
         [env.OPEN_LIBRARY_BASE_URL, openLibraryFake],
         ["http://igdb.test", igdbFake],
@@ -664,6 +714,108 @@ describe("a cron run", () => {
     }
   });
 
+  it("refreshes at most 10 albums a run, one call at a time and the interval apart, and the film behind them", async () => {
+    // The albums are older than the film, so they come first in the queue.
+    for (const [index, id] of albumIds.entries()) {
+      await album(id, { in: "log", cached: { updated: daysAgo(20 - index) } });
+    }
+    await film("348", { in: "log", cached: { updated: daysAgo(8) } });
+    const refused = musicBrainzFakeCalls.rateLimited();
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 11, failed: 0, deleted: 0 });
+    expect(musicBrainzCalls).toHaveLength(10);
+    expect(musicBrainzAtOnce).toBe(1);
+    for (const [index, call] of musicBrainzCalls.slice(1).entries()) {
+      expect(call.start - (musicBrainzCalls[index]?.end ?? 0)).toBeGreaterThanOrEqual(20);
+    }
+    expect(musicBrainzFakeCalls.rateLimited()).toBe(refused);
+    expect(subrequests).toBe(11);
+    const titles = await loggedTitles();
+    expect(titles).toEqual(expect.arrayContaining(["Земля", "Abbey Road", "1944", "Alien"]));
+    expect(titles.filter((title) => title?.startsWith("Album "))).toHaveLength(2);
+  });
+
+  it("refreshes an album with MusicBrainz's details, keeping what it holds in the cache", async () => {
+    await album("67210625-2acc-4689-8b76-a43181af8a10", {
+      in: "list",
+      cached: { updated: daysAgo(8) },
+    });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    const [entry] = await db.select().from(catalogCache);
+    expect(entry).toMatchObject({
+      englishTitle: null,
+      ukrainianTitle: null,
+      originalTitle: "The Bedouin Reworks Of Dakhabrakha",
+      year: 2022,
+      coverRef: "http://coverartarchive.test/release-group/67210625-2acc-4689-8b76-a43181af8a10",
+      extra: {
+        artistCredit: "Bedouin, DakhaBrakha",
+        artists: [
+          { name: "Bedouin", mbid: "c9b34ac9-83ab-44f4-8358-348d8ea8d6c2" },
+          { name: "DakhaBrakha", mbid: "208334a1-abf0-4791-9705-b45838244b29" },
+        ],
+        primaryType: "EP",
+        secondaryTypes: [],
+        url: "https://musicbrainz.org/release-group/67210625-2acc-4689-8b76-a43181af8a10",
+      },
+    });
+  });
+
+  it("refreshes a merged album through MusicBrainz's redirect, for two calls, under its own MBID", async () => {
+    const merged = "a51b25f4-2dc1-4787-b779-51abcdb170ff";
+    await album(merged, { in: "log", cached: { updated: daysAgo(8) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    expect(musicBrainzCalls).toHaveLength(2);
+    const [entry] = await db.select().from(catalogCache);
+    expect(entry).toMatchObject({
+      externalId: merged,
+      originalTitle: "Bye Bye Birdie",
+      year: 1963,
+      extra: {
+        artistCredit: "Charles Strouse",
+        secondaryTypes: ["Soundtrack"],
+        url: "https://musicbrainz.org/release-group/9cd2811d-a999-326e-8945-a8b6b44b9e92",
+      },
+    });
+  });
+
+  it("takes an album MusicBrainz answers 404 for as gone, and a 503 or a 500 as worth trying again", async () => {
+    await album("00000000-0000-4000-8000-000000000404", {
+      in: "log",
+      cached: { updated: daysAgo(10) },
+    });
+    await album(musicBrainzFakeFailing.busy, { in: "log", cached: { updated: daysAgo(9) } });
+    await album(musicBrainzFakeFailing.serverError, { in: "log", cached: { updated: daysAgo(8) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 3, deleted: 0 });
+    // The 503 is asked again once.
+    expect(subrequests).toBe(4);
+    const failures = vi
+      .mocked(console.error)
+      .mock.calls.flat()
+      .filter((logged) => logged instanceof SourceUnavailable)
+      .map(({ message, failure }) => ({ message, failure }));
+    expect(failures).toHaveLength(3);
+    expect(failures).toEqual(
+      expect.arrayContaining([
+        {
+          message: "MusicBrainz /release-group/00000000-0000-4000-8000-000000000404 answered 404",
+          failure: "gone",
+        },
+        {
+          message: `MusicBrainz /release-group/${musicBrainzFakeFailing.busy} answered 503 twice`,
+          failure: "temporary",
+        },
+        {
+          message: `MusicBrainz /release-group/${musicBrainzFakeFailing.serverError} answered 500`,
+          failure: "temporary",
+        },
+      ]),
+    );
+  });
+
   it("keeps a book's entry it couldn't refresh, however old: only TMDB's entries expire", async () => {
     // Neither fake knows these.
     await book("OL404404W", { in: "log", cached: { updated: daysAgo(400) } });
@@ -802,6 +954,45 @@ describe("a read", () => {
       platforms: ["PS4", "PC", "XONE", "Switch"],
       coverUrls: { small: "https://images.igdb.com/igdb/image/upload/t_cover_big/coa4s4.jpg" },
       backdropUrls: { large: "https://images.igdb.com/igdb/image/upload/t_1080p/ar3uc9.jpg" },
+    });
+  });
+
+  it("adds an album from search with one subrequest, its details holding its artists and types", async () => {
+    const added = await addFromSearch(
+      db,
+      env,
+      {
+        externalReference: {
+          source: "musicbrainz",
+          mediaType: "album",
+          id: "eabb68b3-d57c-359a-8215-91f38d365da5",
+        },
+        title: "The Beatles at the Hollywood Bowl",
+        originalTitle: "The Beatles at the Hollywood Bowl",
+        year: 1977,
+        posterUrl: null,
+        titleLanguage: "en",
+      },
+      now,
+    );
+
+    expect(subrequests).toBe(1);
+    expect(added.mediaItem.metadata).toEqual({
+      title: "The Beatles at the Hollywood Bowl",
+      originalTitle: "The Beatles at the Hollywood Bowl",
+      ukrainianTitle: null,
+      year: 1977,
+      coverUrls: {
+        small:
+          "http://coverartarchive.test/release-group/eabb68b3-d57c-359a-8215-91f38d365da5/front-250",
+        large:
+          "http://coverartarchive.test/release-group/eabb68b3-d57c-359a-8215-91f38d365da5/front-500",
+      },
+      artistCredit: "The Beatles",
+      artists: ["The Beatles"],
+      primaryType: "Album",
+      secondaryTypes: ["Live"],
+      url: "https://musicbrainz.org/release-group/eabb68b3-d57c-359a-8215-91f38d365da5",
     });
   });
 

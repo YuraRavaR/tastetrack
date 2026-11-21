@@ -1,6 +1,7 @@
 import {
   Bookmark,
   BookOpen,
+  Disc3,
   Gamepad2,
   List,
   ListPlus,
@@ -72,6 +73,7 @@ const noMatchIcons: Record<MediaType, LucideIcon> = {
   book: BookOpen,
   series: Tv,
   game: Gamepad2,
+  album: Disc3,
 };
 
 // What Search adds when it finds no game: IGDB knows games by their English names alone.

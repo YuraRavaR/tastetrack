@@ -12,7 +12,13 @@ import { createUser, inviterOf, passwordIterationsOf, resetPassword } from "./ac
 import { fillManualMediaItems } from "./catalog/manual-media-items";
 import { byCacheKey } from "./catalog/media-items";
 import { sourceNamed } from "./catalog/registry";
-import { callsIgdbFake, igdbFakeTokens, sourceFakes } from "./catalog/source-fakes";
+import {
+  callsIgdbFake,
+  callsMusicBrainzFake,
+  igdbFakeTokens,
+  musicBrainzFakeCalls,
+  sourceFakes,
+} from "./catalog/source-fakes";
 import { type AppEnv, requestHasTestHooksAccess, testHooksOn } from "./env";
 import { fillBacklog, removeBacklog } from "./lists/backlog";
 import { fillList } from "./lists/list-items";
@@ -198,6 +204,14 @@ testHooks.get("/igdb-fake/tokens", (c) => c.json({ granted: igdbFakeTokens.grant
 testHooks.post("/igdb-fake/token-refusal", (c) => {
   igdbFakeTokens.refuseAll();
   return c.body(null, 204);
+});
+
+// How many calls the MusicBrainz fake has refused for coming sooner than the interval after the
+// one before, which stays the same while the Worker paces every call (ADR-0013). Only where the
+// Worker calls the fake.
+testHooks.get("/musicbrainz-fake/rate-limited", (c) => {
+  if (!callsMusicBrainzFake(c.env)) return c.notFound();
+  return c.json({ refused: musicBrainzFakeCalls.rateLimited() }, 200);
 });
 
 // Moves a series' cache entry on to a later last aired episode, as the cron's refresh does once

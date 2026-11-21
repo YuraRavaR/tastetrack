@@ -15,3 +15,9 @@ export function testHooksHeaders() {
 export function withoutSecrets(...names: ("TWITCH_CLIENT_ID" | "TWITCH_CLIENT_SECRET")[]) {
   return { headers: { ...testHooksHeaders(), "X-Test-Without-Secrets": names.join(", ") } };
 }
+
+// The options for a request whose first `times` calls to the MusicBrainz fake are answered 503, as
+// MusicBrainz answers when it is busy. No other request's calls are.
+export function withMusicBrainzBusy(times: 1 | 2) {
+  return { headers: { ...testHooksHeaders(), "X-Test-MusicBrainz-Busy": String(times) } };
+}

@@ -5,6 +5,11 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../env";
 import { igdbFake, igdbFakeTokens } from "./sources/igdb-fake";
+import {
+  coverArtArchiveFake,
+  musicBrainzFake,
+  musicBrainzFakeCalls,
+} from "./sources/musicbrainz-fake";
 import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
 
@@ -33,5 +38,24 @@ sourceFakes.use("/igdb/*", async (c, next) => {
 });
 sourceFakes.route("/igdb", igdbFake);
 
-// What a test can see and change of the IGDB fake's tokens, through the test hooks.
-export { igdbFakeTokens };
+// Whether the Worker calls the MusicBrainz fake, which also answers the calls a test makes busy
+// under /busy/ (X-Test-MusicBrainz-Busy).
+export function callsMusicBrainzFake(env: Pick<Env, "MUSICBRAINZ_BASE_URL">): boolean {
+  return env.MUSICBRAINZ_BASE_URL.includes("/api/test/musicbrainz/");
+}
+
+sourceFakes.use("/musicbrainz/*", async (c, next) => {
+  if (!callsMusicBrainzFake(c.env)) return c.notFound();
+  await next();
+});
+sourceFakes.route("/musicbrainz", musicBrainzFake);
+
+sourceFakes.use("/coverartarchive/*", async (c, next) => {
+  if (!c.env.COVER_ART_ARCHIVE_BASE_URL.includes("/api/test/coverartarchive")) return c.notFound();
+  await next();
+});
+sourceFakes.route("/coverartarchive", coverArtArchiveFake);
+
+// What a test can see and change of the IGDB fake's tokens, and see of the MusicBrainz fake's
+// calls, through the test hooks.
+export { igdbFakeTokens, musicBrainzFakeCalls };

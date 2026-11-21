@@ -75,6 +75,15 @@ export class TestHooksController extends BaseController {
     return this.requestContext.post(endpoints.testHooks.igdbFakeTokenRefusal, withSecret(options));
   }
 
+  // How many calls the MusicBrainz fake has refused for coming too soon after the one before:
+  // { refused }.
+  getMusicBrainzFakeRateLimited(options?: RequestOptions) {
+    return this.requestContext.get(
+      endpoints.testHooks.musicBrainzFakeRateLimited,
+      withSecret(options),
+    );
+  }
+
   fillBacklog(username: string, count: number, options?: RequestOptions) {
     return this.requestContext.post(endpoints.testHooks.backlog(username), {
       ...withSecret(options),

@@ -15,8 +15,8 @@ import type { Progress } from "../shared/progress";
 import { thoughtStates } from "../shared/thoughts";
 
 // The Media Types and External Sources, as the columns that hold them name them (src/shared/api.ts).
-const mediaTypes = ["film", "book", "series", "game"] as const;
-const externalSources = ["tmdb", "openlibrary", "igdb"] as const;
+const mediaTypes = ["film", "book", "series", "game", "album"] as const;
+const externalSources = ["tmdb", "openlibrary", "igdb", "musicbrainz"] as const;
 
 // Deployment-wide settings as key/value pairs. The health check reads it to
 // prove the migrations have been applied.
@@ -216,12 +216,26 @@ export interface GameCacheExtra {
   bannerRef: string | null;
 }
 
+// What only an album's cache entry has, from its one details call (ADR-0013): its artist credit as
+// MusicBrainz shows it, each credited name with its join phrase; its artists, each credited name
+// with the artist's MBID, in MusicBrainz's order, kept so that a later artists spec can link to
+// them; its primary type, Album or EP, and its secondary types, such as Live; and its release
+// group's page on MusicBrainz. A row filled from a search result alone has none of these.
+export interface AlbumCacheExtra {
+  artistCredit: string | null;
+  artists: { name: string; mbid: string }[];
+  primaryType: "Album" | "EP" | null;
+  secondaryTypes: string[];
+  url: string | null;
+}
+
 // What a cache entry's `extra` holds, by its Media Type.
 export interface CacheExtras {
   film: FilmCacheExtra;
   book: BookCacheExtra;
   series: SeriesCacheExtra;
   game: GameCacheExtra;
+  album: AlbumCacheExtra;
 }
 
 export type CacheExtra = CacheExtras[keyof CacheExtras];

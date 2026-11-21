@@ -1,4 +1,4 @@
-import { BookOpen, Clapperboard, Gamepad2, type LucideIcon, Tv } from "lucide-react";
+import { BookOpen, Clapperboard, Disc3, Gamepad2, type LucideIcon, Tv } from "lucide-react";
 import type { MediaType } from "../../shared/api";
 import type { ProgressMediaType as WorkerProgressMediaType } from "../../shared/catalog";
 import type { Progress } from "../../shared/progress";
@@ -9,14 +9,15 @@ const mediaTypeIcons: Record<MediaType, LucideIcon> = {
   book: BookOpen,
   series: Tv,
   game: Gamepad2,
+  album: Disc3,
 };
 
 export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
   return mediaTypeIcons[mediaType];
 }
 
-// The Media Types each section offers, in the one order they all keep. Music stays out until an
-// ADR chooses its External Source.
+// The Media Types each section offers, in the one order they all keep. Albums are in the API and
+// stay out until their UI.
 export const searchMediaTypes: readonly MediaType[] = ["film", "book", "series", "game"];
 export const listsMediaTypes: readonly MediaType[] = ["film", "book", "series", "game"];
 export const savedMediaTypes: readonly MediaType[] = ["film", "book", "series", "game"];
@@ -31,6 +32,8 @@ const keepings: Record<MediaType, readonly Keeping[]> = {
   book: ["plan", "log", "collect", "addByHand"],
   series: ["plan", "log", "collect", "addByHand"],
   game: ["plan", "log", "collect", "addByHand"],
+  // None until the albums UI: no section offers albums yet.
+  album: [],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {
@@ -38,13 +41,14 @@ export function can(mediaType: MediaType, keeping: Keeping): boolean {
 }
 
 // Whether a new Log Entry for a Media Item the User has logged before starts as a Revisit. A film,
-// a book or a game logged again is most often experienced again from the start; a series most
-// often goes on with a new season, which is no Revisit (ADR-0005).
+// a book, a game or an album logged again is most often experienced again from the start; a series
+// most often goes on with a new season, which is no Revisit (ADR-0005).
 const revisitsByDefault: Record<MediaType, boolean> = {
   film: true,
   book: true,
   series: false,
   game: true,
+  album: true,
 };
 
 export function startsAsRevisit(mediaType: MediaType): boolean {

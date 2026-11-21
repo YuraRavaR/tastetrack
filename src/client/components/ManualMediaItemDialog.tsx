@@ -76,7 +76,8 @@ function authorsOf(value: string): string[] {
 }
 
 // The details a Media Type's item has, from the form's fields: a film's runtime and genres, a
-// book's authors, and only the titles and year for a series or a game.
+// book's authors, an album's artists in the same field, and only the titles and year for a series
+// or a game.
 function detailsOf(
   mediaType: MediaType,
   titles: { title: string; originalTitle: string | null; year: number | null },
@@ -86,6 +87,7 @@ function detailsOf(
     case "film":
       return { mediaType, ...titles, runtime: fields.runtime, genres: fields.genres };
     case "book":
+    case "album":
       return { mediaType, ...titles, authors: fields.authors };
     case "series":
     case "game":
@@ -93,12 +95,13 @@ function detailsOf(
   }
 }
 
-// The earliest year each Media Type's item can have: a series' or a game's is a film's.
+// The earliest year each Media Type's item can have: a series', a game's or an album's is a film's.
 const earliestYears: Record<MediaType, number> = {
   film: earliestFilmYear,
   book: earliestBookYear,
   series: earliestFilmYear,
   game: earliestFilmYear,
+  album: earliestFilmYear,
 };
 
 // A number field's value, or null when it is empty.
