@@ -160,7 +160,13 @@ test("an empty field shows the hint and the Media Type chips, on Films", async (
     "Title in English or Ukrainian",
   );
   await expect(searchPage.currentChip("Films")).toBeVisible();
-  await expect(searchPage.mediaTypeChipButtons).toHaveText(["Films", "Books", "Series", "Games"]);
+  await expect(searchPage.mediaTypeChipButtons).toHaveText([
+    "Films",
+    "Books",
+    "Series",
+    "Games",
+    "Albums",
+  ]);
 
   await searchPage.search("alien");
   await expect(searchPage.text(hint)).toHaveCount(0);

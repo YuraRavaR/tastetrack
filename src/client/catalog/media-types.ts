@@ -16,11 +16,10 @@ export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
   return mediaTypeIcons[mediaType];
 }
 
-// The Media Types each section offers, in the one order they all keep. Albums are in the API and
-// stay out until their UI.
-export const searchMediaTypes: readonly MediaType[] = ["film", "book", "series", "game"];
-export const listsMediaTypes: readonly MediaType[] = ["film", "book", "series", "game"];
-export const savedMediaTypes: readonly MediaType[] = ["film", "book", "series", "game"];
+// The Media Types each section offers, in the one order they all keep (ADR-0005).
+export const searchMediaTypes: readonly MediaType[] = ["film", "book", "series", "game", "album"];
+export const listsMediaTypes: readonly MediaType[] = ["film", "book", "series", "game", "album"];
+export const savedMediaTypes: readonly MediaType[] = ["film", "book", "series", "game", "album"];
 
 // What a User does to keep a Media Item: marks it Planned, logs it, puts it in Collections, or
 // adds one by hand.
@@ -32,8 +31,7 @@ const keepings: Record<MediaType, readonly Keeping[]> = {
   book: ["plan", "log", "collect", "addByHand"],
   series: ["plan", "log", "collect", "addByHand"],
   game: ["plan", "log", "collect", "addByHand"],
-  // None until the albums UI: no section offers albums yet.
-  album: [],
+  album: ["plan", "log", "collect", "addByHand"],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {

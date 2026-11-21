@@ -224,7 +224,6 @@ export const en = {
   "mediaType.game.stopped": "Stopped playing {film}.",
   "mediaType.game.startFailed": "Couldn't start playing. Please try again.",
   "mediaType.game.stopFailed": "Couldn't stop playing. Please try again.",
-  // Albums are in the API, and no section offers them until their UI.
   "mediaType.album.experienced": "Listened",
   "mediaType.album.experiencedAgain": "Listened again",
   "mediaType.album.markExperienced": "Mark listened",
@@ -263,7 +262,7 @@ export const en = {
   "mediaType.album.searchHint":
     "Type an album and its artist to search your Saved and MusicBrainz.",
   "mediaType.album.searchSource": "From MusicBrainz",
-  "mediaType.album.searchNoMatch": "No albums found for “{query}”. Try adding the artist.",
+  "mediaType.album.searchNoMatch": "No albums found for “{query}”.",
   "mediaType.album.unknown": "Album details unavailable",
   "mediaType.album.loading": "Loading album details…",
   "mediaType.album.noCover": "No cover",
@@ -488,6 +487,12 @@ export const en = {
   "search.notFound": "Can't find it?",
   "search.addManually": "Add manually",
   "search.englishTitleHint": "Try the English title: IGDB knows games by their English names.",
+  "search.artistHint":
+    "Try adding the artist: MusicBrainz finds an album best by its title and artist together.",
+  // MusicBrainz refused a search twice, as it does when it is busy (ADR-0013).
+  "search.musicBrainzBusy": "MusicBrainz is busy, try again in a moment.",
+  "search.savedNoMatch": "Nothing in your Saved matches “{query}”.",
+  "search.tryAgain": "Try again",
   "search.openFailed": "Couldn't open {film}. Please try again.",
   "dialog.close": "Close",
   "rating.label": "Rating",
@@ -695,6 +700,7 @@ export const en = {
   "about.fromTmdb": "From TMDB",
   "about.fromOpenLibrary": "From Open Library",
   "about.fromIgdb": "From IGDB",
+  "about.onMusicBrainz": "On MusicBrainz",
   "about.genres": "Genres",
   "manualItem.editTitle": "Edit {film}",
   "manualItem.title": "Title",
@@ -704,6 +710,7 @@ export const en = {
   "manualItem.runtime": "Minutes",
   "manualItem.genres": "Genres",
   "manualItem.authors": "Authors",
+  "manualItem.artists": "Artists",
   "manualItem.authorsHint": "Separate names with commas.",
   "genre.Action": "Action",
   "genre.Adventure": "Adventure",
@@ -750,6 +757,7 @@ export const en = {
     "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
   "attribution.openLibrary": "Book data and covers from <link>Open Library</link>.",
   "attribution.igdb": "Game data and covers from <link>IGDB</link>.",
+  "attribution.musicBrainz": "Album data from <link>MusicBrainz</link>.",
   "film.labelWithOriginalAndYear": "{title} ({originalTitle}, {year})",
   "film.labelWithOriginal": "{title} ({originalTitle})",
   "film.labelWithYear": "{title} ({year})",

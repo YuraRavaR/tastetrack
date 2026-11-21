@@ -18,8 +18,8 @@ export class ListCard extends ScopedComponent {
 
 // Collections: the User's Lists of one Media Type as cards, under the Media Type chips. `?type=`
 // names the Media Type, unless it is films.
-export class ListsPage extends BasePage<[mediaType?: "book" | "series" | "game"]> {
-  path(mediaType?: "book" | "series" | "game") {
+export class ListsPage extends BasePage<[mediaType?: "book" | "series" | "game" | "album"]> {
+  path(mediaType?: "book" | "series" | "game" | "album") {
     return mediaType ? `/collections?type=${mediaType}` : "/collections";
   }
 
@@ -29,6 +29,7 @@ export class ListsPage extends BasePage<[mediaType?: "book" | "series" | "game"]
   readonly booksChip = this.mediaTypeChips.getByRole("button", { name: "Books" });
   readonly seriesChip = this.mediaTypeChips.getByRole("button", { name: "Series" });
   readonly gamesChip = this.mediaTypeChips.getByRole("button", { name: "Games" });
+  readonly albumsChip = this.mediaTypeChips.getByRole("button", { name: "Albums" });
   // The chip of the Media Type Collections is on.
   readonly pressedChip = this.mediaTypeChips.getByRole("button", { pressed: true });
   readonly emptyMessage = this.main.getByText("No collections yet.");

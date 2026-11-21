@@ -96,9 +96,14 @@ export function ItemHistoryPage() {
   const history = historyNewestFirst(logEntries, thoughts);
   const manual = mediaItem.externalReference === null;
   const loggable = can(mediaItem.mediaType, "log");
-  // A game's source links to its page on IGDB. With nothing else to show, its About block gives way
-  // to that link under the facts line (`docs/mockups/games/`).
-  const sourceUrl = mediaItem.mediaType === "game" ? (mediaItem.metadata?.url ?? null) : null;
+  // A game's source links to its page on IGDB, and an album's to its release group on MusicBrainz.
+  // With nothing else to show, the About block gives way to that link under the facts line, as an
+  // album, which has none, always has it (`docs/mockups/games/`, `docs/mockups/albums/`).
+  const sourceUrl =
+    mediaItem.mediaType === "game" || mediaItem.mediaType === "album"
+      ? (mediaItem.metadata?.url ?? null)
+      : null;
+  const sourceName = t(mediaItem.mediaType === "album" ? "about.onMusicBrainz" : "about.fromIgdb");
   const shownAbout = about && aboutProps(about);
   const aboutShown = shownAbout && !(sourceUrl && aboutIsEmpty(shownAbout)) ? shownAbout : null;
   return (
@@ -110,11 +115,7 @@ export function ItemHistoryPage() {
           sourceLink={
             sourceUrl &&
             !aboutShown && (
-              <SourceLink
-                source={t("about.fromIgdb")}
-                url={sourceUrl}
-                className="-ml-2.5 self-start"
-              />
+              <SourceLink source={sourceName} url={sourceUrl} className="-ml-2.5 self-start" />
             )
           }
         />

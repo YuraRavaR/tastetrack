@@ -4,6 +4,7 @@ export class Footer extends ScopedComponent {
   readonly tmdbLogo = this.root.getByRole("img", { name: "TMDB" });
   readonly openLibraryLink = this.root.getByRole("link", { name: "Open Library" });
   readonly igdbLink = this.root.getByRole("link", { name: "IGDB" });
+  readonly musicBrainzLink = this.root.getByRole("link", { name: "MusicBrainz" });
 
   text(content: string) {
     return this.root.getByText(content);

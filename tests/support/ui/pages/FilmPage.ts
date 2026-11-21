@@ -253,6 +253,19 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   );
   // The link to a game's page on IGDB, in its About block, or under its facts without one.
   readonly igdbLink = this.main.getByRole("link", { name: "From IGDB" });
+  // An album's actions.
+  readonly listenedButton = this.main.getByRole("button", { name: "Listened", exact: true });
+  readonly listenedAgainButton = this.main.getByRole("button", { name: "Listened again" });
+  readonly wantToListenButton = this.main.getByRole("button", {
+    name: "Want to listen",
+    pressed: false,
+  });
+  readonly onListeningListButton = this.main.getByRole("button", {
+    name: "On your Listening list",
+    pressed: true,
+  });
+  // The link to an album's release group on MusicBrainz, under its facts.
+  readonly musicBrainzLink = this.main.getByRole("link", { name: "On MusicBrainz" });
   readonly startDateDialog = new StartDateDialog(
     this.page.getByRole("dialog", { name: "Change the start date" }),
   );
@@ -265,6 +278,8 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly editSeriesButton = this.main.getByRole("button", { name: "Edit series" });
   // Only for a game the User added themselves.
   readonly editGameButton = this.main.getByRole("button", { name: "Edit game" });
+  // Only for an album the User added themselves.
+  readonly editAlbumButton = this.main.getByRole("button", { name: "Edit album" });
   // Only for a book the User added themselves.
   readonly editBookButton = this.main.getByRole("button", { name: "Edit book" });
   readonly deleteBookButton = this.main.getByRole("button", { name: "Delete book" });

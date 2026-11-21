@@ -99,6 +99,39 @@ describe("matching the User's Media Items", () => {
   });
 });
 
+describe("matching the User's albums", () => {
+  function albumNamed(title: string, artistCredit: string): MediaItem {
+    return {
+      id: nextId++,
+      mediaType: "album",
+      externalReference: null,
+      metadata: {
+        title,
+        originalTitle: title,
+        ukrainianTitle: null,
+        year: 1969,
+        coverUrls: null,
+        artistCredit,
+        artists: [artistCredit],
+        primaryType: "Album",
+        secondaryTypes: [],
+        url: null,
+      },
+    };
+  }
+
+  it("finds an album by its title and its artist together, in any order, as album search is typed", () => {
+    const abbeyRoad = albumNamed("Abbey Road", "The Beatles");
+    const zemlya = albumNamed("Земля", "Океан Ельзи");
+    const items = userMediaItems([planned(abbeyRoad), planned(zemlya)], []);
+
+    expect(titles(matchUserMediaItems(items, "beatles abbey road"))).toEqual(["Abbey Road"]);
+    expect(titles(matchUserMediaItems(items, "Океан Ельзи Земля"))).toEqual(["Земля"]);
+    expect(titles(matchUserMediaItems(items, "abbey"))).toEqual(["Abbey Road"]);
+    expect(titles(matchUserMediaItems(items, "beatles земля"))).toEqual([]);
+  });
+});
+
 describe("a User's Media Item's status line", () => {
   const roadMovies = { id: 1, name: "Road movies" };
   const horror = { id: 2, name: "Horror nights" };

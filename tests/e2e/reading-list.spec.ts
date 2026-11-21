@@ -126,7 +126,7 @@ test("the Books tile counts the Reading list and fans out its latest covers, one
 
   await savedPage.goto();
 
-  await expect(savedPage.tiles).toHaveCount(4);
+  await expect(savedPage.tiles).toHaveCount(5);
   const books = savedPage.tile("Books");
   await expect(books.root).toContainText("4 to read · 0 read");
   await expect(books.link).toHaveAccessibleDescription("4 to read · 0 read");
@@ -259,7 +259,7 @@ test("an address with a film's tab opens the Reading list, and one with Read the
   await expect(page).toHaveURL(libraryPage.path("Read"));
 
   // A Media Type Saved doesn't have opens the films' Watchlist, whatever tab it names.
-  await ui.goto("/saved/albums/watched");
+  await ui.goto("/saved/songs/watched");
   await expect(page).toHaveURL(libraryPage.path("Watchlist"));
 });
 

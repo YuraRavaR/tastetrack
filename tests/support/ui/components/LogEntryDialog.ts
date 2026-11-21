@@ -15,6 +15,8 @@ export class LogEntryDialog extends ScopedComponent {
   readonly bookRevisitSwitch = this.root.getByRole("switch", { name: "Reread" });
   // A game's, which the UI calls a Replay.
   readonly gameRevisitSwitch = this.root.getByRole("switch", { name: "Replay" });
+  // An album's, which the UI calls a Relisten.
+  readonly albumRevisitSwitch = this.root.getByRole("switch", { name: "Relisten" });
   readonly reviewInput = this.root.getByLabel("Review");
   readonly pressedDateChips = this.root.getByRole("button", { pressed: true });
   readonly dateError = this.root.getByText("That isn't a valid date.");

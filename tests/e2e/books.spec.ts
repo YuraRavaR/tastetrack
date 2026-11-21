@@ -64,7 +64,7 @@ test("an address with a Media Type Search doesn't have opens on Films", async ({
 }) => {
   const { searchPage } = ui;
 
-  await ui.goto("/search?q=alien&type=album");
+  await ui.goto("/search?q=alien&type=song");
 
   await expect(searchPage.currentChip("Films")).toBeVisible();
   await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
@@ -253,7 +253,7 @@ test("the chips are one control the width of the field, with equal thumb-sized s
   const { searchPage } = ui;
   await page.setViewportSize({ width: 402, height: 874 });
   await searchPage.goto(undefined, "book");
-  const chips = ["Films", "Books", "Series", "Games"] as const;
+  const chips = ["Films", "Books", "Series", "Games", "Albums"] as const;
 
   const [field, control] = await Promise.all([
     box(searchPage.searchBox),

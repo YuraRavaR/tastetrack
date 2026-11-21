@@ -10,6 +10,8 @@ export class ManualMediaItemDialog extends ScopedComponent {
   readonly minutesInput = this.root.getByLabel("Minutes");
   // A book's: names separated by commas.
   readonly authorsInput = this.root.getByLabel("Authors");
+  // An album's, in the same field as a book's authors.
+  readonly artistsInput = this.root.getByLabel("Artists");
   readonly addButton = this.root.getByRole("button", { name: "Add", exact: true });
   readonly addAnywayButton = this.root.getByRole("button", { name: "Add anyway" });
   readonly saveButton = this.root.getByRole("button", { name: "Save" });

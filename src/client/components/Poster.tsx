@@ -12,6 +12,7 @@ import {
 import type { Found } from "../catalog/found";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
+import { useImageFailure } from "./use-image-failure";
 
 type PosterSize = "dialog" | "thumbnail" | "search" | "large" | "grid" | "fan" | "collage";
 
@@ -26,6 +27,17 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
     search: "h-27 w-18 rounded-sm md:h-18 md:w-12",
     large: "h-39 w-26 rounded-md border shadow-lg sm:h-66 sm:w-44 sm:rounded-lg",
     grid: "aspect-2/3 w-full rounded-lg",
+    fan: "size-full rounded-md",
+    collage: "size-full",
+  },
+  // An album's cover (`docs/mockups/albums/`): 72 px in a phone's Search row and 56 px from `md`,
+  // 136 px on a page without a picture and 176 px from `sm`.
+  "1:1": {
+    dialog: "size-12 rounded-sm md:size-13",
+    thumbnail: "size-14 rounded-sm",
+    search: "size-18 rounded-sm md:size-14",
+    large: "size-34 rounded-md border shadow-lg sm:size-44 sm:rounded-lg",
+    grid: "aspect-square w-full rounded-lg",
     fan: "size-full rounded-md",
     collage: "size-full",
   },
@@ -72,7 +84,7 @@ const roomy: Typeset = {
   maker: "line-clamp-2 text-[11px]",
 };
 
-const typesets: Record<PosterSize, Typeset> = {
+const posterTypesets: Record<PosterSize, Typeset> = {
   dialog: titleOnly,
   thumbnail: titleOnly,
   search: {
@@ -98,11 +110,51 @@ const typesets: Record<PosterSize, Typeset> = {
   collage: compact,
 };
 
+// A square is shorter than a poster of its width, so an album's cover set in type takes smaller
+// type: 9/8 px at 72 px, 13/10 px in a grid, 16/12 px on its page, and the title alone at 56 px
+// (`docs/mockups/albums/`).
+const squareTypesets: Record<PosterSize, Typeset> = {
+  dialog: titleOnly,
+  thumbnail: titleOnly,
+  search: {
+    box: `px-1.5 pt-2 pb-1.5 text-[9px] md:px-1.25 md:py-1.5 md:text-[8px]`,
+    frame: "inset-1 md:hidden",
+    title: "line-clamp-3 md:line-clamp-4",
+    maker: "line-clamp-1 text-[8px] md:hidden",
+  },
+  large: {
+    box: "px-3 pt-4 pb-3 text-base",
+    frame: "inset-1.5 sm:inset-2",
+    title: "line-clamp-4",
+    maker: "line-clamp-2 text-xs",
+  },
+  grid: {
+    box: "px-2.5 pt-3 pb-2.5 text-[13px]",
+    frame: "inset-1.5",
+    title: "line-clamp-3",
+    maker: "line-clamp-1 text-[10px]",
+  },
+  fan: {
+    box: "px-1.5 pt-2 pb-1.5 text-[9px] md:px-2.25 md:pt-3 md:pb-2.25 md:text-[11px]",
+    frame: "inset-1 md:inset-1.25",
+    title: "line-clamp-3 md:line-clamp-4",
+    maker: "line-clamp-1 text-[8px] md:text-[9px]",
+  },
+  collage: compact,
+};
+
+const typesets: Record<CoverShape, Record<PosterSize, Typeset>> = {
+  "2:3": posterTypesets,
+  "1:1": squareTypesets,
+};
+
 // A Media Item's cover, a film's poster or a book's cover, or a placeholder when it has none. A
 // film's is an icon: only the grid and large sizes have room for its caption too, the large one
 // (the film page's) only from `sm`, and `showCaption={false}` leaves it out, as under controls
-// laid over the poster. A book's or a game's is a cover set in type: its title at the top and its
-// first author or its developer at the foot, inside a thin frame.
+// laid over the poster. A book's, a game's or an album's is a cover set in type: its title at the
+// top and its first author, its developer or its artist credit at the foot, inside a thin frame.
+// An album's image that doesn't load counts as none, since its cover is linked whether or not the
+// Cover Art Archive has one (ADR-0013).
 export function Poster({
   subject,
   size,
@@ -113,13 +165,16 @@ export function Poster({
   showCaption?: boolean;
 }) {
   const cover = coverOf(subject, imageSizes[size]);
-  const sizeClass = sizeClasses[coverShape(cover.mediaType)][size];
-  if (cover.url) {
+  const shape = coverShape(cover.mediaType);
+  const sizeClass = sizeClasses[shape][size];
+  const [url, failed] = useImageFailure(cover.url);
+  if (url) {
     return (
       <img
-        src={cover.url}
+        src={url}
         alt=""
         loading="lazy"
+        onError={shape === "1:1" ? failed : undefined}
         className={cn("shrink-0 bg-muted object-cover", sizeClass)}
       />
     );
@@ -127,7 +182,7 @@ export function Poster({
 
   if (hasTypesetCover(cover.mediaType)) {
     const { title, maker } = typesetCoverOf(subject);
-    const typeset = typesets[size];
+    const typeset = typesets[shape][size];
     return (
       <div
         role="img"

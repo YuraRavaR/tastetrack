@@ -124,9 +124,9 @@ function AddFilms({ list, onAdded }: { list: List; onAdded: () => Promise<void> 
                 : t("list.updateFailed")}
           </p>
         )}
-        {search.status === "failed" && (
+        {(search.status === "failed" || search.status === "busy") && (
           <p role="alert" className="text-destructive text-sm">
-            {t("search.unavailable")}
+            {t(search.status === "busy" ? "search.musicBrainzBusy" : "search.unavailable")}
           </p>
         )}
         {search.results.length > 0 && (

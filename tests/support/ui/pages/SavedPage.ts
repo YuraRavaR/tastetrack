@@ -5,7 +5,7 @@ import { WatchingRow } from "../components/WatchingRow";
 import { BasePage } from "./BasePage";
 
 // The Media Types Saved has a tile for.
-export type MediaTypeName = "Films" | "Books" | "Series" | "Games";
+export type MediaTypeName = "Films" | "Books" | "Series" | "Games" | "Albums";
 
 // A Media Type's tile: its name is the link that opens its Backlog's tab, described by the counts
 // of its tabs. With nothing saved it also offers "Find a film", "Find a book" or "Find a series".
@@ -15,6 +15,7 @@ export class MediaTypeTile extends ScopedComponent {
   readonly findBookLink = this.root.getByRole("link", { name: "Find a book" });
   readonly findSeriesLink = this.root.getByRole("link", { name: "Find a series" });
   readonly findGameLink = this.root.getByRole("link", { name: "Find a game" });
+  readonly findAlbumLink = this.root.getByRole("link", { name: "Find an album" });
   // The fan of covers is hidden from assistive technology, being the Backlog's covers again, so
   // they are found by tag: one img per Media Item with a cover.
   readonly coverImages = this.root.locator("img");

@@ -199,7 +199,7 @@ test("the Games tile counts its tabs and fans out the Backlog, and the tabs say 
   const { savedPage, libraryPage } = ui;
   await savedPage.goto();
 
-  await expect(savedPage.tiles).toHaveText([/^Films/, /^Books/, /^Series/, /^Games/]);
+  await expect(savedPage.tiles).toHaveText([/^Films/, /^Books/, /^Series/, /^Games/, /^Albums/]);
   const tile = savedPage.tile("Games");
   // Nothing is being played, so the tile says nothing of it.
   await expect(tile.link).toHaveAccessibleDescription("2 to play · 1 played");

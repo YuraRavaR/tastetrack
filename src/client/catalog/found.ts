@@ -6,6 +6,7 @@ import type {
 } from "../../shared/api";
 import * as api from "../api";
 import { mediaWord } from "../i18n/media-words";
+import { artistYearAndType } from "./album-label";
 import { authorsAndYear } from "./book-label";
 import { filmLabel, filmName, filmYearAndRuntime } from "./film-label";
 import { yearAndPlatforms } from "./game-label";
@@ -90,8 +91,9 @@ export function mediaItemYearAndRuntime(mediaItem: MediaItem): string | null {
 }
 
 // What a result's row says under its title: a book's authors and year, "Іван Багряний · 1946", as
-// authorsAndYear writes it, and a game's year and platforms, "2015 · PC, PS4, PS5 +4", as
-// yearAndPlatforms does. Null for a film or a series, whose year is in its title.
+// authorsAndYear writes it, a game's year and platforms, "2015 · PC, PS4, PS5 +4", as
+// yearAndPlatforms does, and an album's artist, year and type, "The Beatles · 2012 · Remix", as
+// artistYearAndType does. Null for a film or a series, whose year is in its title.
 export function foundSubtitle(found: Found): string | null {
   if (found.kind === "catalog") {
     switch (found.externalReference.mediaType) {
@@ -99,6 +101,13 @@ export function foundSubtitle(found: Found): string | null {
         return authorsAndYear(found);
       case "game":
         return yearAndPlatforms({ year: found.year, platforms: found.platforms ?? [] });
+      case "album":
+        return artistYearAndType({
+          year: found.year,
+          artistCredit: found.artistCredit ?? null,
+          primaryType: found.primaryType ?? null,
+          secondaryTypes: found.secondaryTypes ?? [],
+        });
       default:
         return null;
     }
@@ -110,6 +119,8 @@ export function foundSubtitle(found: Found): string | null {
       return authorsAndYear(mediaItem.metadata);
     case "game":
       return yearAndPlatforms(mediaItem.metadata);
+    case "album":
+      return artistYearAndType(mediaItem.metadata);
     default:
       return null;
   }
@@ -122,12 +133,11 @@ const namedWithoutYear: Record<MediaType, boolean> = {
   book: true,
   series: false,
   game: true,
-  // Settled with the albums UI.
   album: true,
 };
 
-// What a result's row is titled: a film or a series by its label, "Alien (1979)", and a book or a
-// game by its name alone, since its year is on the next line.
+// What a result's row is titled: a film or a series by its label, "Alien (1979)", and a book, a
+// game or an album by its name alone, since its year is on the next line.
 export function foundRowTitle(found: Found): string {
   return namedWithoutYear[foundMediaType(found)] ? foundName(found) : foundLabel(found);
 }

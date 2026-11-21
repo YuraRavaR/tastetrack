@@ -69,7 +69,7 @@ export function platformsLine(platforms: readonly string[]): string | null {
 }
 
 // Facts in one line, those known, "2015 · PC, PS4, PS5 +4"; null when none is.
-function factsLine(facts: readonly (string | null)[]): string | null {
+export function factsLine(facts: readonly (string | null)[]): string | null {
   const known = facts.filter((fact) => fact !== null);
   return known.length > 0 ? known.join(" · ") : null;
 }
