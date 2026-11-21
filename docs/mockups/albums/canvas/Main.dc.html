@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Saved with Albums · phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--background:oklch(0.18 0.01 60);--foreground:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--primary:oklch(0.84 0.16 90);--primary-foreground:oklch(0.17 0.006 50);--primary-strong:oklch(0.84 0.16 90);--primary-soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--muted-foreground:oklch(0.74 0.02 70);--border:oklch(1 0 0 / 11%);--ink:#fff;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--foreground)}
+.tt[data-theme=light]{--background:oklch(0.97 0.012 80);--foreground:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--primary:oklch(0.82 0.16 88);--primary-foreground:oklch(0.22 0.02 60);--primary-strong:oklch(0.52 0.11 80);--primary-soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--muted-foreground:oklch(0.47 0.02 60);--border:oklch(0.88 0.015 75);--ink:oklch(0.22 0.02 60)}
+.cap{font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;font-weight:600;color:#8a8378;height:24px}
+.ph{width:390px;min-height:1100px;background:var(--background);border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;box-sizing:border-box}
+.hd{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:16px;line-height:0.93;letter-spacing:-0.04em}
+.av{margin-left:auto;width:36px;height:36px;border-radius:999px;background:var(--muted);display:grid;place-items:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic22{width:22px;height:22px}
+.pc{padding:12px 16px 96px;display:flex;flex-direction:column;gap:14px}
+.h1{margin:4px 0 0;font-size:28px;font-weight:700;letter-spacing:-0.01em}
+.h2{font-size:18px;font-weight:600;margin-top:6px}
+.tic{width:36px;height:36px;border-radius:11px;background:var(--primary-soft);color:var(--primary-strong);display:grid;place-items:center;flex:none}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.grid2b{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{position:relative;border:1px solid var(--border);background:var(--card);border-radius:20px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;text-decoration:none}
+.ta{height:206px;padding:14px}
+.twide{height:132px;padding:16px 18px;justify-content:flex-end}
+.tsm{height:176px;padding:10px}
+.tmd{height:176px;padding:12px}
+.tn{font-size:20px;font-weight:700;letter-spacing:-0.01em}
+.tns{font-size:16px}
+.tc{font-size:13px;line-height:1.35;color:var(--muted-foreground)}
+.tcs{font-size:12px}
+.fan{position:relative;display:block}
+.fan img,.fan span{position:absolute;object-fit:cover;box-shadow:0 6px 14px oklch(0 0 0 / 35%)}
+.rowt{display:flex;align-items:center;gap:12px;border:1px solid var(--border);background:var(--card);border-radius:16px;padding:0 14px;height:84px;text-decoration:none;overflow:hidden}
+.rowt .tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.now{display:flex;align-items:stretch;border:1px solid var(--border);background:var(--card);border-radius:16px;overflow:hidden}
+.nl{display:flex;gap:12px;align-items:center;padding:10px 6px 10px 10px;flex:1;min-width:0;text-decoration:none}
+.po{width:48px;height:72px;border-radius:6px;object-fit:cover;border:1px solid var(--border);flex:none;box-sizing:border-box}
+.tx2{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.ti{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me{font-size:13px;line-height:1.3;color:var(--muted-foreground)}
+.chev{flex:none;display:grid;place-items:center;width:44px;color:var(--muted-foreground)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 10px;box-sizing:border-box;gap:6px}
+.tbi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted-foreground);border-radius:16px;text-decoration:none}
+.tbi.on{background:var(--primary-soft);color:var(--primary-strong);font-weight:600}
+</style>
+</helmet>
+<div style="width: 1290px; display: flex; gap: 60px; align-items: flex-start">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="cap">{{v.cap}}</div>
+<div class="tt ph" data-theme="{{theme}}">
+<header class="hd"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="color: var(--ink)"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span><span class="av"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span></header>
+<div class="pc">
+<h1 class="h1">Saved</h1>
+
+<sc-if value="{{v.a}}" hint-placeholder-val="{{true}}">
+<div class="grid2">
+<sc-for list="{{four}}" as="t" hint-placeholder-count="4">
+<a href="#" class="tile ta">
+<span class="fan" aria-hidden="true" style="height: 92px; margin: 2px 0 10px">
+<sc-for list="{{t.fanA}}" as="f" hint-placeholder-count="3"><img src="{{f.src}}" alt="" style="{{f.style}}"></sc-for>
+</span>
+<span class="tn">{{t.name}}</span>
+<span class="tc">{{t.counts}}</span>
+</a>
+</sc-for>
+</div>
+<a href="#" class="tile twide">
+<span class="fan" aria-hidden="true" style="position: absolute; right: 16px; top: 18px; width: 150px; height: 100px">
+<sc-for list="{{album.fanWide}}" as="f" hint-placeholder-count="3"><img src="{{f.src}}" alt="" style="{{f.style}}"></sc-for>
+</span>
+<span class="tic" style="position: absolute; left: 18px; top: 16px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></span>
+<span class="tn">Albums</span>
+<span class="tc" style="max-width: 170px">{{album.counts}}</span>
+</a>
+</sc-if>
+
+<sc-if value="{{v.b}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{five}}" as="t" hint-placeholder-count="5">
+<a href="#" class="rowt">
+<span class="tic">
+<sc-if value="{{t.film}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.4 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg></sc-if>
+<sc-if value="{{t.book}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></sc-if>
+<sc-if value="{{t.series}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"></rect><path d="m17 2-5 5-5-5"></path></svg></sc-if>
+<sc-if value="{{t.game}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"></line><line x1="8" x2="8" y1="9" y2="13"></line><line x1="15" x2="15.01" y1="12" y2="12"></line><line x1="18" x2="18.01" y1="10" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg></sc-if>
+<sc-if value="{{t.album}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="5"></circle><path d="M12 12h.01"></path></svg></sc-if>
+</span>
+<span class="tx"><span class="tn tns" style="font-size: 18px">{{t.name}}</span><span class="tc">{{t.counts}}</span></span>
+<span class="fan" aria-hidden="true" style="width: 92px; height: 64px; flex: none">
+<sc-for list="{{t.fanB}}" as="f" hint-placeholder-count="3"><img src="{{f.src}}" alt="" style="{{f.style}}"></sc-for>
+</span>
+</a>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{v.c}}" hint-placeholder-val="{{false}}">
+<div class="grid3">
+<sc-for list="{{three}}" as="t" hint-placeholder-count="3">
+<a href="#" class="tile tsm">
+<span class="fan" aria-hidden="true" style="height: 74px; margin: 2px 0 8px">
+<sc-for list="{{t.fanC}}" as="f" hint-placeholder-count="3"><img src="{{f.src}}" alt="" style="{{f.style}}"></sc-for>
+</span>
+<span class="tn tns">{{t.name}}</span>
+<span class="tc tcs">{{t.counts}}</span>
+</a>
+</sc-for>
+</div>
+<div class="grid2b">
+<sc-for list="{{two}}" as="t" hint-placeholder-count="2">
+<a href="#" class="tile tmd">
+<span class="fan" aria-hidden="true" style="height: 80px; margin: 4px 0 10px">
+<sc-for list="{{t.fanA}}" as="f" hint-placeholder-count="3"><img src="{{f.src}}" alt="" style="{{f.style}}"></sc-for>
+</span>
+<span class="tn">{{t.name}}</span>
+<span class="tc">{{t.counts}}</span>
+</a>
+</sc-for>
+</div>
+</sc-if>
+
+<div class="h2">Reading now</div>
+<div class="now"><a href="#" class="nl"><img class="po" src="/_blob/6b02528223b3d6870df2f7442af93944" alt=""><span class="tx2"><span class="ti">Piranesi</span><span class="me">Susanna Clarke · since 12 October</span></span></a><span class="chev"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></span></div>
+<div class="h2">Playing now</div>
+<div class="now"><a href="#" class="nl"><img class="po" src="/_blob/12059d17958bfd76fa8fe096adc9eb18" alt=""><span class="tx2"><span class="ti">S.T.A.L.K.E.R. 2: Heart of Chornobyl</span><span class="me">GSC Game World · since 3 November</span></span></a><span class="chev"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></span></div>
+</div>
+<nav class="tabbar" aria-label="Sections"><a href="#" class="tbi on" aria-current="page"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#" class="tbi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#" class="tbi"><svg class="ic ic22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1290,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+// Fan slots, front last so it paints on top: [left, top, rotate]. Posters are 2:3, album covers square.
+const fanOf = (srcs, square, scale, w) => {
+const pw = Math.round(52 * scale), ph = square ? pw : Math.round(78 * scale);
+const mid = (w - pw) / 2, off = Math.round(34 * scale);
+const slots = [[mid - off, 8 * scale, -9], [mid + off, 8 * scale, 9], [mid, 0, 0]];
+return srcs.map((src, i) => ({ src, style: 'left: ' + slots[i][0] + 'px; top: ' + slots[i][1] + 'px; transform: rotate(' + slots[i][2] + 'deg); width: ' + pw + 'px; height: ' + ph + 'px; border-radius: ' + (square ? 4 : 6) + 'px' }));
+};
+const types = [
+{ name: 'Films', film: true, counts: '12 to watch · 14 watched', src: ['/_blob/d73f94dd7825e548dbb4129302fcf672', '/_blob/2794d88174675b71153e4172b33f58da', '/_blob/e10b4b654d75dfca2d652d9000ca4707'] },
+{ name: 'Books', book: true, counts: '8 to read · 1 reading · 23 read', src: ['/_blob/6b02528223b3d6870df2f7442af93944', '/_blob/2794d88174675b71153e4172b33f58da', '/_blob/6b02528223b3d6870df2f7442af93944'] },
+{ name: 'Series', series: true, counts: '3 to watch · 1 watching · 9 watched', src: ['/_blob/d73f94dd7825e548dbb4129302fcf672', '/_blob/2794d88174675b71153e4172b33f58da', '/_blob/e10b4b654d75dfca2d652d9000ca4707'] },
+{ name: 'Games', game: true, counts: '5 to play · 1 playing · 12 played', src: ['/_blob/e618e496f5c9c07aea66bb782c575cd7', '/_blob/b070bcfd070e2585bad22f10947eb98a', '/_blob/abaa8a2738ae1f5f121009196dc3cbca'] },
+{ name: 'Albums', album: true, square: true, counts: '7 to listen · 14 listened', src: ['/_blob/f2455baa325ca42efbb676891ba1f08d', '/_blob/f9a582126866df7430ed2418537e4276', '/_blob/8a2be7a620670db54eb4d970f9aaef61'] }
+];
+const withFans = types.map((t) => ({
+...t,
+fanA: fanOf(t.src, t.square, t.square ? 1.15 : 1, 145),
+fanB: fanOf(t.src, t.square, t.square ? 0.95 : 0.72, 92),
+fanC: fanOf(t.src, t.square, t.square ? 0.8 : 0.62, 88)
+}));
+const album = withFans[4];
+return {
+theme: this.props.theme ?? 'dark',
+four: withFans.slice(0, 4),
+five: withFans,
+three: withFans.slice(0, 3),
+two: withFans.slice(3).map((t) => ({ ...t, fanA: fanOf(t.src, t.square, t.square ? 1.05 : 0.9, 150) })),
+album: { counts: album.counts, fanWide: fanOf(album.src, true, 1.45, 150) },
+variants: [
+{ cap: 'A · 2×2, then Albums as a wide tile', a: true },
+{ cap: 'B · One shorter row per type', b: true },
+{ cap: 'C · Three small tiles, then two', c: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>

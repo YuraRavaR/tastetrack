@@ -1,0 +1,246 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-21T09:00:00Z"
+  },
+  "title": "TasteTrack Albums",
+  "launch": {
+    "view": "canvas",
+    "page": "r1"
+  },
+  "pages": [
+    {
+      "id": "r1",
+      "name": "Round 1 · Album screens"
+    }
+  ],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1290,
+      "h": 1180,
+      "page": "r1",
+      "title": "Saved · phone · A, B, C: five tiles"
+    },
+    "SavedWeb.dc.html": {
+      "x": 0,
+      "y": 1300,
+      "w": 1280,
+      "h": 1900,
+      "page": "r1",
+      "title": "Saved · web · A, B, C: five tiles"
+    },
+    "Chips.dc.html": {
+      "x": 0,
+      "y": 3320,
+      "w": 1290,
+      "h": 900,
+      "page": "r1",
+      "title": "Search and Collections · A, B, C: five chips"
+    },
+    "SearchPhone.dc.html": {
+      "x": 0,
+      "y": 4640,
+      "w": 1290,
+      "h": 1560,
+      "page": "r1",
+      "title": "Search · phone · A, B, C: an album's row"
+    },
+    "SearchStates.dc.html": {
+      "x": 0,
+      "y": 6320,
+      "w": 1290,
+      "h": 1320,
+      "page": "r1",
+      "title": "Search · phone · Cyrillic, nothing found, MusicBrainz busy, the credit"
+    },
+    "AlbumPhone.dc.html": {
+      "x": 0,
+      "y": 8060,
+      "w": 1290,
+      "h": 1500,
+      "page": "r1",
+      "title": "The album page · phone · A, B, C: the cover and the facts"
+    },
+    "AlbumWeb.dc.html": {
+      "x": 0,
+      "y": 9680,
+      "w": 1280,
+      "h": 1080,
+      "page": "r1",
+      "title": "The album page · web"
+    },
+    "Grids.dc.html": {
+      "x": 0,
+      "y": 11180,
+      "w": 1290,
+      "h": 1360,
+      "page": "r1",
+      "title": "Square covers · phone · the Albums page and a Collection, A, B"
+    },
+    "NoCover.dc.html": {
+      "x": 0,
+      "y": 12660,
+      "w": 1290,
+      "h": 1080,
+      "page": "r1",
+      "title": "An album without a cover · 1, 2, 3"
+    },
+    "Icons.dc.html": {
+      "x": 1960,
+      "y": 3320,
+      "w": 1720,
+      "h": 420,
+      "page": "r1",
+      "title": "The Albums icon · 1, 2, 3, 4"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "SavedWeb.dc.html",
+    "Chips.dc.html",
+    "SearchPhone.dc.html",
+    "SearchStates.dc.html",
+    "AlbumPhone.dc.html",
+    "AlbumWeb.dc.html",
+    "Grids.dc.html",
+    "NoCover.dc.html",
+    "Icons.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": -300,
+      "maxW": 1290,
+      "text": "Five Media Types: Saved and the chips"
+    },
+    "t2": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": 4340,
+      "maxW": 1290,
+      "text": "Search on Albums"
+    },
+    "t3": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": 7760,
+      "maxW": 1290,
+      "text": "An album's page"
+    },
+    "t4": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": 10880,
+      "maxW": 1290,
+      "text": "Square covers and no cover"
+    },
+    "n0": {
+      "page": "r1",
+      "x": 1400,
+      "y": 0,
+      "w": 440,
+      "size": "m",
+      "fill": "teal",
+      "text": "All album data is real MusicBrainz and Cover Art Archive data from 2026-11-21: titles, artist credits, first-release years, types, covers, and the results for \"beatles abbey road\", \"океан ельзи земля\" and \"Тиждень Вовчика\" (0 results).\n\nTweaks switches each board between dark and light.\n\nDrawn only what albums add. The Listened sheet, History and Thoughts follow films."
+    },
+    "n1": {
+      "page": "r1",
+      "x": 1400,
+      "y": 560,
+      "w": 440,
+      "size": "m",
+      "fill": "orange",
+      "text": "To pick: five tiles on a phone.\n\nA: the 2×2 grid stays; Albums is a wide tile under it, its fan at the right.\nB: one shorter row per type (icon, name, counts, a small fan at the right).\nC: three small tiles, then two.\n\nThe album fan is three square covers, never 2:3. Albums have no In Progress, so no \"Listening now\" row."
+    },
+    "n2": {
+      "page": "r1",
+      "x": 1400,
+      "y": 1300,
+      "w": 440,
+      "size": "m",
+      "fill": "orange",
+      "text": "To pick: five tiles from md.\n\nA: 2×2, then Albums the full width (matches phone A).\nB: three, then two wider ones.\nC: five in one row, each a fan over the name."
+    },
+    "n3": {
+      "page": "r1",
+      "x": 1400,
+      "y": 3320,
+      "w": 440,
+      "size": "m",
+      "fill": "orange",
+      "text": "To pick: the Media Type chips with five types (Search and Collections).\n\nA: today's segmented control, five equal segments, icon over the label (about 66 px a segment on a phone; \"Albums\" fits at 13 px).\nB: one scrolling row of pills; the row runs off the right edge.\nC: icons only, the pressed one also shows its name.\n\nThe Albums icon is Lucide's disc-album (a square sleeve with a disc)."
+    },
+    "n4": {
+      "page": "r1",
+      "x": 1400,
+      "y": 4640,
+      "w": 440,
+      "size": "m",
+      "fill": "orange",
+      "text": "To pick: what an album row says.\n\nA: one muted line: \"The Beatles · 2012 · Remix\".\nB: the artist on its own line, then \"2012 · Remix\".\nC: the artist, then the year and the type as a small tag.\n\nThe cover is a 72 px square, so a row is shorter than a film's. A missing cover is the typeset square (see the last board)."
+    },
+    "n5": {
+      "page": "r1",
+      "x": 1400,
+      "y": 5300,
+      "w": 440,
+      "size": "m",
+      "fill": "red",
+      "text": "Found while drawing: with ADR-0013's ranking (Album, then no secondary type first, then MusicBrainz's order), \"beatles abbey road\" lists Vorticaunt's \"The Beatles’ Abbey Road but with the Earthbound Sound font\" and \"Enjoy The Beatles!\" by an artist called Abbey Road before The Beatles' own Abbey Road Remix.\n\nThe Beatles' Abbey Road itself is first only because it is in Saved here. Not a pick, a note for #269."
+    },
+    "n6": {
+      "page": "r1",
+      "x": 1400,
+      "y": 6320,
+      "w": 440,
+      "size": "m",
+      "fill": "gray",
+      "text": "MusicBrainz matches any word of the query, so a search almost never finds nothing: \"Тиждень Вовчика\" (a book) does. \"Try adding the artist\" shows only then.\n\nMusicBrainz answered 503 to at least 5 of our searches while these were drawn, from a home IP, 1.5–4 s apart. The busy message replaces the results, with Try again."
+    },
+    "n7": {
+      "page": "r1",
+      "x": 1400,
+      "y": 8060,
+      "w": 440,
+      "size": "m",
+      "fill": "orange",
+      "text": "To pick: the top of an album's page.\n\nA: the book page as it is: the blurred cover as the banner, a 136 px square cover at the left, the title, the facts line and \"On MusicBrainz\" beside it.\nB: a taller banner, a 216 px square cover centred, the title centred under it.\nC: the cover the full width of the screen, fading into the page, the title under it (as in music apps). No blur.\n\nDrawn: Земля (listened twice), 1944 (an EP, not listened yet), Live From Madison Square Garden (a live album, two artists)."
+    },
+    "n8": {
+      "page": "r1",
+      "x": 1400,
+      "y": 11180,
+      "w": 440,
+      "size": "m",
+      "fill": "orange",
+      "text": "To pick: square covers in a grid.\n\nA: three columns on a phone, as posters, each cell square (shorter rows).\nB: two columns of larger squares.\n\nThe same cell goes into the Albums page tabs and a Collection. На межі (250×227) and The Road (250×224) aren't square on CAA: drawn filled to the square (cropped a few pixels), never 2:3."
+    },
+    "n9": {
+      "page": "r1",
+      "x": 1400,
+      "y": 12660,
+      "w": 440,
+      "size": "m",
+      "fill": "orange",
+      "text": "To pick: an album without a cover (the Cover Art Archive answers 404).\n\n1: typeset, as a book's: the title at the top, the artist at the foot, a thin frame, square.\n2: a quiet disc icon, as a series.\n3: a record sleeve: a disc peeking out, the title on the sleeve.\n\nReal albums without a cover: Abbey Road Remix (The Beatles, 2012) and Enjoy The Beatles! (Abbey Road, 1994)."
+    },
+    "picks": {
+      "page": "r1",
+      "x": 1960,
+      "y": 0,
+      "w": 440,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked 2026-11-21:\nSaved on a phone: A (2×2, then a wide Albums tile).\nSaved on the web: B (three, then two).\nChips: A (five equal segments).\nSearch row: A (artist · year · type).\nThe album page: C on a phone (the cover the full width); the web as drawn.\nGrid: A (three columns).\nNo cover: 1 (typeset).\n\nThe disc-album icon looked strange: four music icons to pick from, beside the chips."
+    }
+  },
+  "designSystems": []
+}
