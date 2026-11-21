@@ -151,4 +151,4 @@ printf %s "$key" | gh secret set STAGING_REPORT_KEY --env staging
 security add-generic-password -U -a "$USER" -s tastetrack-staging-report -w "$key"
 ```
 
-The staging jobs need the `CLOUDFLARE_API_TOKEN` (limited to this account's Workers and D1) and `CLOUDFLARE_ACCOUNT_ID` secrets, on the `staging` environment or the repo, the `TEST_HOOKS_SECRET` and `STAGING_REPORT_KEY` secrets on the `staging` environment, and the staging D1's `database_id` in `wrangler.jsonc`. The staging deploy doesn't wait for CI, so make the CI checks required on `main` to keep a red PR from merging.
+The staging jobs need the `staging` environment, limited to `main`, with the `CLOUDFLARE_API_TOKEN` secret (the deploy token, see the one-time setup in docs/production.md), the `CLOUDFLARE_ACCOUNT_ID` repo variable, the `TEST_HOOKS_SECRET` and `STAGING_REPORT_KEY` secrets on the `staging` environment, and the staging D1's `database_id` in `wrangler.jsonc`. The staging deploy doesn't wait for CI, so make the CI checks required on `main` to keep a red PR from merging.
