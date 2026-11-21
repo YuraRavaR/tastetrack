@@ -28,6 +28,8 @@ import {
   bedouinReworksId,
   callsRealMusicBrainz,
   coverArt,
+  darkSideOfTheMoonId,
+  darkSideTributeId,
   hollywoodBowlId,
   interstellarId,
   jamala1944,
@@ -38,6 +40,8 @@ import {
   mergedId,
   musicBrainzPage,
   troyAudiobookId,
+  unpluggedInNewYorkId,
+  unpluggedTributeId,
   zemlya,
   zemlyaId,
 } from "../support/scenarios/albums";
@@ -54,12 +58,6 @@ const test = base.extend<{ visitor: ApiClient }>({
     await use(await createApiClient());
   },
 });
-
-// Where a result stands in the Worker's ranking: albums before EPs, and plain ones before the
-// rest.
-function rank(result: CatalogSearchResult): number {
-  return (result.primaryType === "Album" ? 0 : 2) + (result.secondaryTypes?.length ? 1 : 0);
-}
 
 const ids = (results: CatalogSearchResult[]) => results.map((r) => r.externalReference.id);
 
@@ -100,7 +98,7 @@ test("searching albums finds the album before the EP of one title, with its cove
   expect(ids(results)).not.toContain(jamala1944SingleId);
 });
 
-test("album search ranks albums before EPs, and plain ones before live albums, remixes and the like", async ({
+test("album search ranks a plain album before a live album, a remix and the like of the same artist", async ({
   loggedInApi,
 }) => {
   const results = await albumSearchResults(loggedInApi, "Abbey Road Beatles");
@@ -114,8 +112,29 @@ test("album search ranks albums before EPs, and plain ones before live albums, r
     primaryType: "Album",
     secondaryTypes: ["Remix"],
   });
-  const ranks = results.map(rank);
-  expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
+  expect(ids(results).indexOf(abbeyRoadId)).toBeLessThan(ids(results).indexOf(abbeyRoadRemixId));
+});
+
+test("album search puts the album whose title and artist the query names before tributes to it", async ({
+  loggedInApi,
+}) => {
+  const [darkSide, unplugged] = await Promise.all(
+    ["Pink Floyd Dark Side of the Moon", "Nirvana MTV Unplugged in New York"].map((query) =>
+      albumSearchResults(loggedInApi, query),
+    ),
+  );
+
+  expect(darkSide[0]).toMatchObject({
+    externalReference: albumReference(darkSideOfTheMoonId),
+    artistCredit: "Pink Floyd",
+  });
+  expect(ids(darkSide)).toContain(darkSideTributeId);
+  expect(unplugged[0]).toMatchObject({
+    externalReference: albumReference(unpluggedInNewYorkId),
+    artistCredit: "Nirvana",
+    secondaryTypes: ["Live"],
+  });
+  expect(ids(unplugged)).toContain(unpluggedTributeId);
 });
 
 test("album search shows albums and EPs alone: no singles, interviews or audiobooks", async ({

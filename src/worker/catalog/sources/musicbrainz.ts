@@ -107,6 +107,39 @@ function rank(group: ReleaseGroup, primaryType: PrimaryType): number {
   return (primaryType === "Album" ? 0 : 2) + (secondaryTypesOf(group).length > 0 ? 1 : 0);
 }
 
+// The words of a query or a name, to compare them: lowercased, without accents, apostrophes or
+// punctuation, so "Pink Floyd’s" is one word, "floyds".
+function wordsOf(text: string): string[] {
+  return text
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .replace(/['’`]/g, "")
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+}
+
+const articles = new Set(["the", "a", "an"]);
+
+// Whether every word of a name is in the query, its articles aside: "The Beatles" is in
+// "abbey road beatles", and "The Dark Side of the Moon" in "pink floyd dark side of the moon".
+function namedIn(queryWords: Set<string>, name: string): boolean {
+  const words = wordsOf(name);
+  const significant = words.filter((word) => !articles.has(word));
+  const asked = significant.length > 0 ? significant : words;
+  return asked.length > 0 && asked.every((word) => queryWords.has(word));
+}
+
+// How much of a release group the query names: one for its title, one for any of its credited
+// artists. A tribute names the original in its own title ("The String Quartet Tribute to Pink
+// Floyd’s The Dark Side of the Moon"), which MusicBrainz ranks high, so the album whose title and
+// artist the query names outranks it whatever their types.
+function namedByQuery(queryWords: Set<string>, group: ReleaseGroup): number {
+  const title = namedIn(queryWords, group.title) ? 1 : 0;
+  const artist = (group["artist-credit"] ?? []).some((credit) => namedIn(queryWords, credit.name));
+  return title + (artist ? 1 : 0);
+}
+
 // The year of the first release, from a date MusicBrainz writes as YYYY, YYYY-MM or YYYY-MM-DD.
 function yearOf(group: ReleaseGroup): number | null {
   const year = /^(\d{4})/.exec(group["first-release-date"] ?? "")?.[1];
@@ -248,9 +281,10 @@ function escaped(query: string): string {
 // counts only those; the secondary types that keep one out are left out here, after.
 const mediaItemsOnly = "(primarytype:album OR primarytype:ep)";
 
-// The first matches that are Media Items, reranked: albums before EPs, plain ones before the rest,
-// then in MusicBrainz's order. A Cyrillic query is sent as typed and finds albums titled in their
-// original script; an album has one title, so the query's language only says which it ran in.
+// The first matches that are Media Items, reranked: the ones whose title and artist the query names
+// first, then those that name one of the two; within each, albums before EPs, plain ones before the
+// rest, then in MusicBrainz's order. A Cyrillic query is sent as typed and finds albums titled in
+// their original script; an album has one title, so the query's language only says which it ran in.
 async function searchAlbums(env: CatalogEnv, query: string): Promise<CatalogSearchMatch[]> {
   const path = "/release-group/";
   const answer = await get(env, path, {
@@ -266,9 +300,15 @@ async function searchAlbums(env: CatalogEnv, query: string): Promise<CatalogSear
     const primaryType = group.success ? mediaItemType(group.data) : null;
     return group.success && primaryType ? [{ group: group.data, primaryType }] : [];
   });
+  const queryWords = new Set(wordsOf(query));
   const ranked = groups
-    .map((found, order) => ({ ...found, order, rank: rank(found.group, found.primaryType) }))
-    .sort((a, b) => a.rank - b.rank || a.order - b.order);
+    .map((found, order) => ({
+      ...found,
+      order,
+      named: namedByQuery(queryWords, found.group),
+      rank: rank(found.group, found.primaryType),
+    }))
+    .sort((a, b) => b.named - a.named || a.rank - b.rank || a.order - b.order);
   const titleLanguage = searchLanguage(query) === "uk-UA" ? "uk" : "en";
   return ranked.map(({ group, primaryType }) => ({
     externalReference: { source: "musicbrainz", mediaType: "album", id: group.id },

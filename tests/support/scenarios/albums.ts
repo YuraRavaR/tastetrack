@@ -72,6 +72,12 @@ export const jamala1944 = (client: ApiClient) => album(client, "1944 Jamala", ja
 // A live album and a soundtrack, albums of their own.
 export const hollywoodBowlId = "eabb68b3-d57c-359a-8215-91f38d365da5";
 export const interstellarId = "4513c7b9-854e-457f-81d6-3dbeb001beb8";
+// The Dark Side of the Moon, which MusicBrainz ranks behind a plain studio album that pays tribute
+// to it, and MTV Unplugged in New York, a live album, with a plain studio album of covers of it.
+export const darkSideOfTheMoonId = "f5093c06-23e3-404f-aeaa-40f72885ee3a";
+export const darkSideTributeId = "6d3d6885-651b-3d8e-a67b-7832248abb52";
+export const unpluggedInNewYorkId = "fb3770f6-83fb-32b7-85c4-1f522a92287e";
+export const unpluggedTributeId = "9be783c7-57c1-4555-ab44-188b569bae04";
 // An interview and an audiobook, which search hides.
 export const beatlesStoryId = "84225cac-5cd3-3389-a84e-e673e3bf3242";
 export const troyAudiobookId = "a9e84258-d41b-4c64-84e3-654e71eb8154";
