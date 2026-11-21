@@ -84,9 +84,10 @@ export function FilmBanner({
         )}
         <div className="flex min-w-0 flex-col gap-0.75 pb-0.5 sm:gap-1 sm:pb-1">
           <h1
+            // The size comes before the leading: cn drops a leading that a later text size follows.
             className={cn(
-              "font-bold leading-[1.15] tracking-[-0.01em] sm:text-[34px] sm:leading-[1.12] sm:tracking-[-0.02em]",
               coverIsPicture ? "text-[26px]" : "text-[21px]",
+              "font-bold leading-[1.15] tracking-[-0.01em] sm:text-[34px] sm:leading-[1.12] sm:tracking-[-0.02em]",
             )}
           >
             <FilmTitle mediaItem={mediaItem} />
