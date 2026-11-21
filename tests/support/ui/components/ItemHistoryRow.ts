@@ -5,6 +5,7 @@ export class ItemHistoryRow extends ScopedComponent {
   readonly revisitBadge = this.root.getByText("Rewatch", { exact: true });
   readonly bookRevisitBadge = this.root.getByText("Reread", { exact: true });
   readonly gameRevisitBadge = this.root.getByText("Replay", { exact: true });
+  readonly albumRevisitBadge = this.root.getByText("Relisten", { exact: true });
 
   // The "⋯" button, named after the entry's date: "Actions for Sep 15, 2001".
   actionsButton(date: string) {

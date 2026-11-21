@@ -1,11 +1,13 @@
 import {
   Bookmark,
   BookOpen,
+  Clock,
   Disc3,
   Gamepad2,
   List,
   ListPlus,
   type LucideIcon,
+  RotateCcw,
   RotateCw,
   SearchX,
   Star,
@@ -76,8 +78,12 @@ const noMatchIcons: Record<MediaType, LucideIcon> = {
   album: Disc3,
 };
 
-// What Search adds when it finds no game: IGDB knows games by their English names alone.
-const noMatchHints: Partial<Record<MediaType, MessageId>> = { game: "search.englishTitleHint" };
+// What Search adds when it finds nothing: IGDB knows games by their English names alone, and
+// MusicBrainz finds an album best by its title and artist together.
+const noMatchHints: Partial<Record<MediaType, MessageId>> = {
+  game: "search.englishTitleHint",
+  album: "search.artistHint",
+};
 
 // What Search finds of one Media Type as the User types, with no button, for the query in the URL.
 // The User's Media Items that match, those in their Library or on their Lists, come first, "In
@@ -93,7 +99,9 @@ const noMatchHints: Partial<Record<MediaType, MessageId>> = { game: "search.engl
 // it is in the Log, and takes it off the Watchlist with an undo. Want to watch is a toggle, which
 // puts a result on the Watchlist or takes it off again, and any result can be added to or taken
 // off the User's Lists. Below the results, a film search doesn't find can be added by hand, and
-// then shows first. A Media Type offers only what it can do (catalog/media-types.ts).
+// then shows first. A Media Type offers only what it can do (catalog/media-types.ts). When the
+// source is busy, as MusicBrainz can be, its results give way to a box that says so, with Try
+// again (`docs/mockups/albums/`).
 export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
   const backlogName = mediaWord(mediaType, "backlog");
@@ -309,6 +317,20 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
         </p>
       )}
       {matches.length > 0 && <UserMediaItemMatches items={matches} onOpened={rememberScroll} />}
+      {search.status === "busy" && (
+        <div role="alert">
+          <EmptyState
+            icon={Clock}
+            message={t("search.musicBrainzBusy")}
+            hint={
+              userItemsReady && matches.length === 0
+                ? t("search.savedNoMatch", { query: trimmed })
+                : undefined
+            }
+            action={{ label: t("search.tryAgain"), icon: RotateCcw, onClick: search.retry }}
+          />
+        </div>
+      )}
       {showResults && (
         <ResultsBlock heading={mediaWord(mediaType, "searchSource")} count={results.length}>
           {(headingId) => (
@@ -362,7 +384,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
       ) : (
         addable &&
         trimmed !== "" &&
-        search.status === "done" && (
+        (search.status === "done" || search.status === "busy") && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <span className="text-muted-foreground">{t("search.notFound")}</span>
             <Button variant="outline" size="sm" onClick={() => setAddingManually(true)}>

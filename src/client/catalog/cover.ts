@@ -16,17 +16,17 @@ import type { MessageId } from "../i18n/t";
 import { authorName } from "./book-label";
 import { type Found, foundMediaType } from "./found";
 
-export type CoverShape = "2:3";
+export type CoverShape = "2:3" | "1:1";
 
 // A new Media Type doesn't compile until it has a cover shape. A book's cover is cropped to a
-// poster's, whatever shape its image has.
+// poster's, whatever shape its image has. An album's is square, never cropped to 2:3; an image
+// not quite square fills the square, losing a few pixels (`docs/mockups/albums/`).
 const coverShapes: Record<MediaType, CoverShape> = {
   film: "2:3",
   book: "2:3",
   series: "2:3",
   game: "2:3",
-  // An album's cover is square, which its UI brings.
-  album: "2:3",
+  album: "1:1",
 };
 
 export function coverShape(mediaType: MediaType): CoverShape {
@@ -101,7 +101,6 @@ const typesetCovers: Record<MediaType, boolean> = {
   book: true,
   series: false,
   game: true,
-  // Settled with the albums UI.
   album: true,
 };
 
@@ -116,8 +115,9 @@ export function placeholderFor(mediaItemId: number | null): Placeholder {
   return placeholders[mediaItemId % placeholders.length] ?? filmPlaceholder;
 }
 
-// What a cover set in type says where a book or a game has no image: its title, and its maker,
-// a book's first author as shown or a game's developer. Null where unknown.
+// What a cover set in type says where a book, a game or an album has no image: its title, and its
+// maker, a book's first author as shown, a game's developer or an album's artist credit. Null where
+// unknown.
 export interface TypesetCover {
   title: string | null;
   maker: string | null;
@@ -125,20 +125,26 @@ export interface TypesetCover {
 
 export function typesetCoverOf(subject: MediaItem | Found): TypesetCover {
   if ("kind" in subject && subject.kind === "catalog") {
-    return { title: subject.title, maker: firstAuthor(subject.authors) };
+    const maker =
+      subject.externalReference.mediaType === "album"
+        ? (subject.artistCredit ?? null)
+        : firstAuthor(subject.authors);
+    return { title: subject.title, maker };
   }
   const mediaItem = "kind" in subject ? subject.mediaItem : subject;
   return { title: mediaItem.metadata?.title ?? null, maker: makerOf(mediaItem) };
 }
 
 // Who made a Media Item, as its cover and rows name them: a book's first author as shown, a game's
-// developer. Null for a film or a series, and where unknown.
+// developer, an album's artist credit. Null for a film or a series, and where unknown.
 export function makerOf(mediaItem: MediaItem): string | null {
   switch (mediaItem.mediaType) {
     case "book":
       return firstAuthor(mediaItem.metadata?.authors);
     case "game":
       return mediaItem.metadata?.developer ?? null;
+    case "album":
+      return mediaItem.metadata?.artistCredit ?? null;
     default:
       return null;
   }

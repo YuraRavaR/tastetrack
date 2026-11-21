@@ -40,7 +40,7 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   await savedPage.goto();
 
   await expect(savedPage.heading).toHaveText("Saved");
-  await expect(savedPage.tiles).toHaveCount(4);
+  await expect(savedPage.tiles).toHaveCount(5);
   const films = savedPage.tile("Films");
   await expect(films.root).toContainText("4 to watch · 1 watched");
   await expect(films.link).toHaveAccessibleDescription("4 to watch · 1 watched");
@@ -55,10 +55,11 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   await expect(films.coverPlaceholders).toHaveCount(0);
   await expect(films.findFilmLink).toHaveCount(0);
 
-  // Films planned don't count as books, series or games.
+  // Films planned don't count as books, series, games or albums.
   await expect(savedPage.tile("Books").root).toContainText("Nothing saved yet.");
   await expect(savedPage.tile("Series").root).toContainText("Nothing saved yet.");
   await expect(savedPage.tile("Games").root).toContainText("Nothing saved yet.");
+  await expect(savedPage.tile("Albums").root).toContainText("Nothing saved yet.");
 
   await films.link.click();
   await expect(page).toHaveURL(libraryPage.path("Watchlist"));
@@ -67,7 +68,7 @@ test("Saved shows a tile per Media Type, and the Films tile counts its tabs and 
   // Saved in the nav comes back up to the tiles.
   await libraryPage.mainNav.link("Saved").click();
   await expect(page).toHaveURL(savedPage.path());
-  await expect(savedPage.tiles).toHaveCount(4);
+  await expect(savedPage.tiles).toHaveCount(5);
 });
 
 test("a new User's Films tile has empty slots and a way to find a film, and still opens its empty tabs", async ({

@@ -13,7 +13,7 @@ import {
 import { describe, expect, it } from "vitest";
 import type { MediaItem } from "../../shared/api";
 import { t } from "../i18n/t";
-import { coverOf, placeholderFor, typesetCoverOf } from "./cover";
+import { coverOf, coverShape, makerOf, placeholderFor, typesetCoverOf } from "./cover";
 import type { Found } from "./found";
 
 const posterUrl = "https://image.tmdb.org/t/p/w92/alien.jpg";
@@ -160,6 +160,65 @@ describe("a book's cover", () => {
       maker: null,
     });
     expect(typesetCoverOf({ ...fromOpenLibrary, authors: [] }).maker).toBeNull();
+  });
+});
+
+describe("an album's cover", () => {
+  const zemlyaId = "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8";
+  const coverUrls = {
+    small: `https://coverartarchive.org/release-group/${zemlyaId}/front-250`,
+    large: `https://coverartarchive.org/release-group/${zemlyaId}/front-500`,
+  };
+  const zemlya: MediaItem = {
+    id: 46,
+    mediaType: "album",
+    externalReference: { source: "musicbrainz", mediaType: "album", id: zemlyaId },
+    metadata: {
+      title: "Земля",
+      originalTitle: "Земля",
+      ukrainianTitle: null,
+      year: 2013,
+      coverUrls,
+      artistCredit: "Океан Ельзи",
+      artists: ["Океан Ельзи"],
+      primaryType: "Album",
+      secondaryTypes: [],
+      url: `https://musicbrainz.org/release-group/${zemlyaId}`,
+    },
+  };
+  const remixId = "42ef6001-3113-440c-ae7c-3667c7351e35";
+  const fromMusicBrainz: Found = {
+    kind: "catalog",
+    externalReference: { source: "musicbrainz", mediaType: "album", id: remixId },
+    title: "Abbey Road Remix",
+    originalTitle: "Abbey Road Remix",
+    year: 2012,
+    posterUrl: `https://coverartarchive.org/release-group/${remixId}/front-250`,
+    titleLanguage: "en",
+    authors: [],
+    artistCredit: "The Beatles",
+    primaryType: "Album",
+    secondaryTypes: ["Remix"],
+    mediaItemId: null,
+    inLog: false,
+    inBacklog: false,
+    currentRating: null,
+    logEntryCount: 0,
+    lists: [],
+  };
+
+  it("is square, where every other Media Type's is a poster's 2:3", () => {
+    expect(coverShape("album")).toBe("1:1");
+    expect(coverShape("game")).toBe("2:3");
+  });
+
+  it("set in type, says the title and the artist credit", () => {
+    expect(typesetCoverOf(zemlya)).toEqual({ title: "Земля", maker: "Океан Ельзи" });
+    expect(typesetCoverOf(fromMusicBrainz)).toEqual({
+      title: "Abbey Road Remix",
+      maker: "The Beatles",
+    });
+    expect(makerOf(zemlya)).toBe("Океан Ельзи");
   });
 });
 

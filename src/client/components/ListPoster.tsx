@@ -21,7 +21,7 @@ import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { MenuSheetContent, menuSheetIconClasses, menuSheetItemClasses } from "./MenuSheetContent";
 import { Poster } from "./Poster";
-import { collectionMeta, PosterGridItem } from "./PosterGridItem";
+import { collectionMeta, gridByline, PosterGridItem } from "./PosterGridItem";
 
 export function listItemLabel(item: ListItem): string {
   const metadata = item.mediaItem.metadata;
@@ -54,6 +54,7 @@ export function ListPoster(props: ListPosterProps) {
     <PosterGridItem
       mediaItem={item.mediaItem}
       loading={loading}
+      byline={gridByline(item.mediaItem)}
       meta={collectionMeta(item.mediaItem)}
       place={place}
       corner={reordering ? undefined : <PosterMenu {...props} />}

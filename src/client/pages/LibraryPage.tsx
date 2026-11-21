@@ -18,7 +18,7 @@ import { canProgress, mediaTypeIcon, type ProgressMediaType } from "../catalog/m
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { type Choice, ChoiceChip } from "../components/ChoiceChip";
 import { EmptyState } from "../components/EmptyState";
-import { PosterGridItem } from "../components/PosterGridItem";
+import { gridByline, PosterGridItem } from "../components/PosterGridItem";
 import { RatingValue } from "../components/Rating";
 import { SegmentedLinks } from "../components/SegmentedLinks";
 import { WatchingRows } from "../components/WatchingRows";
@@ -64,7 +64,7 @@ interface TabParts {
 }
 
 // What a planned Media Item says under its title: a film, a series or a game its year, a book its
-// authors, in one line.
+// authors, in one line. An album says nothing more than its byline, its artist.
 function plannedMeta({ mediaItem }: LibraryItem): ReactNode {
   switch (mediaItem.mediaType) {
     case "film":
@@ -75,6 +75,8 @@ function plannedMeta({ mediaItem }: LibraryItem): ReactNode {
       const authors = mediaItem.metadata && authorNames(mediaItem.metadata.authors);
       return authors && <span className="min-w-0 truncate">{authors}</span>;
     }
+    case "album":
+      return undefined;
   }
 }
 
@@ -286,6 +288,7 @@ function LibraryTabs({ mediaType, tab }: { mediaType: MediaType; tab: LibraryTab
               key={item.mediaItem.id}
               mediaItem={item.mediaItem}
               loading={fill.loading(item.mediaItem)}
+              byline={gridByline(item.mediaItem)}
               meta={open.meta(item)}
               mark={open.mark(item)}
             />

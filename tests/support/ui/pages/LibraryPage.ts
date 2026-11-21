@@ -15,7 +15,9 @@ export type LibraryTab =
   | "Read"
   | "Backlog"
   | "Playing"
-  | "Played";
+  | "Played"
+  | "Listening list"
+  | "Listened";
 
 // The chips above the grid: the sort, then the filters; Genre only for films, Rating only on
 // Watched.
@@ -25,7 +27,7 @@ export type LibraryChip = "Sort" | "Genre" | "Decade" | "Rating";
 // asked for.
 const tabPaths: Record<
   LibraryTab,
-  { slug: string; mediaType: "films" | "books" | "series" | "games" }
+  { slug: string; mediaType: "films" | "books" | "series" | "games" | "albums" }
 > = {
   Watchlist: { slug: "watchlist", mediaType: "films" },
   Watching: { slug: "watching", mediaType: "series" },
@@ -36,11 +38,13 @@ const tabPaths: Record<
   Backlog: { slug: "backlog", mediaType: "games" },
   Playing: { slug: "playing", mediaType: "games" },
   Played: { slug: "played", mediaType: "games" },
+  "Listening list": { slug: "listening-list", mediaType: "albums" },
+  Listened: { slug: "listened", mediaType: "albums" },
 };
 
 // Saved for one Media Type: a film's Watchlist and Watched tabs, a book's Reading list, Reading and
-// Read, a series' Watchlist and Watched and a game's Backlog, Playing and Played, each a grid of
-// covers, and a series' Watching, a list of rows. A film's tab and a series' have one name, so a
+// Read, a series' Watchlist and Watched, a game's Backlog, Playing and Played and an album's
+// Listening list and Listened, each a grid of covers, and a series' Watching, a list of rows. A film's tab and a series' have one name, so a
 // series' is named with its Media Type.
 export class LibraryPage extends BasePage<[tab?: LibraryTab, mediaType?: "series"]> {
   path(tab: LibraryTab = "Watchlist", mediaType?: "series") {

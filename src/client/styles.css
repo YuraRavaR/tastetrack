@@ -129,6 +129,21 @@
 }
 
 /*
+ * An album's cover, the picture of its page on a phone, fades into the page over its bottom 30%
+ * (`docs/mockups/albums/`), with eased stops as the backdrop's.
+ */
+@utility cover-fade {
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0) 70%,
+    rgb(0 0 0 / 0.82) 78%,
+    rgb(0 0 0 / 0.5) 86%,
+    rgb(0 0 0 / 0.18) 94%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+
+/*
  * A film's backdrop fades into the page. A mask, not an overlay, so it fades to whatever is behind,
  * in either theme; masks read only alpha, so these are opacities, not colours. On a phone only the
  * bottom fades. From sm every edge does: the sides over 18% of the width, the bottom from 45%

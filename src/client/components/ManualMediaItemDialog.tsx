@@ -31,7 +31,7 @@ import {
 // The item to edit, or the Media Type of a new one, which starts from a title.
 type Editing = { mediaItem: MediaItem } | { mediaType: MediaType; title?: string };
 
-// Adds a film, a book or a series by hand as a Manual Media Item, or edits one, in a sheet on a
+// Adds a film, a book, a series, a game or an album by hand as a Manual Media Item, or edits one, in a sheet on a
 // phone and a centred dialog from `md`. The dialog is open while `open` is set, and stays open
 // until the item is saved.
 export function ManualMediaItemDialog({
@@ -131,7 +131,13 @@ function ManualMediaItemForm({
   const mediaType = "mediaItem" in editing ? editing.mediaItem.mediaType : editing.mediaType;
   const metadata = mediaItem?.metadata ?? null;
   const film = mediaItem?.mediaType === "film" ? mediaItem.metadata : null;
-  const book = mediaItem?.mediaType === "book" ? mediaItem.metadata : null;
+  // A book's authors, or an album's artists, which take the same field.
+  const makers =
+    mediaItem?.mediaType === "book"
+      ? mediaItem.metadata?.authors
+      : mediaItem?.mediaType === "album"
+        ? mediaItem.metadata?.artists
+        : undefined;
   const [title, setTitle] = useState(
     metadata?.title ?? ("title" in editing ? (editing.title ?? "") : ""),
   );
@@ -142,7 +148,7 @@ function ManualMediaItemForm({
   const [year, setYear] = useState(metadata?.year?.toString() ?? "");
   const [runtime, setRuntime] = useState(film?.runtime?.toString() ?? "");
   const [genres, setGenres] = useState<ReadonlySet<string>>(new Set(film?.genres));
-  const [authors, setAuthors] = useState(book?.authors.join(", ") ?? "");
+  const [authors, setAuthors] = useState(makers?.join(", ") ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<api.ManualMediaItemError | null>(null);
   // Once warned of a possible duplicate, sending the same title and year again makes it anyway.
@@ -306,10 +312,10 @@ function ManualMediaItemForm({
             </div>
           </fieldset>
         )}
-        {mediaType === "book" && (
+        {(mediaType === "book" || mediaType === "album") && (
           <div className="flex flex-col gap-2">
             <Label htmlFor={ids.authors}>
-              {t("manualItem.authors")}{" "}
+              {t(mediaType === "album" ? "manualItem.artists" : "manualItem.authors")}{" "}
               <span className="font-normal text-muted-foreground">
                 ({t("manualItem.optional")})
               </span>

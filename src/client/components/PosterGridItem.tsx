@@ -10,7 +10,8 @@ import { Poster } from "./Poster";
 
 // What a Collection's grid says under a title (`docs/mockups/books/`): a film, a series or a game
 // its year, a book its first author, and with `withYear`, as on a Share Link's page, the author and
-// then the year, "Іван Багряний · 1946", in one line. Nothing while the metadata is unknown.
+// then the year, "Іван Багряний · 1946", in one line. An album's artist is its byline, so it says
+// only the year with `withYear`. Nothing while the metadata is unknown.
 export function collectionMeta({ mediaType, metadata }: MediaItem, withYear = false): ReactNode {
   if (!metadata) return undefined;
   switch (mediaType) {
@@ -24,11 +25,22 @@ export function collectionMeta({ mediaType, metadata }: MediaItem, withYear = fa
       const line = [author, year].filter(Boolean).join(" · ");
       return line && <span className="min-w-0 truncate">{line}</span>;
     }
+    case "album":
+      return withYear ? (metadata.year ?? undefined) : undefined;
   }
 }
 
+// The line under an album's title in a grid, its artist credit (`docs/mockups/albums/`); none for
+// any other Media Type, whose meta line names its maker if anyone.
+export function gridByline(mediaItem: MediaItem): string | undefined {
+  return mediaItem.mediaType === "album"
+    ? (mediaItem.metadata?.artistCredit ?? undefined)
+    : undefined;
+}
+
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title
-// in two lines at most, and a meta line, such as the year or the Current Rating. All of it opens
+// in two lines at most, a byline in one, such as an album's artist, and a meta line, such as the
+// year or the Current Rating. All of it opens
 // the Media Item's page, unless it is `unlinked`, as on a Share Link's page. `corner`, such as a
 // ⋯ menu, sits over the poster's top right corner, and `children`, such as a Note, go under it,
 // both outside the link. `overlay`, such as the arrows that reorder a List, lies over the whole
@@ -36,6 +48,7 @@ export function collectionMeta({ mediaType, metadata }: MediaItem, withYear = fa
 export function PosterGridItem({
   mediaItem,
   loading = false,
+  byline,
   meta,
   mark,
   place,
@@ -49,6 +62,8 @@ export function PosterGridItem({
   mediaItem: MediaItem;
   // True while the page waits for metadata the Media Item came without.
   loading?: boolean;
+  // Who made it, in one line under the title, as an album's artist (gridByline).
+  byline?: string | undefined;
   meta?: ReactNode;
   // A label for the corner mark, such as "Watched before"; no mark without one.
   mark?: string;
@@ -96,6 +111,9 @@ export function PosterGridItem({
         {overlay}
       </span>
       <span className="line-clamp-2 font-semibold text-sm leading-tight">{title}</span>
+      {byline && (
+        <span className="-mt-0.5 truncate text-muted-foreground text-xs md:text-sm">{byline}</span>
+      )}
       {meta && (
         <span className="-mt-0.5 flex items-center gap-1 text-muted-foreground text-xs md:text-sm">
           {meta}

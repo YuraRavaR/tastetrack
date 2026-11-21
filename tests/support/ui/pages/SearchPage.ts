@@ -22,10 +22,10 @@ export class UserMediaItemMatches extends ScopedComponent {
 }
 
 // A Media Type chip's name.
-type MediaTypeChip = "Films" | "Books" | "Series" | "Games";
+type MediaTypeChip = "Films" | "Books" | "Series" | "Games" | "Albums";
 
 // A Media Type in Search's address, unless it is films.
-type SearchMediaType = "book" | "series" | "game";
+type SearchMediaType = "book" | "series" | "game" | "album";
 
 // The Search section: the search of one Media Type, its results and what can be done with them.
 export class SearchPage extends BasePage<[query?: string, mediaType?: SearchMediaType]> {
@@ -73,6 +73,23 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: SearchMedi
   readonly englishTitleHint = this.page.getByText(
     "Try the English title: IGDB knows games by their English names.",
   );
+  // MusicBrainz's results, on Albums.
+  readonly musicBrainzResults = new SearchResults(
+    this.page.getByRole("list", { name: "From MusicBrainz" }),
+  );
+  readonly musicBrainzHeading = this.page.getByRole("heading", {
+    level: 2,
+    name: /^From MusicBrainz/,
+  });
+  readonly noAlbumsMessage = this.page.getByText(/^No albums found for “.*”\.$/);
+  readonly artistHint = this.page.getByText(
+    "Try adding the artist: MusicBrainz finds an album best by its title and artist together.",
+  );
+  // What Search says in place of MusicBrainz's results when MusicBrainz is busy.
+  readonly musicBrainzBusy = this.page
+    .getByRole("alert")
+    .filter({ hasText: "MusicBrainz is busy, try again in a moment." });
+  readonly tryAgainButton = this.musicBrainzBusy.getByRole("button", { name: "Try again" });
   readonly addManuallyButton = this.page.getByRole("button", { name: "Add manually" });
   readonly addManuallyDialog = new ManualMediaItemDialog(
     this.page.getByRole("dialog", { name: "Add a film manually" }),
@@ -85,6 +102,9 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: SearchMedi
   );
   readonly addGameManuallyDialog = new ManualMediaItemDialog(
     this.page.getByRole("dialog", { name: "Add a game manually" }),
+  );
+  readonly addAlbumManuallyDialog = new ManualMediaItemDialog(
+    this.page.getByRole("dialog", { name: "Add an album manually" }),
   );
   readonly toast = new Toast(this.page.getByRole("status"));
   readonly errorMessage = this.page.getByRole("alert");

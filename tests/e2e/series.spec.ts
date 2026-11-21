@@ -231,7 +231,7 @@ test("the Series tile counts its tabs and fans out the Watchlist, and the tabs s
   await savedPage.goto();
 
   // In the order Films, Books, Series, Games.
-  await expect(savedPage.tiles).toHaveText([/^Films/, /^Books/, /^Series/, /^Games/]);
+  await expect(savedPage.tiles).toHaveText([/^Films/, /^Books/, /^Series/, /^Games/, /^Albums/]);
   const tile = savedPage.tile("Series");
   await expect(tile.link).toHaveAccessibleDescription("2 to watch · 1 watched");
   await expect(tile.coverImages).toHaveCount(2);

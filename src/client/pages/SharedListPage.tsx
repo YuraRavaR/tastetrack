@@ -6,7 +6,7 @@ import * as api from "../api";
 import { useAuth } from "../auth";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { NoteBubble } from "../components/NoteBubble";
-import { collectionMeta, PosterGridItem } from "../components/PosterGridItem";
+import { collectionMeta, gridByline, PosterGridItem } from "../components/PosterGridItem";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { usePageTitle } from "../navigation/page-title";
@@ -119,6 +119,7 @@ export function SharedListPage() {
                 key={item.position}
                 mediaItem={mediaItem}
                 loading={fill.loading(item.mediaItem)}
+                byline={gridByline(mediaItem)}
                 meta={collectionMeta(mediaItem, true)}
                 place={index + 1}
                 unlinked={authStatus !== "authenticated"}

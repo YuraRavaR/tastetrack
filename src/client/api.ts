@@ -245,8 +245,10 @@ export async function generateInviteCode(): Promise<GenerateInviteCodeResult> {
 
 export type CatalogSearchOutcome =
   | { ok: true; manualResults: ManualSearchResult[]; results: CatalogSearchResult[] }
-  | { ok: false; error: "aborted" | "unavailable" };
+  | { ok: false; error: "aborted" | "unavailable" | "busy" };
 
+// A search's results, or why there are none: the source busy, as MusicBrainz is when it refuses a
+// search twice (`catalog_busy`), or the search unavailable for any other reason.
 export async function searchCatalog(
   mediaType: MediaType,
   query: string,
@@ -255,7 +257,11 @@ export async function searchCatalog(
   const params = new URLSearchParams({ mediaType, query });
   try {
     const response = await fetch(`/api/catalog/search?${params}`, { signal });
-    if (!response.ok) return { ok: false, error: "unavailable" };
+    if (!response.ok) {
+      // A body that isn't the Worker's JSON, as a proxy's, throws and counts as unavailable.
+      const { error } = (await response.json()) as ErrorResponse;
+      return { ok: false, error: error === "catalog_busy" ? "busy" : "unavailable" };
+    }
     const { manualResults, results } = (await response.json()) as CatalogSearchResponse;
     return { ok: true, manualResults, results };
   } catch {

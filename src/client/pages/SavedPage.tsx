@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useId, useState } from "react";
 import { Link } from "react-router";
+import { cn } from "@/lib/utils";
 import type { LibraryItem, MediaType } from "../../shared/api";
 import * as api from "../api";
 import { makerOf } from "../catalog/cover";
@@ -16,7 +17,9 @@ import { usePageTitle } from "../navigation/page-title";
 import { itemPath } from "../navigation/paths";
 
 // Saved at "/": one tile per Media Type Saved offers, in the order every section keeps, each
-// opening its tabs, in a 2×2 grid at every width (`docs/mockups/games/`). The heading names the
+// opening its tabs: two to a row, and the last of an odd number a wide tile in a row of its own,
+// as the albums' (`docs/mockups/games/`, `docs/mockups/albums/`). From `lg`, five tiles sit three in
+// a row, then two; at `md` three would leave a name no room beside its fan. The heading names the
 // list of tiles. Under them, for each Media Type that has In Progress, what the User has In
 // Progress, if anything (`docs/mockups/books/`, `docs/mockups/series-progress/`). Being the home
 // page, its title is the app's name alone.
@@ -29,12 +32,28 @@ export function SavedPage() {
       <h1 id={headingId} className="font-bold text-3xl tracking-tight md:text-4xl">
         {t("saved.title")}
       </h1>
-      <ul aria-labelledby={headingId} className="grid grid-cols-2 gap-3 md:gap-5">
-        {savedMediaTypes.map((mediaType) => (
-          <li key={mediaType} className="grid">
-            <MediaTypeTile mediaType={mediaType} state={tiles[mediaType]} />
-          </li>
-        ))}
+      <ul aria-labelledby={headingId} className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-6">
+        {savedMediaTypes.map((mediaType, index) => {
+          const wide = index === savedMediaTypes.length - 1 && index % 2 === 0;
+          const third = index < 3;
+          return (
+            <li
+              key={mediaType}
+              className={cn(
+                "grid",
+                wide && "col-span-2",
+                third ? "lg:col-span-2" : "lg:col-span-3",
+              )}
+            >
+              <MediaTypeTile
+                mediaType={mediaType}
+                state={tiles[mediaType]}
+                wide={wide}
+                third={third}
+              />
+            </li>
+          );
+        })}
       </ul>
       {savedMediaTypes.filter(canProgress).map((mediaType) => {
         const tile = tiles[mediaType];
