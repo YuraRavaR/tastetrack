@@ -13,14 +13,14 @@ import { SectionHeaderLinks, SectionTabBar } from "./SectionNav";
 // The frame of every page: a header above a content column, and a footer with the credit TMDB's
 // terms require (ADR-0004), Open Library's credit under it (ADR-0011), IGDB's under that
 // (ADR-0012), MusicBrainz's last (ADR-0013), and the app version, which from `md` ends the last
-// credit's line. Header and footer stop at
-// `max-w-6xl`, which Saved uses for its tiles and grids of posters, Collections for its cards, one
-// Collection and a Share Link's page for their grids; every other page keeps the narrower column,
-// Search one a little wider for its grid of covers, and a film's page wider still (960 px of
-// content from `sm`) for its backdrop. Logged out, the header holds only the logo, and on a Share
-// Link's page a "Log in" link that comes back to it. A logged-in User gets the sections, in a
-// bottom tab bar on a phone and in the header from `md`, and the account menu. A User who must set
-// a new password gets only the account menu, to log out.
+// credit's line. Header and footer stop at `max-w-6xl`, which Saved uses for its tiles and grids
+// of posters, Collections for its cards, one Collection and a Share Link's page for their grids;
+// every other page keeps the narrower column, Search one a little wider for its grid of covers,
+// and a film's page wider still (960 px of content from `sm`) for its backdrop. Logged out, the
+// header holds only the logo, and on a Share Link's page a "Log in" link that comes back to it. A
+// logged-in User gets the sections, in a bottom tab bar on a phone and in the header from `md`,
+// and the account menu. A User who must set a new password gets only the account menu, to log
+// out.
 export function AppLayout() {
   const { state } = useAuth();
   const authenticated = state.status === "authenticated";

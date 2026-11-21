@@ -93,22 +93,33 @@ test("a new User's Films tile has empty slots and a way to find a film, and stil
   await expect(libraryPage.tab("Watched")).toHaveAccessibleName("Watched 0");
 });
 
-test("the tiles sit two to a row, on a phone as from md", async ({ page, loggedInUi: ui }) => {
+test("the tiles sit two to a row on a phone, Albums wide under them, and three then two from lg", async ({
+  page,
+  loggedInUi: ui,
+}) => {
   const { savedPage } = ui;
   await page.setViewportSize({ width: 390, height: 844 });
   await savedPage.goto();
   const { tiles } = savedPage;
-  const [films, books, series] = [tiles.nth(0), tiles.nth(1), tiles.nth(2)];
+  const [films, books, series, games, albums] = [
+    tiles.nth(0),
+    tiles.nth(1),
+    tiles.nth(2),
+    tiles.nth(3),
+    tiles.nth(4),
+  ];
   await expect(savedPage.tile("Films").root).toContainText("Nothing saved yet.");
 
   expect(await topOf(books)).toBe(await topOf(films));
   expect(await topOf(series)).toBeGreaterThan(await topOf(films));
+  expect(await topOf(albums)).toBeGreaterThan(await topOf(games));
   const sideways = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(sideways).toBe(0);
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  expect(await topOf(books)).toBe(await topOf(films));
-  expect(await topOf(series)).toBeGreaterThan(await topOf(films));
+  expect(await topOf(series)).toBe(await topOf(films));
+  expect(await topOf(games)).toBeGreaterThan(await topOf(films));
+  expect(await topOf(albums)).toBe(await topOf(games));
 });

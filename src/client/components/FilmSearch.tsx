@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import type { HoldingList, MediaType, RemovedListItem } from "../../shared/api";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
+import { coverShape } from "../catalog/cover";
 import {
   type Found,
   foundKey,
@@ -437,7 +438,8 @@ function ResultsBlock({
 
 // "In your Saved": the User's Media Items that match, as covers in a sideways strip on a phone,
 // bleeding to the screen's edges, and in a grid from md. Each cover opens its film's page, where
-// the User acts on it, and remembers the place in the results for coming Back.
+// the User acts on it, and remembers the place in the results for coming Back. A square cover is
+// shorter, so an album's is wider in the strip, 120 px (`docs/mockups/albums/`).
 function UserMediaItemMatches({
   items,
   onOpened,
@@ -457,7 +459,10 @@ function UserMediaItemMatches({
               key={item.mediaItem.id}
               mediaItem={item.mediaItem}
               meta={<UserMediaItemStatusLine item={item} />}
-              className="w-26 shrink-0 md:w-auto"
+              className={cn(
+                "shrink-0 md:w-auto",
+                coverShape(item.mediaItem.mediaType) === "1:1" ? "w-30" : "w-26",
+              )}
               onOpened={onOpened}
             />
           ))}

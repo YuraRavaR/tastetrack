@@ -44,8 +44,8 @@ const tabPaths: Record<
 
 // Saved for one Media Type: a film's Watchlist and Watched tabs, a book's Reading list, Reading and
 // Read, a series' Watchlist and Watched, a game's Backlog, Playing and Played and an album's
-// Listening list and Listened, each a grid of covers, and a series' Watching, a list of rows. A film's tab and a series' have one name, so a
-// series' is named with its Media Type.
+// Listening list and Listened, each a grid of covers, and a series' Watching, a list of rows. A
+// film's tab and a series' have one name, so a series' is named with its Media Type.
 export class LibraryPage extends BasePage<[tab?: LibraryTab, mediaType?: "series"]> {
   path(tab: LibraryTab = "Watchlist", mediaType?: "series") {
     const { slug, mediaType: tabMediaType } = tabPaths[tab];

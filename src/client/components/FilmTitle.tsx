@@ -8,9 +8,9 @@ import { seriesFacts } from "../catalog/series-label";
 import { mediaWord } from "../i18n/media-words";
 
 // A Media Item's label, "Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)", with its Ukrainian
-// title as a secondary line when it has a different one. A game's or an album's has no year, which
-// leads its facts line. Without metadata it is a placeholder while the page is `loading` it, and says the
-// details are unavailable after.
+// title as a secondary line when it has a different one. A game's or an album's has no year,
+// which leads its facts line. Without metadata it is a placeholder while the page is `loading` it,
+// and says the details are unavailable after.
 export function FilmTitle({
   mediaItem,
   loading = false,

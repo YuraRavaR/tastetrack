@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
 import {
@@ -13,6 +12,7 @@ import {
 import type { Found } from "../catalog/found";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
+import { useImageFailure } from "./use-image-failure";
 
 type PosterSize = "dialog" | "thumbnail" | "search" | "large" | "grid" | "fan" | "collage";
 
@@ -152,9 +152,9 @@ const typesets: Record<CoverShape, Record<PosterSize, Typeset>> = {
 // film's is an icon: only the grid and large sizes have room for its caption too, the large one
 // (the film page's) only from `sm`, and `showCaption={false}` leaves it out, as under controls
 // laid over the poster. A book's, a game's or an album's is a cover set in type: its title at the
-// top and its first author, its developer or its artist credit at the foot, inside a thin frame. An
-// image that doesn't load counts as none, as an album's does where the Cover Art Archive has no
-// cover for it (ADR-0013).
+// top and its first author, its developer or its artist credit at the foot, inside a thin frame.
+// An album's image that doesn't load counts as none, since its cover is linked whether or not the
+// Cover Art Archive has one (ADR-0013).
 export function Poster({
   subject,
   size,
@@ -167,15 +167,14 @@ export function Poster({
   const cover = coverOf(subject, imageSizes[size]);
   const shape = coverShape(cover.mediaType);
   const sizeClass = sizeClasses[shape][size];
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  if (cover.url && cover.url !== failedUrl) {
-    const url = cover.url;
+  const [url, failed] = useImageFailure(cover.url);
+  if (url) {
     return (
       <img
         src={url}
         alt=""
         loading="lazy"
-        onError={() => setFailedUrl(url)}
+        onError={shape === "1:1" ? failed : undefined}
         className={cn("shrink-0 bg-muted object-cover", sizeClass)}
       />
     );

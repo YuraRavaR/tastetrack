@@ -1,9 +1,10 @@
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
 import { coverOf, coverShape } from "../catalog/cover";
 import { FilmFacts, FilmTitle } from "./FilmTitle";
 import { Poster } from "./Poster";
+import { useImageFailure } from "./use-image-failure";
 
 // What opens a Media Item's page: a film's or a series' backdrop, or a game's art, whole, at 16:9,
 // fading into the page, with the poster pulled up over its bottom edge and the title beside it. On
@@ -32,9 +33,7 @@ export function FilmBanner({
     mediaItem.mediaType === "book" || mediaItem.mediaType === "album"
       ? null
       : mediaItem.metadata?.backdropUrls;
-  const coverUrl = coverOf(mediaItem, "large").url;
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  const posterUrl = coverUrl === failedUrl ? null : coverUrl;
+  const [posterUrl, posterFailed] = useImageFailure(coverOf(mediaItem, "large").url);
   const pictureImage = backdrop ? (
     <>
       {/* The sm: breakpoint, where the picture leaves the phone's full bleed for the column. */}
@@ -45,7 +44,7 @@ export function FilmBanner({
     <img
       src={posterUrl}
       alt=""
-      onError={() => setFailedUrl(posterUrl)}
+      onError={square ? posterFailed : undefined}
       className={cn(
         "size-full object-cover sm:scale-125 sm:blur-[36px] sm:saturate-130",
         !square && "scale-130 blur-xl saturate-130",
@@ -60,7 +59,7 @@ export function FilmBanner({
         <picture
           className={cn(
             "-mx-4 overflow-hidden bg-muted sm:mx-0 sm:aspect-video",
-            coverIsPicture ? "aspect-square max-sm:cover-fade sm:backdrop-fade" : "aspect-video",
+            coverIsPicture ? "aspect-square cover-fade sm:backdrop-fade" : "aspect-video",
             !coverIsPicture && "backdrop-fade",
           )}
         >
@@ -77,7 +76,7 @@ export function FilmBanner({
         )}
       >
         {coverIsPicture ? (
-          <div className="shrink-0 max-sm:hidden">
+          <div className="hidden shrink-0 sm:block">
             <Poster subject={mediaItem} size="large" />
           </div>
         ) : (

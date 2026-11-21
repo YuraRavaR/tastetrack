@@ -86,7 +86,7 @@ export function MediaTypeTile({
             {mediaWord(mediaType, "tab")}
           </Link>
         </h2>
-        <TileCounts id={countsId} mediaType={mediaType} state={state} />
+        <TileCounts id={countsId} mediaType={mediaType} state={state} wide={wide} />
       </div>
       <Fan covers={covers} adding={empty} fan={fan} />
       {empty && (
@@ -108,14 +108,17 @@ export function MediaTypeTile({
   );
 }
 
+// A wide tile's counts stop at 170 px on a phone, clear of its fan (`docs/mockups/albums/`).
 function TileCounts({
   id,
   mediaType,
   state,
+  wide,
 }: {
   id: string;
   mediaType: MediaType;
   state: TileState;
+  wide: boolean;
 }) {
   let text: ReactNode = null;
   if (state.status === "failed") text = t("saved.unavailable");
@@ -130,6 +133,7 @@ function TileCounts({
       id={id}
       className={cn(
         "min-h-5 text-[13px] leading-[1.35] md:text-[0.9375rem] md:leading-normal",
+        wide && "max-w-42.5 md:max-w-none",
         state.status === "failed" ? "text-destructive" : "text-muted-foreground",
       )}
     >

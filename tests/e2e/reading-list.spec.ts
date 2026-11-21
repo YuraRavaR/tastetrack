@@ -259,7 +259,7 @@ test("an address with a film's tab opens the Reading list, and one with Read the
   await expect(page).toHaveURL(libraryPage.path("Read"));
 
   // A Media Type Saved doesn't have opens the films' Watchlist, whatever tab it names.
-  await ui.goto("/saved/albums/watched");
+  await ui.goto("/saved/songs/watched");
   await expect(page).toHaveURL(libraryPage.path("Watchlist"));
 });
 
