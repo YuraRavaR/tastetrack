@@ -105,10 +105,13 @@ export class SearchResults extends ScopedComponent {
     return this.root.getByRole("link", { name: label, exact: true });
   }
 
-  result(label: string) {
+  // A result by its label, and by more of its row's text when other works share the label, such
+  // as "Земля" with "Океан Ельзи · 2013" on the real MusicBrainz.
+  result(label: string, withText?: string) {
     // `has` looks inside each row, so its locator starts from the page, not from this list.
     const title = this.root.page().getByText(label, { exact: true });
-    return new SearchResultRow(this.rows.filter({ has: title }));
+    const rows = this.rows.filter({ has: title });
+    return new SearchResultRow(withText ? rows.filter({ hasText: withText }) : rows);
   }
 
   // A result with this text anywhere in it, for a film whose full label differs by source.
