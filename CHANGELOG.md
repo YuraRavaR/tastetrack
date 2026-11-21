@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/YuraRavaR/tastetrack/compare/v0.15.0...v0.16.0) (2026-11-21)
+
+
+### Features
+
+* **app:** install TasteTrack on a phone's home screen, with Back on a Media Item's page ([#260](https://github.com/YuraRavaR/tastetrack/issues/260)) ([a7e9f50](https://github.com/YuraRavaR/tastetrack/commit/a7e9f505c9d4d244e648c8d758db409a864a2a6b))
+* **share:** send a Share Link through the phone's share sheet ([#262](https://github.com/YuraRavaR/tastetrack/issues/262)) ([8d24975](https://github.com/YuraRavaR/tastetrack/commit/8d249753cb8b4c3877a9c39cee3079ca781e9f9f))
+
 ## [0.15.0](https://github.com/YuraRavaR/tastetrack/compare/v0.14.0...v0.15.0) (2026-11-20)
 
 
