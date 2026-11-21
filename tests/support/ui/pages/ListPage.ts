@@ -37,6 +37,8 @@ class ShareLinkDialog extends ScopedComponent {
   readonly linkField = this.root.getByRole("textbox", { name: "Share Link" });
   readonly copyButton = this.root.getByRole("button", { name: /^(Copy link|Copied)$/ });
   readonly sendLinkButton = this.root.getByRole("button", { name: "Send link" });
+  // Why sharing couldn't change, such as "Couldn't change sharing. Please try again."
+  readonly errorMessage = this.root.getByRole("alert");
   readonly newLinkButton = this.root.getByRole("button", { name: "New link" });
   readonly stopSharingButton = this.root.getByRole("button", { name: "Stop sharing" });
   readonly closeButton = this.root.getByRole("button", { name: "Close" });

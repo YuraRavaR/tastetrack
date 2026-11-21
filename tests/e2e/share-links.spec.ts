@@ -240,15 +240,15 @@ test.describe("on a phone", () => {
     await expect(alienFilm.links).toHaveCount(0);
   });
 
-  test("Send link opens the share sheet with the List's name and its Share Link, and closing it is no error", async ({
+  test("Send link opens the share sheet with the List's name and its Share Link; closing it is no error, and a failure selects the link", async ({
     page,
     ui,
     loggedInApi: api,
   }) => {
-    // The phone's share sheet, which the User closes without sharing. The page notes what it was
-    // given, and any rejection the app left unhandled.
+    // The phone's share sheet, which rejects with `error`: AbortError when the User closes it
+    // without sharing. The page notes what it was given, and any rejection the app left unhandled.
     await page.addInitScript(() => {
-      const shareSheet = { sent: [] as ShareData[], unhandled: [] as string[] };
+      const shareSheet: ShareSheet = { sent: [], unhandled: [], error: "AbortError" };
       Object.assign(window, { shareSheet });
       addEventListener("unhandledrejection", (event) =>
         shareSheet.unhandled.push(String(event.reason)),
@@ -257,22 +257,22 @@ test.describe("on a phone", () => {
         configurable: true,
         value: async (data: ShareData) => {
           shareSheet.sent.push(data);
-          throw new DOMException("Share canceled", "AbortError");
+          throw new DOMException("No share", shareSheet.error);
         },
       });
     });
     // Read a moment later, once an unhandled rejection would have been reported.
-    const shareSheet = () =>
+    const readShareSheet = () =>
       page.evaluate(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
-        return (window as unknown as { shareSheet: { sent: ShareData[]; unhandled: string[] } })
-          .shareSheet;
+        return (window as unknown as { shareSheet: ShareSheet }).shareSheet;
       });
     const { list } = await expectBody(
       api.lists.createList({ name: "Space horror", mediaType: "film" }),
       201,
     );
     const { shareLink } = await expectBody(api.lists.createShareLink(list.id), 201);
+    const sent = { title: "Space horror", url: shareLink.url };
 
     const { listPage } = ui;
     const shareLinkDialog = listPage.shareLinkDialog("Space horror");
@@ -281,14 +281,28 @@ test.describe("on a phone", () => {
     await expect(shareLinkDialog.copyButton).toBeVisible();
     await shareLinkDialog.sendLinkButton.click();
 
-    await expect
-      .poll(shareSheet)
-      .toEqual({ sent: [{ title: "Space horror", url: shareLink.url }], unhandled: [] });
+    await expect.poll(readShareSheet).toEqual({ sent: [sent], unhandled: [], error: "AbortError" });
     // Closing the sheet leaves the dialog as it was, with no message.
     await expect(shareLinkDialog.linkField).toHaveValue(shareLink.url);
-    await expect(shareLinkDialog.root.getByRole("alert")).toHaveCount(0);
+    await expect(shareLinkDialog.linkField).not.toBeFocused();
+    await expect(shareLinkDialog.errorMessage).toHaveCount(0);
+
+    // A sheet that fails for another reason leaves the link selected, to copy by hand.
+    await page.evaluate(() => {
+      (window as unknown as { shareSheet: ShareSheet }).shareSheet.error = "NotAllowedError";
+    });
+    await shareLinkDialog.sendLinkButton.click();
+    await expect(shareLinkDialog.linkField).toBeFocused();
+    await expect
+      .poll(readShareSheet)
+      .toEqual({ sent: [sent, sent], unhandled: [], error: "NotAllowedError" });
+    await expect(shareLinkDialog.errorMessage).toHaveCount(0);
   });
 });
+
+// What the stubbed share sheet was given, the rejections the app left unhandled, and the error
+// the sheet rejects with next.
+type ShareSheet = { sent: ShareData[]; unhandled: string[]; error: string };
 
 function heightOf(element: Locator) {
   return element.evaluate((node: HTMLElement) => node.offsetHeight);

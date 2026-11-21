@@ -52,9 +52,9 @@ type Action = keyof typeof actions;
 const buttonRowClasses = "grid grid-cols-2 gap-2.5 md:flex md:justify-end";
 const smallButtonClasses = "h-11 md:h-9";
 
-// The phone's share sheet, in iOS Safari, Android Chrome and the installed app; most desktop
-// browsers have none.
-function canShare() {
+// Whether the browser has a share sheet: iOS Safari, Android Chrome and the installed app do, as do
+// Safari and Chrome on some desktops; Firefox has none.
+function hasShareSheet() {
   return typeof navigator.share === "function";
 }
 
@@ -93,7 +93,7 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
   const [failed, setFailed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState<Action | null>(null);
-  const sharing = canShare();
+  const shareSheet = hasShareSheet();
   const ids = useId();
   const input = useRef<HTMLInputElement>(null);
   const shareButton = useRef<HTMLButtonElement>(null);
@@ -139,10 +139,11 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
       setCopied(true);
     } catch {
       // Without clipboard access, the link is selected for the User to copy themselves.
-      input.current?.select();
+      selectLink();
     }
   }
 
+  // Opens the share sheet with the List's name and its link.
   async function send(url: string) {
     try {
       await navigator.share({ title: list.name, url });
@@ -150,8 +151,14 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
       // Closing the sheet without sharing is the User's choice, not a failure.
       if (error instanceof DOMException && error.name === "AbortError") return;
       // Otherwise the link is selected for the User to copy, as without clipboard access.
-      input.current?.select();
+      selectLink();
     }
+  }
+
+  // Focused first, since iOS Safari selects nothing in a field without focus.
+  function selectLink() {
+    input.current?.focus();
+    input.current?.select();
   }
 
   const failure = failed && <FormError>{t("share.failed")}</FormError>;
@@ -201,8 +208,8 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
                 onFocus={(event) => event.currentTarget.select()}
                 className="h-11 md:h-10"
               />
-              <div className={cn("shrink-0", sharing && "grid grid-cols-2 gap-2.5 md:flex")}>
-                {sharing && (
+              <div className={cn("shrink-0", shareSheet && "grid grid-cols-2 gap-2.5 md:flex")}>
+                {shareSheet && (
                   <Button className={sheetMainButtonClasses} onClick={() => send(shareLink.url)}>
                     <Share aria-hidden />
                     {t("share.send")}
@@ -210,7 +217,7 @@ function ShareLinkSheet({ list, onChanged }: { list: SharedList; onChanged: () =
                 )}
                 <Button
                   ref={copyButton}
-                  variant={sharing ? "outline" : "default"}
+                  variant={shareSheet ? "outline" : "default"}
                   className={cn(sheetMainButtonClasses, "w-full md:w-auto")}
                   onClick={() => copy(shareLink.url)}
                 >
