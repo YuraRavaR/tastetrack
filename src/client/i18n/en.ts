@@ -549,6 +549,7 @@ export const en = {
   "share.linkLabel": "Share Link",
   "share.copy": "Copy link",
   "share.copied": "Copied",
+  "share.send": "Send link",
   "share.regenerate": "New link",
   "share.revoke": "Stop sharing",
   "share.failed": "Couldn't change sharing. Please try again.",
