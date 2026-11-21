@@ -63,12 +63,12 @@ for (const [device, viewport] of [
     await expect(searchPage.searchBox).toHaveAttribute("placeholder", "Album and artist");
     await expect(searchPage.musicBrainzHeading).toHaveText(/^From MusicBrainz\s*\d+$/);
     await expect(
-      searchPage.musicBrainzResults.resultWithText("Океан Ельзи · 2013").root,
+      searchPage.musicBrainzResults.result("Земля", "Океан Ельзи · 2013").root,
     ).toBeVisible();
     await page.reload();
     await expect(searchPage.currentChip("Albums")).toBeVisible();
     await expect(
-      searchPage.musicBrainzResults.resultWithText("Океан Ельзи · 2013").root,
+      searchPage.musicBrainzResults.result("Земля", "Океан Ельзи · 2013").root,
     ).toBeVisible();
 
     await listsPage.goto();
@@ -457,7 +457,7 @@ test("search for an album and add it to the Listening list", {
   await searchPage.goto();
   await searchPage.mediaTypeChip("Albums").click();
   await searchPage.search("Океан Ельзи Земля");
-  const result = searchPage.musicBrainzResults.resultWithText("Океан Ельзи · 2013");
+  const result = searchPage.musicBrainzResults.result("Земля", "Океан Ельзи · 2013");
 
   await result.wantToListenButton.click();
 
