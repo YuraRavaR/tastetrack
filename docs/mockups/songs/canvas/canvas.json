@@ -1,0 +1,237 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-22T12:00:00Z"
+  },
+  "title": "TasteTrack Songs",
+  "launch": {
+    "view": "canvas",
+    "page": "r1"
+  },
+  "pages": [
+    {
+      "id": "r1",
+      "name": "Round 1 · Song screens"
+    }
+  ],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 2660,
+      "h": 1600,
+      "page": "r1",
+      "title": "1 · Six chips · picked A"
+    },
+    "Search.dc.html": {
+      "x": 0,
+      "y": 2020,
+      "w": 2660,
+      "h": 3400,
+      "page": "r1",
+      "title": "2 · A song's Search row · picked A"
+    },
+    "SearchStates.dc.html": {
+      "x": 0,
+      "y": 5540,
+      "w": 2660,
+      "h": 2100,
+      "page": "r1",
+      "title": "3 · Search states, and songs you already keep · picked 1"
+    },
+    "Picker.dc.html": {
+      "x": 0,
+      "y": 8060,
+      "w": 2660,
+      "h": 1900,
+      "page": "r1",
+      "title": "4 · The Collection picker · picked A"
+    },
+    "PickerStates.dc.html": {
+      "x": 0,
+      "y": 10080,
+      "w": 2660,
+      "h": 1400,
+      "page": "r1",
+      "title": "5 · The picker, as picked A · none yet, and a new Collection inside it"
+    },
+    "Song.dc.html": {
+      "x": 0,
+      "y": 11900,
+      "w": 2660,
+      "h": 2700,
+      "page": "r1",
+      "title": "6 · A song's page · picked C on a phone, B on the web, rows"
+    },
+    "SongStates.dc.html": {
+      "x": 0,
+      "y": 14720,
+      "w": 2660,
+      "h": 1450,
+      "page": "r1",
+      "title": "7 · A song's page, as picked · no cover, in no Collection, added by hand"
+    },
+    "NoCover.dc.html": {
+      "x": 0,
+      "y": 16540,
+      "w": 2660,
+      "h": 1100,
+      "page": "r1",
+      "title": "8 · No cover · picked 1"
+    },
+    "Collection.dc.html": {
+      "x": 0,
+      "y": 17760,
+      "w": 2660,
+      "h": 2700,
+      "page": "r1",
+      "title": "9 · A Collection of songs · picked A"
+    },
+    "CollectionEmpty.dc.html": {
+      "x": 0,
+      "y": 20580,
+      "w": 2660,
+      "h": 1650,
+      "page": "r1",
+      "title": "10 · Collections of songs, and the empty states"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Search.dc.html",
+    "SearchStates.dc.html",
+    "Picker.dc.html",
+    "PickerStates.dc.html",
+    "Song.dc.html",
+    "SongStates.dc.html",
+    "NoCover.dc.html",
+    "Collection.dc.html",
+    "CollectionEmpty.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": -300,
+      "maxW": 2660,
+      "text": "Six Media Types and Search on Songs"
+    },
+    "t2": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": 7760,
+      "maxW": 2660,
+      "text": "The Collection picker"
+    },
+    "t3": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": 11600,
+      "maxW": 2660,
+      "text": "A song's page"
+    },
+    "t4": {
+      "kind": "title1",
+      "page": "r1",
+      "x": 0,
+      "y": 16240,
+      "maxW": 2660,
+      "text": "No cover, and a Collection of songs"
+    },
+    "n0": {
+      "page": "r1",
+      "x": 2760,
+      "y": 0,
+      "w": 520,
+      "size": "m",
+      "fill": "teal",
+      "text": "How to read this: every board has dark on the left and light on the right, phones first and the web under them.\n\nEight picks: 1 chips, 2 row, 3 songs you keep, 4 picker, 6 page top, 6 its Collections, 8 no cover, 9 Collection.\n\nData: MusicBrainz and the Cover Art Archive, 2026-11-22, run through ADR-0013's rules. Collections, Notes and the hand-added song are demo content.\n\nSaved is unchanged: five tiles, no Songs.\n\nAll eight picked on 2026-11-22: 1 A, 2 A, 3 1, 4 A, 6 C on a phone and B on the web, with rows, 8 1, 9 A."
+    },
+    "n1": {
+      "page": "r1",
+      "x": 2760,
+      "y": 760,
+      "w": 520,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked A, 2026-11-22: today’s control with six segments, 12 px labels below 360 px.\n\nRound 1 offered:\nPick 1: six Media Types.\n\nA (recommended): today's control with six segments. Measured: at 390 px a segment is 56.7 px and 'Albums', the widest label, 47.8 px at 13 px. Below 360 px the labels drop to 12 px.\nB: two rows of three on a phone, one row from md. 60 px taller.\nC: a scrolling row of pills. Types hide off the edge."
+    },
+    "n2": {
+      "page": "r1",
+      "x": 2760,
+      "y": 2020,
+      "w": 520,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked A, 2026-11-22: one muted line (artist · year · album), the disambiguation under it, the labelled button below, at the right on the web.\n\nRound 1 offered:\nPick 2: a song's row.\n\nA: as an album's: one muted line, the disambiguation under it, the labelled button below.\nB (recommended): the artist on its own line, then year and album, the disambiguation quietly after the title, the one button at the right. Covers by other artists share a title, so the artist is what tells rows apart.\nC: the densest: a 56 px cover and one line that takes the disambiguation too. Long credits get cut."
+    },
+    "n3": {
+      "page": "r1",
+      "x": 2760,
+      "y": 5540,
+      "w": 520,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked 1, 2026-11-22: today’s strip, headed \"In your Collections\".\n\nRound 1 offered:\nPick 3: a song the User already keeps. #279 doesn't say, and today's code would head it 'In your Saved', where songs never are.\n\n1 (recommended): today's strip, headed 'In your Collections'.\n2: no strip. The row stays in the results, with its Collections under it."
+    },
+    "n4": {
+      "page": "r1",
+      "x": 2760,
+      "y": 8060,
+      "w": 520,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked A, 2026-11-22: today’s dialog, with checkboxes and New collection as the last row. Board 5 now draws its states this way.\n\nRound 1 offered:\nPick 4: the picker. All three show only Collections of songs, the last used first.\n\nA: today's dialog, with checkboxes and New collection as the last row.\nB (recommended): a sheet of thumb-sized rows with a cover and a count, New collection first. A tap adds or takes off, Done closes.\nC: the last used is one big button that adds and closes; the rest are under it. Fastest for one, awkward for two."
+    },
+    "n5": {
+      "page": "r1",
+      "x": 2760,
+      "y": 11900,
+      "w": 520,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked 2026-11-22:\non a phone C, the cover the full width;\non the web (from sm) B, the cover centred over its blurred copy;\nits Collections as rows with a cover, at both widths (B’s web drawing shows badges).\n\nBoard 7 now draws the web this way.\n\nRound 1 offered:\nPick 6, the top of the page on a phone:\nA: #279 read literally: the square cover at the left over its blurred copy.\nB: the cover centred over its blurred copy.\nC (recommended): the album page as it shipped: the cover the full width, no blur. From sm it is A, the blurred banner. A song and an album then look alike.\n\nPick 6, its Collections, separately from the top:\nrows with a cover (drawn in A and C) or badges (drawn in B). Rows recommended.\n\nNo History, Thoughts or About."
+    },
+    "n6": {
+      "page": "r1",
+      "x": 2760,
+      "y": 16540,
+      "w": 520,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked 1, 2026-11-22: a quiet note on muted. Boards 2, 7, 9 and 10 now use it.\n\nRound 1 offered:\nPick 8: no cover. All three have the note #279 asks for.\n\n1: quiet: a note on muted, as a film's placeholder.\n2 (recommended): a note on gold-soft in the thin frame of a typeset album, so it reads as a cover.\n3: typeset as an album, with a small note. Tiny text at 56 and 72 px."
+    },
+    "n7": {
+      "page": "r1",
+      "x": 2760,
+      "y": 17760,
+      "w": 520,
+      "size": "m",
+      "fill": "green",
+      "text": "Picked A, 2026-11-22: today’s grid, with the artist under each title.\n\nRound 1 offered:\nPick 9: a Collection of songs.\n\nA: today's grid, with the artist under each title, as albums.\nB (recommended): numbered rows: place, cover, title, artist, Note, menu. Song titles and credits are long and the order matters. It costs a second layout, for the Collection and its Share Link page."
+    },
+    "n8": {
+      "page": "r1",
+      "x": 2760,
+      "y": 2900,
+      "w": 520,
+      "size": "m",
+      "fill": "red",
+      "text": "Found in the live data, not a pick (for #282):\n\n'karma police radiohead' leaves 10 rows, 8 of them one-release demo and bootleg-like takes such as '{MD122}', '(9.1)' and '(Mansfield)'. Their disambiguation is empty, so nothing hides them.\n\n'time of my life bill medley jennifer warnes' puts a 2008 recording on 2 releases first and the 1987 one on 218 third: the query lacks 'I’ve Had', so it doesn't name that title. That row also says 'from Bevergem: Soundtrack', as Soundtrack counts as a studio Album."
+    },
+    "n9": {
+      "page": "r1",
+      "x": 2760,
+      "y": 8860,
+      "w": 520,
+      "size": "m",
+      "fill": "red",
+      "text": "What the picker costs in #283:\n\n'The last used first' needs the Worker: Lists come oldest first today. 'Used' can only mean 'last added to', as nothing else is stored.\n\nThe cover rows on the song's page need each Collection's cover and count: a Worker change or a second request.\n\nA Collection's name is unique across all Media Types, so a song 'For the road' clashes with an albums one the picker doesn't show. Board 5 draws an error that says which type has it."
+    }
+  },
+  "designSystems": []
+}

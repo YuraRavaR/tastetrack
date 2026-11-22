@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A song without a cover</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;gap:60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;height:26px}
+.scr{width:390px;background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.lab{font-size:12px;font-weight:600;color:var(--mf);margin-top:6px}
+.ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.row{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.rx{min-width:0;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
+.rx b{font-size:16px;font-weight:600}
+.m{color:var(--mf)}
+.p{position:relative;flex:none;overflow:hidden;display:flex;border:1px solid var(--bd)}
+.p b,.p i{display:none}
+.s72{width:72px;height:72px;border-radius:5px}.s72 svg{width:26px;height:26px}
+.s56{width:56px;height:56px;border-radius:5px}.s56 svg{width:22px;height:22px}
+.s136{width:136px;height:136px;border-radius:10px}.s136 svg{width:48px;height:48px}
+.fill{width:100%;aspect-ratio:1;border-radius:10px}.fill svg{width:40px;height:40px}
+.p1{background:var(--muted);color:var(--mf);align-items:center;justify-content:center}
+.p2{background:var(--soft);color:var(--strong);align-items:center;justify-content:center}
+.p2::after,.p3::after{content:"";position:absolute;inset:5px;border:1px solid color-mix(in oklch,var(--strong) 45%,transparent);border-radius:3px}
+.p3{background:var(--soft);flex-direction:column;justify-content:space-between;padding:12px 10px 10px;line-height:1.1;text-align:left}
+.p3 svg{position:absolute;right:9px;bottom:9px;width:22px;height:22px;color:var(--strong)}
+.p3 b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:13px}
+.p3 i{display:block;font-style:normal;font-size:10px;color:var(--mf);padding-right:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p3.s72{padding:8px 7px 6px}.p3.s72 b{font-size:9px}.p3.s72 i{display:none}.p3.s72 svg{width:14px;height:14px;right:7px;bottom:7px}
+.p3.s56{padding:6px}.p3.s56 b{font-size:8px;-webkit-line-clamp:2}.p3.s56 i{display:none}.p3.s56 svg{width:12px;height:12px;right:6px;bottom:6px}
+.p3.s136 b{font-size:16px}
+.page{display:flex;gap:14px;align-items:flex-end}
+.page h3{margin:0;font-size:21px;line-height:1.15}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cell{min-width:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.cell>img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
+.cell>span:not(.p){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<div>
+<div class="cap">{{v.cap}}</div>
+<div class="scr">
+<span class="lab">A Search row · phone, 72 px</span>
+<div class="row">
+<span class="{{v.s72}}" role="img" aria-label="No cover"><b>{{title}}</b><i>{{artist}}</i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{note}}"></path></svg></span>
+<span class="rx"><b>{{title}}</b><span>{{artist}}</span><span class="m">2015</span></span>
+</div>
+<span class="lab">A Search row · web, 56 px</span>
+<div class="row">
+<span class="{{v.s56}}" role="img" aria-label="No cover"><b>{{title}}</b><i>{{artist}}</i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{note}}"></path></svg></span>
+<span class="rx"><b>{{title}}</b><span>{{artist}}</span><span class="m">2015</span></span>
+</div>
+<span class="lab">The song's page · 136 px</span>
+<div class="page">
+<span class="{{v.s136}}" role="img" aria-label="No cover"><b>{{title}}</b><i>{{artist}}</i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{note}}"></path></svg></span>
+<span class="rx"><h3>{{title}}</h3><span class="m">2015 · {{artist}}</span></span>
+</div>
+<span class="lab">In a Collection</span>
+<div class="grid">
+<span class="cell"><img src="/_blob/f633dfd47d5e3e6c36998a1b14a0cea2" alt=""><span>Uptown Funk</span></span>
+<span class="cell"><span class="{{v.fill}}" role="img" aria-label="No cover"><b>{{title}}</b><i>{{artist}}</i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{note}}"></path></svg></span><span>{{title}}</span></span>
+<span class="cell"><img src="/_blob/48f3e9e74470c260cba362257579d4f9" alt=""><span>Karma Police</span></span>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+const v = (cap, p) => ({ cap, s72: 'p s72 ' + p, s56: 'p s56 ' + p, s136: 'p s136 ' + p, fill: 'p fill ' + p });
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+title: 'Uptown Funk (The Noisy Freaks ft. Andrew Hunt Remix)',
+artist: 'Mark Ronson feat. Bruno Mars',
+note: 'M9 18V5l12-2v13M6 15a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM18 13a3 3 0 1 0 0 6a3 3 0 1 0 0-6z',
+variants: [v('1 · a quiet note', 'p1'), v('2 · a note in a gold frame', 'p2'), v('3 · typeset, with a small note', 'p3')]
+};
+}
+}
+</script>
+</body>
+</html>

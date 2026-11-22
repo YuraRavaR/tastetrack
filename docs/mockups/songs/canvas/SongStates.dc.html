@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A song's page, its states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;height:26px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;overflow:hidden;padding-bottom:24px}
+.phone{width:390px}.web{width:960px}
+.back{height:44px;padding:0 12px;display:flex;align-items:center;gap:4px;color:var(--mf);font-size:14px;text-decoration:none}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pic{width:100%;aspect-ratio:1;object-fit:cover;display:block;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
+.lead{position:relative;display:flex;align-items:flex-end;gap:14px;padding:0 16px}
+.over{margin-top:-36px}
+.none{position:relative;width:136px;height:136px;flex:none;border:1px solid var(--bd);border-radius:10px;background:var(--muted);color:var(--mf);display:flex;align-items:center;justify-content:center}
+.none svg{width:48px;height:48px}
+.facts{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.facts h1{margin:0;font-size:21px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.over h1{font-size:26px}
+.line{font-size:14px;line-height:1.35;color:var(--mf)}
+.quiet{font-style:italic;font-size:13px}
+.src{min-height:44px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--strong);text-decoration:none}
+.src svg{width:15px;height:15px}
+.web .lead{padding:16px 24px 0;gap:14px;flex-direction:column;align-items:center;text-align:center}
+.web .facts{align-items:center}
+.web .none{width:176px;height:176px;border-radius:14px}
+.web h1{font-size:34px;max-width:720px}
+.web .line{font-size:16px}
+.body{padding:18px 16px 0;display:flex;flex-direction:column;gap:20px}
+.web .body{padding:20px 24px 0}
+.web .sec{width:100%;max-width:560px;align-self:center;text-align:center}
+.add{height:48px;width:100%;border:0;border-radius:12px;background:var(--pri);color:var(--prif);font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.web .add{width:auto;height:40px;align-self:center;padding:0 16px;font-size:14px}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec h2{margin:0;font-size:18px;font-weight:600}
+.dash{margin:0;border:1px dashed var(--mf);border-radius:14px;padding:18px 16px;text-align:center;font-size:14px;color:var(--mf);line-height:1.4}
+.manual{display:flex;flex-direction:column;gap:12px}
+.manual p{margin:0;font-size:14px;color:var(--mf);line-height:1.4}
+.btns{display:flex;gap:8px}
+.btn{height:44px;padding:0 14px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:inherit;font:inherit;font-size:14px;font-weight:500}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="4">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Back</a>
+<sc-if value="{{s.src}}" hint-placeholder-val="{{false}}"><img class="pic" src="{{s.src}}" alt=""></sc-if>
+<div class="{{s.lead}}">
+<sc-if value="{{s.none}}" hint-placeholder-val="{{true}}"><span class="none" role="img" aria-label="No cover"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13M6 15a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM18 13a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"></path></svg></span></sc-if>
+<div class="facts">
+<h1>{{s.title}}</h1>
+<span class="line">{{s.facts}}</span>
+<sc-if value="{{s.comment}}" hint-placeholder-val="{{false}}"><span class="line quiet">{{s.comment}}</span></sc-if>
+<sc-if value="{{s.url}}" hint-placeholder-val="{{true}}"><a class="src" href="{{s.url}}">On MusicBrainz<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a></sc-if>
+</div>
+</div>
+<div class="body">
+<button class="add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+<section class="sec"><h2>In your Collections</h2><p class="dash">Not in any of your Collections yet.</p></section>
+<sc-if value="{{s.manual}}" hint-placeholder-val="{{false}}">
+<div class="manual"><p>You added this song manually. Only you can see it.</p><div class="btns"><button class="btn">Edit song</button><button class="btn">Delete song</button></div></div>
+</sc-if>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1450}}'>
+class Component extends DCLogic {
+renderVals() {
+const remix = { title: 'Uptown Funk (The Noisy Freaks ft. Andrew Hunt Remix)', facts: '2015 · Mark Ronson feat. Bruno Mars', none: true, lead: 'lead', url: 'https://musicbrainz.org/recording/5f931b0d-c228-4b7f-aa2d-9267844ca5aa' };
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+screens: [
+{ ...remix, cap: 'No cover, a long title, two artists', box: 'scr phone' },
+{ cap: 'A disambiguation, no album', box: 'scr phone', src: '/_blob/bf736193e21fdbff11cacee23ea435f2', lead: 'lead over', title: 'Stefania', facts: '2022 · Kalush Orchestra', comment: 'Ukraine, Eurovision 2022 entry', url: 'https://musicbrainz.org/recording/b3a54e3b-dadd-41f7-8efe-3f5c07e3259c' },
+{ cap: 'Added by hand, no year and no link', box: 'scr phone', none: true, lead: 'lead', title: 'Пісня з гаража', facts: 'Гурт сусідів', manual: true },
+{ ...remix, cap: 'No cover · web · centred, as picked', box: 'scr web' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

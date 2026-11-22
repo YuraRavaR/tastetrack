@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Collection picker</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);--over:oklch(0 0 0 / 60%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75);--over:oklch(0.2 0.01 50 / 50%)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:36px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;height:26px}
+.scr{position:relative;overflow:hidden;border:1px solid var(--bd);border-radius:20px;background:var(--bg)}
+.phone{width:390px;height:690px}
+.web{width:560px;height:500px}
+.dim{position:absolute;inset:0;background:var(--over)}
+.dlg{position:absolute;background:var(--bg);border:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
+.phone .dlg{left:0;right:0;bottom:0;border-radius:28px 28px 0 0;padding-bottom:22px}
+.phone.va .dlg{left:16px;right:16px;bottom:auto;top:128px;border-radius:14px;padding-bottom:0}
+.web .dlg{width:480px;left:40px;top:20px;border-radius:14px}
+.hd{display:flex;gap:12px;align-items:flex-start;padding:18px 10px 8px 20px}
+.hd div{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:4px}
+.hd h2{margin:0;font-size:20px;line-height:1.2;font-weight:700}
+.hd p{margin:0;font-size:14px;color:var(--mf);line-height:1.35}
+.x{width:44px;height:44px;border:0;border-radius:999px;background:none;color:var(--mf);display:flex;align-items:center;justify-content:center}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.bd{padding:8px 20px 14px;display:flex;flex-direction:column}
+.pick{min-height:48px;width:100%;padding:4px 0;border:0;background:none;color:inherit;font:inherit;font-size:15px;text-align:left;display:flex;align-items:center;gap:12px}
+.ck{width:20px;height:20px;flex:none;border:1px solid var(--mf);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.ck svg{width:14px;height:14px}
+.ck.on{background:var(--pri);border-color:var(--pri);color:var(--prif)}
+.ck.round{width:26px;height:26px;border-radius:999px}
+.off svg{display:none}
+.plus{color:var(--strong);font-weight:600}
+.th{width:48px;height:48px;flex:none;border-radius:7px;object-fit:cover}
+.th.add{border:1px dashed var(--strong);display:flex;align-items:center;justify-content:center}
+.nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-weight:600}
+.nm small{font-size:13px;font-weight:400;color:var(--mf)}
+.big{height:64px;width:100%;border:0;border-radius:14px;background:var(--pri);color:var(--prif);font:inherit;text-align:left;padding:0 10px;display:flex;align-items:center;gap:12px;font-size:16px;margin-bottom:10px}
+.big small{color:inherit}
+.ft{border-top:1px solid var(--bd);padding:12px 20px;display:flex;justify-content:flex-end}
+.done{height:50px;width:100%;border:0;border-radius:12px;background:var(--pri);color:var(--prif);font:inherit;font-size:16px;font-weight:600}
+.web .done{height:40px;width:auto;padding:0 18px;font-size:14px}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="6">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<div class="dim"></div>
+<section class="dlg" aria-label="Collections for Обійми">
+<header class="hd">
+<div><h2>{{s.title}}</h2><p>{{s.sub}}</p></div>
+<button class="x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</header>
+<div class="bd">
+<sc-if value="{{s.a}}" hint-placeholder-val="{{false}}">
+<sc-for list="{{lists}}" as="l" hint-placeholder-count="4"><button class="pick" role="checkbox" aria-checked="{{l.on}}"><span class="{{l.square}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>{{l.name}}</button></sc-for>
+<button class="pick plus"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>New collection</button>
+</sc-if>
+<sc-if value="{{s.b}}" hint-placeholder-val="{{true}}">
+<button class="pick plus"><span class="th add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></span>New collection</button>
+<sc-for list="{{lists}}" as="l" hint-placeholder-count="4"><button class="pick" role="checkbox" aria-checked="{{l.on}}"><img class="th" src="{{l.src}}" alt=""><span class="nm">{{l.name}}<small>{{l.count}}</small></span><span class="{{l.round}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></sc-for>
+</sc-if>
+<sc-if value="{{s.c}}" hint-placeholder-val="{{false}}">
+<button class="big"><img class="th" src="{{last.src}}" alt=""><span class="nm">Add to {{last.name}}<small>The one you used last</small></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+<sc-for list="{{others}}" as="l" hint-placeholder-count="3"><button class="pick" role="checkbox" aria-checked="{{l.on}}"><span class="nm">{{l.name}}<small>{{l.count}}</small></span><span class="{{l.round}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></sc-for>
+<button class="pick plus"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>New collection</button>
+</sc-if>
+</div>
+<sc-if value="{{s.footer}}" hint-placeholder-val="{{true}}"><footer class="ft"><button class="done">Done</button></footer></sc-if>
+</section>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1900}}'>
+class Component extends DCLogic {
+renderVals() {
+const list = (name, count, src, on) => ({ name, count, src, on: !!on, square: on ? 'ck on' : 'ck off', round: on ? 'ck round on' : 'ck round off' });
+const lists = [
+list('For the road', '8 songs', '/_blob/06ca7ed40865217f26999bbfe64e6747'),
+list('Favourite songs', '28 songs', '/_blob/c98f1491c4ad4c8b74293faec19f3c6e', true),
+list('Songs to show a friend', '7 songs', '/_blob/c23491849858efb70d9ec9517672f812'),
+list('Ukraine at Eurovision', '2 songs', '/_blob/bf736193e21fdbff11cacee23ea435f2')
+];
+const title = 'Collections for Обійми (2013)';
+const sub = 'Tick a Collection to add the song, untick it to take the song off.';
+const variants = [
+{ name: 'A · today’s dialog, New collection last', cls: 'va', a: true, footer: true, title, sub },
+{ name: 'B · a sheet of rows, New collection first', cls: 'vb', b: true, footer: true, title: 'Add to collection', sub: 'Обійми · Океан Ельзи' },
+{ name: 'C · the last used in one tap', cls: 'vc', c: true, title: 'Add to collection', sub: 'Обійми · Океан Ельзи' }
+];
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+lists,
+last: lists[0],
+others: lists.slice(1),
+screens: [
+...variants.map((v) => ({ ...v, cap: v.name, box: 'scr phone ' + v.cls })),
+...variants.map((v) => ({ ...v, cap: v.name + ' · web', box: 'scr web ' + v.cls }))
+]
+};
+}
+}
+</script>
+</body>
+</html>
