@@ -130,11 +130,13 @@ The catalogue's case is kept: "Add to collection" and "New collection", where #2
 
 ## For the tickets
 
-For #283, found in the code on 2026-11-22:
+Found in the code on 2026-11-22. For #282, the Worker's part:
 
 1. **The last used first** needs the Worker: a User's Lists come oldest first, and the only use stored is when a List Item was added, so "used" can only mean "last added to".
 2. **The page's rows** need each Collection's first cover. The Media Item's Lists carry the count but no covers: a Worker change or a second request.
 3. **The taken name's error** needs the Media Type of the List that has the name; the error carries only its code today.
+For #283:
+
 4. **The Planned bookmark** in a Search row and on a Media Item's page doesn't check `can(mediaType, "plan")`, so a song would show it unless that is added.
 
 ## Open questions
