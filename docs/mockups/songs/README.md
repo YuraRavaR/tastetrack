@@ -23,7 +23,7 @@
 - The picker: **A** today's dialog (the pick); **B** a sheet of rows with covers; **C** the last used in one tap.
 - A song's page: **A** the blurred banner, cover at the left; **B** the cover centred (the pick on the web); **C** the cover full width (the pick on a phone). Its Collections: **rows** (the pick) or badges. The canvas's drawing of B has badges; the pick is B with rows.
 - No cover: **1** a quiet note (the pick); **2** a note in a gold frame; **3** typeset with a small note.
-- A Collection: **A** today's grid (the pick); **B** a playlist's rows.
+- A Collection: **A** today's grid (the pick); **B** numbered rows.
 
 The songs, artists, years, albums and disambiguations are real MusicBrainz data from 2026-11-22, run through ADR-0013's rules, with the Cover Art Archive's covers. Collections, Notes and the song added by hand ("Пісня з гаража") are demo content.
 
@@ -34,17 +34,17 @@ What each pick brings:
 - **Chips A** is today's control. "Albums", the widest label, is 47.8 px at 13 px in a 56.7 px segment on a 390 px phone.
 - **Row A** reads as an album's row, with room for the one button's label, since a song has no other button.
 - **The strip** keeps Search's order for every Media Type: the User's own first. Songs are never in Saved, so its heading names Collections.
-- **Picker A** is the dialog every Media Type already uses, with one row added.
+- **Picker A** is the dialog every Media Type already uses, so nothing new to learn.
 - **Page C on a phone** is the album page as shipped. **B on the web** centres the cover, the facts and the one action, as a song's page has little else. The rows show which Collection is which and how big it is.
-- **No cover 1** is the quiet placeholder films have, with a note as its icon.
+- **No cover 1** is quiet, on `bg-muted` as a film's placeholder is, and the note says it is a song.
 - **The grid** needs no second layout, here or on a Share Link's page.
 
 ## Files
 
 | File | Shows |
 | --- | --- |
-| `songs-search.html` | Search on Songs. No hash: "обійми", two kept songs and five of 45 results. `#versions` "Шум Go_A", with a disambiguation; `#long` long titles, two artists and rows without a cover; `#empty` nothing typed; `#nomatch` "Стефанія", nothing found; `#busy` MusicBrainz answered 503 twice. |
-| `songs-picker.html` | The picker over Search. No hash: four Collections, one ticked; `#none` no Collection of songs yet; `#new` New collection inside it; `#made` the new one first and ticked; `#taken` the name is an albums Collection's. |
+| `songs-search.html` | Search on Songs. No hash: "обійми", two kept songs and five of 45 results. `#versions` "Шум Go_A", with a disambiguation; `#long` long titles, two artists, rows without a cover and a kept song without one; `#empty` nothing typed; `#nomatch` "Стефанія", nothing found; `#busy` MusicBrainz answered 503 twice. |
+| `songs-picker.html` | The picker over Search. No hash: four Collections, none ticked yet; `#none` no Collection of songs yet; `#new` New collection inside it; `#made` the new one first and ticked; `#taken` the name is an albums Collection's. |
 | `songs-page.html` | A song's page. No hash: Обійми, in two Collections; `#disambiguation` Stefania; `#not-kept` in no Collection; `#no-cover` a long title without a cover; `#manual` a song added by hand. |
 | `songs-collection.html` | A Collection of songs, with Notes, long credits and a song without a cover; `#empty` an empty one. |
 | `songs-collections.html` | Collections on Songs; `#empty` none yet. |
@@ -63,7 +63,7 @@ The static pages load covers from `coverartarchive.org` by release-group MBID, a
 ## Search on Songs
 
 - **Field:** "Song and artist". Empty (`#empty`): "Type a song and its artist to search your Collections and MusicBrainz."
-- **In your Collections** first: the strip of 120 px square covers, each with the title, the artist and the oldest Collection holding it. A song shown here isn't repeated below.
+- **In your Collections** first: the strip of square covers (120 px on a phone, from `md` a grid of at least 120 px), each with the title, the artist and the oldest Collection holding it. A song shown here isn't repeated below.
 - **From MusicBrainz**, with the count, one card of rows. Each row:
   - the square cover (72 px, 56 px from `md`);
   - the title, wrapped, never cut;
@@ -78,6 +78,7 @@ The static pages load covers from `coverartarchive.org` by release-group MBID, a
 ## The Collection picker
 
 - **Today's dialog**, centred at every width (at most 512 px, 24 px padding, a 14 px radius): "Collections for Шум (2021)", "Tick a Collection to add the song, untick it to take the song off.", the checkboxes, then Done.
+- **What changes in it:** the order, the rows' height, the checkbox's size (16 px today), New collection and the none-yet form, where today a link leads to Collections. They are drawn for songs; #279 asks nothing of the other Media Types' picker.
 - **Only Collections of songs, the last used first.** The order is taken as the dialog opens and doesn't move as the User ticks. Each row is at least 48 px tall and all of it toggles; the checkbox is 20 px.
 - **New collection** is the last row, under the scrolling list, so it shows however many Collections there are. It turns the dialog into "New collection" (`#new`): a back arrow, the Name field and **Create and add**. That makes the Collection, adds the song and returns to the list, with the new one first and ticked (`#made`).
 - **None yet** (`#none`): the form at once, under "You have no Collections of songs yet. Make one, and this song goes into it."
@@ -96,6 +97,7 @@ The static pages load covers from `coverartarchive.org` by release-group MBID, a
 - **In your Collections:** one card of rows, each at least 68 px: the Collection's first cover (48 px), its name, its count and a chevron; a row opens the Collection. None (`#not-kept`): "Not in any of your Collections yet." in a dashed box.
 - **No cover** (`#no-cover`): no picture. On a phone the 136 px placeholder at the left and the title (21 px) beside it; from `sm` the 176 px placeholder centred.
 - **Added by hand** (`#manual`): no link, the year only when given, and "You added this song manually. Only you can see it." with Edit song and Delete song under the Collections.
+- **No section is marked** in the header or the tab bar, as on every Media Item's page.
 - **No History, Thoughts, About, stat tiles, Planned or Listened.**
 
 ## A song without a cover

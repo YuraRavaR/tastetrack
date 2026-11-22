@@ -44,13 +44,13 @@ a{color:inherit}a:hover{color:inherit}
 .sv span,.in{font-size:12px;color:var(--mf);display:flex;align-items:center;gap:5px}
 .sv svg,.in svg{width:14px;height:14px}
 .card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
-.row{display:flex;gap:12px;padding:12px;align-items:center;border-bottom:1px solid var(--bd)}
+.row{display:flex;gap:12px;padding:12px;align-items:flex-start;border-bottom:1px solid var(--bd)}
 .row:last-child{border-bottom:0}
 .row img{width:72px;height:72px;border-radius:5px;object-fit:cover;flex:none}
 .rx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
 .rx b{font-size:16px;font-weight:600}
 .m{color:var(--mf)}
-.ib{width:44px;height:44px;flex:none;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;display:flex;align-items:center;justify-content:center}
+.lb{height:44px;align-self:flex-start;margin-top:6px;padding:0 12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
 .credit{margin:18px -16px 0;border-top:1px solid var(--bd);padding:14px 16px;font-size:12px;color:var(--mf)}
 .credit a{color:var(--fg);text-decoration:underline}
 </style>
@@ -89,10 +89,10 @@ a{color:inherit}a:hover{color:inherit}
 <sc-for list="{{s.rows}}" as="r" hint-placeholder-count="2">
 <li class="row">
 <img src="{{r.src}}" alt="">
-<div class="rx"><b>{{r.title}}</b><span>{{r.artist}}</span><span class="m">{{r.line}}</span>
+<div class="rx"><b>{{r.title}}</b><span class="m">{{r.artist}} · {{r.line}}</span>
 <sc-if value="{{r.held}}" hint-placeholder-val="{{false}}"><span class="in"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"></path></svg>{{r.held}}</span></sc-if>
+<button class="lb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
 </div>
-<button class="ib" aria-label="Add to collection"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg></button>
 </li>
 </sc-for>
 </ul>
@@ -119,11 +119,11 @@ const types = [
 ['Songs', note]
 ];
 const okean = { src: '/_blob/c98f1491c4ad4c8b74293faec19f3c6e', title: 'Обійми', artist: 'Океан Ельзи', line: '2013 · from Земля', held: 'Favourite songs' };
-const hardkiss = { src: '/_blob/ed86b6099e4ad4fcef8e685b67499067', title: 'Обійми', artist: 'The Hardkiss', line: '2021 · from Жива і не залізна', held: 'For the road' };
+const hardkiss = { src: '/_blob/ed86b6099e4ad4fcef8e685b67499067', title: 'Обійми', artist: 'The Hardkiss', line: '2021 · from Жива і не залізна', held: 'Songs to show a friend' };
 const nora = { src: '/_blob/e2f2bdb6ca146b24f15000e4abe0c2fd', title: 'Обійми', artist: 'Nora Plan', line: '2024' };
 const desant = { src: '/_blob/7d1ff45da70bb358e7ebdacfd3c63b6b', title: 'Обійми', artist: 'Саша Чемеров, Міша Правильний & Культурний Десант', line: '2023' };
 const none = { q: 'Стефанія', msg: 'No songs found for “Стефанія”.', icon: note, hint: 'Try adding the artist: MusicBrainz finds a song best by its title and artist together.', act: 'Add manually', actCls: 'act out' };
-const busy = { q: 'karma police radiohead', msg: 'MusicBrainz is busy, try again in a moment.', icon: 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM12 6v6l4 2', hint: 'Nothing in your Collections matches “karma police radiohead”.', act: 'Try again', actCls: 'act' };
+const busy = { q: 'time of my life bill medley', msg: 'MusicBrainz is busy, try again in a moment.', icon: 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM12 6v6l4 2', hint: 'Nothing in your Collections matches “time of my life bill medley”.', act: 'Try again', actCls: 'act' };
 return {
 themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
 chips: types.map(([name, d]) => ({ name, d, on: name === 'Songs', cls: name === 'Songs' ? 'chip on' : 'chip' })),
