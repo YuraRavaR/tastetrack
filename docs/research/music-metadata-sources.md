@@ -190,14 +190,14 @@ MusicBrainz answers a release-group search with `access-control-allow-origin: *`
 | **The same, limit 50 (chosen)** | **15** | **7** |
 | The same, limit 100 | 15 | 7 |
 
-In the pilots, free text didn't have "Обійми" by Океан Ельзи in its first 6 rows or Queen's "Bohemian Rhapsody" in its first 100, and the hiding without boosts didn't have Queen's in 100 either. A boost by release countries found Queen too, but its answers reached 5.8 MB.
+In the pilots, free text put "Обійми" by Океан Ельзи 8th for a query that names its artist and didn't have Queen's "Bohemian Rhapsody" in its first 100, and the hiding without boosts didn't have Queen's in 100 either. A boost by release countries found Queen too, but its answers reached 5.8 MB.
 
 **Results of the chosen form.** "Match" and "left by the query" are MusicBrainz's totals before and after the query's hiding. "Rows" is the 50 or fewer returned and what collapsing leaves. "Place" is the top song's place in MusicBrainz's order. "Type and date only" is the cover that preferring Album, EP, Single and then the earliest date would give, with no regard to secondary types.
 
 | Query | Match | Left by the query | Rows | First after the Worker's rules | Place | Album | Cover | Type and date only |
 |---|---|---|---|---|---|---|---|---|
 | Обійми Океан Ельзи | 3 | 3 | 3 → 3 | Обійми, Океан Ельзи, 2013, 9 releases | 1 | Земля | Земля | Избранное |
-| Шум Go_A | 4 | 2 | 2 → 2 | Шум, Go_A, 2021, 1 releases | 1 | none | Шум | same |
+| Шум Go_A | 4 | 2 | 2 → 2 | Шум, Go_A, 2021, 1 release | 1 | none | Шум | same |
 | Stefania Kalush Orchestra | 3 | 2 | 2 → 2 | Stefania, Kalush Orchestra, 2022, 11 releases | 1 | none | Stefania | Eurovision Song Contest: Turin 2022 |
 | Бумбокс Вахтерам | 4 | 3 | 3 → 2 | Вахтёрам, Бумбокс, 2006, 4 releases | 2 | Family бізнес | Family бізнес | same |
 | Плакала KAZKA | 3 | 2 | 2 → 2 | ПЛАКАЛА, KAZKA, 2018, 6 releases | 2 | KARMA | KARMA | same |
@@ -219,6 +219,8 @@ In the pilots, free text didn't have "Обійми" by Океан Ельзи in 
 | Smells Like Teen Spirit | 1190 | 693 | 50 → 50 | Smells Like Teen Spirit, Nirvana, 1991, 165 releases | 1 | Nevermind | Nevermind | same |
 | Yesterday | 15531 | 14988 | 50 → 48 | Yesterday, The Beatles, 1965, 95 releases | 14 | Help! | Help! | same |
 | Hello | 28957 | 27782 | 50 → 48 | Hello, Lionel Richie, 1983, 286 releases | 28 | Can’t Slow Down | Can’t Slow Down | same |
+
+The query as ADR-0013 prints it was then sent at `limit=50` for all 23 and gave the same first song each time. It was also accepted with Lucene's special characters, with "NOT AND OR TO", and at the longest query TasteTrack takes, 100 characters.
 
 **What hiding and collapsing remove.** The unfiltered form returned 1,318 rows over the 23 queries, at most 100 each:
 
