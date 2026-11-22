@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A song's page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;height:26px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;overflow:hidden;padding-bottom:24px}
+.phone{width:390px}.web{width:960px}
+.back{height:44px;padding:0 12px;display:flex;align-items:center;gap:4px;color:var(--mf);font-size:14px;text-decoration:none}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pic{aspect-ratio:16/9;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 45%,transparent);mask-image:linear-gradient(to bottom,#000 45%,transparent)}
+.pic img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.3);filter:blur(30px) saturate(1.3)}
+.phone.vc .pic{aspect-ratio:1;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
+.phone.vc .pic img{transform:none;filter:none}
+.phone.vb .pic{aspect-ratio:1.25}
+.lead{position:relative;display:flex;align-items:flex-end;gap:14px;padding:0 16px;margin-top:-72px}
+.cover{width:136px;height:136px;flex:none;border-radius:10px;object-fit:cover;box-shadow:0 10px 24px oklch(0 0 0 / 30%)}
+.phone.vc .lead{margin-top:-36px}
+.phone.vc .cover{display:none}
+.vb .lead{flex-direction:column;align-items:center;text-align:center}
+.phone.vb .lead{margin-top:-262px}
+.phone.vb .cover{width:216px;height:216px}
+.vb .facts{align-items:center}
+.facts{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.facts h1{margin:0;font-size:21px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.phone.vb h1,.phone.vc h1{font-size:26px}
+.line{font-size:14px;line-height:1.35;color:var(--mf)}
+.src{min-height:44px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--strong);text-decoration:none}
+.src svg{width:15px;height:15px}
+.web .lead{padding:0 24px;gap:28px;margin-top:-172px}
+.web .cover{width:176px;height:176px;border-radius:14px}
+.web h1{font-size:34px}
+.web .line{font-size:16px}
+.web.vb .lead{margin-top:-310px;gap:14px}
+.body{padding:18px 16px 0;display:flex;flex-direction:column;gap:20px}
+.web .body{padding:20px 24px 0}
+.add{height:48px;width:100%;border:0;border-radius:12px;background:var(--pri);color:var(--prif);font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.web .add{width:auto;height:40px;align-self:flex-start;padding:0 16px;font-size:14px}
+.web.vb .add{align-self:center}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec h2{margin:0;font-size:18px;font-weight:600}
+.card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.card li+li{border-top:1px solid var(--bd)}
+.go{min-height:68px;padding:10px 12px;display:flex;align-items:center;gap:12px;text-decoration:none}
+.go img{width:48px;height:48px;border-radius:7px;object-fit:cover;flex:none}
+.nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:600}
+.nm small{font-size:13px;font-weight:400;color:var(--mf)}
+.next{color:var(--mf);transform:rotate(180deg)}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{min-height:44px;padding:0 14px;border:1px solid var(--bd);border-radius:999px;background:var(--card);display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;text-decoration:none}
+.web.vb .sec{align-items:center}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="5">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Back</a>
+<div class="pic"><img src="/_blob/c98f1491c4ad4c8b74293faec19f3c6e" alt=""></div>
+<div class="lead">
+<img class="cover" src="/_blob/c98f1491c4ad4c8b74293faec19f3c6e" alt="">
+<div class="facts">
+<h1>Обійми</h1>
+<span class="line">2013 · Океан Ельзи · from Земля</span>
+<a class="src" href="https://musicbrainz.org/recording/d8d55f18-0c4b-4036-a16d-e273ac8953fc">On MusicBrainz<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+</div>
+</div>
+<div class="body">
+<button class="add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+<section class="sec">
+<h2>In your Collections</h2>
+<sc-if value="{{s.rows}}" hint-placeholder-val="{{true}}">
+<ul class="card">
+<sc-for list="{{lists}}" as="l" hint-placeholder-count="2"><li><a class="go" href="#"><img src="{{l.src}}" alt=""><span class="nm">{{l.name}}<small>{{l.count}}</small></span><svg class="ic next" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a></li></sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{s.badges}}" hint-placeholder-val="{{false}}">
+<div class="badges">
+<sc-for list="{{lists}}" as="l" hint-placeholder-count="2"><a class="badge" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"></path></svg>{{l.name}}</a></sc-for>
+</div>
+</sc-if>
+</section>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":2700}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+lists: [
+{ name: 'Favourite songs', count: '28 songs', src: '/_blob/c98f1491c4ad4c8b74293faec19f3c6e' },
+{ name: 'For the road', count: '13 songs', src: '/_blob/06ca7ed40865217f26999bbfe64e6747' }
+],
+screens: [
+{ cap: 'A · the blurred banner · Collection rows', box: 'scr phone va', rows: true },
+{ cap: 'B · the cover centred · Collection badges', box: 'scr phone vb', badges: true },
+{ cap: 'C · the cover full width · Collection rows', box: 'scr phone vc', rows: true },
+{ cap: 'A and C on the web · the album page’s banner', box: 'scr web va', rows: true },
+{ cap: 'B on the web', box: 'scr web vb', badges: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>

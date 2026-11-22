@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search on Songs, its states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;height:26px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.phone{width:390px}.web{width:615px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.h1{margin:0;font-size:28px;font-weight:700}
+.field{height:48px;flex:none;border:1px solid var(--bd);background:var(--card);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:16px}
+.hold{color:var(--mf)}
+.seg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;background:var(--muted);border:0;border-radius:14px;padding:4px;margin:0;min-width:0}
+.chip{height:56px;min-width:0;padding:0;border:0;border-radius:10px;background:none;color:inherit;font:inherit;font-size:13px;font-weight:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.chip.on{background:var(--card);font-weight:600}
+.chip.on svg{color:var(--strong)}
+.p{margin:0;font-size:15px;line-height:1.45;color:var(--mf)}
+.empty{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:36px 16px 18px}
+.circle{width:56px;height:56px;border-radius:999px;background:var(--soft);color:var(--strong);display:flex;align-items:center;justify-content:center}
+.circle svg{width:24px;height:24px}
+.msg{margin:0;font-size:16px;line-height:1.4;max-width:300px}
+.hint{margin:0;font-size:14px;line-height:1.4;color:var(--mf);max-width:300px}
+.web .msg,.web .hint{max-width:none}
+.act{height:48px;padding:0 22px;border-radius:12px;border:0;background:var(--pri);color:var(--prif);font:inherit;font-weight:600;font-size:15px}
+.act.out{border:1px solid var(--bd);border-radius:999px;background:var(--card);color:inherit}
+.bh{margin:4px 0 0;font-size:16px;font-weight:700;display:flex;gap:6px;align-items:baseline}
+.bh small{font-size:14px;font-weight:500;color:var(--mf)}
+.strip{display:flex;gap:12px}
+.sv{width:120px;display:flex;flex-direction:column;gap:5px;text-decoration:none;font-size:14px}
+.sv img{width:120px;height:120px;object-fit:cover;border-radius:10px}
+.sv b{font-weight:600}
+.sv span,.in{font-size:12px;color:var(--mf);display:flex;align-items:center;gap:5px}
+.sv svg,.in svg{width:14px;height:14px}
+.card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.row{display:flex;gap:12px;padding:12px;align-items:center;border-bottom:1px solid var(--bd)}
+.row:last-child{border-bottom:0}
+.row img{width:72px;height:72px;border-radius:5px;object-fit:cover;flex:none}
+.rx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
+.rx b{font-size:16px;font-weight:600}
+.m{color:var(--mf)}
+.ib{width:44px;height:44px;flex:none;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;display:flex;align-items:center;justify-content:center}
+.credit{margin:18px -16px 0;border-top:1px solid var(--bd);padding:14px 16px;font-size:12px;color:var(--mf)}
+.credit a{color:var(--fg);text-decoration:underline}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="7">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<h1 class="h1">Search</h1>
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span class="{{s.qcls}}">{{s.q}}</span></label>
+<fieldset class="seg" aria-label="Category">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="6"><button class="{{c.cls}}" aria-pressed="{{c.on}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg>{{c.name}}</button></sc-for>
+</fieldset>
+<sc-if value="{{s.start}}" hint-placeholder-val="{{false}}"><p class="p">Type a song and its artist to search your Collections and MusicBrainz.</p></sc-if>
+<sc-if value="{{s.msg}}" hint-placeholder-val="{{false}}">
+<div class="empty">
+<span class="circle"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{s.icon}}"></path></svg></span>
+<p class="msg">{{s.msg}}</p>
+<p class="hint">{{s.hint}}</p>
+<button class="{{s.actCls}}">{{s.act}}</button>
+</div>
+</sc-if>
+<sc-if value="{{s.strip}}" hint-placeholder-val="{{false}}">
+<h2 class="bh">In your Collections <small>2</small></h2>
+<div class="strip">
+<sc-for list="{{kept}}" as="k" hint-placeholder-count="2"><a class="sv" href="#"><img src="{{k.src}}" alt=""><b>{{k.title}}</b><span>{{k.artist}}</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"></path></svg>{{k.held}}</span></a></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{s.rows}}" hint-placeholder-val="{{false}}">
+<h2 class="bh">From MusicBrainz <small>{{s.count}}</small></h2>
+<ul class="card">
+<sc-for list="{{s.rows}}" as="r" hint-placeholder-count="2">
+<li class="row">
+<img src="{{r.src}}" alt="">
+<div class="rx"><b>{{r.title}}</b><span>{{r.artist}}</span><span class="m">{{r.line}}</span>
+<sc-if value="{{r.held}}" hint-placeholder-val="{{false}}"><span class="in"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"></path></svg>{{r.held}}</span></sc-if>
+</div>
+<button class="ib" aria-label="Add to collection"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg></button>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<footer class="credit">Music data from <a href="https://musicbrainz.org/">MusicBrainz</a>.</footer>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":2100}}'>
+class Component extends DCLogic {
+renderVals() {
+const note = 'M9 18V5l12-2v13M6 15a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM18 13a3 3 0 1 0 0 6a3 3 0 1 0 0-6z';
+const types = [
+['Films', 'M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3ZM6.2 5.3l3.1 3.9M12.4 3.4l3.1 4M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z'],
+['Books', 'M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'],
+['Series', 'M4 7h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zM17 2l-5 5-5-5'],
+['Games', 'M6 11h4M8 9v4M15 12h.01M18 10h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z'],
+['Albums', 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM12 10a2 2 0 1 0 0 4a2 2 0 1 0 0-4zM6 12c0-1.7.7-3.2 1.8-4.2M18 12c0 1.7-.7 3.2-1.8 4.2'],
+['Songs', note]
+];
+const okean = { src: '/_blob/c98f1491c4ad4c8b74293faec19f3c6e', title: 'Обійми', artist: 'Океан Ельзи', line: '2013 · from Земля', held: 'Favourite songs' };
+const hardkiss = { src: '/_blob/ed86b6099e4ad4fcef8e685b67499067', title: 'Обійми', artist: 'The Hardkiss', line: '2021 · from Жива і не залізна', held: 'For the road' };
+const nora = { src: '/_blob/e2f2bdb6ca146b24f15000e4abe0c2fd', title: 'Обійми', artist: 'Nora Plan', line: '2024' };
+const desant = { src: '/_blob/7d1ff45da70bb358e7ebdacfd3c63b6b', title: 'Обійми', artist: 'Саша Чемеров, Міша Правильний & Культурний Десант', line: '2023' };
+const none = { q: 'Стефанія', msg: 'No songs found for “Стефанія”.', icon: note, hint: 'Try adding the artist: MusicBrainz finds a song best by its title and artist together.', act: 'Add manually', actCls: 'act out' };
+const busy = { q: 'karma police radiohead', msg: 'MusicBrainz is busy, try again in a moment.', icon: 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM12 6v6l4 2', hint: 'Nothing in your Collections matches “karma police radiohead”.', act: 'Try again', actCls: 'act' };
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+chips: types.map(([name, d]) => ({ name, d, on: name === 'Songs', cls: name === 'Songs' ? 'chip on' : 'chip' })),
+kept: [okean, hardkiss],
+screens: [
+{ cap: 'Nothing typed yet', box: 'scr phone', q: 'Song and artist', qcls: 'hold', start: true },
+{ cap: 'Nothing found', box: 'scr phone', ...none },
+{ cap: 'MusicBrainz is busy', box: 'scr phone', ...busy },
+{ cap: '1 · "In your Collections" first', box: 'scr phone', q: 'обійми', strip: true, count: '45', rows: [nora, desant] },
+{ cap: '2 · no strip, kept songs stay in the results', box: 'scr phone', q: 'обійми', count: '47', rows: [okean, hardkiss, nora] },
+{ cap: 'Nothing found · web', box: 'scr web', ...none },
+{ cap: 'MusicBrainz is busy · web', box: 'scr web', ...busy }
+]
+};
+}
+}
+</script>
+</body>
+</html>

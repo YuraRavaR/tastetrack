@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A song's Search row</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;height:26px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.phone{width:390px}.web{width:816px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.h1{margin:0;font-size:28px;font-weight:700}
+.field{height:48px;flex:none;border:1px solid var(--bd);background:var(--card);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:16px}
+.bh{margin:4px 0 0;font-size:16px;font-weight:700;display:flex;gap:6px;align-items:baseline}
+.bh small{font-size:14px;font-weight:500;color:var(--mf)}
+.card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.row{display:flex;gap:12px;padding:12px;align-items:flex-start;border-bottom:1px solid var(--bd)}
+.row:last-child{border-bottom:0}
+.cv{width:72px;height:72px;border-radius:5px;object-fit:cover;flex:none;display:block}
+.none{position:relative;background:var(--soft);color:var(--strong);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
+.none::after{content:"";position:absolute;inset:4px;border:1px solid color-mix(in oklch,var(--strong) 45%,transparent);border-radius:2px}
+.none svg{width:26px;height:26px}
+.rx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.t{font-size:16px;font-weight:600;line-height:1.3;text-decoration:none;overflow-wrap:anywhere}
+.q{font-weight:400;color:var(--mf)}
+.m{font-size:14px;line-height:1.35;color:var(--mf)}
+.art{font-size:14px;line-height:1.35}
+.below{font-size:12px;line-height:1.35;color:var(--mf);font-style:italic}
+.in{display:flex;align-items:center;gap:5px;color:var(--mf);font-size:12px;margin-top:2px}
+.in svg{width:14px;height:14px}
+.badge{border:1px solid var(--bd);border-radius:999px;padding:2px 8px;font-weight:500}
+.btn{height:44px;flex:none;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px}
+.ib{width:44px;padding:0;align-self:center}
+.lb{align-self:flex-start;margin-top:6px}
+.va .b,.va .c,.vb .a,.vb .c,.vc .a,.vc .b{display:none}
+.vc .cv{width:56px;height:56px}
+.vc .row{align-items:center}
+.vc .m{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.web .cv{width:56px;height:56px}
+.web .row{align-items:center}
+.web .btn{height:36px}
+.web .ib{width:36px}
+.web .lb{display:none}
+.wb{display:none}
+.web.va .wb{display:flex}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="6">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<sc-if value="{{s.phone}}" hint-placeholder-val="{{true}}">
+<h1 class="h1">Search</h1>
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>обійми</span></label>
+</sc-if>
+<sc-for list="{{s.groups}}" as="g" hint-placeholder-count="2">
+<h2 class="bh">{{g.head}} <small>{{g.count}}</small></h2>
+<ul class="card">
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+<li class="row">
+<sc-if value="{{r.src}}" hint-placeholder-val="{{true}}"><img class="cv" src="{{r.src}}" alt=""></sc-if>
+<sc-if value="{{r.none}}" hint-placeholder-val="{{false}}"><span class="cv none" role="img" aria-label="No cover"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13M6 15a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM18 13a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"></path></svg></span></sc-if>
+<div class="rx">
+<a class="t" href="#">{{r.title}}<span class="b q"> {{r.note}}</span></a>
+<span class="a m">{{r.lineA}}</span>
+<span class="b art">{{r.artist}}</span>
+<span class="b m">{{r.lineB}}</span>
+<span class="c m">{{r.lineC}}</span>
+<sc-if value="{{r.comment}}" hint-placeholder-val="{{false}}"><span class="a below">{{r.comment}}</span></sc-if>
+<sc-if value="{{r.held}}" hint-placeholder-val="{{false}}"><span class="in"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"></path></svg><span class="badge">{{r.held}}</span></span></sc-if>
+<button class="a btn lb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<button class="b btn ib" aria-label="Add to collection"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg></button>
+<button class="c btn ib" aria-label="Add to collection"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg></button>
+<button class="btn wb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</li>
+</sc-for>
+</ul>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":3400}}'>
+class Component extends DCLogic {
+renderVals() {
+const song = (src, title, artist, year, album, comment, held) => {
+const from = album ? 'from ' + album : '';
+const join = (...parts) => parts.filter(Boolean).join(' · ');
+return { src, none: !src, title, artist, held, comment, note: comment ? '(' + comment + ')' : '', lineA: join(artist, year, from), lineB: join(year, from), lineC: join(artist, year, from, comment) };
+};
+const okean = song('/_blob/c98f1491c4ad4c8b74293faec19f3c6e', 'Обійми', 'Океан Ельзи', '2013', 'Земля', '', 'Favourite songs');
+const hardkiss = song('/_blob/ed86b6099e4ad4fcef8e685b67499067', 'Обійми', 'The Hardkiss', '2021', 'Жива і не залізна');
+const desant = song('/_blob/7d1ff45da70bb358e7ebdacfd3c63b6b', 'Обійми', 'Саша Чемеров, Міша Правильний & Культурний Десант', '2023');
+const shum = song('/_blob/c23491849858efb70d9ec9517672f812', 'Шум', 'Go_A', '2021', '', 'original version');
+const stefania = song('/_blob/bf736193e21fdbff11cacee23ea435f2', 'Stefania', 'Kalush Orchestra', '2022', '', 'Ukraine, Eurovision 2022 entry');
+const karma = song('/_blob/48f3e9e74470c260cba362257579d4f9', 'Karma Police', 'Radiohead', '1997', 'OK Computer');
+const remix = song('', 'Uptown Funk (The Noisy Freaks ft. Andrew Hunt Remix)', 'Mark Ronson feat. Bruno Mars', '2015');
+const phone = [
+{ head: 'From MusicBrainz', count: '47', rows: [okean, hardkiss, desant] },
+{ head: 'The same row, other searches', count: '', rows: [shum, stefania, karma, remix] }
+];
+const web = [{ head: 'From MusicBrainz', count: '', rows: [okean, desant, shum, remix] }];
+const variants = [['A', 'va', 'one line, a labelled button'], ['B', 'vb', 'the artist first, the button at the right'], ['C', 'vc', 'the densest, one line']];
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+screens: [
+...variants.map(([v, cls, what]) => ({ cap: v + ' · ' + what, box: 'scr phone ' + cls, phone: true, groups: phone })),
+...variants.map(([v, cls]) => ({ cap: v + ' on the web', box: 'scr web ' + cls, groups: web }))
+]
+};
+}
+}
+</script>
+</body>
+</html>

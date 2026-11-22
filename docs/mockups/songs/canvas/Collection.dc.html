@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Collection of songs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);--over:oklch(0 0 0 / 60%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75);--over:oklch(0.2 0.01 50 / 50%)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;height:26px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:16px}
+.phone{width:390px}.web{width:1152px;padding:20px 24px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.top{display:flex;align-items:center;justify-content:space-between;height:36px}
+.back{display:flex;align-items:center;gap:4px;color:var(--mf);font-size:14px;text-decoration:none}
+.more{width:44px;height:44px;flex:none;border:0;border-radius:999px;background:none;color:inherit;display:flex;align-items:center;justify-content:center}
+.more svg{stroke-width:3}
+.lead{display:flex;flex-direction:column;gap:5px}
+.lead h1{margin:0;font-size:24px;font-weight:600}
+.lead p{margin:0;font-size:15px;line-height:1.4}
+.meta{color:var(--mf);font-size:14px;display:flex;align-items:center;gap:6px}
+.meta svg{width:14px;height:14px}
+.add{height:44px;flex:none;border:0;border-radius:999px;padding:0 18px;background:var(--pri);color:var(--prif);font:inherit;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.web .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.phone .head{display:flex;flex-direction:column;align-items:stretch;gap:14px}
+.grid{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 12px;align-items:start}
+.web .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:28px 20px}
+.cell{position:relative;min-width:0;display:flex;flex-direction:column;gap:6px}
+.cv{width:100%;aspect-ratio:1;border-radius:10px;object-fit:cover;display:block}
+.none{position:relative;background:var(--soft);color:var(--strong);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
+.none::after{content:"";position:absolute;inset:5px;border:1px solid color-mix(in oklch,var(--strong) 45%,transparent);border-radius:3px}
+.none svg{width:32px;height:32px}
+.num{position:absolute;top:8px;left:8px;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--over);color:oklch(0.97 0.01 80);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.dots{position:absolute;top:5px;right:5px;width:28px;height:28px;border:0;border-radius:999px;background:var(--over);color:oklch(0.97 0.01 80);display:flex;align-items:center;justify-content:center}
+.dots svg{stroke-width:3;width:16px;height:16px}
+.t{font-size:14px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.by{font-size:12px;color:var(--mf);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note{font-size:12px;color:var(--mf);font-style:italic;line-height:1.35;display:flex;gap:5px}
+.note svg{width:12px;height:12px;margin-top:2px}
+.cell .note{border-top:1px solid var(--bd);padding-top:6px}
+.web .t{font-size:15px}.web .by{font-size:14px}.web .note{font-size:13px}
+.rows{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.row{display:flex;align-items:center;gap:10px;padding:10px 4px 10px 10px;border-bottom:1px solid var(--bd)}
+.row:last-child{border-bottom:0}
+.n{width:20px;flex:none;text-align:center;font-size:13px;color:var(--mf);font-variant-numeric:tabular-nums}
+.row .cv{width:56px;height:56px;flex:none;border-radius:6px}
+.row .none svg{width:22px;height:22px}
+.rx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.row .t{font-size:15px}
+.row .by{font-size:13px}
+.year{display:none}
+.web .row{padding:10px 10px 10px 14px;gap:16px}
+.web .year{display:block;width:64px;flex:none;font-size:14px;color:var(--mf)}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="4">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<div class="top"><a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>All Collections</a><button class="more" aria-label="Collection actions"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button></div>
+<div class="head">
+<div class="lead"><h1>For the road</h1><p>Loud, and everyone knows the words.</p><span class="meta"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{noteIcon}}"></path></svg>8 songs · <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"></path></svg>Shared by link</span></div>
+<button class="add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Add songs</button>
+</div>
+<sc-if value="{{s.grid}}" hint-placeholder-val="{{true}}">
+<ol class="grid" aria-label="For the road">
+<sc-for list="{{songs}}" as="r" hint-placeholder-count="8">
+<li class="cell">
+<sc-if value="{{r.src}}" hint-placeholder-val="{{true}}"><img class="cv" src="{{r.src}}" alt=""></sc-if>
+<sc-if value="{{r.none}}" hint-placeholder-val="{{false}}"><span class="cv none" role="img" aria-label="No cover"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{noteIcon}}"></path></svg></span></sc-if>
+<span class="num">{{r.n}}</span>
+<button class="dots" aria-label="{{r.more}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button>
+<span class="t">{{r.title}}</span><span class="by">{{r.artist}}</span>
+<sc-if value="{{r.note}}" hint-placeholder-val="{{false}}"><span class="note"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>{{r.note}}</span></sc-if>
+</li>
+</sc-for>
+</ol>
+</sc-if>
+<sc-if value="{{s.list}}" hint-placeholder-val="{{false}}">
+<ol class="rows" aria-label="For the road">
+<sc-for list="{{songs}}" as="r" hint-placeholder-count="8">
+<li class="row">
+<span class="n">{{r.n}}</span>
+<sc-if value="{{r.src}}" hint-placeholder-val="{{true}}"><img class="cv" src="{{r.src}}" alt=""></sc-if>
+<sc-if value="{{r.none}}" hint-placeholder-val="{{false}}"><span class="cv none" role="img" aria-label="No cover"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{noteIcon}}"></path></svg></span></sc-if>
+<span class="rx"><span class="t">{{r.title}}</span><span class="by">{{r.artist}}</span>
+<sc-if value="{{r.note}}" hint-placeholder-val="{{false}}"><span class="note"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>{{r.note}}</span></sc-if>
+</span>
+<span class="year">{{r.year}}</span>
+<button class="more" aria-label="{{r.more}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button>
+</li>
+</sc-for>
+</ol>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":2700}}'>
+class Component extends DCLogic {
+renderVals() {
+const songs = [
+['/_blob/06ca7ed40865217f26999bbfe64e6747', 'Highway to Hell', 'AC/DC', '1979', 'Always first.'],
+['/_blob/58597f3a9c4f1c1fb2e8d4b05165edcd', 'Вахтёрам', 'Бумбокс', '2006'],
+['/_blob/c98f1491c4ad4c8b74293faec19f3c6e', 'Обійми', 'Океан Ельзи', '2013', 'For the last hour, near Lviv.'],
+['', 'Uptown Funk (The Noisy Freaks ft. Andrew Hunt Remix)', 'Mark Ronson feat. Bruno Mars', '2015'],
+['/_blob/6e9acf074f3181d18a3617776dccd8f2', 'Hey Hey Rise Up', 'Pink Floyd featuring Andriy Khlyvnyuk of Boombox', '2022'],
+['/_blob/a5a5694e49da4ff57613911c6d14351e', 'ПЛАКАЛА', 'KAZKA', '2018'],
+['/_blob/c4e1f823a964fcc464e750f01a9e9026', 'Старі фотографії', 'Скрябін', '2005'],
+['/_blob/2cc5d694fe57ede8fd32b27aa51b46a9', 'Teresa & Maria', 'alyona alyona & Jerry Heil', '2024']
+].map(([src, title, artist, year, note], i) => ({ src, none: !src, title, artist, year, note, n: i + 1, more: 'More for ' + title }));
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+noteIcon: 'M9 18V5l12-2v13M6 15a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM18 13a3 3 0 1 0 0 6a3 3 0 1 0 0-6z',
+songs,
+screens: [
+{ cap: 'A · today’s grid', box: 'scr phone', grid: true },
+{ cap: 'B · a playlist’s rows', box: 'scr phone', list: true },
+{ cap: 'A on the web', box: 'scr web', grid: true },
+{ cap: 'B on the web', box: 'scr web', list: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>
