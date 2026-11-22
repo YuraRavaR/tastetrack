@@ -23,8 +23,7 @@ a{color:inherit}a:hover{color:inherit}
 .pic{width:100%;aspect-ratio:1;object-fit:cover;display:block;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
 .lead{position:relative;display:flex;align-items:flex-end;gap:14px;padding:0 16px}
 .over{margin-top:-36px}
-.none{position:relative;width:136px;height:136px;flex:none;border:1px solid var(--bd);border-radius:10px;background:var(--soft);color:var(--strong);display:flex;align-items:center;justify-content:center}
-.none::after{content:"";position:absolute;inset:6px;border:1px solid color-mix(in oklch,var(--strong) 45%,transparent);border-radius:4px}
+.none{position:relative;width:136px;height:136px;flex:none;border:1px solid var(--bd);border-radius:10px;background:var(--muted);color:var(--mf);display:flex;align-items:center;justify-content:center}
 .none svg{width:48px;height:48px}
 .facts{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .facts h1{margin:0;font-size:21px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
@@ -33,14 +32,16 @@ a{color:inherit}a:hover{color:inherit}
 .quiet{font-style:italic;font-size:13px}
 .src{min-height:44px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--strong);text-decoration:none}
 .src svg{width:15px;height:15px}
-.web .lead{padding:16px 24px 0;gap:28px}
+.web .lead{padding:16px 24px 0;gap:14px;flex-direction:column;align-items:center;text-align:center}
+.web .facts{align-items:center}
 .web .none{width:176px;height:176px;border-radius:14px}
-.web h1{font-size:34px}
+.web h1{font-size:34px;max-width:720px}
 .web .line{font-size:16px}
 .body{padding:18px 16px 0;display:flex;flex-direction:column;gap:20px}
 .web .body{padding:20px 24px 0}
+.web .sec{width:100%;max-width:560px;align-self:center;text-align:center}
 .add{height:48px;width:100%;border:0;border-radius:12px;background:var(--pri);color:var(--prif);font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
-.web .add{width:auto;height:40px;align-self:flex-start;padding:0 16px;font-size:14px}
+.web .add{width:auto;height:40px;align-self:center;padding:0 16px;font-size:14px}
 .sec{display:flex;flex-direction:column;gap:10px}
 .sec h2{margin:0;font-size:18px;font-weight:600}
 .dash{margin:0;border:1px dashed var(--mf);border-radius:14px;padding:18px 16px;text-align:center;font-size:14px;color:var(--mf);line-height:1.4}
@@ -84,7 +85,7 @@ a{color:inherit}a:hover{color:inherit}
 </sc-for>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1400}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1450}}'>
 class Component extends DCLogic {
 renderVals() {
 const remix = { title: 'Uptown Funk (The Noisy Freaks ft. Andrew Hunt Remix)', facts: '2015 · Mark Ronson feat. Bruno Mars', none: true, lead: 'lead', url: 'https://musicbrainz.org/recording/5f931b0d-c228-4b7f-aa2d-9267844ca5aa' };
@@ -94,7 +95,7 @@ screens: [
 { ...remix, cap: 'No cover, a long title, two artists', box: 'scr phone' },
 { cap: 'A disambiguation, no album', box: 'scr phone', src: '/_blob/bf736193e21fdbff11cacee23ea435f2', lead: 'lead over', title: 'Stefania', facts: '2022 · Kalush Orchestra', comment: 'Ukraine, Eurovision 2022 entry', url: 'https://musicbrainz.org/recording/b3a54e3b-dadd-41f7-8efe-3f5c07e3259c' },
 { cap: 'Added by hand, no year and no link', box: 'scr phone', none: true, lead: 'lead', title: 'Пісня з гаража', facts: 'Гурт сусідів', manual: true },
-{ ...remix, cap: 'No cover · web', box: 'scr web' }
+{ ...remix, cap: 'No cover · web · centred, as picked', box: 'scr web' }
 ]
 };
 }

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Songs · No cover and six chips</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87); --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75); --input: oklch(0.85 0.015 75); --ink: oklch(0.22 0.02 60);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85); --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%); --input: oklch(1 0 0 / 15%); --ink: #fff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic14 { width: 14px; height: 14px; }
+.star { width: 13px; height: 13px; fill: currentColor; flex: none; }
+[data-for] { display: none; }
+[data-for].shown { display: block; }
+
+/* Header: logo and account; the section nav joins from md, the bottom tab bar leaves. */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo svg { width: 34px; height: 34px; color: var(--ink); }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.nav { display: none; gap: 4px; }
+.nav a { height: 36px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); }
+.account { margin-left: auto; width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); display: grid; place-items: center; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border); z-index: 5; }
+.tabbar a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.tabbar a[aria-current] .fill { fill: currentColor; }
+.tabbar .ic { width: 24px; height: 24px; }
+
+/* Footer: the TMDB notice, then the Open Library, IGDB and MusicBrainz credits. */
+footer { border-top: 1px solid var(--border); margin-top: 40px; }
+.foot { max-width: 1152px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; line-height: 1.45; color: var(--muted-foreground); }
+.foot .row { display: flex; flex-direction: column; gap: 6px; }
+.tmdb { align-self: flex-start; font-weight: 800; font-size: 11px; letter-spacing: 0.02em; padding: 1px 6px; border-radius: 4px; background: var(--foreground); color: var(--background); }
+.foot a { color: var(--foreground); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Buttons. */
+.btn { height: 44px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; font-weight: 600; border: 1px solid var(--border); background: transparent; cursor: pointer; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.btn.on { background: var(--primary-soft); border-color: transparent; }
+.btn.on .fill { fill: currentColor; }
+.btn.icon { width: 44px; padding: 0; }
+
+@media (min-width: 768px) {
+  body { padding-bottom: 0; }
+  .bar { padding: 0 24px; height: 64px; }
+  .logo svg { width: 36px; height: 36px; }
+  .wm { font-size: 17px; }
+  .nav { display: flex; }
+  .tabbar { display: none; }
+  .foot { padding: 16px 24px; }
+  .foot .row { flex-direction: row; align-items: center; gap: 16px; }
+  .foot .version { margin-left: auto; }
+  .btn.small { height: 36px; font-size: 14px; }
+  .btn.icon.small { width: 36px; }
+}
+
+[data-for].shown.stack { display: flex; }
+main { margin: 0 auto; width: 100%; padding: 24px 16px; }
+footer { margin-top: 16px; }
+h1 { margin: 0; font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; }
+h2 { margin: 0; font-size: 18px; font-weight: 600; }
+.stack { flex-direction: column; gap: 14px; }
+.btn { background: var(--background); }
+.btn.sm { height: 36px; font-size: 14px; padding: 0 12px; font-weight: 500; }
+.btn.pill { border-radius: 999px; background: var(--card); }
+.btn.pill.primary { background: var(--primary); }
+
+/* Media Type chips, pick A: six equal segments. Below 360 px their labels are 12 px. */
+.types { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: var(--muted); border-radius: 14px; padding: 4px; border: 0; margin: 0; min-width: 0; }
+.types button { height: 56px; min-width: 0; padding: 0; border-radius: 10px; border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.types button[aria-pressed="true"] { background: var(--card); font-weight: 600; box-shadow: 0 1px 3px oklch(0 0 0 / 18%); }
+.types button[aria-pressed="true"] .ic { color: var(--primary-strong); }
+@media (max-width: 359px) { .types button { font-size: 12px; } }
+
+/* Covers are square. No cover, pick 1: a quiet note on muted. */
+.sq { display: block; flex: none; object-fit: cover; background: var(--muted); }
+.ph { display: grid; place-items: center; border: 1px solid var(--border); color: var(--muted-foreground); }
+.in-row { width: 72px; height: 72px; border-radius: 6px; }
+.in-row.ph .ic { width: 26px; height: 26px; }
+.in-strip, .in-grid { width: 100%; aspect-ratio: 1; border-radius: 14px; }
+.in-strip.ph .ic, .in-grid.ph .ic { width: 40px; height: 40px; }
+.in-list { width: 48px; height: 48px; border-radius: 6px; }
+.in-list.ph .ic { width: 22px; height: 22px; }
+.in-page { width: 136px; height: 136px; border-radius: 10px; }
+.in-page.ph .ic { width: 48px; height: 48px; }
+.in-cell { width: 100%; height: 100%; }
+.in-cell.ph { border: 0; }
+.in-cell.ph .ic { width: 26px; height: 26px; }
+
+.empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 72px 24px 40px; text-align: center; }
+.circle { width: 56px; height: 56px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-strong); display: grid; place-items: center; }
+.circle .ic { width: 24px; height: 24px; }
+.empty > div { display: flex; flex-direction: column; gap: 6px; }
+.empty p, .empty small { margin: 0; max-width: 300px; font-size: 16px; line-height: 1.375; }
+.empty small { font-size: 14px; color: var(--muted-foreground); }
+.empty .btn { height: 48px; padding: 0 22px; }
+@media (min-width: 640px) {
+  .in-page { width: 176px; height: 176px; border-radius: 14px; }
+  .in-page.ph .ic { width: 56px; height: 56px; }
+}
+@media (min-width: 768px) {
+  main { padding: 24px; }
+  h1 { font-size: 34px; }
+  .in-row { width: 56px; height: 56px; }
+  .in-row.ph .ic { width: 22px; height: 22px; }
+  .empty { padding: 96px 24px; }
+  .empty p { max-width: none; font-size: 18px; }
+  .empty small { max-width: none; font-size: 16px; }
+  .empty .btn { height: 44px; }
+}
+
+body { padding: 0; }
+main { max-width: 920px; display: flex; flex-direction: column; gap: 18px; }
+.sizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 22px; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 6px; max-width: 100%; }
+figcaption { font-size: 12px; color: var(--muted-foreground); }
+.fixed-row { width: 72px; height: 72px; }
+.fixed-row .ic { width: 26px; height: 26px; }
+.s56 { width: 56px; height: 56px; }
+.s56 .ic { width: 22px; height: 22px; }
+.s176 { width: 176px; height: 176px; border-radius: 14px; }
+.s176 .ic { width: 56px; height: 56px; }
+.s136 { width: 136px; height: 136px; border-radius: 10px; }
+.s136 .ic { width: 48px; height: 48px; }
+.at390 { width: 358px; max-width: 100%; }
+.at320 { width: 288px; }
+.at320 .types button { font-size: 12px; }
+</style>
+</head>
+<body>
+<main><h1>No cover</h1><div class="sizes"><figure><span class="sq ph in-list" role="img" aria-label="No cover"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><figcaption>48 · a Collection’s row</figcaption></figure><figure><span class="sq ph in-row s56" role="img" aria-label="No cover"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><figcaption>56 · a row from md</figcaption></figure><figure><span class="sq ph in-row fixed-row" role="img" aria-label="No cover"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><figcaption>72 · a row</figcaption></figure><figure><span style="width:86px;height:86px;display:block"><span class="sq ph in-cell" role="img" aria-label="No cover"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span></span><figcaption>86 · a collage</figcaption></figure><figure><span style="width:111px;display:block"><span class="sq ph in-grid" role="img" aria-label="No cover"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span></span><figcaption>111 · a grid</figcaption></figure><figure><span class="sq ph in-page s136" role="img" aria-label="No cover"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><figcaption>136 · the page</figcaption></figure><figure><span class="sq ph in-page s176" role="img" aria-label="No cover"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><figcaption>176 · the page from sm</figcaption></figure></div><h1>Six Media Types</h1><figure><div class="at390"><fieldset class="types" aria-label="Category"><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9M12.4 3.4l3.1 4M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>Films</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>Books</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"/><path d="m17 2-5 5-5-5"/></svg>Series</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>Games</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M6 12c0-1.7.7-3.2 1.8-4.2M18 12c0 1.7-.7 3.2-1.8 4.2"/></svg>Albums</button><button type="button" aria-pressed="true"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Songs</button></fieldset></div><figcaption>A 390 px phone: 358 px of column, 13 px labels</figcaption></figure><figure><div class="at320"><fieldset class="types" aria-label="Category"><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9M12.4 3.4l3.1 4M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>Films</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>Books</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"/><path d="m17 2-5 5-5-5"/></svg>Series</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>Games</button><button type="button" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M6 12c0-1.7.7-3.2 1.8-4.2M18 12c0 1.7-.7 3.2-1.8 4.2"/></svg>Albums</button><button type="button" aria-pressed="true"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Songs</button></fieldset></div><figcaption>A 320 px phone: 288 px of column, 12 px labels</figcaption></figure></main>
+<script>function show(){const s=location.hash.slice(1)||"default";document.querySelectorAll("[data-for]").forEach(e=>e.classList.toggle("shown",e.dataset.for.split(" ").includes(s)));}addEventListener("hashchange",show);show();</script>
+</body>
+</html>

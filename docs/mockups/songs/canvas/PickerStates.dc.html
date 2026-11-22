@@ -21,7 +21,7 @@ a{color:inherit}a:hover{color:inherit}
 .web{width:560px;height:430px}
 .dim{position:absolute;inset:0;background:var(--over)}
 .dlg{position:absolute;background:var(--bg);border:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
-.phone .dlg{left:0;right:0;bottom:0;border-radius:28px 28px 0 0;padding-bottom:22px}
+.phone .dlg{left:16px;right:16px;top:128px;border-radius:14px}
 .web .dlg{width:480px;left:40px;top:24px;border-radius:14px}
 .hd{display:flex;gap:8px;align-items:flex-start;padding:18px 10px 8px 20px}
 .hd div{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:4px}
@@ -36,11 +36,8 @@ a{color:inherit}a:hover{color:inherit}
 .lb input{height:44px;border:1px solid var(--inp);outline:3px solid color-mix(in oklch,var(--strong) 35%,transparent);border-radius:10px;background:var(--card);color:var(--fg);font:inherit;font-size:16px;padding:0 12px}
 .lb input::placeholder{color:var(--mf)}
 .pick{min-height:48px;width:100%;padding:4px 0;border:0;background:none;color:inherit;font:inherit;font-size:15px;text-align:left;display:flex;align-items:center;gap:12px}
-.th{width:48px;height:48px;flex:none;border-radius:7px;object-fit:cover}
-.add{border:1px dashed var(--strong);color:var(--strong);display:flex;align-items:center;justify-content:center}
 .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-weight:600}
-.nm small{font-size:13px;font-weight:400;color:var(--mf)}
-.ck{width:26px;height:26px;flex:none;border:1px solid var(--mf);border-radius:999px;display:flex;align-items:center;justify-content:center}
+.ck{width:20px;height:20px;flex:none;border:1px solid var(--mf);border-radius:6px;display:flex;align-items:center;justify-content:center}
 .ck.on{background:var(--pri);border-color:var(--pri);color:var(--prif)}
 .ck svg{width:14px;height:14px}
 .off svg{display:none}
@@ -63,7 +60,7 @@ a{color:inherit}a:hover{color:inherit}
 <section class="dlg" aria-label="{{s.title}}">
 <header class="hd">
 <sc-if value="{{s.back}}" hint-placeholder-val="{{false}}"><button class="x back" aria-label="Back to your Collections"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button></sc-if>
-<div><h2>{{s.title}}</h2><p>Обійми · Океан Ельзи</p></div>
+<div><h2>{{s.title}}</h2><p>{{s.sub}}</p></div>
 <button class="x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
 </header>
 <div class="bd">
@@ -71,8 +68,8 @@ a{color:inherit}a:hover{color:inherit}
 <sc-if value="{{s.form}}" hint-placeholder-val="{{true}}"><label class="lb">Name<input value="{{s.value}}" placeholder="Favourite songs"></label></sc-if>
 <sc-if value="{{s.error}}" hint-placeholder-val="{{false}}"><p class="err" role="alert">{{s.error}}</p></sc-if>
 <sc-if value="{{s.list}}" hint-placeholder-val="{{false}}">
-<button class="pick" style="color: var(--strong)"><span class="th add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></span><span class="nm">New collection</span></button>
-<sc-for list="{{lists}}" as="l" hint-placeholder-count="3"><button class="pick" role="checkbox" aria-checked="{{l.on}}"><img class="th" src="{{l.src}}" alt=""><span class="nm">{{l.name}}<small>{{l.count}}</small></span><span class="{{l.ck}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></button></sc-for>
+<sc-for list="{{lists}}" as="l" hint-placeholder-count="3"><button class="pick" role="checkbox" aria-checked="{{l.on}}"><span class="{{l.ck}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="nm">{{l.name}}</span></button></sc-for>
+<button class="pick" style="color: var(--strong); font-weight: 600"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>New collection</button>
 </sc-if>
 </div>
 <footer class="ft"><button class="main">{{s.act}}</button></footer>
@@ -88,23 +85,25 @@ a{color:inherit}a:hover{color:inherit}
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1400}}'>
 class Component extends DCLogic {
 renderVals() {
-const list = (name, count, src, on) => ({ name, count, src, on: !!on, ck: on ? 'ck on' : 'ck off' });
-const first = { title: 'Add to a new collection', first: true, form: true, value: '', act: 'Create and add' };
-const inside = { title: 'New collection', back: true, form: true, value: 'For the road', act: 'Create and add' };
-const made = { title: 'Add to collection', list: true, act: 'Done' };
+const list = (name, on) => ({ name, on: !!on, ck: on ? 'ck on' : 'ck off' });
+const title = 'Collections for Шум (2021)';
+const first = { title, sub: '', first: true, form: true, value: '', act: 'Create and add' };
+const inside = { title: 'New collection', sub: '', back: true, form: true, value: 'Late night', act: 'Create and add' };
+const made = { title, sub: 'Tick a Collection to add the song, untick it to take the song off.', list: true, act: 'Done' };
 return {
 themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
 lists: [
-list('For the road', '1 song', '/_blob/c98f1491c4ad4c8b74293faec19f3c6e', true),
-list('Favourite songs', '28 songs', '/_blob/48f3e9e74470c260cba362257579d4f9'),
-list('Songs to show a friend', '7 songs', '/_blob/c23491849858efb70d9ec9517672f812')
+list('Late night', true),
+list('For the road'),
+list('Favourite songs'),
+list('Songs to show a friend')
 ],
 screens: [
 { ...first, cap: 'None yet · offered at once', box: 'scr phone' },
 { ...inside, cap: 'New collection, inside the picker', box: 'scr phone' },
 { ...made, cap: 'Made: first, and already ticked', box: 'scr phone' },
 { ...first, cap: 'None yet · web', box: 'scr web' },
-{ ...inside, cap: 'The name is taken by a Collection of albums · web', box: 'scr web', error: 'You already have a Collection of albums with this name.' }
+{ ...inside, cap: 'The name is taken by a Collection of albums · web', box: 'scr web', value: 'Ukrainian rock', error: 'You already have a Collection of albums with this name.' }
 ]
 };
 }
