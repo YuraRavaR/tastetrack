@@ -9,15 +9,15 @@ Terms marked _(planned)_ are not in the MVP but are part of the model's language
 ### Catalog
 
 **Media Item**:
-A single work (a film, a book, a series, a game or an album) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port, a DLC or an expansion, while a remake, a remaster or a standalone expansion is a game of its own. An album is the work across all its editions, never one release, while a live album or a compilation is an album of its own.
+A single work (a film, a book, a series, a game, an album or a song) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port, a DLC or an expansion, while a remake, a remaster or a standalone expansion is a game of its own. An album is the work across all its editions, never one release, while a live album or a compilation is an album of its own. A song is one recording, across every release it is on, while a live version, a remix or a cover is a song of its own.
 _Avoid_: Movie, title, film (as a generic term), content, item
 
 **Media Type**:
-The kind of work a Media Item is: film, book, series, game and album.
+The kind of work a Media Item is: film, book, series, game, album and song.
 _Avoid_: Category, kind, format
 
 **External Source**:
-The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films and series, Open Library for books, IGDB for games, and MusicBrainz for albums.
+The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films and series, Open Library for books, IGDB for games, and MusicBrainz for albums and songs.
 _Avoid_: Provider, database, API
 
 **External Reference**:
@@ -109,7 +109,7 @@ A named, ordered collection of Media Items of one Media Type, owned by a User; i
 _Avoid_: Collection (as a domain term), playlist, custom list
 
 **Library**:
-All of one User's Media Items of one Media Type that are in their Backlog, are In Progress or have at least one of their Log Entries ("Saved" in the UI).
+All of one User's Media Items of one Media Type that are in their Backlog, are In Progress or have at least one of their Log Entries ("Saved" in the UI). A song is never in a Library: it has no Backlog, In Progress or Log Entries, and lives only in Lists.
 _Avoid_: Saved (as a domain term), shelf, collection
 
 **List Item**:
