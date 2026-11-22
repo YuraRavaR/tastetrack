@@ -190,32 +190,34 @@ MusicBrainz answers a release-group search with `access-control-allow-origin: *`
 | **The same, limit 50 (chosen)** | **15** | **7** |
 | The same, limit 100 | 15 | 7 |
 
-In the pilots, free text put "Обійми" by Океан Ельзи 8th for a query that names its artist and didn't have Queen's "Bohemian Rhapsody" in its first 100, and the hiding without boosts didn't have Queen's in 100 either. A boost by release countries found Queen too, but its answers reached 5.8 MB.
+In the pilots, free text put "Обійми" by Океан Ельзи 8th for a query that names its artist (1st after the Worker's rules), matched 3,370,935 recordings for "Шум Go_A", and didn't have Queen's "Bohemian Rhapsody" in its first 100, and the hiding without boosts didn't have Queen's in 100 either. A boost by release countries found Queen too, but its answers reached 5.8 MB.
 
-**Results of the chosen form.** "Match" and "left by the query" are MusicBrainz's totals before and after the query's hiding. "Rows" is the 50 or fewer returned and what collapsing leaves. "Place" is the top song's place in MusicBrainz's order. "Type and date only" is the cover that preferring Album, EP, Single and then the earliest date would give, with no regard to secondary types.
+The scores for 25 and 100 are from the answers at `limit=100`, cut to 25 for the first.
 
-| Query | Match | Left by the query | Rows | First after the Worker's rules | Place | Album | Cover | Type and date only |
+**Results of the chosen form,** from its live answers at `limit=50`. "Match" and "left by the query" are MusicBrainz's totals before and after the query's hiding. "Rows" is what was returned and what collapsing leaves. "Place" is the top song's place in MusicBrainz's order. "Without the studio rule" is the cover that ADR-0013's type and date rules give with no regard to secondary types.
+
+| Query | Match | Left by the query | Rows | First after the Worker's rules | Place | Album | Cover | Without the studio rule |
 |---|---|---|---|---|---|---|---|---|
-| Обійми Океан Ельзи | 3 | 3 | 3 → 3 | Обійми, Океан Ельзи, 2013, 9 releases | 1 | Земля | Земля | Избранное |
+| Обійми Океан Ельзи | 3 | 3 | 3 → 3 | Обійми, Океан Ельзи, 2013, 9 releases | 1 | Земля | Земля | same |
 | Шум Go_A | 4 | 2 | 2 → 2 | Шум, Go_A, 2021, 1 release | 1 | none | Шум | same |
 | Stefania Kalush Orchestra | 3 | 2 | 2 → 2 | Stefania, Kalush Orchestra, 2022, 11 releases | 1 | none | Stefania | Eurovision Song Contest: Turin 2022 |
-| Бумбокс Вахтерам | 4 | 3 | 3 → 2 | Вахтёрам, Бумбокс, 2006, 4 releases | 2 | Family бізнес | Family бізнес | same |
+| Бумбокс Вахтерам | 4 | 3 | 3 → 2 | Вахтёрам, Бумбокс, 2006, 4 releases | 1 | Family бізнес | Family бізнес | same |
 | Плакала KAZKA | 3 | 2 | 2 → 2 | ПЛАКАЛА, KAZKA, 2018, 6 releases | 2 | KARMA | KARMA | same |
 | Скрябін Старі фотографії | 6 | 5 | 5 → 4 | Старі фотографії, Скрябін, 2005, 4 releases | 1 | Танго | Танго | same |
 | 1944 Jamala | 1 | 1 | 1 → 1 | 1944, Jamala, 2016, 11 releases | 1 | 1944 | 1944 | Eurovision Song Contest: Stockholm 2016 |
-| Karma Police Radiohead | 293 | 91 | 50 → 10 | Karma Police, Radiohead, 1997, 151 releases | 1 | OK Computer | OK Computer | Mr Music Hits 11. 1997 |
+| Karma Police Radiohead | 293 | 91 | 50 → 10 | Karma Police, Radiohead, 1997, 151 releases | 1 | OK Computer | OK Computer | same |
 | Bohemian Rhapsody Queen | 269 | 124 | 50 → 6 | Bohemian Rhapsody, Queen, 1975, 356 releases | 1 | A Night at the Opera | A Night at the Opera | same |
 | Don't Stop Me Now Queen | 74 | 51 | 50 → 15 | Don’t Stop Me Now, Queen, 1978, 254 releases | 1 | Jazz | Jazz | same |
-| The Sound of Silence Simon & Garfunkel | 107 | 84 | 50 → 2 | The Sound of Silence, Simon & Garfunkel, 1966, 261 releases | 4 | Sounds of Silence | Sounds of Silence | same |
+| The Sound of Silence Simon & Garfunkel | 107 | 84 | 50 → 2 | The Sound of Silence, Simon & Garfunkel, 1966, 261 releases | 3 | Sounds of Silence | Sounds of Silence | same |
 | Highway to Hell AC/DC | 245 | 170 | 50 → 7 | Highway to Hell, AC/DC, 1979, 116 releases | 1 | Highway to Hell | Highway to Hell | same |
 | Under Pressure Queen David Bowie | 58 | 45 | 45 → 32 | Under Pressure, Queen & David Bowie, 1981, 290 releases | 1 | Hot Space | Hot Space | Greatest Hits |
 | Rock AND Roll Led Zeppelin | 610 | 73 | 50 → 5 | Rock and Roll, Led Zeppelin, 1971, 181 releases | 33 | [Led Zeppelin IV] | [Led Zeppelin IV] | same |
 | Live Forever Oasis | 265 | 197 | 50 → 6 | Live Forever, Oasis, 1994, 139 releases | 3 | Definitely Maybe | Definitely Maybe | same |
-| Обійми | 58 | 58 | 50 → 45 | Обійми, Океан Ельзи, 2013, 9 releases | 2 | Земля | Земля | Избранное |
-| Вахтерам | 4 | 3 | 3 → 2 | Вахтёрам, Бумбокс, 2006, 4 releases | 1 | Family бізнес | Family бізнес | same |
+| Обійми | 58 | 58 | 50 → 47 | Обійми, Океан Ельзи, 2013, 9 releases | 2 | Земля | Земля | same |
+| Вахтерам | 4 | 3 | 3 → 2 | Вахтёрам, Бумбокс, 2006, 4 releases | 2 | Family бізнес | Family бізнес | same |
 | Стефанія | 0 | 0 | 0 → 0 | Nothing |  |  |  |  |
 | Bohemian Rhapsody | 883 | 695 | 50 → 49 | Bohemian Rhapsody, Queen, 1975, 356 releases | 1 | A Night at the Opera | A Night at the Opera | same |
-| Karma Police | 461 | 246 | 50 → 29 | Karma Police, Radiohead, 1997, 151 releases | 1 | OK Computer | OK Computer | Mr Music Hits 11. 1997 |
+| Karma Police | 461 | 246 | 50 → 30 | Karma Police, Radiohead, 1997, 151 releases | 1 | OK Computer | OK Computer | same |
 | Smells Like Teen Spirit | 1190 | 693 | 50 → 50 | Smells Like Teen Spirit, Nirvana, 1991, 165 releases | 1 | Nevermind | Nevermind | same |
 | Yesterday | 15531 | 14988 | 50 → 48 | Yesterday, The Beatles, 1965, 95 releases | 14 | Help! | Help! | same |
 | Hello | 28957 | 27782 | 50 → 48 | Hello, Lionel Richie, 1983, 286 releases | 28 | Can’t Slow Down | Can’t Slow Down | same |
@@ -233,9 +235,9 @@ The query as ADR-0013 prints it was then sent at `limit=50` for all 23 and gave 
 | Collapsed as the same title and artist credit | 368 | 28% |
 | Left | 478 | 36% |
 
-In the chosen form the query has done the hiding, and collapsing takes 346 of 716 rows (48%), leaving 370. `comment:live` matches a word anywhere, so it also hides disambiguations that don't start with it. The answers had two such rows that the spec's rule would keep, a soundboard "recorded live" and a track of a DJ mix named "Live in Japan".
+With the hiding done in the query it's collapsing alone: 343 of the chosen form's 716 rows (48%) at `limit=50`, leaving 373. Hiding has to come before the limit: 87 of the 100 unfiltered rows for "Rock AND Roll Led Zeppelin" were live, and the studio recording wasn't among them. `comment:live` matches a word anywhere, so it also hides disambiguations that don't start with it. The answers had two such rows that the spec's rule would keep, a soundboard "recorded live" and a track of a DJ mix named "Live in Japan".
 
-**Is the release list enough?** A search result's is. For the 18 distinct songs found its distinct releases equalled a browse's `release-count` every time. 5 of the lists repeated a release that has the recording twice, so they have to be counted by MBID. All 18 covers chosen answered 307 at `front-250`. Type and date alone chose a compilation for 5 of the 18.
+**Is the release list enough?** A search result's is. For the 18 distinct songs found its distinct releases equalled a browse's `release-count` every time. 5 of the lists repeated a release that has the recording twice, so they have to be counted by MBID. All 18 covers chosen answered 307 at `front-250`. Type and a plainly sorted date chose a compilation for 5 of the 18. Counting a partial date as the end of its period leaves 3 (Stefania, 1944, Under Pressure), and putting studio release groups first leaves none.
 
 A lookup's is not always. MusicBrainz documents that "the number of linked entities returned is always limited to 25" ([API](https://musicbrainz.org/doc/MusicBrainz_API)).
 
@@ -248,7 +250,7 @@ The four were Yesterday Man (Chris Andrews), Hello It's Me (Todd Rundgren), Yest
 
 **Unknown and merged recordings.** An unknown MBID answered 404 to a lookup and 200 with no rows to a `rid:` search. `fcde0790-ab0d-4f3f-b984-211b2b330af9`, which Wikidata marks as a redirect, answered 301 to a lookup, with a `Location` of `7a0aecf5-0538-42d6-a468-78e0d3a9dead` that keeps the query and answers 200, and no rows to a `rid:` search.
 
-**Payload and CPU.** The largest answer was 0.9 MB at limit 50 and 1.5 MB at 100. Parsing and validating it took up to 1.7 and 2.9 ms in Node 24 on the developer machine. CPU time on Workers was _not checked_.
+**Payload and CPU.** The largest answer was 0.9 MB at limit 50 and 1.5 MB at 100. Parsing and validating one took up to about 1.7 and 3 ms (the median of 41 runs for each answer) in Node 24 on the developer machine. CPU time on Workers was _not checked_.
 
 **Throttling.** 37 of the 69 searches (54%) got a 503 on the first try and 15 (22%) after one retry, 4 of the 23 in the chosen form. 38 of the 93 lookups (41%) got a 503 on the first try and none after the retry. These are worse for searches than the 5% measured from a Worker on 2026-11-21, and over the 10% that #266 set as the limit for searching from the Worker. They aren't the same measurement: another IP, another time and a User-Agent without a contact. How recording searches fare from a Worker was _not checked_.
 
