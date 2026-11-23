@@ -21,6 +21,8 @@ import {
   visibilities,
 } from "./lists";
 import { maxReviewLength, ratingStars } from "./log";
+import { mbidPattern } from "./musicbrainz";
+import { songSearchLimit } from "./musicbrainz-songs";
 import { maxPage } from "./progress";
 import { maxThoughtLength, thoughtStates } from "./thoughts";
 
@@ -235,6 +237,12 @@ const UserMarks = {
   lists: z.array(HoldingList),
 };
 
+// mediaItemId is the work's Media Item, null until it joins the catalog.
+const SearchMarkFields = {
+  mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
+  ...UserMarks,
+};
+
 // The title is the Localized Title in the query's language, or the Original Title when the
 // External Source has none; titleLanguage says which language that query ran in. posterUrl is the
 // cover's thumbnail, whatever the Media Type calls its cover. authors are a book's, as names in
@@ -242,7 +250,7 @@ const UserMarks = {
 // source's order; a result of any other Media Type leaves them out. artistCredit is an album's or
 // a song's, primaryType and secondaryTypes an album's, as AlbumMetadata has them, and album and
 // disambiguation a song's, as SongMetadata has them; a result of any other Media Type leaves them
-// out. mediaItemId is the work's Media Item, null until it joins the catalog.
+// out.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -281,12 +289,21 @@ export const CatalogSearchResult = z
       .nullable()
       .optional()
       .openapi({ example: null, description: "A song's alone" }),
-    mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
-    ...UserMarks,
+    ...SearchMarkFields,
   })
   .openapi("CatalogSearchResult");
 
 export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
+
+// A search result before what the app holds about it, its Media Item and the User's marks, is
+// added to it: what an External Source's answer alone gives.
+export type CatalogSearchMatch = Omit<CatalogSearchResult, keyof typeof SearchMarkFields>;
+
+// What a search row carries of the app's own about one External Reference: its Media Item and the
+// User's marks.
+export const SearchMarks = z.object(SearchMarkFields).openapi("SearchMarks");
+
+export type SearchMarks = z.infer<typeof SearchMarks>;
 
 // A search result as the client got it, to add its work to the catalog. The details call
 // replaces what it says; it stands in only when that call fails. Its External Reference names a
@@ -710,6 +727,30 @@ export const CatalogSearchResponse = z
   .openapi("CatalogSearchResponse");
 
 export type CatalogSearchResponse = z.infer<typeof CatalogSearchResponse>;
+
+// A song search's rows as the browser found them on MusicBrainz (ADR-0013): the query, for the
+// User's manual songs, and up to `songSearchLimit` recording MBIDs, comma-separated, or none.
+export const SearchMarksQuery = z.object({
+  mediaType: z.literal("song"),
+  query: CatalogSearchQuery.shape.query,
+  ids: z
+    .string()
+    .regex(new RegExp(`^(${mbidPattern}(,${mbidPattern})*)?$`))
+    .optional()
+    .transform((ids) => (ids ? ids.split(",") : []))
+    .pipe(z.array(z.string()).max(songSearchLimit))
+    .openapi({ type: "string", example: "d8d55f18-0c4b-4036-a16d-e273ac8953fc" }),
+});
+
+// The User's own matching manual songs, to be listed first, and each MBID's marks.
+export const SearchMarksResponse = z
+  .object({
+    manualResults: z.array(ManualSearchResult),
+    marks: z.record(z.string(), SearchMarks),
+  })
+  .openapi("SearchMarksResponse");
+
+export type SearchMarksResponse = z.infer<typeof SearchMarksResponse>;
 
 // Media Items by id, for loading what a page showed as placeholders: 1 to `maxMetadataFills`
 // positive ids, comma-separated.

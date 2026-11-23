@@ -2,11 +2,25 @@
 // all its editions, and a search or an album's details are one MusicBrainz request each. Covers
 // come from the Cover Art Archive by release-group MBID, linked and never fetched. MusicBrainz
 // allows about one request a second, so every call of this isolate waits its turn in one queue.
-// The queue, the calls and the covers are shared with songs (./musicbrainz-songs.ts), so the two
-// are the only files that know MusicBrainz.
+// The queue, the calls and the covers are shared with songs' lookups (./musicbrainz-songs.ts), and
+// the rules both kinds of search use are in src/shared/musicbrainz.ts, as the browser searches
+// songs (ADR-0013).
 import { z } from "zod";
 import type { AlbumCacheExtra } from "../../../db/schema";
 import type { CoverUrls } from "../../../shared/api";
+import {
+  ArtistCredit,
+  creditOf,
+  escaped,
+  mbid,
+  mbidPattern,
+  namedIn,
+  releaseGroupCoverRef,
+  smallCoverOf,
+  wordsOf,
+  yearOfDate,
+} from "../../../shared/musicbrainz";
+import { searchLanguage } from "../../../shared/search-language";
 import { appVersion } from "../../version";
 import {
   type CatalogEntry,
@@ -18,11 +32,6 @@ import {
   SourceUnavailable,
   shownTitles,
 } from "../source";
-import { searchLanguage } from "./search-language";
-
-const mbidPattern = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-
-export const mbid = new RegExp(`^${mbidPattern}$`);
 
 // A release group's page on MusicBrainz, for its User to follow to its track list and editions.
 function pageOf(id: string): string {
@@ -33,13 +42,13 @@ function pageOf(id: string): string {
 // with the front cover in the size asked for, or 404 when it has none. It holds the archive's base
 // URL, which is each deployment's own; an entry made under another one is refreshed within a week.
 export function coverRefFor(env: CatalogEnv, id: string): string {
-  return `${env.COVER_ART_ARCHIVE_BASE_URL}/release-group/${id}`;
+  return releaseGroupCoverRef(env.COVER_ART_ARCHIVE_BASE_URL, id);
 }
 
 // Square covers, 250 pixels wide for a thumbnail and 500 for a grid or the album's page.
 export function coverUrls(coverRef: string | null): CoverUrls | null {
   if (!coverRef) return null;
-  return { small: `${coverRef}/front-250`, large: `${coverRef}/front-500` };
+  return { small: smallCoverOf(coverRef), large: `${coverRef}/front-500` };
 }
 
 // The cover reference back out of a thumbnail URL this module made, or null for any other URL.
@@ -52,23 +61,13 @@ export function coverRefOf(url: string | null, env: CatalogEnv): string | null {
 
 // Only the fields we use, so MusicBrainz adding or dropping others doesn't break us. A search
 // leaves out secondary-types when there are none, and a lookup gives them as an empty list.
-export const ArtistCredit = z.array(
-  z.object({
-    name: z.string(),
-    joinphrase: z.string().nullish(),
-    artist: z.object({ id: z.string() }),
-  }),
-);
-
-type ArtistCredit = z.infer<typeof ArtistCredit>;
-
 const ReleaseGroup = z.object({
   id: z.string().regex(mbid),
   title: z.string(),
   "first-release-date": z.string().nullish(),
   "primary-type": z.string().nullish(),
   "secondary-types": z.array(z.string()).nullish(),
-  "artist-credit": ArtistCredit.optional(),
+  "artist-credit": z.optional(ArtistCredit),
   // How many releases it has; a search gives it, a lookup doesn't.
   count: z.number().nullish(),
 });
@@ -112,30 +111,6 @@ function rank(group: ReleaseGroup, primaryType: PrimaryType): number {
   return (primaryType === "Album" ? 0 : 2) + (secondaryTypesOf(group).length > 0 ? 1 : 0);
 }
 
-// The words of a query or a name, to compare them: lowercased, without accents, apostrophes or
-// punctuation, so "Pink Floyd’s" is one word, "floyds".
-export function wordsOf(text: string): string[] {
-  return text
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/\p{M}/gu, "")
-    .replace(/['’`]/g, "")
-    .split(/[^\p{L}\p{N}]+/u)
-    .filter(Boolean);
-}
-
-const articles = new Set(["the", "a", "an"]);
-
-// The words of a name the query holds, its articles aside, if it holds every one: "The Beatles" is
-// in "abbey road beatles", and "The Dark Side of the Moon" in "pink floyd dark side of the moon".
-// Null if the query lacks any.
-export function namedIn(queryWords: Set<string>, name: string): string[] | null {
-  const words = wordsOf(name);
-  const significant = words.filter((word) => !articles.has(word));
-  const asked = significant.length > 0 ? significant : words;
-  return asked.length > 0 && asked.every((word) => queryWords.has(word)) ? asked : null;
-}
-
 // How much of a release group the query names: one for its title, and one for any of its credited
 // artists in the words the title left. A tribute names the original in its own title ("The String
 // Quartet Tribute to Pink Floyd’s The Dark Side of the Moon"), which MusicBrainz ranks high, so the
@@ -154,24 +129,9 @@ function releasesOf(group: ReleaseGroup): number {
   return group.count ?? 0;
 }
 
-// The year of a date MusicBrainz writes as YYYY, YYYY-MM or YYYY-MM-DD.
-export function yearOfDate(date: string | null | undefined): number | null {
-  const year = /^(\d{4})/.exec(date ?? "")?.[1];
-  return year ? Number(year) : null;
-}
-
 // The year of the first release.
 function yearOf(group: ReleaseGroup): number | null {
   return yearOfDate(group["first-release-date"]);
-}
-
-// The artist credit as MusicBrainz shows it: each credited name followed by its join phrase.
-export function creditOf(credits: ArtistCredit | null | undefined): string | null {
-  const credit = (credits ?? [])
-    .map((artist) => artist.name + (artist.joinphrase ?? ""))
-    .join("")
-    .trim();
-  return credit || null;
 }
 
 function artistCreditOf(group: ReleaseGroup): string | null {
@@ -294,7 +254,7 @@ export async function get(env: CatalogEnv, path: string, params: Record<string, 
 }
 
 // The answer's body, unless MusicBrainz answered with an error.
-export function bodyOf(path: string, answer: Answer): unknown {
+function bodyOf(path: string, answer: Answer): unknown {
   if (answer.status < 200 || answer.status > 299) {
     throw new SourceUnavailable(
       `MusicBrainz ${path} answered ${answer.status}`,
@@ -302,11 +262,6 @@ export function bodyOf(path: string, answer: Answer): unknown {
     );
   }
   return answer.body;
-}
-
-// Lucene's special characters, which a query would otherwise use as its syntax.
-export function escaped(query: string): string {
-  return query.replace(/[+\-&|!(){}[\]^"~*?:\\/]/g, (char) => `\\${char}`);
 }
 
 // The release groups that are Media Items, Album or EP, which the query asks for so that the limit

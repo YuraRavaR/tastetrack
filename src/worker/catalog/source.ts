@@ -5,7 +5,7 @@ import type { AnyD1Database } from "drizzle-orm/d1";
 import type { CacheExtras } from "../../db/schema";
 import type {
   About,
-  CatalogSearchResult,
+  CatalogSearchMatch,
   CoverUrls,
   ExternalSource,
   MediaItem,
@@ -35,12 +35,7 @@ export interface CatalogEnv {
   DB: AnyD1Database;
 }
 
-// A search result before what the app holds about it, its Media Item and the User's Log, Backlog
-// and Lists, is added to it.
-export type CatalogSearchMatch = Omit<
-  CatalogSearchResult,
-  "mediaItemId" | "inLog" | "inBacklog" | "currentRating" | "logEntryCount" | "lists"
->;
+export type { CatalogSearchMatch };
 
 // What the cache keeps about one External Reference: the columns every Media Type has, and in
 // `extra` what only its own has. A title is null when the source has none in that language.
@@ -100,8 +95,9 @@ export interface CatalogSource<M extends MediaType> {
   // How long an entry may be kept from when it was last filled, in milliseconds; null for no
   // limit. Past it no read shows the entry, whether or not the cron has deleted it yet.
   maxEntryAge: number | null;
-  // The first page of the source's matches, in its order. Throws SourceUnavailable.
-  search(env: CatalogEnv, query: string): Promise<CatalogSearchMatch[]>;
+  // The first page of the source's matches, in its order. Throws SourceUnavailable. A Media Type
+  // the browser searches itself, as songs are (ADR-0013), has none.
+  search?(env: CatalogEnv, query: string): Promise<CatalogSearchMatch[]>;
   // One External Reference's details, as its cache entry holds them. Throws SourceUnavailable.
   details(env: CatalogEnv, externalId: string): Promise<CatalogEntry<M>>;
   // What a search result alone says, for when the details call fails: its cover reference back

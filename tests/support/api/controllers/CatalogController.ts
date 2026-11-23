@@ -13,6 +13,15 @@ export class CatalogController extends BaseController {
     return this.requestContext.get(endpoints.catalog.search, { ...options, params: search });
   }
 
+  // The marks of the rows a song search in the browser found. `ids` is the comma-separated form
+  // the route takes, so a test can send a malformed one.
+  getSearchMarks(
+    search: { mediaType: string; query: string; ids: string },
+    options?: RequestOptions,
+  ) {
+    return this.requestContext.get(endpoints.catalog.searchMarks, { ...options, params: search });
+  }
+
   // `ids` is the comma-separated form the route takes, so a test can send a malformed one.
   getMediaItems(ids: string, options?: RequestOptions) {
     return this.requestContext.get(endpoints.catalog.items, { ...options, params: { ids } });

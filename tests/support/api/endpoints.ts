@@ -13,6 +13,7 @@ export const endpoints = {
   },
   catalog: {
     search: "/api/catalog/search",
+    searchMarks: "/api/catalog/search/marks",
     items: "/api/catalog/items",
     manualItems: "/api/catalog/manual-items",
     manualItemById: (mediaItemId: number) => `/api/catalog/manual-items/${mediaItemId}`,

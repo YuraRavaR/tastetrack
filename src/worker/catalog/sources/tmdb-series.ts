@@ -4,6 +4,7 @@
 import { z } from "zod";
 import type { SeriesCacheExtra } from "../../../db/schema";
 import type { SeriesStatus } from "../../../shared/api";
+import { searchLanguage } from "../../../shared/search-language";
 import {
   type CatalogEntry,
   type CatalogEnv,
@@ -12,7 +13,6 @@ import {
   SourceUnavailable,
   shownTitles,
 } from "../source";
-import { searchLanguage } from "./search-language";
 import {
   backdropUrls,
   classifyFailure,

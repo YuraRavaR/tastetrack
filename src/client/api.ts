@@ -48,6 +48,7 @@ import type {
   PasswordChangeRequest,
   PlanRequest,
   RegisterRequest,
+  SearchMarksResponse,
   SharedList,
   SharedListResponse,
   ShareLink,
@@ -265,6 +266,29 @@ export async function searchCatalog(
     }
     const { manualResults, results } = (await response.json()) as CatalogSearchResponse;
     return { ok: true, manualResults, results };
+  } catch {
+    return { ok: false, error: signal.aborted ? "aborted" : "unavailable" };
+  }
+}
+
+// The marks of a song search's rows, or why there are none.
+export type SearchMarksOutcome =
+  | ({ ok: true } & SearchMarksResponse)
+  | { ok: false; error: "aborted" | "unavailable" };
+
+// What TasteTrack holds about the songs a search in the browser found, by their recording MBIDs,
+// and the User's own manual songs for the query (ADR-0013).
+export async function fetchSearchMarks(
+  query: string,
+  ids: string[],
+  signal: AbortSignal,
+): Promise<SearchMarksOutcome> {
+  const params = new URLSearchParams({ mediaType: "song", query, ids: ids.join(",") });
+  try {
+    const response = await fetch(`/api/catalog/search/marks?${params}`, { signal });
+    if (!response.ok) return { ok: false, error: "unavailable" };
+    const { manualResults, marks } = (await response.json()) as SearchMarksResponse;
+    return { ok: true, manualResults, marks };
   } catch {
     return { ok: false, error: signal.aborted ? "aborted" : "unavailable" };
   }
