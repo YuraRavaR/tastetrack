@@ -1,6 +1,6 @@
 // Log Entries: the Experienced action and the Log. Route handlers only translate HTTP to these
 // calls; the rules themselves are the domain core's (src/shared/log.ts).
-import { and, type Column, eq, exists, inArray, sql } from "drizzle-orm";
+import { and, type Column, eq, exists, inArray, notInArray, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { catalogCache, inProgress, logEntries, mediaItems } from "../../db/schema";
 import type {
@@ -12,6 +12,7 @@ import type {
   NewLogEntryRequest,
   RemovedListItem,
 } from "../../shared/api";
+import { lightMediaTypes } from "../../shared/catalog";
 import {
   currentRating,
   inLogOrder,
@@ -72,6 +73,7 @@ export type LogEntryProblem =
   | LogDateProblem
   | "invalid_rating"
   | "unknown_media_item"
+  | "wrong_media_type"
   | "not_in_progress";
 
 export type CreatedLogEntry =
@@ -81,9 +83,9 @@ export type CreatedLogEntry =
 // Records that the User experienced the Media Item, and takes it off their Backlog in the same
 // batch; `removedFromBacklog` says where it was, so the client can offer to undo that. It answers
 // with the Media Item's Current Rating and number of Log Entries now. A first entry may be a
-// Revisit, and an empty Review counts as none. Another User's Manual Media Item is as unknown as
-// one that doesn't exist. `finishing` records it only for a Media Item the User has In Progress,
-// and ends that in the same batch.
+// Revisit, and an empty Review counts as none. A Media Item of a light Media Type, a song, is never
+// logged. Another User's Manual Media Item is as unknown as one that doesn't exist. `finishing`
+// records it only for a Media Item the User has In Progress, and ends that in the same batch.
 export async function createLogEntry(
   db: DrizzleD1Database,
   userId: number,
@@ -119,7 +121,14 @@ export async function createLogEntry(
           createdAt: sql<number>`${now.getTime()}`.as("created_at"),
         })
         .from(mediaItems)
-        .where(and(eq(mediaItems.id, request.mediaItemId), visibleTo(userId), whileStarted)),
+        .where(
+          and(
+            eq(mediaItems.id, request.mediaItemId),
+            visibleTo(userId),
+            notInArray(mediaItems.mediaType, [...lightMediaTypes]),
+            whileStarted,
+          ),
+        ),
     )
     .returning({ id: logEntries.id });
   const backlog = takeOffBacklog(db, userId, request.mediaItemId, {
@@ -131,7 +140,20 @@ export async function createLogEntry(
   const [[inserted], [removed]] = finishing
     ? await db.batch([insert, ...backlog, db.delete(inProgress).where(started)])
     : await db.batch([insert, ...backlog]);
-  if (!inserted) return { ok: false, error: finishing ? "not_in_progress" : "unknown_media_item" };
+  if (!inserted) {
+    if (finishing) return { ok: false, error: "not_in_progress" };
+    const [light] = await db
+      .select({ id: mediaItems.id })
+      .from(mediaItems)
+      .where(
+        and(
+          eq(mediaItems.id, request.mediaItemId),
+          visibleTo(userId),
+          inArray(mediaItems.mediaType, [...lightMediaTypes]),
+        ),
+      );
+    return { ok: false, error: light ? "wrong_media_type" : "unknown_media_item" };
+  }
   const [[row], logged] = await Promise.all([
     selectLog(db, now).where(eq(logEntries.id, inserted.id)),
     loggedMediaItems(db, userId, [request.mediaItemId]),

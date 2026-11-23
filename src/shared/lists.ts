@@ -1,6 +1,7 @@
 // The rules of Lists and the Backlog. Pure functions and plain values with no I/O, shared by the
 // Worker, which enforces them, and the client, which keeps input within them.
-import type { MediaType } from "./api";
+import type { BacklogMediaType, MediaType } from "./api";
+import { isLight } from "./catalog";
 import { textKey } from "./text";
 
 // Who may see a List, from least to most: each level includes the ones before it. Every List
@@ -54,8 +55,8 @@ export function sameListName(name: string, other: string): boolean {
   return listNameKey(name) === listNameKey(other);
 }
 
-// The UI's name for the Backlog of each Media Type (ADR-0005).
-const backlogNames: Record<MediaType, string> = {
+// The UI's name for the Backlog of each Media Type that has one (ADR-0005).
+const backlogNames: Record<BacklogMediaType, string> = {
   film: "Watchlist",
   book: "Reading list",
   series: "Watchlist",
@@ -79,5 +80,8 @@ export function sharedListTitle(
   mediaType: MediaType,
   ownerDisplayName: string,
 ): string {
-  return name ?? `${ownerDisplayName}'s ${backlogNames[mediaType]}`;
+  if (name !== null) return name;
+  // Only a Backlog has no name, and a light Media Type has none.
+  if (isLight(mediaType)) throw new Error(`A List of ${mediaType} has no name`);
+  return `${ownerDisplayName}'s ${backlogNames[mediaType]}`;
 }

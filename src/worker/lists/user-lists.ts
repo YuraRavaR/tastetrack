@@ -1,7 +1,7 @@
 // A User's own Lists, beside the Backlog: making, reading, renaming and deleting them, and adding
 // Media Items to them. Route handlers only translate HTTP to these calls; the List rules are the
 // domain core's (src/shared/lists.ts).
-import { and, asc, count, eq, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, lte, max, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { catalogCache, listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
 import type {
@@ -18,6 +18,7 @@ import type {
   NewListItemRequest,
   NewListRequest,
 } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import {
   isReservedListName,
   isShared,
@@ -70,9 +71,18 @@ function descriptionOf(description: string | null | undefined): string | null {
   return description?.trim() || null;
 }
 
+// Another of the User's Lists has the name: which Media Type that one is of, which may differ from
+// the List being made or renamed.
+export interface NameTaken {
+  ok: false;
+  error: "list_name_taken";
+  mediaType: MediaType;
+}
+
 export type CreatedList =
   | { ok: true; list: ListSummary }
-  | { ok: false; error: "list_name_reserved" | "list_name_taken" | "too_many_lists" };
+  | { ok: false; error: "list_name_reserved" | "too_many_lists" }
+  | NameTaken;
 
 // Makes a private, empty List. Its name can't be reserved or one of the User's other Lists'
 // names, and a User holds at most `maxLists`.
@@ -113,13 +123,14 @@ export async function createList(
       .onConflictDoNothing()
       .returning(summaryColumns),
     db
-      .select({ id: lists.id })
+      .select({ mediaType: lists.mediaType })
       .from(lists)
       .where(and(eq(lists.userId, userId), eq(lists.nameKey, nameKey))),
   ]);
   const [created] = inserted;
   if (created) return { ok: true, list: toSummary({ ...created, itemCount: 0 }) };
-  return { ok: false, error: taken ? "list_name_taken" : "too_many_lists" };
+  if (taken) return { ok: false, error: "list_name_taken", mediaType: taken.mediaType };
+  return { ok: false, error: "too_many_lists" };
 }
 
 // The User's own Lists, oldest first, each with how many items it holds, in one query.
@@ -131,14 +142,14 @@ export async function userLists(db: DrizzleD1Database, userId: number): Promise<
   return rows.map(toSummary);
 }
 
-// The User's own Lists, oldest first, each with how many items it holds, its first
-// `listCoverCount` Media Items in List order and whether it has a Share Link, in two queries
-// however many Lists and items there are.
-export async function listPreviews(
+// The first `coverCount` Media Items of each of the User's own Lists, in List order, in one query
+// however many Lists and items there are. An empty List is left out.
+async function firstMediaItems(
   db: DrizzleD1Database,
   userId: number,
+  coverCount: number,
   now: Date,
-): Promise<ListPreview[]> {
+): Promise<Map<number, MediaItem[]>> {
   // Each of the User's List Items with its place in its List, counted from 1.
   const places = db
     .select({
@@ -151,21 +162,33 @@ export async function listPreviews(
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
     .as("places");
-  const [summaries, coverRows] = await Promise.all([
-    userLists(db, userId),
-    db
-      .select({ listId: listItems.listId, ...mediaItemColumns })
-      .from(listItems)
-      .innerJoin(places, eq(places.id, listItems.id))
-      .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
-      .leftJoin(catalogCache, cacheOfMediaItem(now))
-      .where(lte(places.place, listCoverCount))
-      .orderBy(asc(places.place)),
-  ]);
-  const covers = new Map<number, MediaItem[]>();
-  for (const row of coverRows) {
-    covers.set(row.listId, [...(covers.get(row.listId) ?? []), toMediaItem(row)]);
+  const rows = await db
+    .select({ listId: listItems.listId, ...mediaItemColumns })
+    .from(listItems)
+    .innerJoin(places, eq(places.id, listItems.id))
+    .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
+    .leftJoin(catalogCache, cacheOfMediaItem(now))
+    .where(lte(places.place, coverCount))
+    .orderBy(asc(places.place));
+  const firsts = new Map<number, MediaItem[]>();
+  for (const row of rows) {
+    firsts.set(row.listId, [...(firsts.get(row.listId) ?? []), toMediaItem(row)]);
   }
+  return firsts;
+}
+
+// The User's own Lists, oldest first, each with how many items it holds, its first
+// `listCoverCount` Media Items in List order and whether it has a Share Link, in two queries
+// however many Lists and items there are.
+export async function listPreviews(
+  db: DrizzleD1Database,
+  userId: number,
+  now: Date,
+): Promise<ListPreview[]> {
+  const [summaries, covers] = await Promise.all([
+    userLists(db, userId),
+    firstMediaItems(db, userId, listCoverCount, now),
+  ]);
   return summaries.map((summary) => ({
     ...summary,
     covers: covers.get(summary.id) ?? [],
@@ -175,7 +198,8 @@ export async function listPreviews(
 
 export type EditedList =
   | { ok: true; list: ListSummary }
-  | { ok: false; error: "unknown_list" | "list_name_reserved" | "list_name_taken" };
+  | { ok: false; error: "unknown_list" | "list_name_reserved" }
+  | NameTaken;
 
 // Changes the fields `edit` gives of one of the User's Lists, by the same name rules as making
 // one: a List may take its own name in another case.
@@ -216,7 +240,14 @@ export async function editList(
     summary,
   ]);
   if (!list) return { ok: false, error: "unknown_list" };
-  if (updated.length === 0) return { ok: false, error: "list_name_taken" };
+  if (updated.length === 0) {
+    const [taken] = await db
+      .select({ mediaType: lists.mediaType })
+      .from(lists)
+      .where(and(eq(lists.userId, userId), eq(lists.nameKey, changes.nameKey ?? "")));
+    // Only a List renamed or deleted in that moment leaves the name free again.
+    return { ok: false, error: "list_name_taken", mediaType: taken?.mediaType ?? list.mediaType };
+  }
   return { ok: true, list: toSummary(list) };
 }
 
@@ -231,15 +262,19 @@ export async function deleteList(
   return deleted.length > 0;
 }
 
-// The User's own Lists of the Media Item's Media Type, oldest first, each with the List Item
-// that holds it there, in three queries however many Lists there are; null when the User can't see
-// the Media Item. Another User's Manual Media Item is as unknown as one that doesn't exist.
+// The User's own Lists of the Media Item's Media Type, each with the List Item that holds it there
+// and its first Media Item, in four queries however many Lists there are; null when the User can't
+// see the Media Item. They come oldest first, but for a light Media Type, a song, which goes into
+// Lists in one step: the List last added to first, by its newest List Item, so the usual one is a
+// tap away, then the empty ones, oldest first. Another User's Manual Media Item is as unknown as
+// one that doesn't exist.
 export async function mediaItemLists(
   db: DrizzleD1Database,
   userId: number,
   mediaItemId: number,
+  now: Date,
 ): Promise<MediaItemList[] | null> {
-  const [[mediaItem], held, summaries] = await Promise.all([
+  const [[mediaItem], held, summaries, firsts] = await Promise.all([
     db
       .select({ mediaType: mediaItems.mediaType })
       .from(mediaItems)
@@ -260,15 +295,37 @@ export async function mediaItemLists(
           eq(lists.kind, "list"),
         ),
       ),
-    userLists(db, userId),
+    db
+      .select({
+        ...summaryColumns,
+        itemCount: count(listItems.id),
+        createdAt: lists.createdAt,
+        lastAddedAt: max(listItems.createdAt),
+      })
+      .from(lists)
+      .leftJoin(listItems, eq(listItems.listId, lists.id))
+      .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
+      .groupBy(lists.id),
+    firstMediaItems(db, userId, 1, now),
   ]);
   if (!mediaItem) return null;
   const places = new Map(
     held.map(({ listId, id, note, index }) => [listId, { id, position: index, note }]),
   );
+  // The newest List Item's time, as a number; 0 for an empty List, which comes last.
+  const lastAdded = (list: (typeof summaries)[number]) =>
+    isLight(mediaItem.mediaType) ? Number(list.lastAddedAt ?? 0) : 0;
   return summaries
     .filter((list) => list.mediaType === mediaItem.mediaType)
-    .map((list) => ({ ...list, listItem: places.get(list.id) ?? null }));
+    .sort(
+      (a, b) =>
+        lastAdded(b) - lastAdded(a) || a.createdAt.getTime() - b.createdAt.getTime() || a.id - b.id,
+    )
+    .map(({ createdAt: _created, lastAddedAt: _lastAdded, ...list }) => ({
+      ...toSummary(list),
+      listItem: places.get(list.id) ?? null,
+      firstMediaItem: firsts.get(list.id)?.[0] ?? null,
+    }));
 }
 
 // The User's own Lists holding each of these Media Items, oldest first, in one query. The Backlog

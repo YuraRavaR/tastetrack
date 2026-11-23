@@ -16,6 +16,7 @@ import type {
   ExternalReference,
   FilmMetadata,
   MediaItem,
+  MediaType,
   SeriesEpisode,
   SeriesStatus,
 } from "../../shared/api";
@@ -46,7 +47,7 @@ let database: TestDatabase;
 let db: DrizzleD1Database;
 let userId: number;
 // A List of each Media Type.
-let listIds: { film: number; book: number; series: number; game: number; album: number };
+let listIds: Record<MediaType, number>;
 
 beforeAll(async () => {
   database = await openTestDatabase();
@@ -75,7 +76,7 @@ beforeEach(async () => {
     .returning();
   if (!user) throw new Error("no user");
   userId = user.id;
-  const [films, books, series, games, albums] = await db
+  const [films, books, series, games, albums, songs] = await db
     .insert(lists)
     .values([
       { userId, kind: "list", mediaType: "film", name: "F", nameKey: "f", createdAt: now },
@@ -83,10 +84,18 @@ beforeEach(async () => {
       { userId, kind: "list", mediaType: "series", name: "S", nameKey: "s", createdAt: now },
       { userId, kind: "list", mediaType: "game", name: "G", nameKey: "g", createdAt: now },
       { userId, kind: "list", mediaType: "album", name: "A", nameKey: "a", createdAt: now },
+      { userId, kind: "list", mediaType: "song", name: "M", nameKey: "m", createdAt: now },
     ])
     .returning();
-  if (!films || !books || !series || !games || !albums) throw new Error("no lists");
-  listIds = { film: films.id, book: books.id, series: series.id, game: games.id, album: albums.id };
+  if (!films || !books || !series || !games || !albums || !songs) throw new Error("no lists");
+  listIds = {
+    film: films.id,
+    book: books.id,
+    series: series.id,
+    game: games.id,
+    album: albums.id,
+    song: songs.id,
+  };
 });
 
 interface Work {
@@ -186,6 +195,23 @@ async function album(id: string, options: Work = {}): Promise<void> {
   const extra = sourceOf("album").emptyExtra;
   await work({ source: "musicbrainz", mediaType: "album", id }, `Album ${id}`, extra, options);
 }
+
+// Adds a catalog-backed song with recording MBID `id`.
+async function song(id: string, options: Work = {}): Promise<void> {
+  const extra = sourceOf("song").emptyExtra;
+  await work({ source: "musicbrainz", mediaType: "song", id }, `Song ${id}`, extra, options);
+}
+
+// Recordings the MusicBrainz fake has, each a Media Item.
+const songIds = [
+  "d8d55f18-0c4b-4036-a16d-e273ac8953fc",
+  "22ea4f0b-0db2-4e24-a0d0-b60fa92f340b",
+  "f4100990-432c-47c3-adc4-29a868a2439b",
+  "09aeabc9-988d-46d5-9e7a-1ab44a543b3b",
+  "37f5dc8e-3b15-4953-a768-215d5ff651d3",
+  "b3a54e3b-dadd-41f7-8efe-3f5c07e3259c",
+  "47fd3d33-f944-4e87-b9cc-808ff7ce64a9",
+];
 
 // Release groups the MusicBrainz fake has, each a Media Item.
 const albumIds = [
@@ -733,6 +759,82 @@ describe("a cron run", () => {
     const titles = await loggedTitles();
     expect(titles).toEqual(expect.arrayContaining(["Земля", "Abbey Road", "1944", "Alien"]));
     expect(titles.filter((title) => title?.startsWith("Album "))).toHaveLength(2);
+  });
+
+  it("refreshes at most 10 albums and songs together a run, and the film behind them", async () => {
+    // Albums and songs take turns, older than the film, so they come first in the queue.
+    for (const [index, id] of songIds.entries()) {
+      await album(albumIds[index] ?? "", {
+        in: "log",
+        cached: { updated: daysAgo(30 - 2 * index) },
+      });
+      await song(id, { in: "list", cached: { updated: daysAgo(29 - 2 * index) } });
+    }
+    await film("348", { in: "log", cached: { updated: daysAgo(8) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 11, failed: 0, deleted: 0 });
+    expect(musicBrainzCalls).toHaveLength(10);
+    expect(musicBrainzAtOnce).toBe(1);
+    expect(subrequests).toBe(11);
+    const refreshed = await db.select().from(catalogCache);
+    const stillPlaceholders = refreshed.filter(
+      (entry) =>
+        entry.originalTitle.startsWith("Album ") || entry.originalTitle.startsWith("Song "),
+    );
+    // The newest two albums and two songs wait for the next run.
+    expect(stillPlaceholders.map((entry) => entry.mediaType).sort()).toEqual([
+      "album",
+      "album",
+      "song",
+      "song",
+    ]);
+  });
+
+  it("refreshes a song with MusicBrainz's details, its album and cover from its studio Album", async () => {
+    await song("d8d55f18-0c4b-4036-a16d-e273ac8953fc", {
+      in: "list",
+      cached: { updated: daysAgo(8) },
+    });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    expect(musicBrainzCalls).toHaveLength(1);
+    const [entry] = await db.select().from(catalogCache);
+    expect(entry).toMatchObject({
+      englishTitle: null,
+      ukrainianTitle: null,
+      originalTitle: "Обійми",
+      year: 2013,
+      coverRef: "http://coverartarchive.test/release-group/080f0c63-6e0b-42d0-917d-e22d1d4bdaf8",
+      extra: {
+        artistCredit: "Океан Ельзи",
+        artists: [{ name: "Океан Ельзи", mbid: "87a417d3-f118-43e0-bece-3de1bd90fce0" }],
+        album: { title: "Земля", mbid: "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8" },
+        coverMbid: "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8",
+        disambiguation: null,
+        url: "https://musicbrainz.org/recording/d8d55f18-0c4b-4036-a16d-e273ac8953fc",
+      },
+    });
+  });
+
+  it("refreshes a merged song through MusicBrainz's redirect, for two calls, under its own MBID", async () => {
+    const merged = "fcde0790-ab0d-4f3f-b984-211b2b330af9";
+    await song(merged, { in: "list", cached: { updated: daysAgo(8) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    expect(musicBrainzCalls).toHaveLength(2);
+    const [entry] = await db.select().from(catalogCache);
+    expect(entry).toMatchObject({
+      externalId: merged,
+      originalTitle: "Running up That Hill (A Deal With God) (2012 remix)",
+      year: 2012,
+      extra: {
+        album: {
+          title:
+            "A Symphony of British Music: Music for the Closing Ceremony of the London 2012 Olympic Games",
+        },
+        url: "https://musicbrainz.org/recording/7a0aecf5-0538-42d6-a468-78e0d3a9dead",
+      },
+    });
   });
 
   it("refreshes an album with MusicBrainz's details, keeping what it holds in the cache", async () => {

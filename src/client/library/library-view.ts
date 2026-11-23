@@ -43,6 +43,7 @@ const genred: Record<MediaType, boolean> = {
   series: false,
   game: false,
   album: false,
+  song: false,
 };
 
 export function hasGenres(mediaType: MediaType): boolean {

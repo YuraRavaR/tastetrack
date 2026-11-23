@@ -19,7 +19,8 @@ const rules =
   `the text, trimmed, is empty or longer than ${maxThoughtLength} characters ` +
   "(`invalid_request`), the date isn't a calendar date, is before 1900-01-01 or after today in " +
   "the User's time zone (`invalid_date`, `date_too_early`, `date_in_future`), the Progress is of " +
-  "another Media Type, or the Media Item's Media Type has none (`progress_mismatch`), or a " +
+  "another Media Type, or the Media Item's Media Type has none (`progress_mismatch`), the Media " +
+  "Item is of a light Media Type, a song, which has no Thoughts (`wrong_media_type`), or a " +
   "series' season isn't a whole number from 1 or its episode a whole number from 0, or a book's " +
   `page isn't a whole number from 0 to ${maxPage}, its page count one from 1 to ${maxPage}, or ` +
   "the page is past the page count (`invalid_progress`)";

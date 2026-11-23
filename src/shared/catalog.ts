@@ -63,6 +63,16 @@ export const maxManualMediaItems = 1_000;
 // the rest as placeholders, which the client then loads this many at a time (ADR-0004).
 export const maxMetadataFills = 10;
 
+// The light Media Types, kept only in the Lists Users make (ADR-0005): a song has no Backlog, no
+// Log Entries, no In Progress and no Thoughts, so it is never in a Library.
+export const lightMediaTypes = ["song"] as const;
+
+export type LightMediaType = (typeof lightMediaTypes)[number];
+
+export function isLight(mediaType: string): mediaType is LightMediaType {
+  return (lightMediaTypes as readonly string[]).includes(mediaType);
+}
+
 // The Media Types a User can have In Progress: started and not yet finished (ADR-0005). A film is
 // watched in one sitting, so it has none. A game has one without Progress.
 export const progressMediaTypes = ["book", "series", "game"] as const;

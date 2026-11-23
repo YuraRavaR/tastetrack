@@ -2,7 +2,8 @@
 // all its editions, and a search or an album's details are one MusicBrainz request each. Covers
 // come from the Cover Art Archive by release-group MBID, linked and never fetched. MusicBrainz
 // allows about one request a second, so every call of this isolate waits its turn in one queue.
-// Everything MusicBrainz-shaped stays in this file.
+// The queue, the calls and the covers are shared with songs (./musicbrainz-songs.ts), so the two
+// are the only files that know MusicBrainz.
 import { z } from "zod";
 import type { AlbumCacheExtra } from "../../../db/schema";
 import type { CoverUrls } from "../../../shared/api";
@@ -21,7 +22,7 @@ import { searchLanguage } from "./search-language";
 
 const mbidPattern = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
-const mbid = new RegExp(`^${mbidPattern}$`);
+export const mbid = new RegExp(`^${mbidPattern}$`);
 
 // A release group's page on MusicBrainz, for its User to follow to its track list and editions.
 function pageOf(id: string): string {
@@ -31,18 +32,18 @@ function pageOf(id: string): string {
 // The cover's reference is its release group's address on the Cover Art Archive, which answers
 // with the front cover in the size asked for, or 404 when it has none. It holds the archive's base
 // URL, which is each deployment's own; an entry made under another one is refreshed within a week.
-function coverRefFor(env: CatalogEnv, id: string): string {
+export function coverRefFor(env: CatalogEnv, id: string): string {
   return `${env.COVER_ART_ARCHIVE_BASE_URL}/release-group/${id}`;
 }
 
 // Square covers, 250 pixels wide for a thumbnail and 500 for a grid or the album's page.
-function coverUrls(coverRef: string | null): CoverUrls | null {
+export function coverUrls(coverRef: string | null): CoverUrls | null {
   if (!coverRef) return null;
   return { small: `${coverRef}/front-250`, large: `${coverRef}/front-500` };
 }
 
 // The cover reference back out of a thumbnail URL this module made, or null for any other URL.
-function coverRefOf(url: string | null, env: CatalogEnv): string | null {
+export function coverRefOf(url: string | null, env: CatalogEnv): string | null {
   const prefix = `${env.COVER_ART_ARCHIVE_BASE_URL}/release-group/`;
   if (!url?.startsWith(prefix)) return null;
   const match = new RegExp(`^(${mbidPattern})/front-250$`).exec(url.slice(prefix.length));
@@ -51,13 +52,15 @@ function coverRefOf(url: string | null, env: CatalogEnv): string | null {
 
 // Only the fields we use, so MusicBrainz adding or dropping others doesn't break us. A search
 // leaves out secondary-types when there are none, and a lookup gives them as an empty list.
-const ArtistCredit = z.array(
+export const ArtistCredit = z.array(
   z.object({
     name: z.string(),
     joinphrase: z.string().nullish(),
     artist: z.object({ id: z.string() }),
   }),
 );
+
+type ArtistCredit = z.infer<typeof ArtistCredit>;
 
 const ReleaseGroup = z.object({
   id: z.string().regex(mbid),
@@ -111,7 +114,7 @@ function rank(group: ReleaseGroup, primaryType: PrimaryType): number {
 
 // The words of a query or a name, to compare them: lowercased, without accents, apostrophes or
 // punctuation, so "Pink Floyd’s" is one word, "floyds".
-function wordsOf(text: string): string[] {
+export function wordsOf(text: string): string[] {
   return text
     .toLowerCase()
     .normalize("NFKD")
@@ -126,7 +129,7 @@ const articles = new Set(["the", "a", "an"]);
 // The words of a name the query holds, its articles aside, if it holds every one: "The Beatles" is
 // in "abbey road beatles", and "The Dark Side of the Moon" in "pink floyd dark side of the moon".
 // Null if the query lacks any.
-function namedIn(queryWords: Set<string>, name: string): string[] | null {
+export function namedIn(queryWords: Set<string>, name: string): string[] | null {
   const words = wordsOf(name);
   const significant = words.filter((word) => !articles.has(word));
   const asked = significant.length > 0 ? significant : words;
@@ -151,25 +154,39 @@ function releasesOf(group: ReleaseGroup): number {
   return group.count ?? 0;
 }
 
-// The year of the first release, from a date MusicBrainz writes as YYYY, YYYY-MM or YYYY-MM-DD.
-function yearOf(group: ReleaseGroup): number | null {
-  const year = /^(\d{4})/.exec(group["first-release-date"] ?? "")?.[1];
+// The year of a date MusicBrainz writes as YYYY, YYYY-MM or YYYY-MM-DD.
+export function yearOfDate(date: string | null | undefined): number | null {
+  const year = /^(\d{4})/.exec(date ?? "")?.[1];
   return year ? Number(year) : null;
 }
 
+// The year of the first release.
+function yearOf(group: ReleaseGroup): number | null {
+  return yearOfDate(group["first-release-date"]);
+}
+
 // The artist credit as MusicBrainz shows it: each credited name followed by its join phrase.
-function artistCreditOf(group: ReleaseGroup): string | null {
-  const credit = (group["artist-credit"] ?? [])
+export function creditOf(credits: ArtistCredit | null | undefined): string | null {
+  const credit = (credits ?? [])
     .map((artist) => artist.name + (artist.joinphrase ?? ""))
     .join("")
     .trim();
   return credit || null;
 }
 
+function artistCreditOf(group: ReleaseGroup): string | null {
+  return creditOf(group["artist-credit"]);
+}
+
+// Each credited name with the artist's MBID, in MusicBrainz's order.
+export function creditedArtists(credits: ArtistCredit | null | undefined) {
+  return (credits ?? []).map(({ name, artist }) => ({ name, mbid: artist.id }));
+}
+
 // MusicBrainz takes no key, so a 401 or 403 means it is blocking us; a 404 is a release group it
 // doesn't have. A 503 is MusicBrainz throttling us or busy, and like any other 5xx is worth trying
 // again, never a sign the album is gone.
-function classifyFailure(status: number): SourceFailure {
+export function classifyFailure(status: number): SourceFailure {
   if (status === 404) return "gone";
   if (status === 401 || status === 403) return "access";
   return "temporary";
@@ -260,7 +277,7 @@ async function getOnce(env: CatalogEnv, url: URL): Promise<Answer> {
 // One MusicBrainz request, under its base URL. A 503 is asked again once, through the queue, and a
 // second one is MusicBrainz busy. Every request says who is asking, TasteTrack, its version and
 // how to reach its Operator, as MusicBrainz asks; without the contact we don't ask at all.
-async function get(env: CatalogEnv, path: string, params: Record<string, string>) {
+export async function get(env: CatalogEnv, path: string, params: Record<string, string>) {
   if (!env.OPEN_LIBRARY_CONTACT) {
     throw new SourceUnavailable("OPEN_LIBRARY_CONTACT is not set", "access");
   }
@@ -273,7 +290,7 @@ async function get(env: CatalogEnv, path: string, params: Record<string, string>
 }
 
 // The answer's body, unless MusicBrainz answered with an error.
-function bodyOf(path: string, answer: Answer): unknown {
+export function bodyOf(path: string, answer: Answer): unknown {
   if (answer.status < 200 || answer.status > 299) {
     throw new SourceUnavailable(
       `MusicBrainz ${path} answered ${answer.status}`,
@@ -284,7 +301,7 @@ function bodyOf(path: string, answer: Answer): unknown {
 }
 
 // Lucene's special characters, which a query would otherwise use as its syntax.
-function escaped(query: string): string {
+export function escaped(query: string): string {
   return query.replace(/[+\-&|!(){}[\]^"~*?:\\/]/g, (char) => `\\${char}`);
 }
 
@@ -339,23 +356,32 @@ async function searchAlbums(env: CatalogEnv, query: string): Promise<CatalogSear
   }));
 }
 
-const redirectTarget = new RegExp(`/release-group/(${mbidPattern})(?:[/?]|$)`);
-
-// One release group's lookup with its artists, URL relations and aliases. A merged release group
-// answers 301 to the one it became, which is looked up in its place, through the queue, so its
-// refresh costs two calls; the entry stays under the MBID asked for.
-async function lookup(env: CatalogEnv, id: string): Promise<ReleaseGroup> {
-  const params = { inc: "artist-credits+url-rels+aliases" };
-  const path = `/release-group/${id}`;
+// One lookup of a release group or a recording by MBID, and its body. A merged one answers 301 to
+// the one it became, which is looked up in its place, through the queue, so its refresh costs two
+// calls; the entry stays under the MBID asked for.
+export async function lookUp(
+  env: CatalogEnv,
+  entity: "release-group" | "recording",
+  id: string,
+  params: Record<string, string>,
+): Promise<unknown> {
+  const path = `/${entity}/${id}`;
   let answer = await get(env, path, params);
   if (answer.status === 301) {
+    const redirectTarget = new RegExp(`/${entity}/(${mbidPattern})(?:[/?]|$)`);
     const target = redirectTarget.exec(answer.location ?? "")?.[1];
     if (!target) {
       throw new SourceUnavailable(`MusicBrainz moved ${id} somewhere unknown`, "temporary");
     }
-    answer = await get(env, `/release-group/${target}`, params);
+    answer = await get(env, `/${entity}/${target}`, params);
   }
-  const group = ReleaseGroup.safeParse(bodyOf(path, answer));
+  return bodyOf(path, answer);
+}
+
+// One release group's lookup with its artists, URL relations and aliases.
+async function lookUpReleaseGroup(env: CatalogEnv, id: string): Promise<ReleaseGroup> {
+  const params = { inc: "artist-credits+url-rels+aliases" };
+  const group = ReleaseGroup.safeParse(await lookUp(env, "release-group", id, params));
   if (!group.success) {
     throw new SourceUnavailable(
       "MusicBrainz's release group answered in an unknown shape",
@@ -369,10 +395,10 @@ async function lookup(env: CatalogEnv, id: string): Promise<ReleaseGroup> {
 // no Localized Title in any language.
 async function albumDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"album">> {
   if (!mbid.test(id)) throw new SourceUnavailable(`MusicBrainz has no release group ${id}`, "gone");
-  const group = await lookup(env, id);
+  const group = await lookUpReleaseGroup(env, id);
   const extra: AlbumCacheExtra = {
     artistCredit: artistCreditOf(group),
-    artists: (group["artist-credit"] ?? []).map(({ name, artist }) => ({ name, mbid: artist.id })),
+    artists: creditedArtists(group["artist-credit"]),
     primaryType: primaryTypeOf(group),
     secondaryTypes: secondaryTypesOf(group),
     url: pageOf(group.id),
@@ -388,13 +414,16 @@ async function albumDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"
 }
 
 // MusicBrainz's albums, kept with no maximum age: its data is CC0, and a cover's URL is keyed by
-// the MBID. Each costs the cron one call, two for a merged one, and albums take at most 10 of a
-// run's subrequests, which with the queue's interval is about 11 seconds of waiting.
+// the MBID. Each costs the cron one call, two for a merged one, and albums and songs together take
+// at most 10 of a run's subrequests, which with the queue's interval is about 11 seconds of
+// waiting.
+export const musicBrainzRefreshShare = 10;
+
 export const musicBrainzAlbums: CatalogSource<"album"> = {
   externalSource: "musicbrainz",
   mediaType: "album",
   refreshCost: 1,
-  refreshShare: 10,
+  refreshShare: musicBrainzRefreshShare,
   maxEntryAge: null,
   search: searchAlbums,
   details: albumDetails,

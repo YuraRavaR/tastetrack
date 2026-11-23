@@ -5,6 +5,7 @@ import { and, eq, exists, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { inProgress, listItems, logEntries, mediaItems, thoughts, users } from "../../db/schema";
 import type { NewThoughtRequest, Thought, ThoughtEditRequest } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import { inLogOrder, type LogDateProblem, logDateProblem } from "../../shared/log";
 import { type Progress, type ProgressProblem, progressProblem } from "../../shared/progress";
 import { maxThoughtsPerMediaItem, type ThoughtState } from "../../shared/thoughts";
@@ -71,13 +72,19 @@ export type CreatedThought =
   | { ok: true; thought: Thought }
   | {
       ok: false;
-      error: LogDateProblem | ProgressProblem | "unknown_media_item" | "too_many_thoughts";
+      error:
+        | LogDateProblem
+        | ProgressProblem
+        | "unknown_media_item"
+        | "wrong_media_type"
+        | "too_many_thoughts";
     };
 
 // Keeps a new Thought of the User's on a Media Item they may see, in the state the Media Item is in
 // for them now. Its date follows a Log Entry date's rules, its Progress must be of the Media Item's
-// Media Type, and a Media Item holds at most `maxThoughtsPerMediaItem` of the User's. Another
-// User's Manual Media Item is as unknown as one that doesn't exist.
+// Media Type, and a Media Item holds at most `maxThoughtsPerMediaItem` of the User's. A Media Item of
+// a light Media Type, a song, has no Thoughts. Another User's Manual Media Item is as unknown as one
+// that doesn't exist.
 export async function createThought(
   db: DrizzleD1Database,
   userId: number,
@@ -92,6 +99,7 @@ export async function createThought(
     .from(mediaItems)
     .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId)));
   if (!found) return { ok: false, error: "unknown_media_item" };
+  if (isLight(found.mediaType)) return { ok: false, error: "wrong_media_type" };
   const progressError = request.progress && progressProblem(request.progress, found.mediaType);
   if (progressError) return { ok: false, error: progressError };
 

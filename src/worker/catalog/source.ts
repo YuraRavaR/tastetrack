@@ -93,8 +93,9 @@ export interface CatalogSource<M extends MediaType> {
   mediaType: M;
   // How many subrequests refreshing one entry makes, for the cron's budget.
   refreshCost: number;
-  // For a source that must be called slowly, the most of a cron run's budget its entries may take;
-  // the rest is left to the other sources (ADR-0013). Without it, its entries take what they need.
+  // For a source that must be called slowly, the most of a cron run's budget its External Source's
+  // entries may take, whichever of its Media Types they are, so each of them gives the same; the
+  // rest is left to the other sources (ADR-0013). Without it, its entries take what they need.
   refreshShare?: number;
   // How long an entry may be kept from when it was last filled, in milliseconds; null for no
   // limit. Past it no read shows the entry, whether or not the cron has deleted it yet.

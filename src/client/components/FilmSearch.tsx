@@ -7,6 +7,7 @@ import {
   List,
   ListPlus,
   type LucideIcon,
+  Music,
   RotateCcw,
   RotateCw,
   SearchX,
@@ -77,6 +78,7 @@ const noMatchIcons: Record<MediaType, LucideIcon> = {
   series: Tv,
   game: Gamepad2,
   album: Disc3,
+  song: Music,
 };
 
 // What Search adds when it finds nothing: IGDB knows games by their English names alone, and

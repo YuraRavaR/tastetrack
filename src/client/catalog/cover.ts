@@ -27,6 +27,7 @@ const coverShapes: Record<MediaType, CoverShape> = {
   series: "2:3",
   game: "2:3",
   album: "1:1",
+  song: "1:1",
 };
 
 export function coverShape(mediaType: MediaType): CoverShape {
@@ -53,6 +54,7 @@ function coverUrlsOf(mediaItem: MediaItem): CoverUrls | null {
     case "book":
     case "game":
     case "album":
+    case "song":
       return mediaItem.metadata?.coverUrls ?? null;
   }
 }
@@ -102,6 +104,7 @@ const typesetCovers: Record<MediaType, boolean> = {
   series: false,
   game: true,
   album: true,
+  song: true,
 };
 
 export function hasTypesetCover(mediaType: MediaType): boolean {

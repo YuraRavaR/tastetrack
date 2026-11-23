@@ -3,7 +3,8 @@
 // each, by Last watched. The UI calls a film's "Watchlist" and "Watched", a book's "Reading
 // list", "Reading" and "Read", a series' "Watchlist", "Watching" and "Watched" and a game's
 // "Backlog", "Playing" and "Played", and so do their addresses.
-import type { LibraryItem, MediaItem, MediaType } from "../../shared/api";
+import type { BacklogMediaType, LibraryItem, MediaItem, MediaType } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import { inLogOrder } from "../../shared/log";
 import { can, canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
 
@@ -96,14 +97,14 @@ export function libraryTile(items: readonly LibraryItem[]): LibraryTile {
 
 // Each Media Type's word in Saved's addresses, and its tabs' words. A new Media Type doesn't
 // compile until it has them; the In Progress tab's only if the type has one.
-const typeSlugs: Record<MediaType, string> = {
+const typeSlugs: Record<BacklogMediaType, string> = {
   film: "films",
   book: "books",
   series: "series",
   game: "games",
   album: "albums",
 };
-const tabSlugs: Record<MediaType, Record<Exclude<LibraryTab, "inProgress">, string>> &
+const tabSlugs: Record<BacklogMediaType, Record<Exclude<LibraryTab, "inProgress">, string>> &
   Record<ProgressMediaType, Record<LibraryTab, string>> = {
   film: { backlog: "watchlist", experienced: "watched" },
   book: { backlog: "reading-list", inProgress: "reading", experienced: "read" },
@@ -112,9 +113,15 @@ const tabSlugs: Record<MediaType, Record<Exclude<LibraryTab, "inProgress">, stri
   album: { backlog: "listening-list", experienced: "listened" },
 };
 
-// A Media Type's tabs' words: none for a tab it doesn't have.
+// A Media Type's tabs' words: none for a tab it doesn't have. A light Media Type, a song, is never
+// in Saved, so nothing asks for its words.
 function tabSlugsOf(mediaType: MediaType): Partial<Record<LibraryTab, string>> {
-  return tabSlugs[mediaType];
+  return tabSlugs[inSaved(mediaType)];
+}
+
+function inSaved(mediaType: MediaType): BacklogMediaType {
+  if (isLight(mediaType)) throw new Error(`Saved has no ${mediaType}`);
+  return mediaType;
 }
 
 function bySlug<Key extends string>(slugs: Partial<Record<Key, string>>, slug: string | undefined) {
@@ -141,10 +148,10 @@ export function mediaTypeOfSlug(slug: string | undefined): MediaType | null {
 // doesn't have is its Backlog's.
 export function tabSlug(mediaType: MediaType, tab: LibraryTab): string {
   const slugs = tabSlugsOf(mediaType);
-  return slugs[tab] ?? tabSlugs[mediaType].backlog;
+  return slugs[tab] ?? tabSlugs[inSaved(mediaType)].backlog;
 }
 
 // The address of a Media Type's tab in Saved: "/saved/films/watchlist", "/saved/books/reading-list".
 export function libraryPath(mediaType: MediaType, tab: LibraryTab): string {
-  return `/saved/${typeSlugs[mediaType]}/${tabSlug(mediaType, tab)}`;
+  return `/saved/${typeSlugs[inSaved(mediaType)]}/${tabSlug(mediaType, tab)}`;
 }

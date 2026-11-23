@@ -88,6 +88,7 @@ function detailsOf(
       return { mediaType, ...titles, runtime: fields.runtime, genres: fields.genres };
     case "book":
     case "album":
+    case "song":
       return { mediaType, ...titles, authors: fields.authors };
     case "series":
     case "game":
@@ -102,6 +103,7 @@ const earliestYears: Record<MediaType, number> = {
   series: earliestFilmYear,
   game: earliestFilmYear,
   album: earliestFilmYear,
+  song: earliestFilmYear,
 };
 
 // A number field's value, or null when it is empty.
