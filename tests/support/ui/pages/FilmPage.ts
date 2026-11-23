@@ -280,6 +280,13 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly editGameButton = this.main.getByRole("button", { name: "Edit game" });
   // Only for an album the User added themselves.
   readonly editAlbumButton = this.main.getByRole("button", { name: "Edit album" });
+  // Only for a song the User added themselves.
+  readonly editSongButton = this.main.getByRole("button", { name: "Edit song" });
+  readonly deleteSongButton = this.main.getByRole("button", { name: "Delete song" });
+  // A song's Collections: a row for each holding it, or a box that says none does.
+  readonly inCollections = this.main.getByRole("region", { name: "In your Collections" });
+  readonly collectionRows = this.inCollections.getByRole("listitem");
+  readonly notInCollectionsMessage = this.main.getByText("Not in any of your Collections yet.");
   // Only for a book the User added themselves.
   readonly editBookButton = this.main.getByRole("button", { name: "Edit book" });
   readonly deleteBookButton = this.main.getByRole("button", { name: "Delete book" });
@@ -387,8 +394,6 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   }
 
   filmListsDialog(filmLabel: string) {
-    return new FilmListsDialog(
-      this.page.getByRole("dialog", { name: `Collections for ${filmLabel}` }),
-    );
+    return new FilmListsDialog(FilmListsDialog.named(this.page, filmLabel));
   }
 }

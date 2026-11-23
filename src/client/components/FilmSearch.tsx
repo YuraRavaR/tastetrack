@@ -20,11 +20,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { HoldingList, MediaType, RemovedListItem } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import { maxListItems } from "../../shared/lists";
 import * as api from "../api";
 import { coverShape } from "../catalog/cover";
 import {
   type Found,
+  foundDisambiguation,
   foundKey,
   foundLabel,
   foundManual,
@@ -52,7 +54,7 @@ import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
 import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
 import { Poster } from "./Poster";
-import { PosterGridItem } from "./PosterGridItem";
+import { gridByline, PosterGridItem } from "./PosterGridItem";
 import { type FilmAction, FilmActionMessage, Toast } from "./Toast";
 
 // The User's last action on a result, which the toast reports.
@@ -82,15 +84,16 @@ const noMatchIcons: Record<MediaType, LucideIcon> = {
 };
 
 // What Search adds when it finds nothing: IGDB knows games by their English names alone, and
-// MusicBrainz finds an album best by its title and artist together.
+// MusicBrainz finds an album or a song best by its title and artist together.
 const noMatchHints: Partial<Record<MediaType, MessageId>> = {
   game: "search.englishTitleHint",
   album: "search.artistHint",
+  song: "search.songArtistHint",
 };
 
 // What Search finds of one Media Type as the User types, with no button, for the query in the URL.
 // The User's Media Items that match, those in their Library or on their Lists, come first, "In
-// your Saved": a strip of covers matched against their titles on every keystroke, each with one
+// your Saved", or "In your Collections" for a song, which only Collections hold: a strip of covers matched against their titles on every keystroke, each with one
 // status line and linking to its page. The External Source's results follow, under its name,
 // after a short pause in typing, without the User's Media Items, the User's own Manual Media Items
 // first. A source's result with a Media Item links to its page, and shows the User's Current
@@ -104,7 +107,7 @@ const noMatchHints: Partial<Record<MediaType, MessageId>> = {
 // off the User's Lists. Below the results, a film search doesn't find can be added by hand, and
 // then shows first. A Media Type offers only what it can do (catalog/media-types.ts). When the
 // source is busy, as MusicBrainz can be, its results give way to a box that says so, with Try
-// again (`docs/mockups/albums/`).
+// again (`docs/mockups/albums/`). A song has one button, Add to collection (`docs/mockups/songs/`).
 export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
   const backlogName = mediaWord(mediaType, "backlog");
@@ -319,7 +322,9 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
           {t("search.unavailable")}
         </p>
       )}
-      {matches.length > 0 && <UserMediaItemMatches items={matches} onOpened={rememberScroll} />}
+      {matches.length > 0 && (
+        <UserMediaItemMatches mediaType={mediaType} items={matches} onOpened={rememberScroll} />
+      )}
       {search.status === "busy" && (
         <div role="alert">
           <EmptyState
@@ -327,7 +332,9 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
             message={t("search.musicBrainzBusy")}
             hint={
               userItemsReady && matches.length === 0
-                ? t("search.savedNoMatch", { query: trimmed })
+                ? t(isLight(mediaType) ? "search.collectionsNoMatch" : "search.savedNoMatch", {
+                    query: trimmed,
+                  })
                 : undefined
             }
             action={{ label: t("search.tryAgain"), icon: RotateCcw, onClick: search.retry }}
@@ -441,16 +448,21 @@ function ResultsBlock({
 // "In your Saved": the User's Media Items that match, as covers in a sideways strip on a phone,
 // bleeding to the screen's edges, and in a grid from md. Each cover opens its film's page, where
 // the User acts on it, and remembers the place in the results for coming Back. A square cover is
-// shorter, so an album's is wider in the strip, 120 px (`docs/mockups/albums/`).
+// shorter, so an album's is wider in the strip, 120 px (`docs/mockups/albums/`). A song, which
+// only Collections hold, comes "In your Collections", with its artist under its title
+// (`docs/mockups/songs/`).
 function UserMediaItemMatches({
+  mediaType,
   items,
   onOpened,
 }: {
+  mediaType: MediaType;
   items: readonly UserMediaItem[];
   onOpened: () => void;
 }) {
+  const light = isLight(mediaType);
   return (
-    <ResultsBlock heading={t("search.saved")} count={items.length}>
+    <ResultsBlock heading={t(light ? "search.inCollections" : "search.saved")} count={items.length}>
       {(headingId) => (
         <ul
           aria-labelledby={headingId}
@@ -460,6 +472,7 @@ function UserMediaItemMatches({
             <PosterGridItem
               key={item.mediaItem.id}
               mediaItem={item.mediaItem}
+              byline={light ? gridByline(item.mediaItem) : undefined}
               meta={<UserMediaItemStatusLine item={item} />}
               className={cn(
                 "shrink-0 md:w-auto",
@@ -539,7 +552,8 @@ function StatusLine({
 // One of the External Source's results. Its title opens its page and stretches over the whole
 // row, so on a phone a tap on the cover or around the title opens it too; the row's other controls
 // sit above. A book is named without its year, which follows its authors on the next line. The
-// row has the controls its Media Type can use so far.
+// row has the controls its Media Type can use so far. A song's disambiguation follows quietly,
+// in italics.
 function SearchResult({
   found,
   mediaItemId,
@@ -572,6 +586,9 @@ function SearchResult({
   const inLog = logEntryCount > 0;
   const name = foundRowTitle(found);
   const subtitle = foundSubtitle(found);
+  const disambiguation = foundDisambiguation(found);
+  // A song, which can only be collected, has the one button, labelled (`docs/mockups/songs/`).
+  const collectOnly = !can(mediaType, "log") && !can(mediaType, "plan");
 
   return (
     <li className="relative flex items-start gap-3 p-3 md:items-center">
@@ -598,6 +615,11 @@ function SearchResult({
           )}
           {subtitle && (
             <span className="break-words text-muted-foreground text-sm">{subtitle}</span>
+          )}
+          {disambiguation && (
+            <span className="break-words text-muted-foreground text-xs italic">
+              {disambiguation}
+            </span>
           )}
           <span className="relative flex flex-wrap items-center gap-x-2 text-xs empty:hidden">
             {found.kind === "manual" && (
@@ -630,19 +652,31 @@ function SearchResult({
               {mediaWord(mediaType, inLog ? "experiencedAgain" : "markExperienced")}
             </Button>
           )}
-          <Button
-            variant={inBacklog ? "pressed" : "outline"}
-            size="icon"
-            className="size-11 md:size-9"
-            disabled={planning}
-            aria-pressed={inBacklog}
-            aria-label={mediaWord(mediaType, "planned")}
-            title={mediaWord(mediaType, "planned")}
-            onClick={onTogglePlanned}
-          >
-            <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
-          </Button>
-          {can(mediaType, "collect") && (
+          {can(mediaType, "plan") && (
+            <Button
+              variant={inBacklog ? "pressed" : "outline"}
+              size="icon"
+              className="size-11 md:size-9"
+              disabled={planning}
+              aria-pressed={inBacklog}
+              aria-label={mediaWord(mediaType, "planned")}
+              title={mediaWord(mediaType, "planned")}
+              onClick={onTogglePlanned}
+            >
+              <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
+            </Button>
+          )}
+          {can(mediaType, "collect") && collectOnly && (
+            <Button
+              variant="outline"
+              className="h-11 gap-1.5 px-3 font-semibold has-[>svg]:px-3 md:h-9"
+              onClick={onListed}
+            >
+              <ListPlus aria-hidden />
+              {t("filmLists.open")}
+            </Button>
+          )}
+          {can(mediaType, "collect") && !collectOnly && (
             <Button
               variant="outline"
               size="icon"

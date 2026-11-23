@@ -200,7 +200,7 @@ export function FilmActions({
             {mediaWord(mediaType, experienced ? "experiencedAgain" : "experienced")}
           </Button>
         )}
-        {!started && (
+        {!started && can(mediaType, "plan") && (
           <Button
             variant={inBacklog ? "pressed" : "outline"}
             className={cn(

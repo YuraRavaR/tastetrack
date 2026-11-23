@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ListPreview } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import * as api from "../api";
 import { listsMediaTypes } from "../catalog/media-types";
 import { useMediaTypeParam } from "../catalog/use-media-type-param";
@@ -11,6 +12,7 @@ import { EmptyState } from "../components/EmptyState";
 import { ListCard } from "../components/ListCard";
 import { ListFormDialog } from "../components/ListFormDialog";
 import { MediaTypeChips } from "../components/MediaTypeChips";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { usePageTitle } from "../navigation/page-title";
 import { listPath } from "../navigation/paths";
@@ -22,7 +24,8 @@ type ListsState =
 
 // Collections: the User's own Lists of the Media Type the chips are on, which `?type=` names,
 // oldest first, as cards with a collage of their first covers, and the way to make a new one of
-// that type, which then opens. With none yet, the quiet empty state offers the same.
+// that type, which then opens. With none yet, the quiet empty state offers the same; for songs,
+// which only Collections hold, it says what they are for (`docs/mockups/songs/`).
 export function ListsPage() {
   const headingId = useId();
   const [state, setState] = useState<ListsState>({ status: "loading" });
@@ -79,7 +82,7 @@ export function ListsPage() {
       {noLists && (
         <EmptyState
           icon={LayoutGrid}
-          message={t("lists.empty")}
+          message={isLight(mediaType) ? mediaWord(mediaType, "collectionNew") : t("lists.empty")}
           action={{ label: t("lists.new"), onClick: () => setCreating(true) }}
         />
       )}

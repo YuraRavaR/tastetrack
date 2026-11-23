@@ -76,8 +76,8 @@ function authorsOf(value: string): string[] {
 }
 
 // The details a Media Type's item has, from the form's fields: a film's runtime and genres, a
-// book's authors, an album's artists in the same field, and only the titles and year for a series
-// or a game.
+// book's authors, an album's or a song's artists in the same field, and only the titles and year for
+// a series or a game.
 function detailsOf(
   mediaType: MediaType,
   titles: { title: string; originalTitle: string | null; year: number | null },
@@ -133,13 +133,14 @@ function ManualMediaItemForm({
   const mediaType = "mediaItem" in editing ? editing.mediaItem.mediaType : editing.mediaType;
   const metadata = mediaItem?.metadata ?? null;
   const film = mediaItem?.mediaType === "film" ? mediaItem.metadata : null;
-  // A book's authors, or an album's artists, which take the same field.
+  // A book's authors, or an album's or a song's artists, which take the same field.
   const makers =
     mediaItem?.mediaType === "book"
       ? mediaItem.metadata?.authors
-      : mediaItem?.mediaType === "album"
+      : mediaItem?.mediaType === "album" || mediaItem?.mediaType === "song"
         ? mediaItem.metadata?.artists
         : undefined;
+  const byArtists = mediaType === "album" || mediaType === "song";
   const [title, setTitle] = useState(
     metadata?.title ?? ("title" in editing ? (editing.title ?? "") : ""),
   );
@@ -314,10 +315,10 @@ function ManualMediaItemForm({
             </div>
           </fieldset>
         )}
-        {(mediaType === "book" || mediaType === "album") && (
+        {(mediaType === "book" || byArtists) && (
           <div className="flex flex-col gap-2">
             <Label htmlFor={ids.authors}>
-              {t(mediaType === "album" ? "manualItem.artists" : "manualItem.authors")}{" "}
+              {t(byArtists ? "manualItem.artists" : "manualItem.authors")}{" "}
               <span className="font-normal text-muted-foreground">
                 ({t("manualItem.optional")})
               </span>

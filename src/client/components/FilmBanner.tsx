@@ -17,8 +17,11 @@ import { useImageFailure } from "./use-image-failure";
 //
 // An album's square cover is as wide as a phone, so there it is the picture itself, sharp, its
 // bottom fading into the page, with the title over the fade and no cover beside it; from `sm` it is
-// blurred as a book's, with the square cover at the left (`docs/mockups/albums/`). A cover that
-// doesn't load, as where the Cover Art Archive has none, counts as none.
+// blurred as a book's, with the square cover at the left (`docs/mockups/albums/`). A song's is an
+// album's on a phone; from `sm` its cover is centred, pulled up over the blurred picture by 32.25%
+// of the column's width, with the title, the facts and the link centred under it
+// (`docs/mockups/songs/`). A cover that doesn't load, as where the Cover Art Archive has none,
+// counts as none.
 export function FilmBanner({
   mediaItem,
   sourceLink,
@@ -29,6 +32,7 @@ export function FilmBanner({
   sourceLink?: ReactNode;
 }) {
   const square = coverShape(mediaItem.mediaType) === "1:1";
+  const centred = mediaItem.mediaType === "song";
   const backdrop =
     mediaItem.mediaType === "book" ||
     mediaItem.mediaType === "album" ||
@@ -74,7 +78,13 @@ export function FilmBanner({
           // Without a picture the row sits right under Back on a phone, and 40 px under the header
           // from sm. An album's title overlaps its cover's fade by 36 px.
           !pictureImage && "sm:mt-4",
-          pictureImage && (coverIsPicture ? "-mt-9 sm:-mt-43" : "-mt-18 sm:-mt-43"),
+          pictureImage &&
+            (coverIsPicture
+              ? centred
+                ? "-mt-9 sm:-mt-[32.25%]"
+                : "-mt-9 sm:-mt-43"
+              : "-mt-18 sm:-mt-43"),
+          centred && "sm:flex-col sm:items-center sm:gap-3.5 sm:text-center",
         )}
       >
         {coverIsPicture ? (
@@ -84,12 +94,18 @@ export function FilmBanner({
         ) : (
           <Poster subject={mediaItem} size="large" />
         )}
-        <div className="flex min-w-0 flex-col gap-0.75 pb-0.5 sm:gap-1 sm:pb-1">
+        <div
+          className={cn(
+            "flex min-w-0 flex-col gap-0.75 pb-0.5 sm:gap-1 sm:pb-1",
+            centred && "sm:items-center",
+          )}
+        >
           <h1
             // The size comes before the leading: cn drops a leading that a later text size follows.
             className={cn(
               coverIsPicture ? "text-[26px]" : "text-[21px]",
               "font-bold leading-[1.15] tracking-[-0.01em] sm:text-[34px] sm:leading-[1.12] sm:tracking-[-0.02em]",
+              centred && "sm:max-w-180 sm:text-balance",
             )}
           >
             <FilmTitle mediaItem={mediaItem} />

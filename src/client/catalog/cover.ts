@@ -96,19 +96,22 @@ const placeholders: readonly Placeholder[] = [
   { icon: Glasses, caption: "poster.caption.incognito" },
 ];
 
-// Whether a Media Type's missing cover is set in type, as a book's is, rather than shown as a
-// placeholder icon. A new Media Type doesn't compile until it says.
-const typesetCovers: Record<MediaType, boolean> = {
-  film: false,
-  book: true,
-  series: false,
-  game: true,
-  album: true,
-  song: true,
+// What stands in for a Media Type's missing cover: a film's or a series' placeholder icon with a
+// caption, a book's, a game's or an album's cover set in type, or a song's quiet note on muted
+// (`docs/mockups/songs/`). A new Media Type doesn't compile until it says.
+export type MissingCover = "placeholder" | "typeset" | "note";
+
+const missingCovers: Record<MediaType, MissingCover> = {
+  film: "placeholder",
+  book: "typeset",
+  series: "placeholder",
+  game: "typeset",
+  album: "typeset",
+  song: "note",
 };
 
-export function hasTypesetCover(mediaType: MediaType): boolean {
-  return typesetCovers[mediaType];
+export function missingCover(mediaType: MediaType): MissingCover {
+  return missingCovers[mediaType];
 }
 
 // One of the placeholders, the same for a Media Item every time, by its id. A search result that
@@ -139,7 +142,7 @@ export function typesetCoverOf(subject: MediaItem | Found): TypesetCover {
 }
 
 // Who made a Media Item, as its cover and rows name them: a book's first author as shown, a game's
-// developer, an album's artist credit. Null for a film or a series, and where unknown.
+// developer, an album's or a song's artist credit. Null for a film or a series, and where unknown.
 export function makerOf(mediaItem: MediaItem): string | null {
   switch (mediaItem.mediaType) {
     case "book":
@@ -147,6 +150,7 @@ export function makerOf(mediaItem: MediaItem): string | null {
     case "game":
       return mediaItem.metadata?.developer ?? null;
     case "album":
+    case "song":
       return mediaItem.metadata?.artistCredit ?? null;
     default:
       return null;

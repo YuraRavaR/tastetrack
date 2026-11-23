@@ -70,6 +70,7 @@ export const shumVideoIds = [
   "7b0367ef-82f0-4170-b26c-c9792b24fee6",
 ];
 export const shumSingleId = "44965ed2-80bb-4787-9996-84c5d3937870";
+export const shum = (client: ApiClient) => song(client, "Шум Go_A", shumId);
 // Stefania by Kalush Orchestra, on an EP and a single, with a karaoke version and a remix on no
 // Official release.
 export const stefaniaId = "b3a54e3b-dadd-41f7-8efe-3f5c07e3259c";

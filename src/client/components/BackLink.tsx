@@ -2,8 +2,10 @@ import { ChevronLeft } from "lucide-react";
 import type { MouseEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import type { MediaType } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import { t } from "../i18n/t";
 import { libraryPath } from "../library/library-tabs";
+import { listsPathOf } from "../navigation/paths";
 
 // Whether the app has a page of its own to go back to. React Router numbers its entries in the
 // browser's history from 0, the page the app opened on, and a redirect keeps the number: after a
@@ -15,7 +17,8 @@ function openedFromInsideTheApp(): boolean {
 
 // "‹ Back" at the top of a Media Item's page on a phone, drawn as Saved's, since an app installed
 // on the home screen has no browser Back. It goes back to where the User opened the page from, so
-// Search returns with its query; opened directly, to Saved of the Media Item's Media Type. A click
+// Search returns with its query; opened directly, to Saved of the Media Item's Media Type, or to
+// Collections of songs for a song, which Saved never holds. A click
 // that opens a new tab keeps the link's own address. From md the browser's Back is the way.
 export function BackLink({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
@@ -30,7 +33,7 @@ export function BackLink({ mediaType }: { mediaType: MediaType }) {
 
   return (
     <Link
-      to={libraryPath(mediaType, "backlog")}
+      to={isLight(mediaType) ? listsPathOf(mediaType) : libraryPath(mediaType, "backlog")}
       onClick={goBack}
       className="-ml-2 flex h-9 items-center gap-0.5 self-start px-2 text-muted-foreground md:hidden"
     >

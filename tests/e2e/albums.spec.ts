@@ -426,7 +426,7 @@ test("on a phone an album's row has a square cover, its page the cover edge to e
   await expect(savedPage.tile("Albums").coverImages).toHaveCount(1);
   await searchPage.goto(undefined, "album");
   const chips = await Promise.all(
-    (["Films", "Books", "Series", "Games", "Albums"] as const).map((name) =>
+    (["Films", "Books", "Series", "Games", "Albums", "Songs"] as const).map((name) =>
       box(searchPage.mediaTypeChip(name)),
     ),
   );
@@ -441,7 +441,7 @@ test("MusicBrainz is credited with a link, under IGDB's credit", async ({ ui }) 
   const { loginPage } = ui;
   await loginPage.goto();
 
-  await expect(loginPage.footer.text("Album data from MusicBrainz.")).toBeVisible();
+  await expect(loginPage.footer.text("Music data from MusicBrainz.")).toBeVisible();
   await expect(loginPage.footer.musicBrainzLink).toHaveAttribute(
     "href",
     "https://musicbrainz.org/",

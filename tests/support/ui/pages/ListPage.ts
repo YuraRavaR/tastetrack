@@ -78,7 +78,7 @@ class ShareLinkDialog extends ScopedComponent {
 // from md.
 class AddFilmsDialog extends ScopedComponent {
   readonly searchBox = this.root.getByRole("searchbox", {
-    name: /^Search (films|books|series|games|albums)$/,
+    name: /^Search (films|books|series|games|albums|songs)$/,
   });
   readonly searchResults = new SearchResults(
     this.root.getByRole("list", { name: "Search results" }),
@@ -138,6 +138,8 @@ export class ListPage extends BasePage<[listId: number]> {
   readonly addGamesButton = this.main.getByRole("button", { name: "Add games" }).first();
   // And for a List of albums.
   readonly addAlbumsButton = this.main.getByRole("button", { name: "Add albums" }).first();
+  // And for a List of songs.
+  readonly addSongsButton = this.main.getByRole("button", { name: "Add songs" }).first();
   // The way back to Collections.
   readonly backLink = this.main.getByRole("link", { name: "All Collections" });
   // Any search on the page itself, outside the Add films dialog.
@@ -187,6 +189,10 @@ export class ListPage extends BasePage<[listId: number]> {
 
   addAlbumsDialog(listName: string) {
     return new AddFilmsDialog(this.page.getByRole("dialog", { name: `Add albums to ${listName}` }));
+  }
+
+  addSongsDialog(listName: string) {
+    return new AddFilmsDialog(this.page.getByRole("dialog", { name: `Add songs to ${listName}` }));
   }
 
   noteDialog(filmLabel: string) {

@@ -13,7 +13,14 @@ import {
 import { describe, expect, it } from "vitest";
 import type { MediaItem } from "../../shared/api";
 import { t } from "../i18n/t";
-import { coverOf, coverShape, makerOf, placeholderFor, typesetCoverOf } from "./cover";
+import {
+  coverOf,
+  coverShape,
+  makerOf,
+  missingCover,
+  placeholderFor,
+  typesetCoverOf,
+} from "./cover";
 import type { Found } from "./found";
 
 const posterUrl = "https://image.tmdb.org/t/p/w92/alien.jpg";
@@ -219,6 +226,42 @@ describe("an album's cover", () => {
       maker: "The Beatles",
     });
     expect(makerOf(zemlya)).toBe("Океан Ельзи");
+  });
+});
+
+describe("a song's cover", () => {
+  const obiimy: MediaItem = {
+    id: 47,
+    mediaType: "song",
+    externalReference: {
+      source: "musicbrainz",
+      mediaType: "song",
+      id: "d8d55f18-0c4b-4036-a16d-e273ac8953fc",
+    },
+    metadata: {
+      title: "Обійми",
+      originalTitle: "Обійми",
+      ukrainianTitle: null,
+      year: 2013,
+      coverUrls: null,
+      artistCredit: "Океан Ельзи",
+      artists: ["Океан Ельзи"],
+      album: "Земля",
+      disambiguation: null,
+      url: null,
+    },
+  };
+
+  it("is square, and without an image is a quiet note, where a book's or an album's is set in type", () => {
+    expect(coverShape("song")).toBe("1:1");
+    expect(missingCover("song")).toBe("note");
+    expect(missingCover("album")).toBe("typeset");
+    expect(missingCover("book")).toBe("typeset");
+    expect(missingCover("film")).toBe("placeholder");
+  });
+
+  it("names the artist as the song's maker", () => {
+    expect(makerOf(obiimy)).toBe("Океан Ельзи");
   });
 });
 

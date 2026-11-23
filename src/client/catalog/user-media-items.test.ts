@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LibraryItem, MediaItem } from "../../shared/api";
+import type { LibraryItem, ListedMediaItem, MediaItem } from "../../shared/api";
 import { type Found, foundManual } from "./found";
 import {
   matchUserMediaItems,
@@ -129,6 +129,40 @@ describe("matching the User's albums", () => {
     expect(titles(matchUserMediaItems(items, "Океан Ельзи Земля"))).toEqual(["Земля"]);
     expect(titles(matchUserMediaItems(items, "abbey"))).toEqual(["Abbey Road"]);
     expect(titles(matchUserMediaItems(items, "beatles земля"))).toEqual([]);
+  });
+});
+
+describe("matching the User's songs", () => {
+  // A song kept only in a Collection, as every song is (ADR-0005).
+  function listedSong(title: string, artistCredit: string): ListedMediaItem {
+    const mediaItem: MediaItem = {
+      id: nextId++,
+      mediaType: "song",
+      externalReference: null,
+      metadata: {
+        title,
+        originalTitle: title,
+        ukrainianTitle: null,
+        year: 2013,
+        coverUrls: null,
+        artistCredit,
+        artists: [artistCredit],
+        album: null,
+        disambiguation: null,
+        url: null,
+      },
+    };
+    return { mediaItem, lists: [{ id: 1, name: "Favourite songs" }] };
+  }
+
+  it("finds a song by its title and its artist together, as song search is typed", () => {
+    const obiimy = listedSong("Обійми", "Океан Ельзи");
+    const shum = listedSong("Шум", "Go_A");
+    const items = userMediaItems([], [obiimy, shum]);
+
+    expect(titles(matchUserMediaItems(items, "Обійми Океан Ельзи"))).toEqual(["Обійми"]);
+    expect(titles(matchUserMediaItems(items, "go_a шум"))).toEqual(["Шум"]);
+    expect(titles(matchUserMediaItems(items, "go_a обійми"))).toEqual([]);
   });
 });
 
