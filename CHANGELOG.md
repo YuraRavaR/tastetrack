@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.18.0](https://github.com/YuraRavaR/tastetrack/compare/v0.17.0...v0.18.0) (2026-11-23)
+
+
+### Features
+
+* **songs:** songs in the API, kept only in Lists ([#287](https://github.com/YuraRavaR/tastetrack/issues/287)) ([9cc348e](https://github.com/YuraRavaR/tastetrack/commit/9cc348ecbf388779a39b5768f9c4f95a4769b8a2))
+* **songs:** songs in the UI, kept only in Collections ([#289](https://github.com/YuraRavaR/tastetrack/issues/289)) ([6a5c1c2](https://github.com/YuraRavaR/tastetrack/commit/6a5c1c22ef39fe6c92c937d09337ba13b2123331))
+
+
+### Bug Fixes
+
+* **catalog:** keep the whole MusicBrainz interval when a timer ends early ([#292](https://github.com/YuraRavaR/tastetrack/issues/292)) ([c04da6d](https://github.com/YuraRavaR/tastetrack/commit/c04da6d84f88b45a4dcd8e8ef02c3b17a57ed1c0)), closes [#286](https://github.com/YuraRavaR/tastetrack/issues/286)
+* **deps:** bump the production-dependencies group with 5 updates ([#290](https://github.com/YuraRavaR/tastetrack/issues/290)) ([8779f3c](https://github.com/YuraRavaR/tastetrack/commit/8779f3cf8810c667c9ba086970b4bbb7a8f9bf7a))
+
 ## [0.17.0](https://github.com/YuraRavaR/tastetrack/compare/v0.16.0...v0.17.0) (2026-11-21)
 
 
