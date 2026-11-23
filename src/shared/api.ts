@@ -7,6 +7,7 @@ import {
   earliestFilmYear,
   filmGenres,
   filmRuntime,
+  lightMediaTypes,
   maxManualAuthors,
   maxManualTitleLength,
   maxMetadataFills,
@@ -1370,8 +1371,10 @@ export const PlanRequest = z
 
 export type PlanRequest = z.infer<typeof PlanRequest>;
 
-// A light Media Type, a song, has no Backlog (ADR-0005).
-export const BacklogMediaType = MediaType.exclude(["song"]).openapi({ example: "film" });
+// The Media Types that have a Backlog: all but the light ones, such as a song (ADR-0005).
+export const BacklogMediaType = MediaType.exclude(lightMediaTypes).openapi({ example: "film" });
+
+export type BacklogMediaType = z.infer<typeof BacklogMediaType>;
 
 export const BacklogQuery = z.object({
   mediaType: BacklogMediaType,

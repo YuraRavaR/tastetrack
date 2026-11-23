@@ -63,8 +63,8 @@ export const maxManualMediaItems = 1_000;
 // the rest as placeholders, which the client then loads this many at a time (ADR-0004).
 export const maxMetadataFills = 10;
 
-// The light Media Types, kept only in the Lists Users make (ADR-0005): a song has no Backlog, no Log
-// Entries, no In Progress and no Thoughts, so it is never in a Library.
+// The light Media Types, kept only in the Lists Users make (ADR-0005): a song has no Backlog, no
+// Log Entries, no In Progress and no Thoughts, so it is never in a Library.
 export const lightMediaTypes = ["song"] as const;
 
 export type LightMediaType = (typeof lightMediaTypes)[number];

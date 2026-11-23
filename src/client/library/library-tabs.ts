@@ -3,9 +3,8 @@
 // each, by Last watched. The UI calls a film's "Watchlist" and "Watched", a book's "Reading
 // list", "Reading" and "Read", a series' "Watchlist", "Watching" and "Watched" and a game's
 // "Backlog", "Playing" and "Played", and so do their addresses.
-import type { LibraryItem, MediaItem, MediaType } from "../../shared/api";
+import type { BacklogMediaType, LibraryItem, MediaItem, MediaType } from "../../shared/api";
 import { isLight } from "../../shared/catalog";
-import type { BacklogMediaType } from "../../shared/lists";
 import { inLogOrder } from "../../shared/log";
 import { can, canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
 

@@ -1,7 +1,7 @@
 // The rules of Lists and the Backlog. Pure functions and plain values with no I/O, shared by the
 // Worker, which enforces them, and the client, which keeps input within them.
-import type { MediaType } from "./api";
-import { isLight, type LightMediaType } from "./catalog";
+import type { BacklogMediaType, MediaType } from "./api";
+import { isLight } from "./catalog";
 import { textKey } from "./text";
 
 // Who may see a List, from least to most: each level includes the ones before it. Every List
@@ -54,9 +54,6 @@ export function listNameKey(name: string): string {
 export function sameListName(name: string, other: string): boolean {
   return listNameKey(name) === listNameKey(other);
 }
-
-// The Media Types that have a Backlog: all but the light ones.
-export type BacklogMediaType = Exclude<MediaType, LightMediaType>;
 
 // The UI's name for the Backlog of each Media Type that has one (ADR-0005).
 const backlogNames: Record<BacklogMediaType, string> = {

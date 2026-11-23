@@ -1,7 +1,6 @@
 import { BookOpen, Clapperboard, Disc3, Gamepad2, type LucideIcon, Music, Tv } from "lucide-react";
-import type { MediaType } from "../../shared/api";
+import type { BacklogMediaType, MediaType } from "../../shared/api";
 import type { ProgressMediaType as WorkerProgressMediaType } from "../../shared/catalog";
-import type { BacklogMediaType } from "../../shared/lists";
 import type { Progress } from "../../shared/progress";
 
 // A new Media Type doesn't compile until it has an icon.

@@ -230,10 +230,10 @@ export interface AlbumCacheExtra {
 }
 
 // What only a song's cache entry has, from its one details call (ADR-0013): its artist credit and
-// artists as an album's; the studio Album it is from, by title and release-group MBID, when it is on
-// one; the release group whose cover it shows, which coverRef also names; its disambiguation, null
-// when it has none; and its recording's page on MusicBrainz. A row filled from a search result
-// alone has none of these.
+// artists as an album's; the studio Album it is from, by title and release-group MBID, when it is
+// on one; the release group whose cover it shows, which coverRef also names; its disambiguation,
+// null when it has none; and its recording's page on MusicBrainz. A row filled from a search
+// result alone has none of these.
 export interface SongCacheExtra {
   artistCredit: string | null;
   artists: { name: string; mbid: string }[];

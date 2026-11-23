@@ -379,7 +379,7 @@ export async function lookUp(
 }
 
 // One release group's lookup with its artists, URL relations and aliases.
-async function lookup(env: CatalogEnv, id: string): Promise<ReleaseGroup> {
+async function lookUpReleaseGroup(env: CatalogEnv, id: string): Promise<ReleaseGroup> {
   const params = { inc: "artist-credits+url-rels+aliases" };
   const group = ReleaseGroup.safeParse(await lookUp(env, "release-group", id, params));
   if (!group.success) {
@@ -395,7 +395,7 @@ async function lookup(env: CatalogEnv, id: string): Promise<ReleaseGroup> {
 // no Localized Title in any language.
 async function albumDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"album">> {
   if (!mbid.test(id)) throw new SourceUnavailable(`MusicBrainz has no release group ${id}`, "gone");
-  const group = await lookup(env, id);
+  const group = await lookUpReleaseGroup(env, id);
   const extra: AlbumCacheExtra = {
     artistCredit: artistCreditOf(group),
     artists: creditedArtists(group["artist-credit"]),

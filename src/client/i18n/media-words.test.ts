@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MediaType } from "../../shared/api";
-import { isLight } from "../../shared/catalog";
+import { BacklogMediaType } from "../../shared/api";
 import { isReservedListName, sharedListTitle } from "../../shared/lists";
 import { mediaWord } from "./media-words";
 import { t } from "./t";
@@ -19,9 +18,7 @@ describe("a film's words", () => {
 });
 
 // The Worker can't read the catalogue, so the shared rules keep the Backlog's name too.
-const backlogMediaTypes = MediaType.options.filter((mediaType) => !isLight(mediaType));
-
-describe.each(backlogMediaTypes)("the %s Backlog's name", (mediaType) => {
+describe.each(BacklogMediaType.options)("the %s Backlog's name", (mediaType) => {
   const backlogName = mediaWord(mediaType, "backlog");
 
   it("can't be taken by a List", () => {

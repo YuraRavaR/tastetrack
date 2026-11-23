@@ -5,9 +5,10 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listItems, lists, mediaItems, shareLinks, thoughts, users } from "../../db/schema";
 import {
   type Backlog,
+  BacklogMediaType,
   type ExternalSource,
   type ListItem,
-  MediaType,
+  type MediaType,
   type PlanRequest,
 } from "../../shared/api";
 import { isLight } from "../../shared/catalog";
@@ -30,8 +31,7 @@ import { shareLinkOf } from "./share-links";
 // `user` picks out, one statement per Media Type, for the batch that creates the User, so no User
 // ever exists without them. A Backlog the User already has is left as it is.
 export function createBacklogs(db: DrizzleD1Database, user: SQL) {
-  const backlogMediaTypes = MediaType.options.filter((mediaType) => !isLight(mediaType));
-  const [first, ...rest] = backlogMediaTypes.map((mediaType) =>
+  const [first, ...rest] = BacklogMediaType.options.map((mediaType) =>
     db
       .insert(lists)
       .select(
