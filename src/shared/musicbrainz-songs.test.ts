@@ -6,6 +6,10 @@ import {
   glitchgirlRemix,
   johnVanderslice,
   karmaPolice,
+  karmaPolice91,
+  karmaPolice91Bracketed,
+  karmaPoliceBracketedTakes,
+  karmaPoliceEarly,
   obiimy,
   onACompilation,
   onTheSingle,
@@ -190,6 +194,33 @@ describe("song search", () => {
     expect(
       search("running up that hill kate bush", recordings).map((result) => result.title),
     ).toEqual(["Running Up That Hill", "Running up That Hill (A Deal With God) (2012 remix)"]);
+  });
+
+  it("hides a one-release take whose title is another row's plus a bracketed part, by the same artist on more releases", () => {
+    const results = search("karma police radiohead", [
+      karmaPolice,
+      onTheSingle,
+      karmaPoliceEarly,
+      ...karmaPoliceBracketedTakes,
+      karmaPolice91,
+    ]);
+
+    expect(results.map((result) => result.title)).toEqual(["Karma Police", "Karma Police (early)"]);
+  });
+
+  it("keeps a one-release take with no row of its plain title by its artist on more releases", () => {
+    const titles = (recordings: Recording[]) =>
+      search("karma police radiohead", recordings).map((result) => result.title);
+
+    expect(titles([karmaPolice91Bracketed])).toEqual(["Karma Police (9.1)"]);
+    expect(titles([onTheSingle, karmaPolice91Bracketed])).toEqual([
+      "Karma Police",
+      "Karma Police (9.1)",
+    ]);
+    expect(titles([withMichaelStipe, karmaPolice91Bracketed])).toEqual([
+      "Karma Police",
+      "Karma Police (9.1)",
+    ]);
   });
 
   it("takes the earliest of recordings on as many releases, a year alone counting as its end", () => {

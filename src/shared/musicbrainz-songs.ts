@@ -191,6 +191,25 @@ function titleVariants(title: string): string[] {
   return [title, withoutStart, withoutEnd, withoutStart.replace(bracketedAtEnd, "")];
 }
 
+// The rows less one-release takes: a row whose recording is on one release, whose title without a
+// bracketed part at its start or its end has another row's title's words, and whose credit has
+// that row's words, when that row is on more releases ("Karma Police {MD122}" beside the studio
+// "Karma Police"). A take with no such row beside it stays.
+function withoutTakes(rows: Row[]): Row[] {
+  const onMoreReleases = new Set(
+    rows
+      .filter((row) => releasesOf(row.recording) > 1)
+      .map((row) => JSON.stringify([wordsOf(row.recording.title), creditWordsOf(row.recording)])),
+  );
+  return rows.filter(({ recording }) => {
+    if (releasesOf(recording) !== 1) return true;
+    const credit = creditWordsOf(recording);
+    return !titleVariants(recording.title)
+      .slice(1)
+      .some((variant) => onMoreReleases.has(JSON.stringify([wordsOf(variant), credit])));
+  });
+}
+
 // How much of a song the query names: one for its title, with or without a bracketed part at its
 // start or its end, and one for any of its credited artists in the words the title left, so a
 // word counts for one of them, as for albums.
@@ -232,7 +251,7 @@ export function songSearchMatches(
     return recording.success && !isHidden(recording.data) ? [recording.data] : [];
   });
   const titleLanguage = searchLanguage(query) === "uk-UA" ? "uk" : "en";
-  return ranked(query, collapsed(recordings)).map(({ recording }) => {
+  return ranked(query, withoutTakes(collapsed(recordings))).map(({ recording }) => {
     const { album, cover } = albumAndCover(recording);
     return {
       externalReference: { source: "musicbrainz", mediaType: "song", id: recording.id },
