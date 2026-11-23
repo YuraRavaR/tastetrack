@@ -11,6 +11,7 @@ import {
   onTheSingle,
   type Recording,
   runningUpThatHill,
+  runningUpThatHillOnACompilation,
   stefania,
   symphonyOfBritishMusic,
   timeOfMyLifeStraightApostrophe,
@@ -149,9 +150,46 @@ describe("song search", () => {
     ]);
 
     expect(results.map((result) => `${result.title} · ${result.artistCredit}`)).toEqual([
-      "Time of My Life · Bill Medley & Jennifer Warnes",
       "(I’ve Had) The Time of My Life · Bill Medley and Jennifer Warnes",
+      "Time of My Life · Bill Medley & Jennifer Warnes",
     ]);
+  });
+
+  it("names a title in full without its bracketed part at the start, so the song on more releases comes first", () => {
+    const results = search("time of my life bill medley jennifer warnes", [
+      timeOfMyLifeWithoutIveHad,
+      timeOfMyLifeWithAnd,
+    ]);
+
+    expect(results.map((result) => `${result.title} (${result.year})`)).toEqual([
+      "(I’ve Had) The Time of My Life (1987)",
+      "Time of My Life (2016)",
+    ]);
+  });
+
+  it("names a title in full with its bracketed part too", () => {
+    const results = search("ive had the time of my life bill medley jennifer warnes", [
+      timeOfMyLifeWithoutIveHad,
+      timeOfMyLifeWithAnd,
+    ]);
+
+    expect(results.map((result) => result.title)).toEqual([
+      "(I’ve Had) The Time of My Life",
+      "Time of My Life",
+    ]);
+  });
+
+  it("names a title in full without its bracketed part at the end, but not without one in the middle", () => {
+    const recordings = [runningUpThatHillOnACompilation, runningUpThatHill];
+
+    expect(
+      search("running up that hill a deal with god kate bush", recordings).map(
+        (result) => result.title,
+      ),
+    ).toEqual(["Running up That Hill (A Deal With God) (2012 remix)", "Running Up That Hill"]);
+    expect(
+      search("running up that hill kate bush", recordings).map((result) => result.title),
+    ).toEqual(["Running Up That Hill", "Running up That Hill (A Deal With God) (2012 remix)"]);
   });
 
   it("takes the earliest of recordings on as many releases, a year alone counting as its end", () => {

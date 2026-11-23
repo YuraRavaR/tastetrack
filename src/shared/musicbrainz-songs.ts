@@ -178,10 +178,26 @@ function collapsed(recordings: Recording[]): Row[] {
   return [...rows.values()];
 }
 
-// How much of a song the query names: one for its title, and one for any of its credited artists
-// in the words the title left, so a word counts for one of them, as for albums.
+// A part of a title in round, square or curly brackets at its start or its end: "(I’ve Had) …",
+// "… (Remastered)", "… {MD122}".
+const bracketedAtStart = /^\s*(\([^()]*\)|\[[^[\]]*\]|\{[^{}]*\})/;
+const bracketedAtEnd = /(\([^()]*\)|\[[^[\]]*\]|\{[^{}]*\})\s*$/;
+
+// The ways a query can name a title in full: as it is, then without the bracketed part at its
+// start, at its end, or both. A bracketed part in the middle is never left out.
+function titleVariants(title: string): string[] {
+  const withoutStart = title.replace(bracketedAtStart, "");
+  const withoutEnd = title.replace(bracketedAtEnd, "");
+  return [title, withoutStart, withoutEnd, withoutStart.replace(bracketedAtEnd, "")];
+}
+
+// How much of a song the query names: one for its title, with or without a bracketed part at its
+// start or its end, and one for any of its credited artists in the words the title left, so a
+// word counts for one of them, as for albums.
 function namedByQuery(queryWords: Set<string>, recording: Recording): number {
-  const title = namedIn(queryWords, recording.title);
+  const title = titleVariants(recording.title)
+    .map((variant) => namedIn(queryWords, variant))
+    .find((words) => words !== null);
   const left = new Set([...queryWords].filter((word) => !title?.includes(word)));
   const artist = (recording["artist-credit"] ?? []).some((credit) => namedIn(left, credit.name));
   return (title ? 1 : 0) + (artist ? 1 : 0);

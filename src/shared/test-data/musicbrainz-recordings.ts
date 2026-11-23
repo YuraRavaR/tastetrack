@@ -385,6 +385,27 @@ export const runningUpThatHill: Recording = {
     },
   ],
 };
+// Running Up That Hill without "(A Deal With God)", on one compilation, from the search for
+// "running up that hill" by Kate Bush (checked 2026-11-23).
+export const runningUpThatHillOnACompilation: Recording = {
+  id: "193022aa-f8a8-4318-bec9-644d05d4ec59",
+  title: "Running Up That Hill",
+  "artist-credit": [{ name: "Kate Bush", artist: { id: "4b585938-f271-45e2-b19a-91c634b5e396" } }],
+  "first-release-date": "2004",
+  releases: [
+    {
+      id: "f7f66c5c-b792-48b3-b182-710b3aa1ddc5",
+      status: "Official",
+      date: "2004",
+      "release-group": {
+        id: "6660adb8-4b17-409b-8f1c-6525ad762ec4",
+        title: "I Love Music 1985–1989: Alive and Kicking",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+  ],
+};
 
 // Four look-alikes from the search for "time of my life bill medley jennifer warnes" (checked
 // 2026-11-23), each cut to its first releases, which keeps their order by releases: 218, 20, 1 and
