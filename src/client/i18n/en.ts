@@ -560,7 +560,6 @@ export const en = {
   "search.musicBrainzBusy": "MusicBrainz is busy, try again in a moment.",
   "search.savedNoMatch": "Nothing in your Saved matches “{query}”.",
   // A song lives only in Collections, so Search names them where it names Saved for the rest.
-  "search.inCollections": "In your Collections",
   "search.collectionsNoMatch": "Nothing in your Collections matches “{query}”.",
   "search.songArtistHint":
     "Try adding the artist: MusicBrainz finds a song best by its title and artist together.",
@@ -783,9 +782,6 @@ export const en = {
   "about.fromOpenLibrary": "From Open Library",
   "about.fromIgdb": "From IGDB",
   "about.onMusicBrainz": "On MusicBrainz",
-  // A song's page: the Collections holding it (`docs/mockups/songs/`).
-  "song.inCollections": "In your Collections",
-  "song.notInCollections": "Not in any of your Collections yet.",
   "about.genres": "Genres",
   "manualItem.editTitle": "Edit {film}",
   "manualItem.title": "Title",
@@ -945,6 +941,9 @@ export const en = {
   "book.authorsAndYear": "{authors} · {year}",
   // The studio Album a song is from, on its row and its page (`docs/mockups/songs/`).
   "song.fromAlbum": "from {album}",
+  // The Collections holding a song, in Search and on its page.
+  "song.inCollections": "In your Collections",
+  "song.notInCollections": "Not in any of your Collections yet.",
   "game.platformsAndMore": "{platforms} +{more, number}",
   "poster.caption.popcorn": "Eaten with the popcorn.",
   "poster.caption.ghost": "This poster is a ghost.",

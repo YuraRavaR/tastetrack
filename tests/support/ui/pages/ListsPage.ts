@@ -51,6 +51,11 @@ export class ListsPage extends BasePage<[mediaType?: ListsMediaType]> {
   );
   readonly lists = this.main.getByRole("list", { name: "Collections" }).getByRole("listitem");
 
+  // Any text on the page, such as what the empty state says.
+  text(content: string) {
+    return this.main.getByText(content);
+  }
+
   // A List's card, by its name.
   card(name: string) {
     const named = this.page.getByRole("link", { name, exact: true });

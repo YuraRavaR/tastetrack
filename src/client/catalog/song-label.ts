@@ -1,4 +1,4 @@
-import type { SongMetadata } from "../../shared/api";
+import type { MediaItem, SongMetadata } from "../../shared/api";
 import { t } from "../i18n/t";
 import { factsLine } from "./game-label";
 
@@ -22,7 +22,14 @@ export function artistYearAndAlbum(song: SongFacts): string | null {
 }
 
 // What a song's page says under its title: the year first, "2013 · Океан Ельзи · from Земля",
-// since its title has none, leaving out whichever is unknown or none. Null when none of it is known.
+// since its title has none, leaving out whichever is unknown or none. Null when none of it is
+// known.
 export function songFacts(song: SongFacts): string | null {
   return factsLine([yearOf(song.year), song.artistCredit, fromAlbum(song.album)]);
+}
+
+// MusicBrainz's short note that tells two versions of a song apart, "original version"; null for
+// any other Media Type, and for a song without one.
+export function disambiguationOf(mediaItem: MediaItem): string | null {
+  return mediaItem.mediaType === "song" ? (mediaItem.metadata?.disambiguation ?? null) : null;
 }

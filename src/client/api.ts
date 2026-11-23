@@ -672,6 +672,8 @@ export type SaveListResult =
   | { ok: false; error: RefusedList }
   | { ok: false; error: "list_name_taken"; takenBy: MediaType };
 
+export type ListRefusal = Extract<SaveListResult, { ok: false }>;
+
 type RefusedList = Exclude<ListError, "list_name_taken">;
 
 const listErrors = new Set<string>([

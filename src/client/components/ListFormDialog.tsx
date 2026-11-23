@@ -49,7 +49,9 @@ export function ListFormDialog({
   );
 }
 
-function errorMessage(error: api.ListError): string {
+// What a List that couldn't be saved says. The picker of a song says which Media Type's List has a
+// taken name instead.
+export function listErrorMessage(error: api.ListError): string {
   switch (error) {
     case "list_name_reserved":
       return t("listForm.nameReserved");
@@ -114,7 +116,7 @@ function ListForm({
           />
           {nameError && (
             <div id={ids.error}>
-              <FormError>{errorMessage(error)}</FormError>
+              <FormError>{listErrorMessage(error)}</FormError>
             </div>
           )}
         </div>
@@ -134,7 +136,7 @@ function ListForm({
             className="min-h-22 resize-none md:resize-y"
           />
         </div>
-        {error && !nameError && <FormError>{errorMessage(error)}</FormError>}
+        {error && !nameError && <FormError>{listErrorMessage(error)}</FormError>}
       </div>
       <SheetFooter>
         <DialogClose asChild>

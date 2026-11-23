@@ -25,11 +25,12 @@ import type {
   RemovedListItem,
 } from "../../shared/api";
 import { isLight } from "../../shared/catalog";
-import { maxListItems, maxListNameLength, maxLists } from "../../shared/lists";
+import { maxListItems, maxListNameLength } from "../../shared/lists";
 import * as api from "../api";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { listsPathOf } from "../navigation/paths";
+import { listErrorMessage } from "./ListFormDialog";
 
 // A film or book to put on Lists: its label, its Media Type, how to get its Media Item, which for
 // a source's search result adds it to the catalog first, and who to tell which Lists hold it,
@@ -223,14 +224,15 @@ function FilmLists({ film }: { film: ListsFilm }) {
             ))}
           </ul>
           {inPlace && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setMaking(true)}
-              className="flex min-h-12 cursor-pointer items-center gap-3 font-semibold text-primary-strong"
+              className="min-h-12 justify-start gap-3 px-0 font-semibold text-base text-primary-strong has-[>svg]:px-0 hover:bg-transparent"
             >
               <Plus aria-hidden className="size-5" />
               {t("filmLists.new")}
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -287,17 +289,10 @@ function ListCheckbox({
 
 // What a List that couldn't be made says, a taken name naming the Media Type of the List that has
 // it.
-function makeErrorMessage(refused: Exclude<api.SaveListResult, { ok: true }>): string {
-  switch (refused.error) {
-    case "list_name_taken":
-      return t("filmLists.nameTaken", { mediaType: refused.takenBy });
-    case "list_name_reserved":
-      return t("listForm.nameReserved");
-    case "too_many_lists":
-      return t("listForm.tooMany", { max: maxLists });
-    case "unavailable":
-      return t("listForm.unavailable");
-  }
+function refusalMessage(refused: api.ListRefusal): string {
+  return refused.error === "list_name_taken"
+    ? t("filmLists.nameTaken", { mediaType: refused.takenBy })
+    : listErrorMessage(refused.error);
 }
 
 // The picker's own New collection: a name, and Create and add, which makes the List and adds the
@@ -324,7 +319,7 @@ function NewListForm({
   const ids = { name: useId(), error: useId() };
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
-  const [refused, setRefused] = useState<Exclude<api.SaveListResult, { ok: true }> | null>(null);
+  const [refused, setRefused] = useState<api.ListRefusal | null>(null);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -348,15 +343,17 @@ function NewListForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-5">
       {onBack && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           aria-label={t("filmLists.back")}
           title={t("filmLists.back")}
           onClick={onBack}
-          className="absolute top-3 left-3 flex size-9 cursor-pointer items-center justify-center rounded-md opacity-70 hover:opacity-100"
+          className="absolute top-3 left-3 opacity-70 hover:opacity-100"
         >
           <ChevronLeft aria-hidden className="size-5" />
-        </button>
+        </Button>
       )}
       <DialogHeader className={cn(onBack && "px-8")}>
         <DialogTitle>{heading}</DialogTitle>
@@ -388,7 +385,7 @@ function NewListForm({
         />
         {refused && (
           <p id={ids.error} role="alert" className="text-destructive text-sm">
-            {makeErrorMessage(refused)}
+            {refusalMessage(refused)}
           </p>
         )}
       </div>

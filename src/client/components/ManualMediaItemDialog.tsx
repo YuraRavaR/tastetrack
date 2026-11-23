@@ -31,9 +31,9 @@ import {
 // The item to edit, or the Media Type of a new one, which starts from a title.
 type Editing = { mediaItem: MediaItem } | { mediaType: MediaType; title?: string };
 
-// Adds a film, a book, a series, a game or an album by hand as a Manual Media Item, or edits one,
-// in a sheet on a phone and a centred dialog from `md`. The dialog is open while `open` is set, and stays open
-// until the item is saved.
+// Adds a film, a book, a series, a game, an album or a song by hand as a Manual Media Item, or
+// edits one, in a sheet on a phone and a centred dialog from `md`. The dialog is open while `open`
+// is set, and stays open until the item is saved.
 export function ManualMediaItemDialog({
   open,
   onClose,
@@ -76,8 +76,8 @@ function authorsOf(value: string): string[] {
 }
 
 // The details a Media Type's item has, from the form's fields: a film's runtime and genres, a
-// book's authors, an album's or a song's artists in the same field, and only the titles and year for
-// a series or a game.
+// book's authors, an album's or a song's artists in the same field, and only the titles and year
+// for a series or a game.
 function detailsOf(
   mediaType: MediaType,
   titles: { title: string; originalTitle: string | null; year: number | null },

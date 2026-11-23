@@ -18,6 +18,8 @@ export class FilmListsDialog extends ScopedComponent {
   // Shown to a User with no Lists yet.
   readonly makeListLink = this.root.getByRole("link", { name: "Make a collection" });
   readonly checkboxes = this.root.getByRole("checkbox");
+  // Each List's row, in the dialog's order.
+  readonly rows = this.root.getByRole("listitem");
   readonly newListButton = this.root.getByRole("button", { name: "New collection" });
   readonly backButton = this.root.getByRole("button", { name: "Back to your Collections" });
   readonly nameInput = this.root.getByRole("textbox", { name: "Name" });
@@ -33,10 +35,10 @@ export class FilmListsDialog extends ScopedComponent {
     return this.root.getByText(content);
   }
 
-  // Makes a List by its name and adds the film to it, from the list or the form shown at once.
+  // Names a new List and makes it with the film in it, from the form New collection opens or the
+  // one shown at once.
   @step
   async createAndAdd(name: string): Promise<void> {
-    if (await this.newListButton.isVisible()) await this.newListButton.click();
     await this.nameInput.fill(name);
     await this.createAndAddButton.click();
   }

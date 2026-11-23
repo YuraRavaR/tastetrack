@@ -160,13 +160,13 @@ test("Add to collection from Search puts a song in a Collection of songs, the la
     "Tick a Collection to add the song, untick it to take the song off.",
   );
   await expect(dialog.checkboxes).toHaveCount(2);
-  await expect(dialog.root.getByRole("listitem")).toHaveText(["For the road", "Favourite songs"]);
+  await expect(dialog.rows).toHaveText(["For the road", "Favourite songs"]);
   await expect(dialog.newListButton).toBeVisible();
   // The whole row toggles.
   await dialog.text("Favourite songs").click();
   await expect(dialog.checkbox("Favourite songs")).toBeChecked();
   // The order doesn't move as the User ticks.
-  await expect(dialog.root.getByRole("listitem")).toHaveText(["For the road", "Favourite songs"]);
+  await expect(dialog.rows).toHaveText(["For the road", "Favourite songs"]);
   await dialog.done();
 
   // Kept songs load again once the query changes.
@@ -198,10 +198,11 @@ test("the picker makes a Collection of songs in place, with the song in it, and 
   );
   await dialog.backButton.click();
   await expect(dialog.checkboxes).toHaveCount(1);
+  await dialog.newListButton.click();
   await dialog.createAndAdd("Late night");
 
   // The new one first and ticked, the other as it was.
-  await expect(dialog.root.getByRole("listitem")).toHaveText(["Late night", "For the road"]);
+  await expect(dialog.rows).toHaveText(["Late night", "For the road"]);
   await expect(dialog.checkbox("Late night")).toBeChecked();
   await expect(dialog.checkbox("For the road")).not.toBeChecked();
   await dialog.done();
@@ -266,7 +267,7 @@ test("a song's page has its cover over a blurred copy, its facts, the link to Mu
     /^For the road\s*2 songs$/,
     /^Favourite songs\s*1 song$/,
   ]);
-  await expect(filmPage.collectionRows.first().locator("img")).toHaveAttribute(
+  await expect(filmPage.collectionCover("For the road")).toHaveAttribute(
     "src",
     karmaPoliceItem.metadata.coverUrls.small,
   );
@@ -376,7 +377,7 @@ test("a User makes a Collection of songs with square covers, fills it and shares
   await listsPage.goto("song");
 
   await expect(
-    listsPage.main.getByText("Gather songs into Collections, like Favourite songs or For the road"),
+    listsPage.text("Gather songs into Collections, like Favourite songs or For the road"),
   ).toBeVisible();
   await listsPage.emptyStateNewListButton.click();
   await listsPage.newListDialog.nameInput.fill("For the road");
@@ -392,11 +393,9 @@ test("a User makes a Collection of songs with square covers, fills it and shares
   await expect(listPage.items("For the road")).toHaveCount(2);
   await expect(listPage.text("2 songs")).toBeVisible();
   await expect(listPage.items("For the road").first()).toContainText("Океан Ельзи");
-  const cover = await box(listPage.items("For the road").first().locator("img"));
+  const cover = await box(listPage.poster("For the road", "Обійми").posterImage);
   expect(cover.width).toBe(cover.height);
-  await expect(
-    listPage.items("For the road").last().getByRole("img", { name: "No cover" }),
-  ).toBeVisible();
+  await expect(listPage.poster("For the road", "Пісня з гаража").typesetCover).toBeVisible();
 
   await listPage.act("Share");
   const shareLinkDialog = listPage.shareLinkDialog("For the road");
@@ -419,7 +418,8 @@ test("search for a song and add it to a Collection", {
   await searchPage.goto();
   await searchPage.mediaTypeChip("Songs").click();
   await searchPage.search("Обійми Океан Ельзи");
-  const result = searchPage.musicBrainzResults.result("Обійми", "Океан Ельзи · 2013 · from Земля");
+  // By its title and artist alone: real MusicBrainz may change a year or an album.
+  const result = searchPage.musicBrainzResults.result("Обійми", "Океан Ельзи");
 
   await result.addToListButton.click();
   await searchPage.filmListsDialog("Обійми (2013)").createAndAdd("Favourite songs");

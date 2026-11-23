@@ -5,12 +5,12 @@ import { authorNames } from "../catalog/book-label";
 import { filmFacts, filmLabel, filmName } from "../catalog/film-label";
 import { gameFacts } from "../catalog/game-label";
 import { seriesFacts } from "../catalog/series-label";
-import { songFacts } from "../catalog/song-label";
+import { disambiguationOf, songFacts } from "../catalog/song-label";
 import { mediaWord } from "../i18n/media-words";
 
 // A Media Item's label, "Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)", with its Ukrainian
-// title as a secondary line when it has a different one. A game's, an album's or a song's has no year,
-// which leads its facts line. Without metadata it is a placeholder while the page is `loading` it,
+// title as a secondary line when it has a different one. A game's, an album's or a song's has no
+// year, which leads its facts line. Without metadata it is a placeholder while the page is `loading` it,
 // and says the details are unavailable after.
 export function FilmTitle({
   mediaItem,
@@ -55,8 +55,7 @@ export function FilmTitle({
 // holds none of it.
 export function FilmFacts({ mediaItem }: { mediaItem: MediaItem }) {
   const facts = factsOf(mediaItem);
-  const disambiguation =
-    mediaItem.mediaType === "song" ? (mediaItem.metadata?.disambiguation ?? null) : null;
+  const disambiguation = disambiguationOf(mediaItem);
   return (
     <>
       {facts && <p className="text-[13px] text-muted-foreground sm:text-[15px]">{facts}</p>}

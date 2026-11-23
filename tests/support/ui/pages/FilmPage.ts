@@ -287,6 +287,12 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly inCollections = this.main.getByRole("region", { name: "In your Collections" });
   readonly collectionRows = this.inCollections.getByRole("listitem");
   readonly notInCollectionsMessage = this.main.getByText("Not in any of your Collections yet.");
+
+  // The cover of a Collection's row, its first Media Item's, by the Collection's name.
+  collectionCover(listName: string) {
+    const named = this.page.getByText(listName, { exact: true });
+    return this.collectionRows.filter({ has: named }).locator("img");
+  }
   // Only for a book the User added themselves.
   readonly editBookButton = this.main.getByRole("button", { name: "Edit book" });
   readonly deleteBookButton = this.main.getByRole("button", { name: "Delete book" });

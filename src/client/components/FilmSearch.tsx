@@ -93,8 +93,9 @@ const noMatchHints: Partial<Record<MediaType, MessageId>> = {
 
 // What Search finds of one Media Type as the User types, with no button, for the query in the URL.
 // The User's Media Items that match, those in their Library or on their Lists, come first, "In
-// your Saved", or "In your Collections" for a song, which only Collections hold: a strip of covers matched against their titles on every keystroke, each with one
-// status line and linking to its page. The External Source's results follow, under its name,
+// your Saved", or "In your Collections" for a song, which only Collections hold: a strip of covers
+// matched against their titles on every keystroke, each with one status line and linking to its
+// page. The External Source's results follow, under its name,
 // after a short pause in typing, without the User's Media Items, the User's own Manual Media Items
 // first. A source's result with a Media Item links to its page, and shows the User's Current
 // Rating, how many viewings they have and the Lists that hold it, and one without a Media Item
@@ -462,7 +463,7 @@ function UserMediaItemMatches({
 }) {
   const light = isLight(mediaType);
   return (
-    <ResultsBlock heading={t(light ? "search.inCollections" : "search.saved")} count={items.length}>
+    <ResultsBlock heading={t(light ? "song.inCollections" : "search.saved")} count={items.length}>
       {(headingId) => (
         <ul
           aria-labelledby={headingId}

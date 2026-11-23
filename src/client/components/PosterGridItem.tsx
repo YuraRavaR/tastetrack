@@ -41,8 +41,8 @@ export function gridByline(mediaItem: MediaItem): string | undefined {
 }
 
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title
-// in two lines at most, a byline in one, such as an album's or a song's artist, and a meta line, such as the
-// year or the Current Rating. All of it opens the Media Item's page, unless it is `unlinked`, as on
+// in two lines at most, a byline in one, such as an album's or a song's artist, and a meta line,
+// such as the year or the Current Rating. All of it opens the Media Item's page, unless it is `unlinked`, as on
 // a Share Link's page. `corner`, such as a ⋯ menu, sits over the poster's top right corner, and
 // `children`, such as a Note, go under it, both outside the link. `overlay`, such as the arrows
 // that reorder a List, lies over the whole poster in place of the link.

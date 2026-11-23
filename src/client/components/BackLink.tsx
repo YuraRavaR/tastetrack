@@ -18,8 +18,8 @@ function openedFromInsideTheApp(): boolean {
 // "‹ Back" at the top of a Media Item's page on a phone, drawn as Saved's, since an app installed
 // on the home screen has no browser Back. It goes back to where the User opened the page from, so
 // Search returns with its query; opened directly, to Saved of the Media Item's Media Type, or to
-// Collections of songs for a song, which Saved never holds. A click
-// that opens a new tab keeps the link's own address. From md the browser's Back is the way.
+// Collections of songs for a song, which Saved never holds. A click that opens a new tab keeps the
+// link's own address. From md the browser's Back is the way.
 export function BackLink({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
 
