@@ -386,8 +386,10 @@ export const runningUpThatHill: Recording = {
   ],
 };
 
-// Look-alikes from the search for "time of my life bill medley jennifer warnes" (checked
-// 2026-11-23), each cut to its first releases, which keeps their order by releases: 218, 20 and 1.
+// Four look-alikes from the search for "time of my life bill medley jennifer warnes" (checked
+// 2026-11-23), each cut to its first releases, which keeps their order by releases: 218, 20, 1 and
+// 1.
+
 // The Time of My Life with a curly apostrophe, credited with "and", on the most releases.
 export const timeOfMyLifeWithAnd: Recording = {
   id: "b0e451f4-efc9-473d-a4dc-43bb3be9839c",
