@@ -761,6 +761,32 @@ describe("a cron run", () => {
     expect(titles.filter((title) => title?.startsWith("Album "))).toHaveLength(2);
   });
 
+  // A timer can end before its time by Date.now(), as one did by a millisecond in CI (#286). Here
+  // each ends 5 ms early, more than the work between calls hides: the queue still keeps the whole
+  // interval, and MusicBrainz's limit refuses no call.
+  it("keeps MusicBrainz calls the interval apart when a timer ends early", async () => {
+    for (const [index, id] of albumIds.entries()) {
+      await album(id, { in: "log", cached: { updated: daysAgo(20 - index) } });
+    }
+    const refused = musicBrainzFakeCalls.rateLimited();
+    const onTime = globalThis.setTimeout;
+    vi.stubGlobal("setTimeout", (handler: () => void, ms = 0) =>
+      onTime(handler, Math.max(0, ms - 5)),
+    );
+
+    try {
+      await refreshCache(db, env, now);
+    } finally {
+      vi.stubGlobal("setTimeout", onTime);
+    }
+
+    expect(musicBrainzCalls).toHaveLength(10);
+    for (const [index, call] of musicBrainzCalls.slice(1).entries()) {
+      expect(call.start - (musicBrainzCalls[index]?.end ?? 0)).toBeGreaterThanOrEqual(20);
+    }
+    expect(musicBrainzFakeCalls.rateLimited()).toBe(refused);
+  });
+
   it("refreshes at most 10 albums and songs together a run, and the film behind them", async () => {
     // Albums and songs take turns, older than the film, so they come first in the queue.
     for (const [index, id] of songIds.entries()) {

@@ -235,8 +235,12 @@ async function paced<T>(env: CatalogEnv, call: () => Promise<T>): Promise<T> {
       }),
     ]);
     clearTimeout(timer);
-    const wait = lastEnded + interval - Date.now();
-    if (wait > 0) await sleep(wait);
+    // A timer may end a little before its time by Date.now() (#286), so the queue sleeps again
+    // until the whole interval has passed.
+    for (let wait = lastEnded + interval - Date.now(); wait > 0; ) {
+      await sleep(wait);
+      wait = lastEnded + interval - Date.now();
+    }
     return await call();
   } finally {
     lastEnded = Date.now();
