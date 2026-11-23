@@ -229,31 +229,39 @@ function onMinidiscs(id: string, title: string, releaseId: string): Recording {
   };
 }
 
-const minidisc1 = "0c282baf-5d74-4485-aa4e-cc8d65ae5713";
-const minidisc2 = "ddbf1fc9-2993-4bac-a488-e542f38cdd20";
+const minidiscsRelease1 = "0c282baf-5d74-4485-aa4e-cc8d65ae5713";
+const minidiscsRelease2 = "ddbf1fc9-2993-4bac-a488-e542f38cdd20";
 
 export const karmaPolice91Bracketed = onMinidiscs(
   "83d1490d-55d2-464a-889a-581785036760",
   "Karma Police (9.1)",
-  minidisc1,
+  minidiscsRelease1,
 );
 
 // Seven takes whose titles are "Karma Police" and a bracketed part at the end, each on one release.
 export const karmaPoliceBracketedTakes: Recording[] = [
   karmaPolice91Bracketed,
-  onMinidiscs("60bb7934-ef43-489b-8a4d-f19979e6ff9b", "Karma Police {MD122}", minidisc2),
-  onMinidiscs("7ad1e1af-6d60-4574-b07b-b768a29a4244", "Karma Police (Pittsburgh)", minidisc2),
-  onMinidiscs("05802329-81c4-45ae-a453-45f74e54899f", "Karma Police (9.2)", minidisc1),
-  onMinidiscs("672e2a04-4da0-427d-bc93-164031864436", "Karma Police {MD117}", minidisc2),
-  onMinidiscs("b8a3a412-91e7-419c-aa52-cfe5bf6b7d68", "Karma Police (Mansfield)", minidisc2),
-  onMinidiscs("857e6b60-8b57-4a9f-8474-63107aa68f60", "Karma Police {MD120}", minidisc2),
+  onMinidiscs("60bb7934-ef43-489b-8a4d-f19979e6ff9b", "Karma Police {MD122}", minidiscsRelease2),
+  onMinidiscs(
+    "7ad1e1af-6d60-4574-b07b-b768a29a4244",
+    "Karma Police (Pittsburgh)",
+    minidiscsRelease2,
+  ),
+  onMinidiscs("05802329-81c4-45ae-a453-45f74e54899f", "Karma Police (9.2)", minidiscsRelease1),
+  onMinidiscs("672e2a04-4da0-427d-bc93-164031864436", "Karma Police {MD117}", minidiscsRelease2),
+  onMinidiscs(
+    "b8a3a412-91e7-419c-aa52-cfe5bf6b7d68",
+    "Karma Police (Mansfield)",
+    minidiscsRelease2,
+  ),
+  onMinidiscs("857e6b60-8b57-4a9f-8474-63107aa68f60", "Karma Police {MD120}", minidiscsRelease2),
 ];
 
 // A take on one release with no brackets, whose title has the words of "Karma Police (9.1)".
 export const karmaPolice91 = onMinidiscs(
   "9812dfa3-85b2-472f-ab0a-00dfc77a051e",
   "Karma Police 9.1",
-  minidisc2,
+  minidiscsRelease2,
 );
 
 export const zemlya: Group = {
