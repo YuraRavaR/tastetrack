@@ -166,6 +166,7 @@ test("an empty field shows the hint and the Media Type chips, on Films", async (
     "Series",
     "Games",
     "Albums",
+    "Songs",
   ]);
 
   await searchPage.search("alien");

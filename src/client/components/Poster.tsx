@@ -1,3 +1,4 @@
+import { Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
 import {
@@ -5,7 +6,7 @@ import {
   type CoverShape,
   coverOf,
   coverShape,
-  hasTypesetCover,
+  missingCover,
   placeholderFor,
   typesetCoverOf,
 } from "../catalog/cover";
@@ -143,6 +144,18 @@ const squareTypesets: Record<PosterSize, Typeset> = {
   collage: compact,
 };
 
+// A song's note at each size (`docs/mockups/songs/`): 22 px in 48 and 56 px, 26 px in 72 px and a
+// collage, 40 px in a grid, 48 px at 136 px and 56 px at 176 px.
+const noteSizes: Record<PosterSize, string> = {
+  dialog: "size-5.5",
+  thumbnail: "size-5.5",
+  search: "size-6.5 md:size-5.5",
+  large: "size-12 sm:size-14",
+  grid: "size-10",
+  fan: "size-6.5",
+  collage: "size-6.5",
+};
+
 const typesets: Record<CoverShape, Record<PosterSize, Typeset>> = {
   "2:3": posterTypesets,
   "1:1": squareTypesets,
@@ -153,8 +166,9 @@ const typesets: Record<CoverShape, Record<PosterSize, Typeset>> = {
 // (the film page's) only from `sm`, and `showCaption={false}` leaves it out, as under controls
 // laid over the poster. A book's, a game's or an album's is a cover set in type: its title at the
 // top and its first author, its developer or its artist credit at the foot, inside a thin frame.
-// An album's image that doesn't load counts as none, since its cover is linked whether or not the
-// Cover Art Archive has one (ADR-0013).
+// A song's is a quiet note on muted, with no caption. An album's or a song's image that doesn't
+// load counts as none, since its cover is linked whether or not the Cover Art Archive has one
+// (ADR-0013).
 export function Poster({
   subject,
   size,
@@ -180,7 +194,25 @@ export function Poster({
     );
   }
 
-  if (hasTypesetCover(cover.mediaType)) {
+  const missing = missingCover(cover.mediaType);
+  if (missing === "note") {
+    return (
+      <div
+        role="img"
+        aria-label={mediaWord(cover.mediaType, "noCover")}
+        className={cn(
+          "flex shrink-0 items-center justify-center bg-muted text-muted-foreground",
+          size !== "collage" && "border border-border",
+          sizeClass,
+          size === "large" && "shadow-none",
+        )}
+      >
+        <Music aria-hidden className={noteSizes[size]} />
+      </div>
+    );
+  }
+
+  if (missing === "typeset") {
     const { title, maker } = typesetCoverOf(subject);
     const typeset = typesets[shape][size];
     return (

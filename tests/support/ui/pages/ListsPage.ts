@@ -12,14 +12,21 @@ export class ListCard extends ScopedComponent {
     name: "No poster",
     includeHidden: true,
   });
+  // A song's, a note.
+  readonly noCoverPlaceholders = this.root.getByRole("img", {
+    name: "No cover",
+    includeHidden: true,
+  });
   // The mark of a shared List, in the words the width shows.
   readonly sharedMark = this.root.getByText(/^Shared( by link)?$/).filter({ visible: true });
 }
 
 // Collections: the User's Lists of one Media Type as cards, under the Media Type chips. `?type=`
 // names the Media Type, unless it is films.
-export class ListsPage extends BasePage<[mediaType?: "book" | "series" | "game" | "album"]> {
-  path(mediaType?: "book" | "series" | "game" | "album") {
+type ListsMediaType = "book" | "series" | "game" | "album" | "song";
+
+export class ListsPage extends BasePage<[mediaType?: ListsMediaType]> {
+  path(mediaType?: ListsMediaType) {
     return mediaType ? `/collections?type=${mediaType}` : "/collections";
   }
 
@@ -30,6 +37,7 @@ export class ListsPage extends BasePage<[mediaType?: "book" | "series" | "game" 
   readonly seriesChip = this.mediaTypeChips.getByRole("button", { name: "Series" });
   readonly gamesChip = this.mediaTypeChips.getByRole("button", { name: "Games" });
   readonly albumsChip = this.mediaTypeChips.getByRole("button", { name: "Albums" });
+  readonly songsChip = this.mediaTypeChips.getByRole("button", { name: "Songs" });
   // The chip of the Media Type Collections is on.
   readonly pressedChip = this.mediaTypeChips.getByRole("button", { pressed: true });
   readonly emptyMessage = this.main.getByText("No collections yet.");
@@ -42,6 +50,11 @@ export class ListsPage extends BasePage<[mediaType?: "book" | "series" | "game" 
     this.page.getByRole("dialog", { name: "New collection" }),
   );
   readonly lists = this.main.getByRole("list", { name: "Collections" }).getByRole("listitem");
+
+  // Any text on the page, such as what the empty state says.
+  text(content: string) {
+    return this.main.getByText(content);
+  }
 
   // A List's card, by its name.
   card(name: string) {

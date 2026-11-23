@@ -5,11 +5,12 @@ import { authorNames } from "../catalog/book-label";
 import { filmFacts, filmLabel, filmName } from "../catalog/film-label";
 import { gameFacts } from "../catalog/game-label";
 import { seriesFacts } from "../catalog/series-label";
+import { disambiguationOf, songFacts } from "../catalog/song-label";
 import { mediaWord } from "../i18n/media-words";
 
 // A Media Item's label, "Amélie (Le Fabuleux Destin d'Amélie Poulain, 2001)", with its Ukrainian
-// title as a secondary line when it has a different one. A game's or an album's has no year,
-// which leads its facts line. Without metadata it is a placeholder while the page is `loading` it,
+// title as a secondary line when it has a different one. A game's, an album's or a song's has no
+// year, which leads its facts line. Without metadata it is a placeholder while the page is `loading` it,
 // and says the details are unavailable after.
 export function FilmTitle({
   mediaItem,
@@ -29,7 +30,9 @@ export function FilmTitle({
   return (
     <span className="flex min-w-0 flex-col">
       <span className="break-words">
-        {mediaType === "game" || mediaType === "album" ? filmName(metadata) : filmLabel(metadata)}
+        {mediaType === "game" || mediaType === "album" || mediaType === "song"
+          ? filmName(metadata)
+          : filmLabel(metadata)}
       </span>
       {metadata.ukrainianTitle && (
         <span
@@ -47,10 +50,20 @@ export function FilmTitle({
 // genres, "122 min · Comedy, Romance", a book's authors, "Сергій Жадан, Reilly Costigan-Humes +1",
 // a series' years, seasons and status, "2008–2013 · 5 seasons · Ended", a game's year, developer
 // and platforms, "2015 · CD Projekt RED · PC, PS4, PS5 +4", an album's year, artist credit and
-// type, "2016 · Jamala · EP". Nothing while its metadata is missing or holds none of it.
+// type, "2016 · Jamala · EP", a song's year, artist credit and album, "2013 · Океан Ельзи · from
+// Земля", with its disambiguation in italics under them. Nothing while its metadata is missing or
+// holds none of it.
 export function FilmFacts({ mediaItem }: { mediaItem: MediaItem }) {
   const facts = factsOf(mediaItem);
-  return facts ? <p className="text-[13px] text-muted-foreground sm:text-[15px]">{facts}</p> : null;
+  const disambiguation = disambiguationOf(mediaItem);
+  return (
+    <>
+      {facts && <p className="text-[13px] text-muted-foreground sm:text-[15px]">{facts}</p>}
+      {disambiguation && (
+        <p className="text-[13px] text-muted-foreground italic">{disambiguation}</p>
+      )}
+    </>
+  );
 }
 
 function factsOf(mediaItem: MediaItem): string | null {
@@ -67,7 +80,6 @@ function factsOf(mediaItem: MediaItem): string | null {
     case "album":
       return albumFacts(mediaItem.metadata);
     case "song":
-      // The songs UI (#283) writes a song's facts.
-      return null;
+      return songFacts(mediaItem.metadata);
   }
 }

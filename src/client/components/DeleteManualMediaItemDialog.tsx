@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import type { ManualMediaItemResponse, MediaItem } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import * as api from "../api";
 import { filmLabel } from "../catalog/film-label";
 import { mediaWord } from "../i18n/media-words";
@@ -18,8 +19,9 @@ import { t } from "../i18n/t";
 type Usage = ManualMediaItemResponse["usage"];
 
 // Asks before deleting a Manual Media Item, saying how many Log Entries and List Items, the
-// Backlog's included, go with it, so no history is lost by surprise. The dialog is open while
-// `open` is set, and stays open until the deletion succeeds.
+// Backlog's included, go with it, so no history is lost by surprise; for a song, which has neither
+// Log Entries nor a Backlog, only its Collections. The dialog is open while `open` is set, and
+// stays open until the deletion succeeds.
 export function DeleteManualMediaItemDialog({
   mediaItem,
   open,
@@ -62,6 +64,7 @@ export function DeleteManualMediaItemDialog({
     if (deleted) onDeleted();
   }
 
+  const light = isLight(mediaItem.mediaType);
   const film = mediaItem.metadata
     ? filmLabel(mediaItem.metadata)
     : mediaWord(mediaItem.mediaType, "unknown");
@@ -81,13 +84,19 @@ export function DeleteManualMediaItemDialog({
             <div className="flex flex-col gap-2">
               {usage ? (
                 <>
-                  <p>{t("manualItem.deleteLogEntries", { count: usage.logEntries })}</p>
-                  <p>
-                    {t("manualItem.deleteListItems", {
-                      count: usage.listItems,
-                      backlogName: mediaWord(mediaItem.mediaType, "backlog"),
-                    })}
-                  </p>
+                  {light ? (
+                    <p>{t("manualItem.deleteCollectionItems", { count: usage.listItems })}</p>
+                  ) : (
+                    <>
+                      <p>{t("manualItem.deleteLogEntries", { count: usage.logEntries })}</p>
+                      <p>
+                        {t("manualItem.deleteListItems", {
+                          count: usage.listItems,
+                          backlogName: mediaWord(mediaItem.mediaType, "backlog"),
+                        })}
+                      </p>
+                    </>
+                  )}
                   <p>{t("manualItem.deleteForGood")}</p>
                 </>
               ) : (

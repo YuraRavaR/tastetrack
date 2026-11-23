@@ -10,6 +10,7 @@ import { artistYearAndType } from "./album-label";
 import { authorsAndYear } from "./book-label";
 import { filmLabel, filmName, filmYearAndRuntime } from "./film-label";
 import { yearAndPlatforms } from "./game-label";
+import { artistYearAndAlbum, disambiguationOf } from "./song-label";
 
 // A work that search found: one of the User's own Manual Media Items, or an External Source's
 // result, which joins the catalog once a User acts on it, if none has yet.
@@ -92,8 +93,9 @@ export function mediaItemYearAndRuntime(mediaItem: MediaItem): string | null {
 
 // What a result's row says under its title: a book's authors and year, "Іван Багряний · 1946", as
 // authorsAndYear writes it, a game's year and platforms, "2015 · PC, PS4, PS5 +4", as
-// yearAndPlatforms does, and an album's artist, year and type, "The Beatles · 2012 · Remix", as
-// artistYearAndType does. Null for a film or a series, whose year is in its title.
+// yearAndPlatforms does, an album's artist, year and type, "The Beatles · 2012 · Remix", as
+// artistYearAndType does, and a song's artist, year and album, "Океан Ельзи · 2013 · from Земля",
+// as artistYearAndAlbum does. Null for a film or a series, whose year is in its title.
 export function foundSubtitle(found: Found): string | null {
   if (found.kind === "catalog") {
     switch (found.externalReference.mediaType) {
@@ -108,6 +110,12 @@ export function foundSubtitle(found: Found): string | null {
           primaryType: found.primaryType ?? null,
           secondaryTypes: found.secondaryTypes ?? [],
         });
+      case "song":
+        return artistYearAndAlbum({
+          year: found.year,
+          artistCredit: found.artistCredit ?? null,
+          album: found.album ?? null,
+        });
       default:
         return null;
     }
@@ -121,9 +129,18 @@ export function foundSubtitle(found: Found): string | null {
       return yearAndPlatforms(mediaItem.metadata);
     case "album":
       return artistYearAndType(mediaItem.metadata);
+    case "song":
+      return artistYearAndAlbum(mediaItem.metadata);
     default:
       return null;
   }
+}
+
+// A song's disambiguation, as disambiguationOf says it.
+export function foundDisambiguation(found: Found): string | null {
+  return found.kind === "catalog"
+    ? (found.disambiguation ?? null)
+    : disambiguationOf(found.mediaItem);
 }
 
 // Whether a Media Type's rows name a result without its year, which follows on the next line. A

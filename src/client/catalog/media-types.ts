@@ -19,8 +19,22 @@ export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
 
 // The Media Types each section offers, in the one order they all keep (ADR-0005). Saved never
 // offers a light one, a song, which has no Library.
-export const searchMediaTypes: readonly MediaType[] = ["film", "book", "series", "game", "album"];
-export const listsMediaTypes: readonly MediaType[] = ["film", "book", "series", "game", "album"];
+export const searchMediaTypes: readonly MediaType[] = [
+  "film",
+  "book",
+  "series",
+  "game",
+  "album",
+  "song",
+];
+export const listsMediaTypes: readonly MediaType[] = [
+  "film",
+  "book",
+  "series",
+  "game",
+  "album",
+  "song",
+];
 export const savedMediaTypes: readonly BacklogMediaType[] = [
   "film",
   "book",
@@ -40,8 +54,8 @@ const keepings: Record<MediaType, readonly Keeping[]> = {
   series: ["plan", "log", "collect", "addByHand"],
   game: ["plan", "log", "collect", "addByHand"],
   album: ["plan", "log", "collect", "addByHand"],
-  // Nothing yet: the songs UI (#283) offers a song's Collections and adding one by hand.
-  song: [],
+  // A song lives only in Collections (ADR-0005).
+  song: ["collect", "addByHand"],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {

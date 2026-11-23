@@ -6,7 +6,8 @@ export class PosterGridItem extends ScopedComponent {
   readonly link = this.root.getByRole("link");
   // The poster's image has no name, so it is found by tag.
   readonly posterImage = this.root.locator("img");
-  // A book's cover set in type, when it has no cover.
+  // What stands in for a missing cover: a book's, a game's or an album's set in type, or a song's
+  // note.
   readonly typesetCover = this.root.getByRole("img", { name: "No cover" });
   readonly watchedBeforeMark = this.root.getByRole("img", { name: "Watched before" });
   readonly readBeforeMark = this.root.getByRole("img", { name: "Read before" });

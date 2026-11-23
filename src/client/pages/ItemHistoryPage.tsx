@@ -2,7 +2,9 @@ import { MessageSquarePlus } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { ItemHistoryResponse, LogEntry, Thought } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import * as api from "../api";
 import { filmTitleAndYear } from "../catalog/film-label";
 import { can } from "../catalog/media-types";
@@ -17,6 +19,7 @@ import { ItemHistoryRow } from "../components/ItemHistoryRow";
 import { ItemHistoryStats } from "../components/ItemHistoryStats";
 import { EditLogEntryDialog } from "../components/LogEntryDialog";
 import { ManualMediaItemDialog } from "../components/ManualMediaItemDialog";
+import { MediaItemCollections } from "../components/MediaItemCollections";
 import { ThoughtDialog } from "../components/ThoughtDialog";
 import { ThoughtRow } from "../components/ThoughtRow";
 import { mediaWord } from "../i18n/media-words";
@@ -24,6 +27,7 @@ import { t } from "../i18n/t";
 import { libraryPath } from "../library/library-tabs";
 import { historyNewestFirst } from "../log/history";
 import { usePageTitle } from "../navigation/page-title";
+import { listsPathOf } from "../navigation/paths";
 
 type HistoryState =
   | { status: "loading" }
@@ -49,7 +53,8 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 // History. After a new entry or Thought, an edit or a delete it reloads, so the order and the
 // Current Rating are always the Worker's. A Media Item the User added manually can be edited too,
 // or deleted with everything that goes with it. A Media Type that can't be logged has the banner
-// and its actions alone.
+// and its actions alone; a song, which lives only in Collections, has Add to collection and the
+// Collections holding it in place of the Library's actions (`docs/mockups/songs/`).
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();
@@ -96,14 +101,15 @@ export function ItemHistoryPage() {
   const history = historyNewestFirst(logEntries, thoughts);
   const manual = mediaItem.externalReference === null;
   const loggable = can(mediaItem.mediaType, "log");
-  // A game's source links to its page on IGDB, and an album's to its release group on MusicBrainz.
-  // With nothing else to show, the About block gives way to that link under the facts line, as an
-  // album, which has none, always has it (`docs/mockups/games/`, `docs/mockups/albums/`).
+  const light = isLight(mediaItem.mediaType);
+  // A game's source links to its page on IGDB, an album's to its release group on MusicBrainz and a
+  // song's to its recording there. With nothing else to show, the About block gives way to that
+  // link under the facts line, as an album or a song, which has none, always has it
+  // (`docs/mockups/games/`, `docs/mockups/albums/`, `docs/mockups/songs/`).
+  const onMusicBrainz = mediaItem.mediaType === "album" || mediaItem.mediaType === "song";
   const sourceUrl =
-    mediaItem.mediaType === "game" || mediaItem.mediaType === "album"
-      ? (mediaItem.metadata?.url ?? null)
-      : null;
-  const sourceName = t(mediaItem.mediaType === "album" ? "about.onMusicBrainz" : "about.fromIgdb");
+    mediaItem.mediaType === "game" || onMusicBrainz ? (mediaItem.metadata?.url ?? null) : null;
+  const sourceName = t(onMusicBrainz ? "about.onMusicBrainz" : "about.fromIgdb");
   const shownAbout = about && aboutProps(about);
   const aboutShown = shownAbout && !(sourceUrl && aboutIsEmpty(shownAbout)) ? shownAbout : null;
   return (
@@ -115,7 +121,11 @@ export function ItemHistoryPage() {
           sourceLink={
             sourceUrl &&
             !aboutShown && (
-              <SourceLink source={sourceName} url={sourceUrl} className="-ml-2.5 self-start" />
+              <SourceLink
+                source={sourceName}
+                url={sourceUrl}
+                className={cn("-ml-2.5 self-start", light && "sm:ml-0 sm:self-center")}
+              />
             )
           }
         />
@@ -123,19 +133,23 @@ export function ItemHistoryPage() {
       <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
         {aboutShown && <About {...aboutShown} sourceUrl={sourceUrl} />}
         {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
-        <FilmActions
-          history={state.history}
-          onChanged={reload}
-          onPlanned={(inBacklog) =>
-            setState((current) =>
-              current.status === "loaded"
-                ? { ...current, history: { ...current.history, inBacklog } }
-                : current,
-            )
-          }
-        />
+        {light ? (
+          <MediaItemCollections mediaItem={mediaItem} />
+        ) : (
+          <FilmActions
+            history={state.history}
+            onChanged={reload}
+            onPlanned={(inBacklog) =>
+              setState((current) =>
+                current.status === "loaded"
+                  ? { ...current, history: { ...current.history, inBacklog } }
+                  : current,
+              )
+            }
+          />
+        )}
         {manual && (
-          <div className="flex flex-col gap-3">
+          <div className={cn("flex flex-col gap-3", light && "sm:items-center sm:text-center")}>
             <p className="text-muted-foreground text-sm">
               {mediaWord(mediaItem.mediaType, "manualAddedByYou")}
             </p>
@@ -257,7 +271,12 @@ export function ItemHistoryPage() {
             open={deletingMediaItem}
             onClose={() => setDeletingMediaItem(false)}
             onDeleted={() =>
-              navigate(libraryPath(mediaItem.mediaType, "experienced"), { replace: true })
+              navigate(
+                light
+                  ? listsPathOf(mediaItem.mediaType)
+                  : libraryPath(mediaItem.mediaType, "experienced"),
+                { replace: true },
+              )
             }
           />
         </>

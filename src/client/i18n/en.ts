@@ -291,7 +291,7 @@ export const en = {
     "Tick a Collection to add the album, untick it to take the album off.",
   "mediaType.album.sharedEmpty": "There are no albums here yet.",
   // A song lives only in Collections (ADR-0005), so its Library words, from "experienced" to
-  // "backlogFull", are never shown; the songs UI (#283) gives it the rest of its words.
+  // "backlogFull", are never shown.
   "mediaType.song.experienced": "Listened",
   "mediaType.song.experiencedAgain": "Listened again",
   "mediaType.song.markExperienced": "Mark listened",
@@ -559,6 +559,10 @@ export const en = {
   // MusicBrainz refused a search twice, as it does when it is busy (ADR-0013).
   "search.musicBrainzBusy": "MusicBrainz is busy, try again in a moment.",
   "search.savedNoMatch": "Nothing in your Saved matches “{query}”.",
+  // A song lives only in Collections, so Search names them where it names Saved for the rest.
+  "search.collectionsNoMatch": "Nothing in your Collections matches “{query}”.",
+  "search.songArtistHint":
+    "Try adding the artist: MusicBrainz finds a song best by its title and artist together.",
   "search.tryAgain": "Try again",
   "search.openFailed": "Couldn't open {film}. Please try again.",
   "dialog.close": "Close",
@@ -679,6 +683,16 @@ export const en = {
   "filmLists.empty": "You have no Collections yet.",
   "filmLists.make": "Make a collection",
   "filmLists.done": "Done",
+  // A song's picker makes a Collection in place (`docs/mockups/songs/`).
+  "filmLists.new": "New collection",
+  "filmLists.back": "Back to your Collections",
+  "filmLists.name": "Name",
+  "filmLists.create": "Create and add",
+  "filmLists.creating": "Creating…",
+  "filmLists.songsNone":
+    "You have no Collections of songs yet. Make one, and this song goes into it.",
+  "filmLists.nameTaken":
+    "You already have a Collection of {mediaType, select, film {films} book {books} series {series} game {games} album {albums} other {songs}} with this name.",
   "share.share": "Share",
   "share.sharing": "Sharing…",
   "share.title": "Shared by link",
@@ -815,6 +829,9 @@ export const en = {
     "{count, plural, =0 {You have no Log Entries for it.} one {Your Log Entry for it will be deleted.} other {Your # Log Entries for it will be deleted.}}",
   "manualItem.deleteListItems":
     "{count, plural, =0 {It isn't on your {backlogName} or in any of your Collections.} one {It will be removed from # Collection, where your {backlogName} counts as a Collection.} other {It will be removed from # Collections, where your {backlogName} counts as a Collection.}}",
+  // A song's, which only Collections hold.
+  "manualItem.deleteCollectionItems":
+    "{count, plural, =0 {It isn't in any of your Collections.} one {It will be removed from # Collection.} other {It will be removed from # Collections.}}",
   "manualItem.deleteForGood": "This can't be undone.",
   "manualItem.deleteConfirm": "Delete",
   "manualItem.deleting": "Deleting…",
@@ -824,7 +841,7 @@ export const en = {
     "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
   "attribution.openLibrary": "Book data and covers from <link>Open Library</link>.",
   "attribution.igdb": "Game data and covers from <link>IGDB</link>.",
-  "attribution.musicBrainz": "Album data from <link>MusicBrainz</link>.",
+  "attribution.musicBrainz": "Music data from <link>MusicBrainz</link>.",
   "film.labelWithOriginalAndYear": "{title} ({originalTitle}, {year})",
   "film.labelWithOriginal": "{title} ({originalTitle})",
   "film.labelWithYear": "{title} ({year})",
@@ -922,6 +939,11 @@ export const en = {
   // What a book's row or page says of who wrote it: its first authors, then how many more.
   "book.authorsAndMore": "{authors} +{more, number}",
   "book.authorsAndYear": "{authors} · {year}",
+  // The studio Album a song is from, on its row and its page (`docs/mockups/songs/`).
+  "song.fromAlbum": "from {album}",
+  // The Collections holding a song, in Search and on its page.
+  "song.inCollections": "In your Collections",
+  "song.notInCollections": "Not in any of your Collections yet.",
   "game.platformsAndMore": "{platforms} +{more, number}",
   "poster.caption.popcorn": "Eaten with the popcorn.",
   "poster.caption.ghost": "This poster is a ghost.",

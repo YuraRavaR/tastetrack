@@ -90,8 +90,8 @@ export function withoutUserMediaItems(
 }
 
 // The User's Media Items with the query in one of their titles, regardless of case; none for a
-// blank query. An album is searched by its title and artist together, "beatles abbey road", so an
-// album matches when each word of the query is in one of its titles or its artist credit.
+// blank query. An album or a song is searched by its title and artist together, "beatles abbey
+// road", so it matches when each word of the query is in one of its titles or its artist credit.
 export function matchUserMediaItems(
   items: readonly UserMediaItem[],
   query: string,
@@ -100,7 +100,7 @@ export function matchUserMediaItems(
   if (!key) return [];
   const words = key.split(/\s+/);
   return items.filter(({ mediaItem }) => {
-    if (mediaItem.mediaType === "album") {
+    if (mediaItem.mediaType === "album" || mediaItem.mediaType === "song") {
       const text = [...titlesOf(mediaItem), mediaItem.metadata?.artistCredit ?? ""]
         .map(textKey)
         .join(" ");

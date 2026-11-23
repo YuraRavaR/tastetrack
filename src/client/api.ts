@@ -19,6 +19,7 @@ import type {
   ListItem,
   ListItemEditRequest,
   ListItemResponse,
+  ListNameTakenResponse,
   ListPreview,
   ListResponse,
   ListSummary,
@@ -665,9 +666,20 @@ export async function fetchList(listId: number): Promise<List | null> {
 
 export type ListError = "list_name_reserved" | "list_name_taken" | "too_many_lists" | "unavailable";
 
-export type SaveListResult = { ok: true; list: ListSummary } | { ok: false; error: ListError };
+// A taken name says which Media Type's List has it, as a name is unique across all of them.
+export type SaveListResult =
+  | { ok: true; list: ListSummary }
+  | { ok: false; error: RefusedList }
+  | { ok: false; error: "list_name_taken"; takenBy: MediaType };
 
-const listErrors = new Set<string>(["list_name_reserved", "list_name_taken", "too_many_lists"]);
+export type ListRefusal = Extract<SaveListResult, { ok: false }>;
+
+type RefusedList = Exclude<ListError, "list_name_taken">;
+
+const listErrors = new Set<string>([
+  "list_name_reserved",
+  "too_many_lists",
+] satisfies RefusedList[]);
 
 // Sends a new or edited List, and reads back the List or the reason it was refused.
 async function sendList(
@@ -684,8 +696,12 @@ async function sendList(
     if (response.ok) {
       return { ok: true, list: ((await response.json()) as ListSummaryResponse).list };
     }
-    const { error } = (await response.json()) as ErrorResponse;
-    return { ok: false, error: listErrors.has(error) ? (error as ListError) : "unavailable" };
+    const body = (await response.json()) as ErrorResponse | ListNameTakenResponse;
+    if (body.error === "list_name_taken" && "mediaType" in body) {
+      return { ok: false, error: "list_name_taken", takenBy: body.mediaType };
+    }
+    const error = listErrors.has(body.error) ? (body.error as RefusedList) : "unavailable";
+    return { ok: false, error };
   } catch {
     return { ok: false, error: "unavailable" };
   }
