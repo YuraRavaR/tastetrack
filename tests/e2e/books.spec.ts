@@ -64,7 +64,7 @@ test("an address with a Media Type Search doesn't have opens on Films", async ({
 }) => {
   const { searchPage } = ui;
 
-  await ui.goto("/search?q=alien&type=song");
+  await ui.goto("/search?q=alien&type=podcast");
 
   await expect(searchPage.currentChip("Films")).toBeVisible();
   await expect(searchPage.searchResults.filmLabel("Alien (1979)")).toBeVisible();
