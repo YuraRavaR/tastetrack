@@ -40,8 +40,8 @@ function manualColumns(fields: ManualMediaItemEditRequest) {
 
 // Whether `fields` are details a Media Item of the type can have: a year no more than five years
 // from now, and none before films for any but a book; a runtime and genres only for a film, and
-// authors only for a book or an album, whose artists they are. A series or a game has a title and
-// a year alone.
+// authors only for a book, an album or a song, whose artists they are. A series or a game has a
+// title and a year alone.
 function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest, now: Date) {
   const { year } = fields;
   if (year != null && year > latestFilmYear(now)) return false;
@@ -59,6 +59,7 @@ function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest,
         (year == null || year >= earliestFilmYear)
       );
     case "album":
+    case "song":
       return (
         fields.runtime === undefined &&
         fields.genres === undefined &&
@@ -116,8 +117,11 @@ export async function createManualMediaItem(
     return { ok: false, error: "invalid_request" };
   }
   const film = request.mediaType === "film" ? request : null;
-  // A book's authors, or an album's artists, which share the column.
-  const credited = request.mediaType === "book" || request.mediaType === "album" ? request : null;
+  // A book's authors, or an album's or a song's artists, which share the column.
+  const credited =
+    request.mediaType === "book" || request.mediaType === "album" || request.mediaType === "song"
+      ? request
+      : null;
   const columns = manualColumns(request);
   // The item is inserted only while the User has room, and no other of theirs has its title and
   // year, if that matters.

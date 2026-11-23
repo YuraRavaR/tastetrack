@@ -30,7 +30,9 @@ export function FilmBanner({
 }) {
   const square = coverShape(mediaItem.mediaType) === "1:1";
   const backdrop =
-    mediaItem.mediaType === "book" || mediaItem.mediaType === "album"
+    mediaItem.mediaType === "book" ||
+    mediaItem.mediaType === "album" ||
+    mediaItem.mediaType === "song"
       ? null
       : mediaItem.metadata?.backdropUrls;
   const [posterUrl, posterFailed] = useImageFailure(coverOf(mediaItem, "large").url);

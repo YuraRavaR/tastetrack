@@ -166,12 +166,24 @@ export const InviteCodesResponse = z
 export type InviteCodesResponse = z.infer<typeof InviteCodesResponse>;
 
 // The catalog is searched through the External Source of each Media Type: TMDB for films and
-// series, Open Library for books, IGDB for games, MusicBrainz for albums.
+// series, Open Library for books, IGDB for games, MusicBrainz for albums and songs. A song is a
+// light Media Type, kept only in Lists (ADR-0005).
 export const MediaType = z
-  .enum(["film", "book", "series", "game", "album"])
+  .enum(["film", "book", "series", "game", "album", "song"])
   .openapi({ example: "film" });
 
 export type MediaType = z.infer<typeof MediaType>;
+
+// A List's name the User's other List has, and that List's Media Type, which may differ from the
+// new one's: a name is unique across all of the User's Lists.
+export const ListNameTakenResponse = z
+  .object({
+    error: z.literal("list_name_taken"),
+    mediaType: MediaType,
+  })
+  .openapi("ListNameTakenResponse");
+
+export type ListNameTakenResponse = z.infer<typeof ListNameTakenResponse>;
 
 export const ExternalSource = z
   .enum(["tmdb", "openlibrary", "igdb", "musicbrainz"])
@@ -226,9 +238,10 @@ const UserMarks = {
 // External Source has none; titleLanguage says which language that query ran in. posterUrl is the
 // cover's thumbnail, whatever the Media Type calls its cover. authors are a book's, as names in
 // the source's order; a film has none. platforms are a game's, each by its abbreviation, in the
-// source's order; a result of any other Media Type leaves them out. artistCredit, primaryType and
-// secondaryTypes are an album's, as AlbumMetadata has them, and a result of any other Media Type
-// leaves them out. mediaItemId is the work's Media Item, null until it joins the catalog.
+// source's order; a result of any other Media Type leaves them out. artistCredit is an album's or
+// a song's, primaryType and secondaryTypes an album's, as AlbumMetadata has them, and album and
+// disambiguation a song's, as SongMetadata has them; a result of any other Media Type leaves them
+// out. mediaItemId is the work's Media Item, null until it joins the catalog.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -248,7 +261,7 @@ export const CatalogSearchResult = z
       .string()
       .nullable()
       .optional()
-      .openapi({ example: "Океан Ельзи", description: "An album's alone" }),
+      .openapi({ example: "Океан Ельзи", description: "An album's or a song's alone" }),
     primaryType: z
       .enum(["Album", "EP"])
       .optional()
@@ -257,6 +270,16 @@ export const CatalogSearchResult = z
       .array(z.string())
       .optional()
       .openapi({ example: [], description: "An album's alone" }),
+    album: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "Земля", description: "A song's alone" }),
+    disambiguation: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: null, description: "A song's alone" }),
     mediaItemId: z.int().positive().nullable().openapi({ example: 42 }),
     ...UserMarks,
   })
@@ -267,13 +290,16 @@ export type CatalogSearchResult = z.infer<typeof CatalogSearchResult>;
 // A search result as the client got it, to add its work to the catalog. The details call
 // replaces what it says; it stands in only when that call fails. Its External Reference names a
 // Media Type's own External Source, with an id as that source writes them. authors, platforms,
-// an album's credit and types, mediaItemId and the User's marks, if sent, are ignored.
+// an album's or a song's credit, an album's types, a song's album and disambiguation,
+// mediaItemId and the User's marks, if sent, are ignored.
 export const AddCatalogItemRequest = CatalogSearchResult.omit({
   authors: true,
   platforms: true,
   artistCredit: true,
   primaryType: true,
   secondaryTypes: true,
+  album: true,
+  disambiguation: true,
   mediaItemId: true,
   inLog: true,
   inBacklog: true,
@@ -322,6 +348,14 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
           .string()
           .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
           .openapi({ example: "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8" }),
+      }),
+      z.object({
+        source: z.literal("musicbrainz"),
+        mediaType: z.literal("song"),
+        id: z
+          .string()
+          .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+          .openapi({ example: "d8d55f18-0c4b-4036-a16d-e273ac8953fc" }),
       }),
     ]),
     title: z.string().trim().min(1).max(500).openapi({ example: "Чужий" }),
@@ -541,6 +575,45 @@ export const AlbumMetadata = z
 
 export type AlbumMetadata = z.infer<typeof AlbumMetadata>;
 
+// A song's metadata from the External Source, where a song is a MusicBrainz recording, one across
+// every release it is on (ADR-0013). It has one title, MusicBrainz's, which is its Original Title
+// too, and never a Ukrainian one. The year is the year of its first release. The cover is square,
+// the Cover Art Archive's front cover of the release group its first studio release is on, in a
+// size for a thumbnail and one for the song's page; an image that doesn't load shows the song
+// placeholder. artistCredit and artists are as an album's. album is the title of the studio Album
+// it is from, if it is on one; disambiguation is MusicBrainz's short note that tells two versions
+// apart ("original version"); url is its recording on MusicBrainz. All but the title, the year and
+// the cover are unknown until the details call succeeds.
+export const SongMetadata = z
+  .object({
+    title: z.string().openapi({ example: "Обійми" }),
+    originalTitle: z.string().openapi({ example: "Обійми" }),
+    ukrainianTitle: z.null(),
+    year: z.int().nullable().openapi({ example: 2013 }),
+    coverUrls: z
+      .object({
+        small: z.url().openapi({
+          example:
+            "https://coverartarchive.org/release-group/080f0c63-6e0b-42d0-917d-e22d1d4bdaf8/front-250",
+        }),
+        large: z.url().openapi({
+          example:
+            "https://coverartarchive.org/release-group/080f0c63-6e0b-42d0-917d-e22d1d4bdaf8/front-500",
+        }),
+      })
+      .nullable(),
+    artistCredit: z.string().nullable().openapi({ example: "Океан Ельзи" }),
+    artists: z.array(z.string()).openapi({ example: ["Океан Ельзи"] }),
+    album: z.string().nullable().openapi({ example: "Земля" }),
+    disambiguation: z.string().nullable().openapi({ example: null }),
+    url: z.url().nullable().openapi({
+      example: "https://musicbrainz.org/recording/d8d55f18-0c4b-4036-a16d-e273ac8953fc",
+    }),
+  })
+  .openapi("SongMetadata");
+
+export type SongMetadata = z.infer<typeof SongMetadata>;
+
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
 // metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
@@ -593,6 +666,16 @@ export const AlbumMediaItem = z
   })
   .openapi("AlbumMediaItem");
 
+// A song's Media Item, its metadata a song's.
+export const SongMediaItem = z
+  .object({
+    id: z.int().openapi({ example: 47 }),
+    mediaType: z.literal("song"),
+    externalReference: ExternalReference.nullable(),
+    metadata: SongMetadata.nullable(),
+  })
+  .openapi("SongMediaItem");
+
 export const MediaItem = z
   .discriminatedUnion("mediaType", [
     FilmMediaItem,
@@ -600,6 +683,7 @@ export const MediaItem = z
     SeriesMediaItem,
     GameMediaItem,
     AlbumMediaItem,
+    SongMediaItem,
   ])
   .openapi("MediaItem");
 
@@ -770,6 +854,22 @@ export const NewManualAlbumRequest = z
 
 export type NewManualAlbumRequest = z.input<typeof NewManualAlbumRequest>;
 
+// A song has a title, an Original Title, its artists, in a manual album's field, and an optional
+// year (ADR-0013).
+export const NewManualSongRequest = z
+  .object({
+    mediaType: z.literal("song"),
+    title: ManualTitle,
+    originalTitle: ManualOriginalTitle.default(null),
+    year: ManualFilmYear.default(null),
+    authors: ManualAuthors.default([]).openapi({ example: ["Океан Ельзи"] }),
+    allowDuplicate: z.boolean().default(false),
+  })
+  .strict()
+  .openapi("NewManualSongRequest");
+
+export type NewManualSongRequest = z.input<typeof NewManualSongRequest>;
+
 export const NewManualMediaItemRequest = z
   .discriminatedUnion("mediaType", [
     NewManualFilmRequest,
@@ -777,6 +877,7 @@ export const NewManualMediaItemRequest = z
     NewManualSeriesRequest,
     NewManualGameRequest,
     NewManualAlbumRequest,
+    NewManualSongRequest,
   ])
   .openapi("NewManualMediaItemRequest");
 
@@ -787,8 +888,8 @@ export type NewManualMediaItem = z.output<typeof NewManualMediaItemRequest>;
 // Only the fields given change, by the same rules as a new one; a null or empty Original Title,
 // or a null year or runtime, clears it. The Media Type can't change, and the Worker refuses the
 // details of another Media Type: a book's or an album's runtime or genres, a film's, a series' or
-// a game's authors, a series', a game's or an album's runtime or genres, or a year before films for
-// any but a book. An album's authors are its artists.
+// a game's authors, a series', a game's, an album's or a song's runtime or genres, or a year
+// before films for any but a book. An album's or a song's authors are its artists.
 export const ManualMediaItemEditRequest = z
   .object({
     title: ManualTitle.optional(),
@@ -1269,8 +1370,11 @@ export const PlanRequest = z
 
 export type PlanRequest = z.infer<typeof PlanRequest>;
 
+// A light Media Type, a song, has no Backlog (ADR-0005).
+export const BacklogMediaType = MediaType.exclude(["song"]).openapi({ example: "film" });
+
 export const BacklogQuery = z.object({
-  mediaType: MediaType,
+  mediaType: BacklogMediaType,
 });
 
 // One Media Item's place in a List, counted from 0, and its optional Note.
@@ -1439,9 +1543,11 @@ export const ListItemPlace = z
 
 export type ListItemPlace = z.infer<typeof ListItemPlace>;
 
-// One of the User's Lists, with the List Item that holds a given Media Item, or null.
+// One of the User's Lists, with the List Item that holds a given Media Item, or null, and its first
+// Media Item in List order, for its cover, or null while it is empty.
 export const MediaItemList = ListSummary.extend({
   listItem: ListItemPlace.nullable(),
+  firstMediaItem: MediaItem.nullable(),
 }).openapi("MediaItemList");
 
 export type MediaItemList = z.infer<typeof MediaItemList>;

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import type { LibraryItem, MediaType } from "../../shared/api";
+import type { BacklogMediaType } from "../../shared/lists";
 import * as api from "../api";
 import { makerOf } from "../catalog/cover";
 import { canProgress, type ProgressMediaType, savedMediaTypes } from "../catalog/media-types";
@@ -80,8 +81,11 @@ const loading: TileState = { status: "loading" };
 
 // Each Media Type's tile, read from the same Library its page reads, one request each, and a way
 // to read one again after a change to it. A reload that fails leaves the tile as it was.
-function useTiles(): [Record<MediaType, TileState>, (mediaType: MediaType) => Promise<void>] {
-  const [tiles, setTiles] = useState<Record<MediaType, TileState>>({
+function useTiles(): [
+  Record<BacklogMediaType, TileState>,
+  (mediaType: BacklogMediaType) => Promise<void>,
+] {
+  const [tiles, setTiles] = useState<Record<BacklogMediaType, TileState>>({
     film: loading,
     book: loading,
     series: loading,
@@ -105,7 +109,7 @@ function useTiles(): [Record<MediaType, TileState>, (mediaType: MediaType) => Pr
     };
   }, []);
 
-  const reload = useCallback(async (mediaType: MediaType) => {
+  const reload = useCallback(async (mediaType: BacklogMediaType) => {
     const items = await api.fetchLibrary(mediaType).catch(() => null);
     if (items) {
       const state: TileState = { status: "loaded", tile: libraryTile(items) };

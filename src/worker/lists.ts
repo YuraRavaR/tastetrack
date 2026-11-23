@@ -2,7 +2,7 @@
 // them off again, making, renaming and deleting Lists and adding to them, reordering, noting and
 // removing List Items, and sharing any of them through a Share Link, which anyone can open without
 // logging in.
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
   BacklogQuery,
   BacklogResponse,
@@ -13,6 +13,7 @@ import {
   ListItemEditRequest,
   ListItemParams,
   ListItemResponse,
+  ListNameTakenResponse,
   ListParams,
   ListResponse,
   ListSummaryResponse,
@@ -67,7 +68,9 @@ const backlogRoute = createRoute({
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
-      description: "The Media Type is unknown (`invalid_request`)",
+      description:
+        "The Media Type is unknown, or a light one, a song, which has no Backlog " +
+        "(`invalid_request`)",
     },
     401: unauthenticatedResponse,
   },
@@ -97,8 +100,9 @@ const planRoute = createRoute({
     400: {
       content: { "application/json": { schema: ErrorResponse } },
       description:
-        "The request body is malformed, or the Media Item doesn't exist (`invalid_request`, " +
-        "`unknown_media_item`)",
+        "The request body is malformed, the Media Item doesn't exist, or it is of a light Media " +
+        "Type, a song, which has no Backlog (`invalid_request`, `unknown_media_item`, " +
+        "`wrong_media_type`)",
     },
     401: unauthenticatedResponse,
     409: {
@@ -254,9 +258,10 @@ const createListRoute = createRoute({
     },
     401: unauthenticatedResponse,
     409: {
-      content: { "application/json": { schema: ErrorResponse } },
+      content: { "application/json": { schema: z.union([ListNameTakenResponse, ErrorResponse]) } },
       description:
-        "Another of the User's Lists has the same name, regardless of case, or the User already " +
+        "Another of the User's Lists has the same name, regardless of case, whichever its Media " +
+        "Type, which the answer gives, or the User already " +
         `has ${maxLists} Lists (\`list_name_taken\`, \`too_many_lists\`)`,
     },
   },
@@ -315,9 +320,10 @@ const editListRoute = createRoute({
     401: unauthenticatedResponse,
     404: unknownListResponse,
     409: {
-      content: { "application/json": { schema: ErrorResponse } },
+      content: { "application/json": { schema: ListNameTakenResponse } },
       description:
-        "Another of the User's Lists has the name, regardless of case (`list_name_taken`)",
+        "Another of the User's Lists has the name, regardless of case, whichever its Media Type, " +
+        "which the answer gives (`list_name_taken`)",
     },
   },
 });
@@ -383,8 +389,10 @@ const mediaItemListsRoute = createRoute({
   path: "/catalog/items/{mediaItemId}/lists",
   summary: "Show which of the logged-in User's Lists hold a Media Item",
   description:
-    "The User's Lists of the Media Item's Media Type, oldest first, each with the List Item " +
-    "that holds the Media Item there, or null. The Backlog isn't one.",
+    "The User's Lists of the Media Item's Media Type, each with the List Item that holds the " +
+    "Media Item there, or null, and its first Media Item, for its cover, or null while it is " +
+    "empty. They come oldest first, but for a song: the List last added to first, then the " +
+    "empty ones, oldest first. The Backlog isn't one.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: { params: MediaItemParams },
@@ -584,13 +592,16 @@ listRoutes.openapi(listsRoute, async (c) => {
 
 listRoutes.openapi(mediaItemListsRoute, async (c) => {
   const { mediaItemId } = c.req.valid("param");
-  const lists = await mediaItemLists(c.var.db, c.var.userId, mediaItemId);
+  const lists = await mediaItemLists(c.var.db, c.var.userId, mediaItemId, c.var.now);
   if (!lists) return c.json({ error: "unknown_media_item" }, 404);
   return c.json({ lists }, 200);
 });
 
 listRoutes.openapi(createListRoute, async (c) => {
   const created = await createList(c.var.db, c.var.userId, c.req.valid("json"), c.var.now);
+  if (!created.ok && created.error === "list_name_taken") {
+    return c.json({ error: created.error, mediaType: created.mediaType }, 409);
+  }
   if (!created.ok) return c.json({ error: created.error }, listErrorStatus[created.error]);
   return c.json({ list: created.list }, 201);
 });
@@ -615,6 +626,9 @@ listRoutes.openapi(listRoute, async (c) => {
 listRoutes.openapi(editListRoute, async (c) => {
   const { listId } = c.req.valid("param");
   const edited = await editList(c.var.db, c.var.userId, listId, c.req.valid("json"));
+  if (!edited.ok && edited.error === "list_name_taken") {
+    return c.json({ error: edited.error, mediaType: edited.mediaType }, 409);
+  }
   if (!edited.ok) return c.json({ error: edited.error }, listErrorStatus[edited.error]);
   return c.json({ list: edited.list }, 200);
 });

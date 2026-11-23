@@ -142,6 +142,19 @@ function fromManual(
         url: null,
       };
     }
+    case "song": {
+      const artists = manual.authors ?? [];
+      return {
+        ...titles,
+        ukrainianTitle: null,
+        coverUrls: null,
+        artistCredit: artists.length > 0 ? artists.join(", ") : null,
+        artists,
+        album: null,
+        disambiguation: null,
+        url: null,
+      };
+    }
   }
 }
 

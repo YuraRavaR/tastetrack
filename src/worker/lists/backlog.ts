@@ -10,6 +10,7 @@ import {
   MediaType,
   type PlanRequest,
 } from "../../shared/api";
+import { isLight } from "../../shared/catalog";
 import { minutesAheadOfUtc } from "../../shared/log";
 import { maxThoughtsPerMediaItem } from "../../shared/thoughts";
 import { visibleTo } from "../catalog/media-items";
@@ -25,11 +26,12 @@ import {
 } from "./list-items";
 import { shareLinkOf } from "./share-links";
 
-// Makes the Backlog of each Media Type for the User that `user` picks out, one statement per
-// Media Type, for the batch that creates the User, so no User ever exists without them. A Backlog
-// the User already has is left as it is.
+// Makes the Backlog of each Media Type that has one, all but the light ones, for the User that
+// `user` picks out, one statement per Media Type, for the batch that creates the User, so no User
+// ever exists without them. A Backlog the User already has is left as it is.
 export function createBacklogs(db: DrizzleD1Database, user: SQL) {
-  const [first, ...rest] = MediaType.options.map((mediaType) =>
+  const backlogMediaTypes = MediaType.options.filter((mediaType) => !isLight(mediaType));
+  const [first, ...rest] = backlogMediaTypes.map((mediaType) =>
     db
       .insert(lists)
       .select(
@@ -105,13 +107,14 @@ export async function userBacklog(
 
 export type Planned =
   | { ok: true; listItem: ListItem; created: boolean }
-  | { ok: false; error: "unknown_media_item" | "backlog_full" };
+  | { ok: false; error: "unknown_media_item" | "wrong_media_type" | "backlog_full" };
 
 // Marks a Media Item Planned: adds it to the User's Backlog of its Media Type, at `position` when
 // given and at the end otherwise, with its Note. A Media Item already there keeps its place and
 // Note; `created` is false then. Planning a Media Item back where logging took it from, with its
 // Note, undoes that. A Backlog holds at most `maxListItems`, and one the User lacks is made first.
-// Another User's Manual Media Item is as unknown as one that doesn't exist.
+// A Media Item of a light Media Type, a song, has no Backlog to go in. Another User's Manual Media
+// Item is as unknown as one that doesn't exist.
 export async function plan(
   db: DrizzleD1Database,
   userId: number,
@@ -120,7 +123,7 @@ export async function plan(
 ): Promise<Planned> {
   const find = async () => {
     const [found] = await db
-      .select({ backlogId: lists.id })
+      .select({ backlogId: lists.id, mediaType: mediaItems.mediaType })
       .from(mediaItems)
       .leftJoin(
         lists,
@@ -134,6 +137,7 @@ export async function plan(
     return found;
   };
   let found = await find();
+  if (found && isLight(found.mediaType)) return { ok: false, error: "wrong_media_type" };
   if (found?.backlogId === null) {
     await makeMissingBacklogs(db, userId);
     found = await find();

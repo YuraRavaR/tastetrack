@@ -122,7 +122,7 @@ test("a User's List names are unique regardless of case, but not across Users", 
   for (const name of ["Жахи", "  жахи ", "ЖАХИ"]) {
     const response = await loggedInApi.lists.createList({ name, mediaType: "film" });
     expect(response.status(), name).toBe(409);
-    expect(await response.json()).toEqual({ error: "list_name_taken" });
+    expect(await response.json()).toEqual({ error: "list_name_taken", mediaType: "film" });
   }
 
   expect(await theLists(loggedInApi)).toEqual([{ ...horror, covers: [], shared: false }]);
@@ -175,7 +175,7 @@ test("at 100 Lists the User can make no more, and the Backlog doesn't count", as
   expect(await theLists(loggedInApi)).toHaveLength(100);
   // A taken name is still that, whatever the count.
   const taken = await loggedInApi.lists.createList({ name: "list 1", mediaType: "film" });
-  expect(await taken.json()).toEqual({ error: "list_name_taken" });
+  expect(await taken.json()).toEqual({ error: "list_name_taken", mediaType: "film" });
 });
 
 test("films join a List at the end, and the User reorders and notes them", async ({
@@ -473,7 +473,8 @@ test("a film's Lists say which hold it, where, and with what Note", async ({ log
   const space = await createList(loggedInApi, { name: "Space" });
   const horror = await createList(loggedInApi, { name: "Horror" });
   const comfort = await createList(loggedInApi, { name: "Comfort" });
-  await addToList(loggedInApi, horror.id, { mediaItemId: (await aliens(loggedInApi)).id });
+  const first = await aliens(loggedInApi);
+  await addToList(loggedInApi, horror.id, { mediaItemId: first.id });
   const held = await addToList(loggedInApi, horror.id, { mediaItemId, note: "Olena's favourite." });
 
   const { lists } = await expectBody(
@@ -482,13 +483,14 @@ test("a film's Lists say which hold it, where, and with what Note", async ({ log
     MediaItemListsResponse,
   );
   expect(lists).toEqual([
-    { ...space, listItem: null },
+    { ...space, listItem: null, firstMediaItem: null },
     {
       ...horror,
       itemCount: 2,
       listItem: { id: held.id, position: 1, note: "Olena's favourite." },
+      firstMediaItem: first,
     },
-    { ...comfort, listItem: null },
+    { ...comfort, listItem: null, firstMediaItem: null },
   ]);
 });
 
@@ -590,7 +592,7 @@ test("the User renames a List and changes its description, within the same name 
   const described = await expectBody(patch({ description: "  " }));
   expect(described.list).toMatchObject({ name: "SPACE HORROR", description: null });
   const taken = await expectBody(patch({ name: "horror" }), 409);
-  expect(taken).toEqual({ error: "list_name_taken" });
+  expect(taken).toEqual({ error: "list_name_taken", mediaType: "film" });
   const reserved = await expectBody(patch({ name: "Watchlist" }), 400);
   expect(reserved).toEqual({ error: "list_name_reserved" });
   for (const data of [{ name: "  " }, { mediaType: "film" }, { visibility: "link" }]) {

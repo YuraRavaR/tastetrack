@@ -66,5 +66,8 @@ function factsOf(mediaItem: MediaItem): string | null {
       return gameFacts(mediaItem.metadata);
     case "album":
       return albumFacts(mediaItem.metadata);
+    case "song":
+      // The songs UI (#283) writes a song's facts.
+      return null;
   }
 }
