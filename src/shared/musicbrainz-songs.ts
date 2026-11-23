@@ -152,16 +152,19 @@ interface Row {
   order: number;
 }
 
-// Recordings with the same title, ignoring case, and the same artist credit, as one row each,
-// in the order of each row's first recording. A row is represented by its recording on the most
+// The words of a recording's artist credit, less "and", so a credit joined by "&" is one joined by
+// "and".
+function creditWordsOf(recording: Recording): string[] {
+  return wordsOf(creditOf(recording["artist-credit"]) ?? "").filter((word) => word !== "and");
+}
+
+// Recordings with the same words in the title and in the artist credit, as one row each, in the
+// order of each row's first recording. A row is represented by its recording on the most
 // releases, then the one first released, then the first in MusicBrainz's order.
 function collapsed(recordings: Recording[]): Row[] {
   const rows = new Map<string, Row>();
   for (const [order, recording] of recordings.entries()) {
-    const key = JSON.stringify([
-      recording.title.toLowerCase(),
-      creditOf(recording["artist-credit"]),
-    ]);
+    const key = JSON.stringify([wordsOf(recording.title), creditWordsOf(recording)]);
     const row = rows.get(key);
     if (!row) {
       rows.set(key, { recording, order });
