@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { recordingQuery, songSearchMatches } from "./musicbrainz-songs";
 import {
+  dejaVuNoRapAccented,
+  dejaVuNoRapUnaccented,
   glitchgirlRemix,
   johnVanderslice,
   karmaPolice,
@@ -11,6 +13,10 @@ import {
   runningUpThatHill,
   stefania,
   symphonyOfBritishMusic,
+  timeOfMyLifeStraightApostrophe,
+  timeOfMyLifeWithAmpersand,
+  timeOfMyLifeWithAnd,
+  timeOfMyLifeWithoutIveHad,
   withMichaelStipe,
   zemlya,
 } from "./test-data/musicbrainz-recordings";
@@ -111,6 +117,40 @@ describe("song search", () => {
     expect(results.map((result) => [result.externalReference.id, result.artistCredit])).toEqual([
       [karmaPolice.id, "Radiohead"],
       [withMichaelStipe.id, "Radiohead feat. Michael Stipe"],
+    ]);
+  });
+
+  it("shows recordings whose titles differ only in accents and punctuation once", () => {
+    const results = search("deja vu beyonce", [dejaVuNoRapUnaccented, dejaVuNoRapAccented]);
+
+    expect(results.map((result) => [result.externalReference.id, result.title])).toEqual([
+      [dejaVuNoRapAccented.id, "Déjà Vu (Freemasons club mix) (no rap)"],
+    ]);
+  });
+
+  it('shows recordings whose credits differ only in "&" against "and" once, as the one on the most releases', () => {
+    const results = search("time of my life bill medley jennifer warnes", [
+      timeOfMyLifeWithAmpersand,
+      timeOfMyLifeWithAnd,
+      timeOfMyLifeStraightApostrophe,
+    ]);
+
+    expect(results.map((result) => [result.externalReference.id, result.artistCredit])).toEqual([
+      [timeOfMyLifeWithAnd.id, "Bill Medley and Jennifer Warnes"],
+    ]);
+  });
+
+  it("keeps a title that lacks a word of a look-alike's as a row of its own", () => {
+    const results = search("time of my life bill medley jennifer warnes", [
+      timeOfMyLifeWithAmpersand,
+      timeOfMyLifeWithAnd,
+      timeOfMyLifeStraightApostrophe,
+      timeOfMyLifeWithoutIveHad,
+    ]);
+
+    expect(results.map((result) => `${result.title} · ${result.artistCredit}`)).toEqual([
+      "Time of My Life · Bill Medley & Jennifer Warnes",
+      "(I’ve Had) The Time of My Life · Bill Medley and Jennifer Warnes",
     ]);
   });
 

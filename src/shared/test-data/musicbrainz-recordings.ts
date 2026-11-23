@@ -385,3 +385,250 @@ export const runningUpThatHill: Recording = {
     },
   ],
 };
+
+// Look-alikes from the search for "time of my life bill medley jennifer warnes" (checked
+// 2026-11-23), each cut to its first releases, which keeps their order by releases: 218, 20 and 1.
+// The Time of My Life with a curly apostrophe, credited with "and", on the most releases.
+export const timeOfMyLifeWithAnd: Recording = {
+  id: "b0e451f4-efc9-473d-a4dc-43bb3be9839c",
+  title: "(I’ve Had) The Time of My Life",
+  "artist-credit": [
+    {
+      name: "Bill Medley",
+      joinphrase: " and ",
+      artist: {
+        id: "5a68345c-0ae8-4ec3-af35-38f2a39bcf0b",
+      },
+    },
+    {
+      name: "Jennifer Warnes",
+      artist: {
+        id: "2f140aa6-b99b-4f79-ae33-96018af87fa3",
+      },
+    },
+  ],
+  disambiguation: "",
+  "first-release-date": "1987-08-04",
+  releases: [
+    {
+      id: "cf33c818-9f1d-46c1-a7fe-b044a73d29bc",
+      status: "Official",
+      date: "2026-06-12",
+      "release-group": {
+        id: "76b06180-7097-4ded-b7aa-8180c6786120",
+        title: "NOW That's What I Call An 80s Summer",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+    {
+      id: "dbc2ed87-7098-4fc4-8c7f-d775ba95705c",
+      status: "Official",
+      date: "2024-01-19",
+      "release-group": {
+        id: "84cdcd8c-dc6a-4a93-b5ad-f3a7788956d9",
+        title: "The Hits Album: The 80s Love Album",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+    {
+      id: "314fee25-3d91-4e20-aed8-c4ceefd6a456",
+      status: "Official",
+      date: "2009",
+      "release-group": {
+        id: "8ba319d8-40ab-47c3-a986-5c940b451b0d",
+        title: "100 Love Songs",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+  ],
+};
+// The same title credited with "&".
+export const timeOfMyLifeWithAmpersand: Recording = {
+  id: "10d92e47-448f-465c-b1da-2be317d9e627",
+  title: "(I’ve Had) The Time of My Life",
+  "artist-credit": [
+    {
+      name: "Bill Medley",
+      joinphrase: " & ",
+      artist: {
+        id: "5a68345c-0ae8-4ec3-af35-38f2a39bcf0b",
+      },
+    },
+    {
+      name: "Jennifer Warnes",
+      artist: {
+        id: "2f140aa6-b99b-4f79-ae33-96018af87fa3",
+      },
+    },
+  ],
+  disambiguation: "",
+  "first-release-date": "1987",
+  releases: [
+    {
+      id: "37945580-f9d2-420d-a73d-d3f5685ff6a0",
+      status: "Official",
+      date: "2007-06-01",
+      "release-group": {
+        id: "4e1d9d57-e2b3-46e4-b97d-42a01bc57f6c",
+        title: "Let’s Dance Vol. 2: Die Tanzhits zur Show",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+    {
+      id: "5bd38e66-f2e9-4862-88b3-c8f37d9071d4",
+      status: "Official",
+      date: "2012-01-01",
+      "release-group": {
+        id: "3b99f9f0-6b99-40e0-b0f0-d23f4153cb4a",
+        title: "Je t’aime 2012",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+  ],
+};
+// The title with a straight apostrophe, credited to one artist named with "&", on the soundtrack.
+export const timeOfMyLifeStraightApostrophe: Recording = {
+  id: "2d3ca1f3-642c-4a60-9d98-18e8a2f61056",
+  title: "(I've Had) The Time of My Life",
+  "artist-credit": [
+    {
+      name: "Bill Medley & Jennifer Warnes",
+      artist: {
+        id: "5a68345c-0ae8-4ec3-af35-38f2a39bcf0b",
+      },
+    },
+  ],
+  disambiguation: "",
+  "first-release-date": "1987-07-18",
+  releases: [
+    {
+      id: "ecebd1a6-8265-4c2b-b616-6b833118a925",
+      status: "Official",
+      date: "1987-07-18",
+      "release-group": {
+        id: "07ef562e-56a7-4fc9-b9b5-8521e9b9bd4b",
+        title: "Dirty Dancing (Original Motion Picture Soundtrack)",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation", "Soundtrack"],
+      },
+    },
+  ],
+};
+// A title that lacks the words "I've Had" and "The".
+export const timeOfMyLifeWithoutIveHad: Recording = {
+  id: "5721dfdd-2abd-4c15-8a23-bc147892c42d",
+  title: "Time of My Life",
+  "artist-credit": [
+    {
+      name: "Bill Medley",
+      joinphrase: " & ",
+      artist: {
+        id: "5a68345c-0ae8-4ec3-af35-38f2a39bcf0b",
+      },
+    },
+    {
+      name: "Jennifer Warnes",
+      artist: {
+        id: "2f140aa6-b99b-4f79-ae33-96018af87fa3",
+      },
+    },
+  ],
+  disambiguation: "",
+  "first-release-date": "2016",
+  releases: [
+    {
+      id: "802c9f6b-817f-4989-a190-30839ed46f84",
+      status: "Official",
+      date: "2016",
+      "release-group": {
+        id: "4260c6f7-7216-4576-8f93-d7af6dc03695",
+        title: "Het beste uit de Top 500 van het foute uur",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+  ],
+};
+
+// Two of Beyoncé's recordings of one Déjà Vu remix, from the search for "deja vu beyonce" (checked
+// 2026-11-23): its title with accents and in two pairs of brackets, on singles, cut to three
+// releases, and without accents, a comma between the remix and "no rap", on one promotion.
+export const dejaVuNoRapAccented: Recording = {
+  id: "c4454dfa-7f11-4c54-a703-f684f647689b",
+  title: "Déjà Vu (Freemasons club mix) (no rap)",
+  "artist-credit": [
+    {
+      name: "Beyoncé",
+      artist: {
+        id: "859d0860-d480-4efd-970c-c05d5f1776b8",
+      },
+    },
+  ],
+  disambiguation: "",
+  "first-release-date": "2006-08-15",
+  releases: [
+    {
+      id: "0158388f-f859-49e4-9051-a1b40cddc285",
+      status: "Promotion",
+      date: "2006-09-20",
+      "release-group": {
+        id: "71166baf-66ba-3c47-90c6-573edc3d475a",
+        title: "Promo Only: Underground Club, November 2006",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+    {
+      id: "d214d6e6-d119-40b1-be31-30f7f3a267bb",
+      status: "Promotion",
+      date: "2006",
+      "release-group": {
+        id: "4880d6ab-3074-3483-9297-6f0dbb518688",
+        title: "Deja vu",
+        "primary-type": "Single",
+      },
+    },
+    {
+      id: "846ae7f5-d3c8-4b46-952b-542def7dc199",
+      status: "Official",
+      date: "2006-08-21",
+      "release-group": {
+        id: "4880d6ab-3074-3483-9297-6f0dbb518688",
+        title: "Deja vu",
+        "primary-type": "Single",
+      },
+    },
+  ],
+};
+export const dejaVuNoRapUnaccented: Recording = {
+  id: "ef67278f-dc5b-449d-88bb-a2efa1d99ade",
+  title: "Deja Vu (Freemasons club mix, no rap)",
+  "artist-credit": [
+    {
+      name: "Beyoncé",
+      artist: {
+        id: "859d0860-d480-4efd-970c-c05d5f1776b8",
+      },
+    },
+  ],
+  disambiguation: "",
+  "first-release-date": "2006",
+  releases: [
+    {
+      id: "b47a4cf6-c10b-4f5e-9412-f3a8757a7cb3",
+      status: "Promotion",
+      date: "2006",
+      "release-group": {
+        id: "436d2ea1-47df-4e98-863b-d81cbb9f51ef",
+        title: "Promo Only: Mainstream Club, October 2006",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+  ],
+};
