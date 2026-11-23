@@ -39,7 +39,7 @@ async function searchTitles(query: string, groups: Group[]) {
     "fetch",
     vi.fn(async () => answer(groups)),
   );
-  const results = await musicBrainzAlbums.search(env, query);
+  const results = (await musicBrainzAlbums.search?.(env, query)) ?? [];
   return results.map((result) => `${result.title} · ${result.artistCredit}`);
 }
 

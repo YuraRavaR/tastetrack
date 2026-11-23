@@ -11,14 +11,14 @@ import {
   recordingPage,
   shum,
 } from "../support/scenarios/songs";
-import { withMusicBrainzBusy } from "../support/test-hooks-secret";
 import { settledBoxOf as box } from "../support/ui/boxes";
 import { expect, test } from "../support/ui/fixtures";
 
-// Songs in the UI (`docs/mockups/songs/`). A song lives only in Collections (ADR-0005). Locally
-// the Worker searches a MusicBrainz fake, whose recordings mirror MusicBrainz as it was on
-// 2026-11-22, and links covers from a Cover Art Archive fake, which answers 404 for a release
-// group without one, as the real archive does.
+// Songs in the UI (`docs/mockups/songs/`). A song lives only in Collections (ADR-0005). The
+// browser searches MusicBrainz for songs, which locally the `musicBrainz` fixture sends to the
+// Worker's MusicBrainz fake, whose recordings mirror MusicBrainz as it was on 2026-11-22, and
+// covers to a Cover Art Archive fake, which answers 404 for a release group without one, as the
+// real archive does.
 
 // The words of the Library no song screen may say: a song is never Planned, logged or started.
 const libraryWording = /want to|listened|listening list|history|add a thought|saved/i;
@@ -118,25 +118,94 @@ test("a song search that finds nothing suggests adding the artist, with Add manu
   await expect(searchPage.addManuallyButton).toBeVisible();
 });
 
-test("when MusicBrainz is busy, a song search says so and names Collections", async ({
+test("a song search is made on MusicBrainz from the browser, never on the Worker", async ({
   page,
   loggedInUi: ui,
 }) => {
-  test.skip(callsRealMusicBrainz(), "Only the MusicBrainz fake can be made busy");
+  const asked: string[] = [];
+  page.on("request", (request) => asked.push(new URL(request.url()).pathname));
   const { searchPage } = ui;
-  const busy = withMusicBrainzBusy(2).headers;
-  await page.route("**/api/catalog/search?**", (route) =>
-    route.continue({ headers: { ...route.request().headers(), ...busy } }),
-  );
+
+  await searchPage.goto("Karma Police Radiohead", "song");
+
+  await expect(
+    searchPage.musicBrainzResults.result("Karma Police", "Radiohead · 1997 · from OK Computer")
+      .root,
+  ).toBeVisible();
+  expect(asked).toContain("/ws/2/recording/");
+  expect(asked).toContain("/api/catalog/search/marks");
+  expect(asked).not.toContain("/api/catalog/search");
+});
+
+test("a song search MusicBrainz answers 503 is asked again a second later, and finds its songs", async ({
+  loggedInUi: ui,
+  musicBrainz,
+}) => {
+  test.skip(callsRealMusicBrainz(), "Only the MusicBrainz fake can be made busy");
+  musicBrainz.busy(1);
+  const { searchPage } = ui;
+
+  await searchPage.goto("Шум Go_A", "song");
+
+  await expect(searchPage.musicBrainzResults.result("Шум").root).toBeVisible();
+  await expect(searchPage.musicBrainzBusy).toHaveCount(0);
+});
+
+test("when MusicBrainz is busy, a song search says so and names Collections", async ({
+  loggedInUi: ui,
+  musicBrainz,
+}) => {
+  test.skip(callsRealMusicBrainz(), "Only the MusicBrainz fake can be made busy");
+  musicBrainz.busy(2);
+  const { searchPage } = ui;
 
   await searchPage.goto("Шум Go_A", "song");
 
   await expect(searchPage.musicBrainzBusy).toContainText(
     "Nothing in your Collections matches “Шум Go_A”.",
   );
-  await page.unroute("**/api/catalog/search?**");
+  // The fake's two 503s are spent, so asking again finds the song.
   await searchPage.tryAgainButton.click();
   await expect(searchPage.musicBrainzResults.result("Шум").root).toBeVisible();
+});
+
+test("a song another User added links to its page from Search, and one in the User's Collection comes under In your Collections", async ({
+  loggedInUi: ui,
+  loggedInApi: api,
+  otherUserClient,
+}) => {
+  const shumItem = await shum(otherUserClient);
+  const karmaPoliceItem = await karmaPolice(api);
+  const road = await createList(api, "For the road", "song");
+  await addToList(api, road.id, karmaPoliceItem.id);
+  const { searchPage, filmPage } = ui;
+
+  await searchPage.goto("Шум Go_A", "song");
+
+  // In the catalog already, so its row opens its page as it is.
+  await expect(searchPage.musicBrainzResults.link("Шум")).toHaveAttribute(
+    "href",
+    filmPage.path(shumItem.id),
+  );
+  await searchPage.search("Karma Police Radiohead");
+  await expect(searchPage.collectionsMatches.films).toHaveText([
+    /^Karma Police\s*Radiohead\s*For the road$/,
+  ]);
+});
+
+test("a song search shows the User's own manual songs for the query before MusicBrainz's", async ({
+  loggedInUi: ui,
+  loggedInApi: api,
+}) => {
+  await manualSong(api, { title: "Обійми (демо)", authors: ["Сусідський Квас"] });
+  const { searchPage } = ui;
+
+  await searchPage.goto("Обійми", "song");
+
+  const results = searchPage.musicBrainzResults;
+  await expect(results.result("Обійми (демо)").addedByYouLabel).toBeVisible();
+  await expect(results.result("Обійми", "Океан Ельзи · 2013 · from Земля").root).toBeVisible();
+  await expect(results.rows.first()).toContainText("Обійми (демо)");
 });
 
 test("Add to collection from Search puts a song in a Collection of songs, the last used first, and a song kept comes first in Search", async ({

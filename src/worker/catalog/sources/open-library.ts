@@ -5,6 +5,7 @@
 // Search gives a work's description too, but only to a call that doesn't ask for its editions.
 import { z } from "zod";
 import type { CoverUrls } from "../../../shared/api";
+import { searchLanguage } from "../../../shared/search-language";
 import {
   type CatalogEntry,
   type CatalogEnv,
@@ -14,7 +15,6 @@ import {
   SourceUnavailable,
   shownTitles,
 } from "../source";
-import { searchLanguage } from "./search-language";
 
 // Covers are asked for by cover ID alone, which Open Library doesn't rate-limit as it does lookups
 // by ISBN: the medium size for a thumbnail, the large one for a grid or the book's page.

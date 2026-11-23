@@ -7,10 +7,11 @@
 // (2026-11-22), so the same tests pass here and against MusicBrainz on staging.
 //
 // It enforces MusicBrainz's rate limit: a call sooner than MUSICBRAINZ_INTERVAL_MS after the one
-// before gets a 503, as the real one answers, so a test sees a call the Worker didn't pace. Under
-// /busy/<times>/<id>/ it answers 503 to the first <times> calls with that <id> too, which is how a
-// test asks for MusicBrainz busy (X-Test-MusicBrainz-Busy), without another test's calls taking
-// its 503s.
+// before gets a 503, as the real one answers, so a test sees a call the Worker didn't pace. A test
+// browser's song searches come under /browser/<id>/, each limited on its own at about the
+// browser's interval. Under /busy/<times>/<id>/ it answers 503 to the first <times> calls with that
+// <id> too, which is how a test asks for MusicBrainz busy (X-Test-MusicBrainz-Busy for the
+// Worker's calls), without another test's calls taking its 503s.
 import { type Context, Hono } from "hono";
 
 interface FakeCredit {
@@ -1322,24 +1323,10 @@ api.get("/ws/2/release-group/:mbid", (c) => {
   return group ? c.json(lookupResult(group)) : c.json(notFound, 404);
 });
 
-export const musicBrainzFake = new Hono<{
-  Bindings: Partial<Pick<Env, "MUSICBRAINZ_INTERVAL_MS">>;
-}>();
+// Under /busy/<times>/<id>/ the first <times> calls with that id are answered 503.
+const busyRoutes = new Hono<{ Bindings: Partial<Pick<Env, "MUSICBRAINZ_INTERVAL_MS">> }>();
 
-// The rate limit, over every call, the busy ones' among them.
-musicBrainzFake.use("*", async (c, next) => {
-  const now = Date.now();
-  const interval = Number(c.env?.MUSICBRAINZ_INTERVAL_MS ?? defaultInterval);
-  const tooSoon = now - lastCall < interval;
-  lastCall = now;
-  if (tooSoon) {
-    rateLimited += 1;
-    return c.json({ error: "Your requests are exceeding the allowable rate limit." }, 503);
-  }
-  await next();
-});
-
-musicBrainzFake.use("/busy/:times/:id/*", async (c, next) => {
+busyRoutes.use("/busy/:times/:id/*", async (c, next) => {
   const id = c.req.param("id");
   const answered = busyAnswered.get(id) ?? 0;
   if (answered < Number(c.req.param("times"))) {
@@ -1349,8 +1336,51 @@ musicBrainzFake.use("/busy/:times/:id/*", async (c, next) => {
   await next();
 });
 
-musicBrainzFake.route("/busy/:times/:id", api);
-musicBrainzFake.route("/", api);
+busyRoutes.route("/busy/:times/:id", api);
+busyRoutes.route("/", api);
+
+// What MusicBrainz answers a call past its rate limit, with a 503.
+const rateLimitAnswer = { error: "Your requests are exceeding the allowable rate limit." };
+
+// The browser paces its song searches 1.1 s apart, always (ADR-0013); a test forwards them here
+// (tests/support/ui/musicbrainz.ts), which can shorten a gap a little, so the fake allows this.
+const browserInterval = 1000;
+
+// When each test browser's last call came. Each is limited on its own, as MusicBrainz limits each
+// User's IP, so parallel tests' searches don't take each other's turns, or the Worker's.
+const browserLastCalls = new Map<string, number>();
+
+export const musicBrainzFake = new Hono<{
+  Bindings: Partial<Pick<Env, "MUSICBRAINZ_INTERVAL_MS">>;
+}>();
+
+// A test browser's calls, under /browser/<id>/, are refused when one comes sooner than the
+// browser's interval after its last.
+musicBrainzFake.use("/browser/:browser/*", async (c, next) => {
+  const browser = c.req.param("browser");
+  const now = Date.now();
+  const tooSoon = now - (browserLastCalls.get(browser) ?? 0) < browserInterval;
+  browserLastCalls.set(browser, now);
+  if (tooSoon) return c.json(rateLimitAnswer, 503);
+  await next();
+});
+
+// The Worker's rate limit, over every call of the Worker's, the busy ones' among them.
+musicBrainzFake.use("*", async (c, next) => {
+  if (/\/musicbrainz\/browser\//.test(c.req.path)) return next();
+  const now = Date.now();
+  const interval = Number(c.env?.MUSICBRAINZ_INTERVAL_MS ?? defaultInterval);
+  const tooSoon = now - lastCall < interval;
+  lastCall = now;
+  if (tooSoon) {
+    rateLimited += 1;
+    return c.json(rateLimitAnswer, 503);
+  }
+  await next();
+});
+
+musicBrainzFake.route("/browser/:browser", busyRoutes);
+musicBrainzFake.route("/", busyRoutes);
 
 // A square front cover, as the Cover Art Archive's image stands in for it here.
 const coverImage =

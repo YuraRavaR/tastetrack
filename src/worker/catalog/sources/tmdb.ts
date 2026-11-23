@@ -4,6 +4,7 @@
 import { z } from "zod";
 import type { FilmCacheExtra } from "../../../db/schema";
 import type { CoverUrls, FilmMetadata } from "../../../shared/api";
+import { searchLanguage } from "../../../shared/search-language";
 import {
   type CatalogEntry,
   type CatalogEnv,
@@ -13,7 +14,6 @@ import {
   SourceUnavailable,
   shownTitles,
 } from "../source";
-import { searchLanguage } from "./search-language";
 
 const imageBaseUrl = "https://image.tmdb.org/t/p";
 

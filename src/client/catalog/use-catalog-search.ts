@@ -2,6 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MediaType } from "../../shared/api";
 import * as api from "../api";
 import { type Found, foundIn } from "./found";
+import { searchSongs } from "./song-search";
+
+// A search of the Media Type's External Source: songs the browser makes on MusicBrainz itself,
+// and every other Media Type the Worker makes (ADR-0013).
+function searchCatalog(mediaType: MediaType, query: string, signal: AbortSignal) {
+  return mediaType === "song"
+    ? searchSongs(query, signal)
+    : api.searchCatalog(mediaType, query, signal);
+}
 
 // How long typing has to pause before a search runs.
 export const searchDelayMs = 400;
@@ -49,7 +58,7 @@ export function useCatalogSearch(mediaType: MediaType, query: string): CatalogSe
     const timer = setTimeout(async () => {
       openingQuery.current = null;
       setSearch((current) => ({ ...current, status: "searching" }));
-      const outcome = await api.searchCatalog(mediaType, trimmed, controller.signal);
+      const outcome = await searchCatalog(mediaType, trimmed, controller.signal);
       if (controller.signal.aborted) return;
       setSearch(
         outcome.ok

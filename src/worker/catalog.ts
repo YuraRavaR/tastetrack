@@ -1,5 +1,6 @@
 // Searching the catalog and adding to it, through the External Source of the Media Type.
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
 import {
   AddCatalogItemRequest,
   CatalogSearchQuery,
@@ -12,6 +13,9 @@ import {
   MediaItemResponse,
   MediaItemsResponse,
   NewManualMediaItemRequest,
+  type SearchMarks,
+  SearchMarksQuery,
+  SearchMarksResponse,
 } from "../shared/api";
 import {
   earliestBookYear,
@@ -22,6 +26,7 @@ import {
   maxMetadataFills,
   maxSearchQueryLength,
 } from "../shared/catalog";
+import { songSearchLimit } from "../shared/musicbrainz-songs";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import {
   createManualMediaItem,
@@ -32,7 +37,12 @@ import {
 } from "./catalog/manual-media-items";
 import { addFromSearch, catalogMediaItems, mediaItemIdsByExternalId } from "./catalog/media-items";
 import { sourceOf } from "./catalog/registry";
-import { type CatalogSearchMatch, SourceBusy, SourceUnavailable } from "./catalog/source";
+import {
+  type AnyCatalogSource,
+  type CatalogSearchMatch,
+  SourceBusy,
+  SourceUnavailable,
+} from "./catalog/source";
 import type { AppEnv } from "./env";
 import { plannedExternalIds } from "./lists/backlog";
 import { listsHolding } from "./lists/user-lists";
@@ -49,7 +59,9 @@ const searchRoute = createRoute({
     "DLC, bundles, mods or cancelled games. MusicBrainz has one title for an album, in its " +
     "original script, and finds only albums and EPs, never singles or spoken word; it ranks " +
     "albums before EPs, and plain ones before live albums, soundtracks, compilations and the " +
-    "like, and is called one request at a time, about a second apart. Results come in the " +
+    "like, and is called one request at a time, about a second apart. Songs aren't searched " +
+    "here: the browser searches MusicBrainz for them itself, and asks " +
+    "`/catalog/search/marks` for the marks (ADR-0013). Results come in the " +
     "source's order, titled in that language, with their Media " +
     "Item's id once they are in the catalog, and marked with what the User has of them: whether " +
     "they have a Log Entry for it, with the Current Rating and how many they have, whether it is " +
@@ -67,7 +79,10 @@ const searchRoute = createRoute({
     },
     400: {
       content: { "application/json": { schema: ErrorResponse } },
-      description: `The query is empty or longer than ${maxSearchQueryLength} characters, or the Media Type unknown`,
+      description:
+        `The query is empty or longer than ${maxSearchQueryLength} characters, or the Media ` +
+        "Type unknown (`invalid_request`); or it is song, which the browser searches " +
+        "(`search_in_browser`)",
     },
     401: unauthenticatedResponse,
     502: {
@@ -80,6 +95,38 @@ const searchRoute = createRoute({
         "MusicBrainz is busy: it answered 503 twice, and asking again in a moment may work " +
         "(`catalog_busy`)",
     },
+  },
+});
+
+const searchMarksRoute = createRoute({
+  method: "get",
+  path: "/catalog/search/marks",
+  summary: "Mark the songs a search in the browser found",
+  description:
+    "Songs are searched in the browser, on MusicBrainz, which the Worker doesn't call for them " +
+    "(ADR-0013). Once MusicBrainz has answered, the browser asks here for what TasteTrack holds " +
+    "about the rows it found, by their recording MBIDs: for each, its Media Item's id once it " +
+    "is in the catalog, and the User's marks, as a search result carries them; songs are kept " +
+    "only in Lists, so only the Lists holding it, oldest first, are ever set. Beside them come " +
+    `up to ${maxManualSearchResults} of the User's own manual songs whose title or Original ` +
+    "Title contains the query, regardless of case, in title order and marked the same way, to " +
+    "be listed first. The same number of queries whatever the rows.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { query: SearchMarksQuery },
+  responses: {
+    200: {
+      content: { "application/json": { schema: SearchMarksResponse } },
+      description: "The User's manual songs for the query, and each MBID's marks",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        `The query is empty or longer than ${maxSearchQueryLength} characters, the Media Type ` +
+        `isn't song, or the ids aren't 0 to ${songSearchLimit} comma-separated recording MBIDs, ` +
+        "lowercase (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
   },
 });
 
@@ -272,35 +319,29 @@ const deleteManualRoute = createRoute({
 
 export const catalogRoutes = new OpenAPIHono<AppEnv>();
 
-catalogRoutes.openapi(searchRoute, async (c) => {
-  const { mediaType, query } = c.req.valid("query");
-  const manual = manualSearch(c.var.db, c.var.userId, mediaType, query);
-  const source = sourceOf(mediaType);
-  let matches: CatalogSearchMatch[];
-  try {
-    matches = await source.search(c.env, query);
-  } catch (error) {
-    // Settled, so its outcome isn't an unhandled rejection.
-    await manual.catch(() => undefined);
-    if (!(error instanceof SourceUnavailable)) throw error;
-    console.error(error);
-    if (error instanceof SourceBusy) return c.json({ error: "catalog_busy" }, 503);
-    return c.json({ error: "catalog_unavailable" }, 502);
-  }
-  const ids = matches.map((match) => match.externalReference.id);
+// The marks search rows carry: the User's Manual Media Items that `manual` found, marked, and the
+// marks of each of the External Source's ids. Whatever the results, in the same number of queries
+// (ADR-0009).
+async function searchMarks(
+  db: DrizzleD1Database,
+  userId: number,
+  source: AnyCatalogSource,
+  manual: ReturnType<typeof manualSearch>,
+  ids: string[],
+) {
+  const { externalSource, mediaType } = source;
   const [manualMatches, mediaItemIds, planned] = await Promise.all([
     manual,
-    mediaItemIdsByExternalId(c.var.db, source.externalSource, mediaType, ids),
-    plannedExternalIds(c.var.db, c.var.userId, source.externalSource, mediaType, ids),
+    mediaItemIdsByExternalId(db, externalSource, mediaType, ids),
+    plannedExternalIds(db, userId, externalSource, mediaType, ids),
   ]);
   const shownIds = [
     ...manualMatches.map(({ mediaItem }) => mediaItem.id),
     ...mediaItemIds.values(),
   ];
-  // Whatever the results, so that a search takes the same number of queries (ADR-0009).
   const [logged, listed] = await Promise.all([
-    loggedMediaItems(c.var.db, c.var.userId, shownIds),
-    listsHolding(c.var.db, c.var.userId, shownIds),
+    loggedMediaItems(db, userId, shownIds),
+    listsHolding(db, userId, shownIds),
   ]);
   const userMarksOf = (mediaItemId: number | null) => {
     const item = mediaItemId === null ? undefined : logged.get(mediaItemId);
@@ -316,16 +357,42 @@ catalogRoutes.openapi(searchRoute, async (c) => {
     ...match,
     ...userMarksOf(match.mediaItem.id),
   }));
-  const results = matches.map((match) => {
-    const mediaItemId = mediaItemIds.get(match.externalReference.id) ?? null;
-    return {
-      ...match,
-      mediaItemId,
-      inBacklog: planned.has(match.externalReference.id),
-      ...userMarksOf(mediaItemId),
-    };
-  });
+  const marksOf = (id: string): SearchMarks => {
+    const mediaItemId = mediaItemIds.get(id) ?? null;
+    return { mediaItemId, inBacklog: planned.has(id), ...userMarksOf(mediaItemId) };
+  };
+  return { manualResults, marksOf };
+}
+
+catalogRoutes.openapi(searchRoute, async (c) => {
+  const { mediaType, query } = c.req.valid("query");
+  const source = sourceOf(mediaType);
+  if (!source.search) return c.json({ error: "search_in_browser" }, 400);
+  const manual = manualSearch(c.var.db, c.var.userId, mediaType, query);
+  let matches: CatalogSearchMatch[];
+  try {
+    matches = await source.search(c.env, query);
+  } catch (error) {
+    // Settled, so its outcome isn't an unhandled rejection.
+    await manual.catch(() => undefined);
+    if (!(error instanceof SourceUnavailable)) throw error;
+    console.error(error);
+    if (error instanceof SourceBusy) return c.json({ error: "catalog_busy" }, 503);
+    return c.json({ error: "catalog_unavailable" }, 502);
+  }
+  const ids = matches.map((match) => match.externalReference.id);
+  const { manualResults, marksOf } = await searchMarks(c.var.db, c.var.userId, source, manual, ids);
+  const results = matches.map((match) => ({ ...match, ...marksOf(match.externalReference.id) }));
   return c.json({ manualResults, results }, 200);
+});
+
+catalogRoutes.openapi(searchMarksRoute, async (c) => {
+  const { mediaType, query, ids } = c.req.valid("query");
+  const manual = manualSearch(c.var.db, c.var.userId, mediaType, query);
+  const source = sourceOf(mediaType);
+  const { manualResults, marksOf } = await searchMarks(c.var.db, c.var.userId, source, manual, ids);
+  const marks = Object.fromEntries(ids.map((id) => [id, marksOf(id)]));
+  return c.json({ manualResults, marks }, 200);
 });
 
 catalogRoutes.openapi(addRoute, async (c) => {

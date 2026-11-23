@@ -3,7 +3,7 @@
 // and series below, which mirror real TMDB data so the same tests pass here and against TMDB on
 // staging.
 import { Hono } from "hono";
-import type { SearchLanguage } from "./search-language";
+import type { SearchLanguage } from "../../../shared/search-language";
 
 interface FakeFilm {
   id: number;

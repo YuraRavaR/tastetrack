@@ -1,9 +1,12 @@
 import type { Page } from "@playwright/test";
 import { ApiClient } from "../api/ApiClient";
 import { test as base, expect } from "../fixtures";
+import { callsRealMusicBrainz } from "../scenarios/albums";
+import { MusicBrainzInBrowser } from "./musicbrainz";
 import { Ui } from "./Ui";
 
 interface UiFixtures {
+  musicBrainz: MusicBrainzInBrowser;
   ui: Ui;
   loggedInUi: Ui;
   visitorPage: Page;
@@ -14,9 +17,19 @@ interface UiFixtures {
 // `api` shares the page's session here, so `loggedInUser` is logged in in the browser too.
 // `loggedInUi` is that `ui`, for a test that needs the session but not the User. `visitorPage` is
 // someone with no session, in a browser of their own, such as the holder of a Share Link, and
-// `visitorUi` its pages.
+// `visitorUi` its pages. `musicBrainz` sends every test browser's calls to MusicBrainz and the Cover
+// Art Archive to the Worker's fakes, where the Worker calls them too, and lets a test make
+// MusicBrainz busy.
 // API tests import ../fixtures instead, so they never start a browser.
 export const test = base.extend<UiFixtures>({
+  musicBrainz: [
+    async ({ context, baseURL }, use) => {
+      const musicBrainz = new MusicBrainzInBrowser(baseURL ?? "");
+      if (!callsRealMusicBrainz()) await musicBrainz.route(context);
+      await use(musicBrainz);
+    },
+    { auto: true },
+  ],
   api: async ({ page }, use) => {
     await use(new ApiClient(page.request));
   },

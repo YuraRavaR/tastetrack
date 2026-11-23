@@ -30,6 +30,8 @@ tests/
 
 Specs import `test` and `expect` from `support/ui/fixtures`. There `api` shares the page's session, so `loggedInUser` logs the browser in too, and setup goes through `api` rather than through the UI.
 
+Song search runs in the browser, on MusicBrainz (ADR-0013). The automatic `musicBrainz` fixture (`support/ui/musicbrainz.ts`) sends every test browser's calls to MusicBrainz and the Cover Art Archive to the Worker's fakes through `context.route`, except where the Worker calls the real MusicBrainz, as on staging. `musicBrainz.busy(times)` has the next calls answer 503, as `withMusicBrainzBusy` does for the Worker's own calls.
+
 The `@smoke` tests also run in the `mobile` project, on an iPhone in WebKit, so what they use works in the phone layout too, where the main nav sits at the bottom.
 
 ### Pages

@@ -1,10 +1,9 @@
 import {
-  CatalogSearchResponse,
-  type CatalogSearchResult,
   type ManualMediaItemEditRequest,
   ManualMediaItemResponse,
   MediaItemListsResponse,
   MediaItemResponse,
+  SearchMarksResponse,
   SharedListResponse,
 } from "@shared/api";
 import type { ApiClient } from "../support/api/ApiClient";
@@ -13,34 +12,16 @@ import { at, minutesAgo } from "../support/clock";
 import { test as base, expect } from "../support/fixtures";
 import { callsRealMusicBrainz, coverArt, zemlya } from "../support/scenarios/albums";
 import {
-  brookeCoverGroupId,
-  brookeCoverId,
   karmaPolice,
-  karmaPoliceCompilationId,
-  karmaPoliceId,
-  karmaPoliceLiveIds,
-  karmaPoliceSingleId,
-  karmaPoliceWithStipeId,
   manualSong,
   mergedSongId,
   obiimy,
-  obiimyBonusTrackId,
   obiimyId,
-  obiimyRemixId,
-  okComputerId,
   recordingPage,
   runningUpThatHillRemixId,
   shumId,
-  shumRadioEditId,
-  shumSingleId,
-  shumVideoIds,
   songReference,
-  songSearchResult,
-  songSearchResults,
-  stefaniaEpId,
-  stefaniaId,
-  stefaniaKaraokeId,
-  stefaniaRemixId,
+  songResult,
   zemlyaGroupId,
 } from "../support/scenarios/songs";
 import { withMusicBrainzBusy } from "../support/test-hooks-secret";
@@ -55,161 +36,133 @@ const test = base.extend<{ visitor: ApiClient }>({
   },
 });
 
-const ids = (results: CatalogSearchResult[]) => results.map((r) => r.externalReference.id);
-
 async function createList(api: ApiClient, name: string, mediaType: "song" | "album" | "film") {
   return (await expectBody(api.lists.createList({ name, mediaType }), 201)).list;
 }
 
-test("searching songs finds Karma Police first, once, with its artist, year, album and cover, and no live recording", async ({
+test("the Worker doesn't search songs, as the browser does: a song search is a 400", async ({
   loggedInApi,
 }) => {
-  const search = loggedInApi.catalog.searchCatalog({
+  const search = loggedInApi.catalog.searchCatalog({ mediaType: "song", query: "Шум Go_A" });
+
+  expect(await expectBody(search, 400)).toEqual({ error: "search_in_browser" });
+});
+
+// A search row's marks for a song no one has added.
+const unmarked = {
+  mediaItemId: null,
+  inLog: false,
+  inBacklog: false,
+  currentRating: null,
+  logEntryCount: 0,
+  lists: [],
+};
+
+// MBIDs no recording has, as the search rows of songs no one has added would carry.
+function unaddedSongIds(count: number) {
+  return Array.from(
+    { length: count },
+    (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
+  );
+}
+
+// An MBID no recording has, as a search row of a song no one has added would carry.
+const unaddedSongId = "00000000-0000-4000-8000-000000000304";
+
+test("the marks of a song search say each song's Media Item and the User's Collections holding it, with their manual songs for the query", async ({
+  loggedInApi,
+}) => {
+  const obiimyItem = await obiimy(loggedInApi);
+  const list = await createList(loggedInApi, "Favourite songs", "song");
+  await expectBody(loggedInApi.lists.addListItem(list.id, { mediaItemId: obiimyItem.id }), 201);
+  const demo = await manualSong(loggedInApi, { title: "Обійми (демо)", authors: ["Сусіди"] });
+  await manualSong(loggedInApi, { title: "Шум (демо)" });
+
+  const marks = loggedInApi.catalog.getSearchMarks({
     mediaType: "song",
-    query: "Karma Police Radiohead",
+    query: "обійми",
+    ids: [obiimyId, unaddedSongId].join(","),
   });
 
-  const { results } = await expectBody(search, 200, CatalogSearchResponse);
-
-  expect(results[0]).toEqual({
-    externalReference: songReference(karmaPoliceId),
-    title: "Karma Police",
-    originalTitle: "Karma Police",
-    year: 1997,
-    posterUrl: coverArt(okComputerId, 250),
-    titleLanguage: "en",
-    authors: [],
-    artistCredit: "Radiohead",
-    album: "OK Computer",
-    disambiguation: null,
-    // Null until a test adds it to the catalog.
-    mediaItemId: results[0]?.mediaItemId,
-    inLog: false,
-    inBacklog: false,
-    currentRating: null,
-    logEntryCount: 0,
-    lists: [],
+  expect(await expectBody(marks, 200, SearchMarksResponse)).toEqual({
+    manualResults: [
+      {
+        mediaItem: demo,
+        inLog: false,
+        inBacklog: false,
+        currentRating: null,
+        logEntryCount: 0,
+        lists: [],
+      },
+    ],
+    marks: {
+      [obiimyId]: {
+        ...unmarked,
+        mediaItemId: obiimyItem.id,
+        lists: [{ id: list.id, name: list.name }],
+      },
+      [unaddedSongId]: unmarked,
+    },
   });
-  // Radiohead's other recordings of it, on a compilation and its single, are the same song.
-  expect(ids(results)).not.toContain(karmaPoliceCompilationId);
-  expect(ids(results)).not.toContain(karmaPoliceSingleId);
-  for (const live of karmaPoliceLiveIds) expect(ids(results)).not.toContain(live);
-  // With another artist credited, or as a cover, it is a song of its own.
-  expect(ids(results)).toEqual(expect.arrayContaining([karmaPoliceWithStipeId, brookeCoverId]));
-  for (const r of results) {
-    expect(r).not.toHaveProperty("primaryType");
-    expect(r).not.toHaveProperty("platforms");
+});
+
+test("the marks of a song search with no rows still list the User's manual songs", async ({
+  loggedInApi,
+}) => {
+  const demo = await manualSong(loggedInApi, { title: "!!!" });
+
+  const marks = loggedInApi.catalog.getSearchMarks({ mediaType: "song", query: "!!!", ids: "" });
+
+  expect(await expectBody(marks)).toEqual({
+    manualResults: [expect.objectContaining({ mediaItem: demo })],
+    marks: {},
+  });
+});
+
+// ADR-0009: the marks take the same number of D1 queries however many rows the search found.
+test("the marks of 1 song and of 50 take the same number of queries", async ({ loggedInApi }) => {
+  await obiimy(loggedInApi);
+  const others = unaddedSongIds(49);
+  const queriesFor = async (ids: string[]) => {
+    const marks = await loggedInApi.catalog.getSearchMarks({
+      mediaType: "song",
+      query: "Обійми",
+      ids: ids.join(","),
+    });
+    expect(marks.status()).toBe(200);
+    return marks.headers()["x-d1-query-count"];
+  };
+
+  const one = await queriesFor([obiimyId]);
+  const fifty = await queriesFor([obiimyId, ...others]);
+
+  expect(one).toMatch(/^\d+$/);
+  expect(fifty).toBe(one);
+});
+
+test("the marks are only for songs, by up to 50 recording MBIDs, and need a query", async ({
+  loggedInApi,
+}) => {
+  const fiftyOne = unaddedSongIds(51);
+  for (const search of [
+    { mediaType: "song", query: "Шум", ids: "shum" },
+    { mediaType: "song", query: "Шум", ids: shumId.toUpperCase() },
+    { mediaType: "song", query: "Шум", ids: `${shumId},` },
+    { mediaType: "song", query: "Шум", ids: fiftyOne.join(",") },
+    { mediaType: "song", query: " ", ids: shumId },
+    { mediaType: "album", query: "Земля", ids: zemlyaGroupId },
+  ]) {
+    const marks = loggedInApi.catalog.getSearchMarks(search);
+    expect(await expectBody(marks, 400), JSON.stringify(search)).toEqual({
+      error: "invalid_request",
+    });
   }
 });
 
-test("a Cyrillic song search finds Обійми from Земля first, and its bonus track and remix as songs of their own", async ({
-  loggedInApi,
-}) => {
-  const results = await songSearchResults(loggedInApi, "Обійми Океан Ельзи");
+test("the marks need a login", async ({ api }) => {
+  const marks = api.catalog.getSearchMarks({ mediaType: "song", query: "Шум", ids: shumId });
 
-  expect(results[0]).toMatchObject({
-    externalReference: songReference(obiimyId),
-    title: "Обійми",
-    year: 2013,
-    artistCredit: "Океан Ельзи",
-    album: "Земля",
-    posterUrl: coverArt(zemlyaGroupId, 250),
-    titleLanguage: "uk",
-  });
-  expect(ids(results)).toEqual(expect.arrayContaining([obiimyBonusTrackId, obiimyRemixId]));
-  expect(new Set(ids(results)).size).toBe(results.length);
-});
-
-test("a song search shows the disambiguation, and no music video", async ({ loggedInApi }) => {
-  const results = await songSearchResults(loggedInApi, "Шум Go_A");
-
-  expect(results[0]).toMatchObject({
-    externalReference: songReference(shumId),
-    title: "Шум",
-    year: 2021,
-    artistCredit: "Go_A",
-    disambiguation: "original version",
-    // A single is no album, but its cover is the song's.
-    album: null,
-    posterUrl: coverArt(shumSingleId, 250),
-  });
-  expect(ids(results)).toContain(shumRadioEditId);
-  for (const video of shumVideoIds) expect(ids(results)).not.toContain(video);
-});
-
-test("a song search hides a karaoke version, and a remix on no Official release has no album or cover", async ({
-  loggedInApi,
-}) => {
-  const results = await songSearchResults(loggedInApi, "Stefania Kalush");
-
-  expect(results[0]).toMatchObject({
-    externalReference: songReference(stefaniaId),
-    artistCredit: "Kalush Orchestra",
-    disambiguation: "Ukraine, Eurovision 2022 entry",
-    album: null,
-    posterUrl: coverArt(stefaniaEpId, 250),
-  });
-  expect(ids(results)).not.toContain(stefaniaKaraokeId);
-  expect(
-    results.find((r: CatalogSearchResult) => r.externalReference.id === stefaniaRemixId),
-  ).toMatchObject({
-    album: null,
-    posterUrl: null,
-  });
-});
-
-test("a song search finds no albums, and an album search no songs", async ({ loggedInApi }) => {
-  const songs = await songSearchResults(loggedInApi, "Обійми Океан Ельзи");
-  const albums = await expectBody(
-    loggedInApi.catalog.searchCatalog({ mediaType: "album", query: "Земля Океан Ельзи" }),
-  );
-
-  expect(songs.every((r: CatalogSearchResult) => r.externalReference.mediaType === "song")).toBe(
-    true,
-  );
-  expect(
-    albums.results.every((r: CatalogSearchResult) => r.externalReference.mediaType === "album"),
-  ).toBe(true);
-});
-
-test("a song's cover comes from the Cover Art Archive, which has none for some", async ({
-  loggedInApi,
-  request,
-}) => {
-  test.skip(callsRealMusicBrainz(), "The Cover Art Archive fake stands in for the real one");
-  const withCover = await songSearchResult(loggedInApi, "Karma Police Radiohead", karmaPoliceId);
-  const without = await songSearchResult(loggedInApi, "Karma Police Radiohead", brookeCoverId);
-
-  expect(without.posterUrl).toEqual(coverArt(brookeCoverGroupId, 250));
-  expect((await request.get(withCover.posterUrl ?? "")).status()).toBe(200);
-  expect((await request.get(without.posterUrl ?? "")).status()).toBe(404);
-});
-
-test("a song search MusicBrainz answers 503 is asked again once, and finds its songs", async ({
-  loggedInApi,
-}) => {
-  test.skip(callsRealMusicBrainz(), "Only the MusicBrainz fake can be made busy");
-
-  const search = loggedInApi.catalog.searchCatalog(
-    { mediaType: "song", query: "Шум Go_A" },
-    withMusicBrainzBusy(1),
-  );
-
-  const { results } = await expectBody(search, 200);
-  expect(results[0].externalReference).toEqual(songReference(shumId));
-});
-
-test("a song search MusicBrainz answers 503 twice is a 503 that says MusicBrainz is busy", async ({
-  loggedInApi,
-}) => {
-  test.skip(callsRealMusicBrainz(), "Only the MusicBrainz fake can be made busy");
-
-  const search = loggedInApi.catalog.searchCatalog(
-    { mediaType: "song", query: "Шум Go_A" },
-    withMusicBrainzBusy(2),
-  );
-
-  expect(await expectBody(search, 503)).toEqual({ error: "catalog_busy" });
+  expect((await marks).status()).toBe(401);
 });
 
 // Обійми and the merged recording are taken out of the cache by these tests alone, which run one
@@ -220,9 +173,7 @@ test("adding a song stores its title, year, artists, album, disambiguation and M
 }) => {
   const evicted = await loggedInApi.testHooks.evictFromCatalogCache(songReference(obiimyId));
   expect(evicted.status()).toBe(204);
-  const result = await songSearchResult(loggedInApi, "Обійми Океан Ельзи", obiimyId);
-
-  const added = await loggedInApi.catalog.addCatalogItem(result);
+  const added = await loggedInApi.catalog.addCatalogItem(songResult(obiimyId, "Обійми"));
 
   expect([200, 201]).toContain(added.status());
   const { mediaItem } = MediaItemResponse.parse(await added.json());
@@ -249,11 +200,14 @@ test("adding a song stores its title, year, artists, album, disambiguation and M
 
 test("adding a song while MusicBrainz is busy keeps it as search found it", async ({
   loggedInApi,
+  baseURL,
 }) => {
   test.skip(callsRealMusicBrainz(), "Only the MusicBrainz fake can be made busy");
   const evicted = await loggedInApi.testHooks.evictFromCatalogCache(songReference(obiimyId));
   expect(evicted.status()).toBe(204);
-  const result = await songSearchResult(loggedInApi, "Обійми Океан Ельзи", obiimyId);
+  // The cover as the Worker links it here: from the Cover Art Archive fake.
+  const posterUrl = `${baseURL}/api/test/coverartarchive/release-group/${zemlyaGroupId}/front-250`;
+  const result = songResult(obiimyId, "Обійми", { year: 2013, posterUrl });
 
   const added = await loggedInApi.catalog.addCatalogItem(result, withMusicBrainzBusy(2));
 
@@ -299,7 +253,7 @@ test("a merged recording is added through MusicBrainz's redirect, under the MBID
 });
 
 test("a song is added only under MusicBrainz, with a recording's MBID", async ({ loggedInApi }) => {
-  const result = await songSearchResult(loggedInApi, "Шум Go_A", shumId);
+  const result = songResult(shumId, "Шум");
 
   for (const externalReference of [
     { source: "tmdb", mediaType: "song", id: shumId },
@@ -525,7 +479,11 @@ test("a User adds a song by hand with a title, an Original Title, its artists an
       url: null,
     },
   });
-  const search = loggedInApi.catalog.searchCatalog({ mediaType: "song", query: "гаража" });
+  const search = loggedInApi.catalog.getSearchMarks({
+    mediaType: "song",
+    query: "гаража",
+    ids: "",
+  });
   expect((await expectBody(search)).manualResults).toEqual([
     {
       mediaItem,
