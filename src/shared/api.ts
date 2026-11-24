@@ -580,6 +580,19 @@ export const GameMetadata = z
 
 export type GameMetadata = z.infer<typeof GameMetadata>;
 
+// The artists an album's or a song's credit names, each by their credited name and their artist
+// MBID, in the credit's order, so that its page links each to their artist's page (ADR-0013,
+// Artists). A Manual Media Item's artists have none, so its list is empty, and so is one filled
+// from a search result alone.
+const CreditedArtists = z
+  .array(
+    z.object({
+      name: z.string().openapi({ example: "Океан Ельзи" }),
+      mbid: z.string().openapi({ example: "87a417d3-f118-43e0-bece-3de1bd90fce0" }),
+    }),
+  )
+  .openapi({ example: [{ name: "Океан Ельзи", mbid: "87a417d3-f118-43e0-bece-3de1bd90fce0" }] });
+
 // An album's metadata from the External Source, where an album is a MusicBrainz release group, the
 // work across all its editions, never one release (ADR-0013). It has one title, MusicBrainz's,
 // which is its Original Title too, and never a Ukrainian one. The year is the year of its first
@@ -611,6 +624,7 @@ export const AlbumMetadata = z
       .nullable(),
     artistCredit: z.string().nullable().openapi({ example: "Океан Ельзи" }),
     artists: z.array(z.string()).openapi({ example: ["Океан Ельзи"] }),
+    creditedArtists: CreditedArtists,
     primaryType: z.enum(["Album", "EP"]).nullable().openapi({ example: "Album" }),
     secondaryTypes: z.array(z.string()).openapi({ example: [] }),
     url: z.url().nullable().openapi({
@@ -650,6 +664,7 @@ export const SongMetadata = z
       .nullable(),
     artistCredit: z.string().nullable().openapi({ example: "Океан Ельзи" }),
     artists: z.array(z.string()).openapi({ example: ["Океан Ельзи"] }),
+    creditedArtists: CreditedArtists,
     album: z.string().nullable().openapi({ example: "Земля" }),
     disambiguation: z.string().nullable().openapi({ example: null }),
     url: z.url().nullable().openapi({

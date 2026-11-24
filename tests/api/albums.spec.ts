@@ -45,6 +45,7 @@ import {
   zemlya,
   zemlyaId,
 } from "../support/scenarios/albums";
+import { okeanElzyId } from "../support/scenarios/artists";
 import { alien } from "../support/scenarios/films";
 import { withMusicBrainzBusy } from "../support/test-hooks-secret";
 
@@ -292,7 +293,7 @@ test("MusicBrainz is made busy only by a request with the test hooks secret, onc
 // Земля, 1944 and the merged release group are taken out of the cache by these tests alone, and
 // used from the catalog by this file's tests alone, which run one after another. Out of the cache,
 // adding them makes the details call, whatever earlier runs left in local D1.
-test("adding an album stores its title, year, artist credit, types and MusicBrainz page", async ({
+test("adding an album stores its title, year, artist credit with each artist's MBID, types and MusicBrainz page", async ({
   loggedInApi,
 }) => {
   const evicted = await loggedInApi.testHooks.evictFromCatalogCache(albumReference(zemlyaId));
@@ -315,6 +316,7 @@ test("adding an album stores its title, year, artist credit, types and MusicBrai
       coverUrls: { small: coverArt(zemlyaId, 250), large: coverArt(zemlyaId, 500) },
       artistCredit: "Океан Ельзи",
       artists: ["Океан Ельзи"],
+      creditedArtists: [{ name: "Океан Ельзи", mbid: okeanElzyId }],
       primaryType: "Album",
       secondaryTypes: [],
       url: musicBrainzPage(zemlyaId),
@@ -643,6 +645,7 @@ test("a User adds an album by hand with a title, an Original Title, its artists 
       coverUrls: null,
       artistCredit: "Сусіди, Друзі сусідів",
       artists: ["Сусіди", "Друзі сусідів"],
+      creditedArtists: [],
       primaryType: null,
       secondaryTypes: [],
       url: null,
