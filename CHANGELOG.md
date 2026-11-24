@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.19.0](https://github.com/YuraRavaR/tastetrack/compare/v0.18.0...v0.19.0) (2026-11-24)
+
+
+### Features
+
+* **songs:** search songs on MusicBrainz from the browser ([#307](https://github.com/YuraRavaR/tastetrack/issues/307)) ([a45ca54](https://github.com/YuraRavaR/tastetrack/commit/a45ca54dae1354f2800b51785a9165149b946630)), closes [#304](https://github.com/YuraRavaR/tastetrack/issues/304)
+
+
+### Bug Fixes
+
+* **catalog:** collapse song rows whose titles and credits have the same words ([#309](https://github.com/YuraRavaR/tastetrack/issues/309)) ([fef61ea](https://github.com/YuraRavaR/tastetrack/commit/fef61ea2fc92ed483d8293215279faa782703462))
+* **catalog:** hide one-release bracketed takes of a song in Search ([#311](https://github.com/YuraRavaR/tastetrack/issues/311)) ([f92e32a](https://github.com/YuraRavaR/tastetrack/commit/f92e32a60fe92fd17fb632272bc9b99e4269a50a))
+* **catalog:** rank a song whose title the query names without its bracketed start or end ([#310](https://github.com/YuraRavaR/tastetrack/issues/310)) ([800ca54](https://github.com/YuraRavaR/tastetrack/commit/800ca54607a8c3f0a5d73f4f1b04b9dc9884aead)), closes [#295](https://github.com/YuraRavaR/tastetrack/issues/295)
+* **catalog:** take a song's plain studio Album before a soundtrack ([#312](https://github.com/YuraRavaR/tastetrack/issues/312)) ([6c25ef5](https://github.com/YuraRavaR/tastetrack/commit/6c25ef550d2667ad004fbfe69771bfe6b8b85997)), closes [#296](https://github.com/YuraRavaR/tastetrack/issues/296)
+
 ## [0.18.0](https://github.com/YuraRavaR/tastetrack/compare/v0.17.0...v0.18.0) (2026-11-23)
 
 
