@@ -4,7 +4,7 @@
 
 **Checked** 2026-11-16, against official docs and the live APIs. This is a short pass, not an exhaustive survey: claims marked _not checked_ were not verified.
 
-**Outcome.** MusicBrainz was chosen in #266 and recorded in ADR-0013. A check from a throwaway Worker and a CORS check on 2026-11-21 (below) settled the rate limit, merges and CORS, and search stays in the Worker. Songs followed in #279, on MusicBrainz recordings: the recording search check of 2026-11-22 (below) settled their query, album and cover.
+**Outcome.** MusicBrainz was chosen in #266 and recorded in ADR-0013. A check from a throwaway Worker and a CORS check on 2026-11-21 (below) settled the rate limit, merges and CORS, and search stays in the Worker. Songs followed in #279, on MusicBrainz recordings: the recording search check of 2026-11-22 (below) settled their query, album and cover. Artists followed in #298, on MusicBrainz artists with photos from Wikidata and Wikimedia Commons: the artist search check of 2026-11-24 (below) settled their query, hiding, ranking, photo and albums list.
 
 ## Recommendation
 
@@ -253,6 +253,174 @@ The four were Yesterday Man (Chris Andrews), Hello It's Me (Todd Rundgren), Yest
 **Payload and CPU.** The largest answer was 0.9 MB at limit 50 and 1.5 MB at 100. Parsing and validating one took up to about 1.7 and 3 ms (the median of 41 runs for each answer) in Node 24 on the developer machine. CPU time on Workers was _not checked_.
 
 **Throttling.** 37 of the 69 searches (54%) got a 503 on the first try and 15 (22%) after one retry, 4 of the 23 in the chosen form. 38 of the 93 lookups (41%) got a 503 on the first try and none after the retry. These are worse for searches than the 5% measured from a Worker on 2026-11-21, and over the 10% that #266 set as the limit for searching from the Worker. They aren't the same measurement: another IP, another time and a User-Agent without a contact. How recording searches fare from a Worker was _not checked_.
+
+## Artist search check (2026-11-24)
+
+**Why.** #298 makes an artist a MusicBrainz artist, with a photo from Wikidata and Wikimedia Commons, and left six things to a live check (#299):
+
+- the artist-search query form;
+- whether aliases and sort names find both the Cyrillic and the Latin spelling;
+- the ranking;
+- how to recognise MusicBrainz's special-purpose artists;
+- how many artists have a photo, and what crediting it costs;
+- how large an artist's albums list is.
+
+**How.** From a developer machine on a home IP, from 17:14 to 18:01 UTC. Every MusicBrainz call went through one queue, at least 1.1 s after the previous one ended, and a 503 was retried once. A search that got two 503s was asked again later. The User-Agent was `TasteTrack/0.19.0 (<repository URL>)`, as in the Worker check of 2026-11-21. Wikimedia calls carried the same User-Agent, one at a time and outside the queue. 33 artist queries ran in free text and 19 in the AND form, 12 of them in both, followed by 39 artist lookups, 29 Wikidata and 25 Commons calls, 51 release-group browses and 14 release-group searches.
+
+**Query form.** Two forms were compared, both `/artist/?query=…&limit=25`:
+
+- free text: the words as typed, with Lucene's special characters escaped;
+- the AND form: the same words joined by `AND`.
+
+Without a field, MusicBrainz's artist search matches the name, the sort name, the aliases and the disambiguation, and it ignores accents.
+
+| Query | Free text: matches | AND: matches | First row (both forms) |
+|---|---|---|---|
+| Океан Ельзи | 8 | 1 | Океан Ельзи, Group, UA, 1994– |
+| Okean Elzy | 29 | 1 | Океан Ельзи (an alias "Okean Elzy", en, and the sort name) |
+| Kalush Orchestra | 14,780 | 1 | Kalush Orchestra, Group, UA, 2021– |
+| Воплі Відоплясова | 3 | 3 | Воплі Відоплясова, Group, UA, 1986– |
+| Vopli Vidopliassova | 1 | 1 | Воплі Відоплясова |
+| Христина Соловій | 9 | 1 | Христина Соловій, Person, UA, 1993– |
+| Khrystyna Soloviy | 6 | 1 | Христина Соловій |
+| Pink Floyd | 2,215 | 165 | Pink Floyd, Group, GB, 1965–2014; then a 2023 "online collective" |
+| Alice Cooper | 3,086 | 33 | Alice Cooper, Person, "the singer…"; then Alice Cooper, Group, "the band…" |
+| Marilyn Manson | 474 | 7 | Marilyn Manson, Group, "the band"; then Marilyn Manson, Person, "the person" |
+| John Williams | 33,094 | 132 | John Williams, "American score composer and conductor"; then the classical guitarist, the blues guitarist… |
+| Various Artists | 1,112 | 42 | Various Artists, Other, "add compilations to this artist"; then five real artists of that name |
+
+The two forms put the same artist first in all 12 queries. Where both had rows below it, the same ones followed, up to the fourth. Free text joins the words with OR, so the rows below are artists that share one word with the query ("Elzy", "Okeazz Elzy", every orchestra). The AND form leaves those out. It also found "Bjork" → Björk, "Motorhead" → Motörhead, "Sigur Ros" → Sigur Rós, "Guns N' Roses" → Guns N’ Roses, "AC/DC" → AC/DC and "the beatles" → The Beatles first. A word that is in neither the name nor an alias hurts both forms. "Pink Floyd band" put four tribute bands first, matched through their disambiguations ("Pink Floyd tribute band").
+
+**Single words and aliases,** in free text, which is the AND form for one word. Each query and its first row:
+
+| Query | First row |
+|---|---|
+| Бумбокс | Бумбокс, Group, UA, 2004– (the only match) |
+| Boombox | BoomBox, US, "funk/electronic/jam duo"; Бумбокс second; a Norwegian Boombox third |
+| Скрябін | Скрябін, Group, UA, 1989– |
+| Skryabin | Скрябін; then the composer Александр Николаевич Скрябин |
+| ДахаБраха / DakhaBrakha | DakhaBrakha (its name is Latin, with "ДахаБраха" an alias) |
+| Джамала / Jamala | Jamala (alias "Джамала", uk_UA) |
+| Kalush | KALUSH, Group, UA, 2019–; Kalush Orchestra second |
+| KAZKA | KAZKA, Group, UA, 2017– |
+| Казка | СКАзка and Сказка, two Russian groups: KAZKA has no Cyrillic alias |
+| Go_A | Go_A, Group, UA, 2012– |
+| Кино | Кино, Group, RU, "Soviet rock band active in 1980s" |
+| Radiohead | Radiohead; then On a Friday, "pre‐Radiohead group" |
+| Beatles | The Beatles; then John Lennon and Paul McCartney (disambiguation "The Beatles") |
+| Queen | Queen, "UK rock group"; then Madonna ("Queen of Pop") |
+| Prince | Prince, "The Artist Formerly Known as…" |
+| Nirvana | Nirvana, "1980s–1990s US grunge band"; then the 60s UK band, a French and a Finnish one |
+| [unknown] | [unknown], Other, "Special Purpose Artist – Do not add releases here, if possible." |
+
+The artist meant came first for every query whose spelling MusicBrainz knows. The exceptions were "Boombox", where the US duo of that name comes first and Бумбокс second, and "Казка", which MusicBrainz has no alias for. So aliases find both spellings only where MusicBrainz holds them. Its score already ranks a name or alias that the query names in full above partial matches, and a solo artist and a group of one name come in a sensible order, told apart by their disambiguation.
+
+**Special-purpose artists.** A search for `comment:"special purpose"` found 13 artists. 12 are special-purpose artists, all with type Other:
+
+- [no artist], `eec63d3c-3b81-4ad4-b1e4-7c147d4d2b61`
+- [language instruction], `80a8851f-444c-4539-892b-ad2a49292aa9`
+- [dialogue], `314e1c25-dde7-4e4d-b2f4-0a7b9f7c56dc`
+- [anonymous], `f731ccc4-e22a-43af-a747-64213329e088`
+- [unknown], `125ec42a-7229-4250-afc5-e057484327fe`
+- [traditional], `9be7f096-97ec-4615-8957-8d40b5dcbc41`
+- [data], `33cf029c-63b0-41a0-9855-be2a3665fb3b`
+- [Disney], `66ea0139-149f-4a0c-8fbf-5ea9ec4a6e49`
+- [church chimes], `90068d37-bae7-4292-be4a-704c145bd616`
+- MusicBrainz Test Artist, `7e84f845-ac16-41fe-9ff8-df12eb32af55`
+- [theatre], `a0ef7e1d-44ff-4039-9435-7d5fefdeecc9`
+- [unknown animal], `459a4aa6-b6b7-4c89-a42b-03acddbe1f80`
+
+The 13th, "No Artist", has the disambiguation "NOT a Special Purpose Artist, probably Matteo Dimaria". Various Artists, `89ad4ac3-39f7-470e-963a-56509c546377`, has none of those words; its disambiguation is "add compilations to this artist". Neither type nor name nor disambiguation tells these 13 from real artists:
+
+- 3 of the 581 distinct artists the searches returned have type Other and aren't special-purpose ("Friends of Pink Floyd", "The Beatles (Ukrainian)");
+- 5 real artists are named "Various Artists";
+- the disambiguation rule would catch "No Artist".
+
+So the Worker hides the 12 special-purpose artists and Various Artists, 13 MBIDs, by MBID. Special-purpose artists turned up in 4 searches: [unknown] in third place for "Kalush Orchestra", and Various Artists fourth for "Go_A".
+
+**Facts.** The 39 artists looked up:
+
+- `country` is an ISO 3166-1 code, even where the `area` is a city: DakhaBrakha's area is Kyïv and its country UA. Pink Floyd's area is England and its country GB.
+- `type` is Person, Group, Orchestra, Choir, Character, Other or missing.
+- `life-span` has `begin`, `end` and `ended`. Begin dates can be partial ("1994", "1965-11-21") or masked ("????-10-02").
+- Of the 725 search rows, 329 had no country and 403 no begin date. 13 were `ended` with no end date, Queen among them: begin 1970-06-27, ended, no end.
+- For a person, the years are birth and death (Prince 1958-06-07 to 2016-04-21).
+
+**Photos.** For each looked-up artist the photo took three calls:
+
+- the MusicBrainz lookup `/artist/<mbid>?inc=url-rels`, for its `wikidata` URL relation;
+- Wikidata's `wbgetclaims` with `property=P18`, for the file name;
+- Commons' `action=query&prop=imageinfo&iiprop=url|extmetadata`, for the author and licence.
+
+All 54 Wikimedia calls answered 200, the largest 7.5 KB and the slowest in 0.33 s.
+
+| Artists | Wikidata link | P18 image |
+|---|---|---|
+| The 26 the queries meant, both of the solo-and-group pairs among them | 26 | 25 (not the 60s UK Nirvana) |
+| 13 others from the same searches (band members, a harpist, a Norwegian Boombox, minor Nirvanas and John Williamses) | 3 | 1 (a group photo on the page of one Воплі Відоплясова member) |
+
+The artists people know and rank have a photo almost always, and the long tail almost never, so initials stay the fallback.
+
+**Credit.** Commons' `extmetadata` gives the author as HTML in `Artist`, the licence in `LicenseShortName` and the file's page in the image info's `descriptionurl`. The author can be:
+
+- a link to a Wikipedia article: `<bdi><a …><span title="photographer">Alexander Khanin</span></a></bdi>`;
+- a link to a Commons user who has no user page (`Aleksandrit`);
+- a link to an external site (`Наш Киев/ Nash Kiev`, a YouTube channel);
+- plain text (`Koh Hasebe; Distributed by Elektra Records`).
+
+Its text content, without the markup, is the author in every case. The 25 licences were:
+
+| Licence | Files |
+|---|---|
+| CC BY-SA 4.0 | 7 |
+| CC BY 3.0 | 5 |
+| Public domain | 5 |
+| CC BY-SA 2.0 | 4 |
+| CC BY 2.0 | 2 |
+| CC BY-SA 3.0 | 1 |
+| CC BY 4.0 | 1 |
+
+`AttributionRequired` was true for all but the public-domain ones, and no file had an `Attribution` of its own. So the photo and its credit take two Wikimedia calls after the lookup, which the lookup makes anyway, and that is few enough to keep the photo.
+
+**The photo's URL.** `https://commons.wikimedia.org/wiki/Special:FilePath/OkeanElzi25.jpg?width=400` answered 302 to `Special:Redirect`, which answered 301 to the 500 px thumbnail on `thumb.wikimedia.org`. That came back 200 `image/jpeg`, 42 KB, with `access-control-allow-origin: *`. Asked for width 400, Commons served 500 px, rounding up to a standard thumbnail size.
+
+**Albums list.** #298 planned one browse, `/release-group?artist=<mbid>&type=album|ep&limit=100`, keeping release groups with no secondary type. Each browse answered at most 32 KB. Paging through the whole list for 7 large artists showed two problems:
+
+1. **The browse isn't in date or type order,** so the first 100 aren't the main albums. The Beatles have 770 Album and EP release groups, and A Hard Day's Night came 104th and Help! 106th. Queen's EPs start at place 118, and 3 of its plain Albums come after 100.
+2. **"No secondary type" leaves out soundtrack albums.** That drops A Hard Day's Night, Help!, Magical Mystery Tour and Yellow Submarine from the Beatles' studio albums, and most of John Williams's film scores. It is the same mistake #296 fixed for a song's album.
+
+`release-group-status=website-default` drops release groups with only bootleg releases (Beatles 770 → 247, Prince 474 → 76), but it doesn't change the order.
+
+A **release-group search** filters before the limit, as the album and song searches do. With this query and `limit=100`, where `<others>` is every secondary type but Soundtrack, each quoted:
+
+```
+arid:<mbid> AND (primarytype:album OR primarytype:ep)
+  AND NOT (secondarytype:"compilation" OR … ) AND status:official
+```
+
+| Artist | Studio, any status | Studio and official | Size | Types of the official ones |
+|---|---|---|---|---|
+| The Beatles | 106 | 38 | 524 KB | 18 Album, 4 Album + Soundtrack, 15 EP, 1 EP + Soundtrack |
+| Prince | 52 | 45 | 300 KB | 37 Album, 5 Album + Soundtrack, 3 EP |
+| Pink Floyd | 22 | 19 | 224 KB | 13 Album, 2 Album + Soundtrack, 3 EP, 1 EP + Soundtrack |
+| Queen | 24 | 19 | 135 KB | 14 Album, 3 Album + Soundtrack, 2 EP |
+| Radiohead | 503 twice | 17 | 79 KB | 9 Album, 8 EP |
+| Океан Ельзи | 11 | 11 | 32 KB | 11 Album |
+| John Williams (composer) | 248 | 236 | 530 KB | first 100: 25 Album, 67 Album + Soundtrack, 6 EP, 2 EP + Soundtrack |
+
+For the Beatles, the 22 official studio Albums are their UK and US albums, 1963–1970, the four soundtrack albums among them. Only John Williams has more than 100. A search answer is large because each release group carries its releases. JSON-parsing the Beatles' 524 KB took 0.7 ms in Node 24 on the developer machine, and 1.0 MB took 1.3 ms (the median of 41 runs each). CPU time on Workers was _not checked_. The user chose this search over the browse on 2026-11-24.
+
+**Throttling.**
+
+| | Calls | 503 on the first try | 503 after one retry |
+|---|---|---|---|
+| Artist and release-group searches | 83 | 40 (48%) | 18 (22%) |
+| Artist lookups | 39 | 21 (54%) | 0 |
+| Release-group browses | 51 | 22 (43%) | 0 |
+
+This is the home IP of the recording check, which got 22% after one retry too. Artist searches run in the Worker, like album searches, which got 5% from a Worker on 2026-11-21. How artist searches fare from the Worker is _not checked_.
+
+**Sizes.** The AND form's answers were at most 111 KB at `limit=25` ("Various Artists", whose artists carry many aliases). The median was 135 ms and the slowest 563 ms. A lookup with URL relations was at most 27 KB.
 
 ## Raw live results (2026-11-16)
 

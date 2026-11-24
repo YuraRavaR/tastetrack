@@ -9,15 +9,15 @@ Terms marked _(planned)_ are not in the MVP but are part of the model's language
 ### Catalog
 
 **Media Item**:
-A single work (a film, a book, a series, a game, an album or a song) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port, a DLC or an expansion, while a remake, a remaster or a standalone expansion is a game of its own. An album is the work across all its editions, never one release, while a live album or a compilation is an album of its own. A song is one recording, across every release it is on, while a live version, a remix or a cover is a song of its own.
+A single work or artist (a film, a book, a series, a game, an album, a song or an artist) that users can log or put on Lists: either catalog-backed (it has an External Reference, is shared by all Users and has no owner) or a Manual Media Item. A translation or another edition of a work is the same Media Item, a series is the whole series, never one of its seasons or episodes, and a game is the work across all its platforms, never an edition, a port, a DLC or an expansion, while a remake, a remaster or a standalone expansion is a game of its own. An album is the work across all its editions, never one release, while a live album or a compilation is an album of its own. A song is one recording, across every release it is on, while a live version, a remix or a cover is a song of its own. An artist is a person, a group or another MusicBrainz artist; a solo project is an artist of its own.
 _Avoid_: Movie, title, film (as a generic term), content, item
 
 **Media Type**:
-The kind of work a Media Item is: film, book, series, game, album and song.
+The kind of Media Item: film, book, series, game, album, song and artist.
 _Avoid_: Category, kind, format
 
 **External Source**:
-The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films and series, Open Library for books, IGDB for games, and MusicBrainz for albums and songs.
+The third-party catalog that owns a catalog-backed Media Item's metadata (title, poster, year); TMDB for films and series, Open Library for books, IGDB for games, and MusicBrainz for albums, songs and artists.
 _Avoid_: Provider, database, API
 
 **External Reference**:
@@ -98,9 +98,9 @@ _Avoid_: Timeline, item log
 A free-text label a User attaches to their own Log Entries.
 _Avoid_: Label, category
 
-**Like** _(planned)_:
-A User's mark that they love a Media Item, separate from its Rating.
-_Avoid_: Favourite, heart
+**Like**:
+A User's mark that they love a Media Item, which puts it in their Favourites; for now only artists can be liked.
+_Avoid_: Heart, follow, Favourite (as a verb)
 
 ### Lists
 
@@ -109,7 +109,7 @@ A named, ordered collection of Media Items of one Media Type, owned by a User; i
 _Avoid_: Collection (as a domain term), playlist, custom list
 
 **Library**:
-All of one User's Media Items of one Media Type that are in their Backlog, are In Progress or have at least one of their Log Entries ("Saved" in the UI). A song is never in a Library: it has no Backlog, In Progress or Log Entries, and lives only in Lists.
+All of one User's Media Items of one Media Type that are in their Backlog, are In Progress or have at least one of their Log Entries ("Saved" in the UI). A song or an artist is never in a Library: neither has a Backlog, In Progress or Log Entries, and they live only in Lists.
 _Avoid_: Saved (as a domain term), shelf, collection
 
 **List Item**:
@@ -123,6 +123,10 @@ _Avoid_: Review (that is for Log Entries), Thought (that is for a Media Item), c
 **Backlog**:
 A system List of the Media Items a User plans to experience; one per User per Media Type, which cannot be deleted or renamed ("Watchlist" for films and series, "Reading list" for books, "Backlog" for games, and "Listening list" for albums in the UI).
 _Avoid_: Watchlist (as a domain term), queue, to-do list
+
+**Favourites**:
+A system List of the Media Items a User Likes, one per User per Media Type, ranked by its order, holding at most 100, which cannot be deleted or renamed ("Favourite artists" in the UI).
+_Avoid_: Top, favourites list, starred
 
 **Planned**:
 The User action that adds a Media Item to their Backlog without creating a Log Entry ("Want to watch" for films and series, "Want to read" for books, "Want to play" for games, and "Want to listen" for albums in the UI).
