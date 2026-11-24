@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Share Link to Favourite artists</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);--ov:oklch(0.15 0.01 60 / 72%);--ovf:oklch(0.98 0 0);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;min-height:26px;max-width:390px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;overflow:hidden}
+.phone{width:390px}.web{width:960px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fill{fill:currentColor}
+.bar{height:56px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);background:var(--card)}
+.bar b{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.bar a{font-size:15px;font-weight:600;color:var(--strong);text-decoration:none;min-height:44px;display:flex;align-items:center}
+.main{padding:18px 16px 24px;display:flex;flex-direction:column;gap:14px}
+.web .main{padding:28px 32px 32px}
+.kick{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--mf)}
+.kick svg{width:15px;height:15px}
+.title{display:flex;align-items:center;gap:8px;margin:0;font-size:30px;font-weight:700;line-height:1.15}
+.title svg{width:26px;height:26px;color:var(--strong)}
+.by{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mf)}
+.by span{width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--strong);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 14px;margin:0;padding:0;list-style:none}
+.web .grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.cell{display:flex;flex-direction:column;gap:3px;text-decoration:none}
+.cell .pic{position:relative;margin-bottom:6px}
+.cell img{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;display:block}
+.num{position:absolute;left:0;top:0;min-width:32px;height:32px;padding:0 6px;border-radius:999px;background:var(--ov);color:var(--ovf);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.num.gold{background:var(--pri);color:var(--prif)}
+.cell b{font-size:15px;line-height:1.25}
+.cell small{font-size:13px;color:var(--mf)}
+.bub{margin-top:8px;background:var(--muted);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.4}
+.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.r{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--bd);border-radius:16px;background:var(--card)}
+.r .n{width:34px;flex:none;text-align:center;font-size:26px;font-weight:800;color:var(--mf);font-variant-numeric:tabular-nums}
+.r .n.gold{color:var(--strong)}
+.r img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none}
+.r .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-decoration:none}
+.r .tx b{font-size:17px;line-height:1.25}
+.r .tx small{font-size:13px;color:var(--mf)}
+.r .tx i{font-style:normal;font-size:14px;line-height:1.4;margin-top:6px;background:var(--muted);border-radius:10px;padding:8px 10px}
+.web .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.foot{padding:16px;border-top:1px solid var(--bd);font-size:13px;color:var(--mf)}
+.v1 .r2,.v2 .r1{display:none}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="4">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<div class="bar"><b>TasteTrack</b><a href="#">Log in</a></div>
+<div class="main">
+<span class="kick"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"></path><circle cx="16" cy="7" r="5"></circle></svg>Artist collection</span>
+<h1 class="title"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite artists</h1>
+<span class="by"><span>A</span>Shared by admin1 · 10 artists</span>
+<ol class="grid r1">
+<sc-for list="{{favs}}" as="f" hint-placeholder-count="6">
+<li><a class="cell" href="#"><span class="pic"><img src="{{f.src}}" alt=""><span class="{{f.numCls}}">{{f.n}}</span></span><b>{{f.name}}</b><small>{{f.facts}}</small></a><sc-if value="{{f.note}}" hint-placeholder-val="{{false}}"><p class="bub">{{f.note}}</p></sc-if></li>
+</sc-for>
+</ol>
+<ol class="list r2">
+<sc-for list="{{favs}}" as="f" hint-placeholder-count="6">
+<li class="r"><span class="{{f.rowNumCls}}">{{f.n}}</span><img src="{{f.src}}" alt=""><a class="tx" href="#"><b>{{f.name}}</b><small>{{f.facts}}</small><sc-if value="{{f.note}}" hint-placeholder-val="{{false}}"><i>{{f.note}}</i></sc-if></a></li>
+</sc-for>
+</ol>
+</div>
+<div class="foot">Music data from MusicBrainz. Photos from Wikimedia Commons, credited on each artist’s page.</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":2700}}'>
+class Component extends DCLogic {
+renderVals() {
+const raw = [
+['Океан Ельзи', 'Group · Ukraine · 1994–', '1317496f4b7636e3141f303e3ab3ab68', 'Every summer since school.'],
+['DakhaBrakha', 'Group · Ukraine · 2004–', 'aabb6ee0bbc15365e92eff1ac8422d9b', 'For anyone who thinks folk is boring.'],
+['Jamala', 'Person · Ukraine · 1983–', 'cdec6de6e6c5d7b105fd501cd34731cc'],
+['Kalush Orchestra', 'Group · Ukraine · 2021–', 'ce7595dde80b7d3ff5fa8fd6efdff11d'],
+['Христина Соловій', 'Person · Ukraine · 1993–', '36444a6f4d042178f34ad1dd04aad017'],
+['Скрябін', 'Group · Ukraine · 1989–', 'be639675dd6440e84c505641613ee29e'],
+['Radiohead', 'Group · United Kingdom · 1991–', 'edc9de62b9a995152e046dd1b137bf79', 'In Rainbows, on repeat.'],
+['Björk', 'Person · Iceland · 1965–', 'cde8d31d0fb8c5edc8c2b08ee31c51bb'],
+['Pink Floyd', 'Group · United Kingdom · 1965–2014', '888d7b70c44a8acabf87ade95b073952'],
+['Бумбокс', 'Group · Ukraine · 2004–', '50aa9a471ba085c0dc1215514773865c']
+];
+const favs = raw.map(([name, facts, id, note], i) => ({
+n: String(i + 1), name, facts, note: note || '', src: '/_blob/' + id,
+numCls: i < 3 ? 'num gold' : 'num', rowNumCls: i < 3 ? 'n gold' : 'n'
+}));
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+favs,
+screens: [
+{ cap: '1 · today’s Share Link grid, round photos', box: 'scr phone v1' },
+{ cap: '2 · a ranked list, big numbers', box: 'scr phone v2' },
+{ cap: '1 on the web', box: 'scr web v1' },
+{ cap: '2 on the web, two columns', box: 'scr web v2' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

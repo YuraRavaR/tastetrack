@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Seven Media Type chips</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;min-height:26px;max-width:390px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.phone{width:390px}.narrow{width:320px}.web{width:816px;padding:24px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.h1{margin:0;font-size:28px;font-weight:700}
+.field{height:48px;flex:none;border:1px solid var(--bd);background:var(--card);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:16px;color:var(--mf)}
+.seg{background:var(--muted);border-radius:14px;padding:4px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0}
+.sg{height:56px;border:0;border-radius:11px;background:transparent;color:var(--fg);font:inherit;font-size:12px;font-weight:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;min-width:0;white-space:nowrap}
+.sg.on{background:var(--card);color:var(--strong);font-weight:600;box-shadow:0 1px 3px oklch(0 0 0 / 14%)}
+.narrow .sg{font-size:11px}
+.web .sg{font-size:13px}
+.vb .seg{display:flex;justify-content:flex-end;overflow:hidden;-webkit-mask-image:linear-gradient(to right,transparent,#000 14%);mask-image:linear-gradient(to right,transparent,#000 14%)}
+.vb .sg{flex:none;width:66px;font-size:13px}
+.vc .seg{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:4px}
+.vc .sg{font-size:13px;height:48px;flex-direction:row;gap:6px}
+.vd .seg{display:flex}
+.vd .sg{flex:1}
+.vd .sg span{display:none}
+.vd .sg.on{flex:2.4;flex-direction:row;gap:6px}
+.vd .sg.on span{display:inline;font-size:13px}
+.note{font-size:13px;line-height:1.4;color:var(--mf);margin:0}
+.icons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px;border:1px solid var(--bd);border-radius:14px;background:var(--card);font-size:13px;text-align:center}
+.opt .sg{width:66px;background:var(--muted)}
+.opt .sg.on{background:var(--card)}
+.big{width:56px;height:56px;border-radius:50%;background:var(--muted);color:var(--mf);display:flex;align-items:center;justify-content:center}
+.big svg{width:26px;height:26px}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="6">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<h1 class="h1">Search</h1>
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>Artist or band</span></label>
+<div class="seg" role="group" aria-label="Media Type">
+<button class="sg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3ZM6.2 5.3l3.1 3.9M12.4 3.4l3.1 4M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg><span>Films</span></button>
+<button class="sg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg><span>Books</span></button>
+<button class="sg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"></rect><path d="M17 2l-5 5-5-5"></path></svg><span>Series</span></button>
+<button class="sg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"></path></svg><span>Games</span></button>
+<button class="sg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M6 12c0-1.7.7-3.2 1.8-4.2M18 12c0 1.7-.7 3.2-1.8 4.2"></path><circle cx="12" cy="12" r="2"></circle></svg><span>Albums</span></button>
+<button class="sg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg><span>Songs</span></button>
+<button class="sg on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"></path><circle cx="16" cy="7" r="5"></circle></svg><span>Artists</span></button>
+</div>
+<p class="note">{{s.note}}</p>
+</div>
+</div>
+</sc-for>
+<div>
+<div class="cap">The Artists icon · 1 mic-vocal (used above) · 2 users-round · 3 user-round</div>
+<div class="scr phone">
+<div class="icons">
+<div class="opt"><button class="sg on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"></path><circle cx="16" cy="7" r="5"></circle></svg><span>Artists</span></button><span class="big"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"></path><circle cx="16" cy="7" r="5"></circle></svg></span>1 · a singer's mic</div>
+<div class="opt"><button class="sg on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"></path><circle cx="10" cy="8" r="5"></circle><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"></path></svg><span>Artists</span></button><span class="big"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"></path><circle cx="10" cy="8" r="5"></circle><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"></path></svg></span>2 · people, a band</div>
+<div class="opt"><button class="sg on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg><span>Artists</span></button><span class="big"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span>3 · one person</div>
+</div>
+<p class="note">The round 56 px tile is how the icon sits in an empty state and in a Collection's empty cell. 3 is the account button's icon in the header, so it would read as "you".</p>
+</div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+screens: [
+{ cap: 'A · seven equal segments, labels 12 px', box: 'scr phone va', note: '50 px a segment on a 390 px phone. “Albums”, the widest label, is about 44 px at 12 px.' },
+{ cap: 'B · a scrolling row, the chosen one kept in view', box: 'scr phone vb', note: 'Segments keep 13 px labels and 66 px. Films and Books are scrolled off at the left; the fade says there is more.' },
+{ cap: 'C · two rows, four and three', box: 'scr phone vc', note: 'Icon beside the label, 13 px. Takes 100 px of height against 64 px.' },
+{ cap: 'D · icons, with the chosen one labelled', box: 'scr phone vd', note: 'The other six are icons with an aria-label. A User learns them, but a new one guesses.' },
+{ cap: 'A at 320 px, labels 11 px', box: 'scr narrow va', note: '40 px a segment: “Albums” at 11 px is about 40 px, so it touches its neighbours. Below 360 px, B or D would be needed.' },
+{ cap: 'A on the web (from md), labels 13 px', box: 'scr web va', note: 'Seven segments fit at any web width: 109 px each at 816 px.' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

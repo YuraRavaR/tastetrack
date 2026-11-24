@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>An artist's Search row</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;min-height:26px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.phone{width:390px}.web{width:816px;padding:24px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.h1{margin:0;font-size:28px;font-weight:700}
+.field{height:48px;flex:none;border:1px solid var(--bd);background:var(--card);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:16px}
+.bh{margin:4px 0 0;font-size:16px;font-weight:700;display:flex;gap:6px;align-items:baseline}
+.bh small{font-size:14px;font-weight:500;color:var(--mf)}
+.card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.row{display:flex;gap:12px;padding:12px;align-items:flex-start;border-bottom:1px solid var(--bd)}
+.row:last-child{border-bottom:0}
+.av{width:56px;height:56px;border-radius:50%;flex:none;background:var(--muted);color:var(--mf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;letter-spacing:.02em}
+.rx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.t{font-size:16px;font-weight:600;line-height:1.3;text-decoration:none;overflow-wrap:anywhere}
+.m{font-size:14px;line-height:1.35;color:var(--mf)}
+.below{font-size:12px;line-height:1.35;color:var(--mf);font-style:italic}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.btn{height:44px;flex:none;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px}
+.btn.on{background:var(--soft);border-color:var(--strong);color:var(--strong)}
+.ib{width:44px;padding:0}
+.side{display:flex;gap:8px;align-self:center}
+.fill{fill:currentColor}
+.va .b,.va .c,.vb .a,.vb .c,.vc .a,.vc .b{display:none}
+.web .av{width:48px;height:48px;font-size:16px}
+.web .row{align-items:center}
+.web .btn{height:36px;font-size:14px}
+.web .ib{width:36px}
+.web .acts{display:none}
+.web.va .wa{display:flex}
+.wa{display:none}
+.web.vc .wc{display:flex}
+.wc{display:none}
+.web.vc .c.side{display:none}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="6">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<sc-if value="{{s.phone}}" hint-placeholder-val="{{true}}">
+<h1 class="h1">Search</h1>
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>kalush</span></label>
+</sc-if>
+<sc-for list="{{s.groups}}" as="g" hint-placeholder-count="2">
+<h2 class="bh">{{g.head}} <small>{{g.count}}</small></h2>
+<ul class="card">
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+<li class="row">
+<span class="av" aria-hidden="true">{{r.ini}}</span>
+<div class="rx">
+<a class="t" href="#">{{r.name}}</a>
+<sc-if value="{{r.facts}}" hint-placeholder-val="{{true}}"><span class="m">{{r.facts}}</span></sc-if>
+<sc-if value="{{r.dis}}" hint-placeholder-val="{{false}}"><span class="below">{{r.dis}}</span></sc-if>
+<div class="a acts">
+<sc-if value="{{r.liked}}" hint-placeholder-val="{{false}}"><button class="btn on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>In Favourites</button></sc-if>
+<sc-if value="{{r.free}}" hint-placeholder-val="{{true}}"><button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button></sc-if>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<div class="c acts">
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+</div>
+<div class="b side">
+<sc-if value="{{r.liked}}" hint-placeholder-val="{{false}}"><button class="btn ib on" aria-pressed="true" aria-label="In Favourites"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button></sc-if>
+<sc-if value="{{r.free}}" hint-placeholder-val="{{true}}"><button class="btn ib" aria-pressed="false" aria-label="Favourite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button></sc-if>
+<button class="btn ib" aria-label="Add to collection"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg></button>
+</div>
+<div class="c side">
+<sc-if value="{{r.liked}}" hint-placeholder-val="{{false}}"><button class="btn ib on" aria-pressed="true" aria-label="In Favourites"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button></sc-if>
+<sc-if value="{{r.free}}" hint-placeholder-val="{{true}}"><button class="btn ib" aria-pressed="false" aria-label="Favourite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button></sc-if>
+</div>
+<div class="side wa">
+<sc-if value="{{r.liked}}" hint-placeholder-val="{{false}}"><button class="btn on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>In Favourites</button></sc-if>
+<sc-if value="{{r.free}}" hint-placeholder-val="{{true}}"><button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button></sc-if>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<div class="side wc">
+<sc-if value="{{r.liked}}" hint-placeholder-val="{{false}}"><button class="btn ib on" aria-pressed="true" aria-label="In Favourites"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button></sc-if>
+<sc-if value="{{r.free}}" hint-placeholder-val="{{true}}"><button class="btn ib" aria-pressed="false" aria-label="Favourite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button></sc-if>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+</li>
+</sc-for>
+</ul>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":2900}}'>
+class Component extends DCLogic {
+renderVals() {
+const artist = (name, ini, facts, dis, liked) => ({ name, ini, facts, dis, liked: !!liked, free: !liked });
+const kalushBand = artist('KALUSH', 'K', 'Group · Ukraine · 2019–');
+const orchestra = artist('Kalush Orchestra', 'KO', 'Group · Ukraine · 2021–', '', true);
+const kalusha = artist('Kalusha', 'K', 'Person · Germany · 1980–', 'German rapper');
+const didenchuk = artist('Ігор Діденчук', 'ІД', 'Person · Ukraine · 1998–', 'Kalush & Go_A');
+const alfred = artist('Alfred Chisala Kalusha Jr', 'AC', 'Person');
+const singer = artist('Alice Cooper', 'AC', 'Person · United States · 1948–', 'the singer, active as a solo artist 1975–present');
+const band = artist('Alice Cooper', 'AC', 'Group · United States · 1964–1975', 'the band, active 1964–1974/5');
+const floyd = artist('Pink Floyd', 'PF', 'Group · United Kingdom · 1965–2014', '', true);
+const phone = [
+{ head: 'From MusicBrainz', count: '5', rows: [kalushBand, orchestra, kalusha, didenchuk, alfred] },
+{ head: 'The same row, other searches', count: '', rows: [singer, band] }
+];
+const web = [{ head: 'From MusicBrainz', count: '5', rows: [kalushBand, orchestra, kalusha, didenchuk] }];
+const variants = [['A', 'va', 'two labelled buttons under the facts'], ['B', 'vb', 'two icon buttons at the right'], ['C', 'vc', '♥ at the right, Add to collection labelled']];
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+screens: [
+...variants.map(([v, cls, what]) => ({ cap: v + ' · ' + what, box: 'scr phone ' + cls, phone: true, groups: phone })),
+...variants.map(([v, cls]) => ({ cap: v + ' on the web', box: 'scr web ' + cls, groups: web }))
+]
+};
+}
+}
+</script>
+</body>
+</html>

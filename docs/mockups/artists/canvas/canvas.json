@@ -1,0 +1,49 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-24T19:30:00Z"
+  },
+  "title": "TasteTrack Artists",
+  "launch": {
+    "view": "canvas",
+    "page": "r1"
+  },
+  "pages": [
+    {
+      "id": "r1",
+      "name": "Round 1 · Artist screens"
+    }
+  ],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 2660, "h": 1500, "page": "r1", "title": "1 · Seven chips, and an icon for artists" },
+    "Search.dc.html": { "x": 0, "y": 1620, "w": 2660, "h": 2700, "page": "r1", "title": "2 · An artist's Search row" },
+    "SearchStates.dc.html": { "x": 0, "y": 4440, "w": 2660, "h": 2100, "page": "r1", "title": "3 · Search: artists you keep, nothing found, busy, Favourites full" },
+    "Artist.dc.html": { "x": 0, "y": 6960, "w": 2660, "h": 5600, "page": "r1", "title": "4 · An artist's page" },
+    "ArtistStates.dc.html": { "x": 0, "y": 12680, "w": 2660, "h": 2900, "page": "r1", "title": "5 · An artist's page: no photo, an ended group, added by hand" },
+    "Collections.dc.html": { "x": 0, "y": 16000, "w": 2660, "h": 2700, "page": "r1", "title": "6 · Collections on Artists, Favourite artists first" },
+    "Favourites.dc.html": { "x": 0, "y": 18820, "w": 2660, "h": 3500, "page": "r1", "title": "7 · Favourite artists" },
+    "Shared.dc.html": { "x": 0, "y": 22440, "w": 2660, "h": 2700, "page": "r1", "title": "8 · A Share Link to Favourite artists" },
+    "Empty.dc.html": { "x": 0, "y": 25260, "w": 2660, "h": 1400, "page": "r1", "title": "9 · No artists yet in Collections" },
+    "Links.dc.html": { "x": 0, "y": 27080, "w": 2660, "h": 2900, "page": "r1", "title": "10 · An album's and a song's artists as links" }
+  },
+  "order": [
+    "Main.dc.html",
+    "Search.dc.html",
+    "SearchStates.dc.html",
+    "Artist.dc.html",
+    "ArtistStates.dc.html",
+    "Collections.dc.html",
+    "Favourites.dc.html",
+    "Shared.dc.html",
+    "Empty.dc.html",
+    "Links.dc.html"
+  ],
+  "notes": {
+    "t1": { "kind": "title1", "page": "r1", "x": 0, "y": -300, "maxW": 2660, "text": "Seven Media Types and Search on Artists" },
+    "t2": { "kind": "title1", "page": "r1", "x": 0, "y": 6660, "maxW": 2660, "text": "An artist's page" },
+    "t3": { "kind": "title1", "page": "r1", "x": 0, "y": 15700, "maxW": 2660, "text": "Favourite artists and Collections" },
+    "t4": { "kind": "title1", "page": "r1", "x": 0, "y": 26780, "maxW": 2660, "text": "Links from albums and songs" }
+  },
+  "designSystems": []
+}

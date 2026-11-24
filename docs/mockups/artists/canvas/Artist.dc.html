@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>An artist's page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;min-height:26px;max-width:390px}
+.web+.cap,.wcap{max-width:960px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;overflow:hidden;padding-bottom:24px}
+.phone{width:390px}.web{width:960px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fill{fill:currentColor}
+.back{height:44px;padding:0 12px;display:flex;align-items:center;gap:4px;color:var(--mf);font-size:14px;text-decoration:none}
+.blur{aspect-ratio:16/9;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 45%,transparent);mask-image:linear-gradient(to bottom,#000 45%,transparent)}
+.blur img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.3);filter:blur(30px) saturate(1.3)}
+.lead{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:0 16px;margin-top:-170px}
+.ph{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.round{width:176px;height:176px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 10px 24px oklch(0 0 0 / 30%)}
+.wide{display:none;width:100%;border-radius:14px;box-shadow:0 10px 24px oklch(0 0 0 / 30%)}
+.credit{font-size:12px;line-height:1.35;color:var(--mf);text-decoration:none}
+.credit:hover{text-decoration:underline}
+.credit2{display:none}
+.facts{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:center}
+.facts h1{margin:0;font-size:26px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.line{font-size:14px;line-height:1.35;color:var(--mf)}
+.dis{font-size:13px;line-height:1.35;color:var(--mf);font-style:italic}
+.src{min-height:44px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--strong);text-decoration:none}
+.src svg{width:15px;height:15px}
+.body{padding:14px 16px 0;display:flex;flex-direction:column;gap:24px}
+.acts{display:flex;gap:8px}
+.btn{height:48px;flex:1;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;padding:0 14px;white-space:nowrap}
+.btn.on{background:var(--soft);border-color:var(--strong);color:var(--strong)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec h2{margin:0;font-size:18px;font-weight:600;display:flex;gap:6px;align-items:baseline}
+.sec h2 small{font-size:14px;font-weight:500;color:var(--mf)}
+.card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.card li+li{border-top:1px solid var(--bd)}
+.go{min-height:68px;padding:10px 12px;display:flex;align-items:center;gap:12px;text-decoration:none}
+.go img{width:48px;height:48px;border-radius:7px;object-fit:cover;flex:none}
+.go .hb{width:48px;height:48px;border-radius:7px;flex:none;background:var(--soft);color:var(--strong);display:flex;align-items:center;justify-content:center}
+.nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:600}
+.nm small{font-size:13px;font-weight:400;color:var(--mf)}
+.next{color:var(--mf);transform:rotate(180deg)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;margin:0;padding:0;list-style:none}
+.grid a{display:flex;flex-direction:column;gap:3px;text-decoration:none;font-size:14px;font-weight:600;line-height:1.25}
+.grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block;margin-bottom:5px}
+.grid small{font-size:13px;font-weight:400;color:var(--mf)}
+.rows{display:none}
+.rows .go img{border-radius:5px}
+.strip{display:none;gap:12px;overflow:hidden;margin:0 -16px;padding:0 16px;list-style:none}
+.strip li{flex:none;width:132px}
+.strip a{display:flex;flex-direction:column;gap:3px;text-decoration:none;font-size:14px;font-weight:600;line-height:1.25}
+.strip img{width:132px;height:132px;object-fit:cover;border-radius:6px;display:block;margin-bottom:5px}
+.strip small{font-size:13px;font-weight:400;color:var(--mf)}
+.vb .round{display:none}
+.vb .wide{display:block}
+.vb .grid{display:none}
+.vb .rows{display:block}
+.vc .blur{aspect-ratio:3/2;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
+.vc .blur img{transform:none;filter:none}
+.vc .lead{margin-top:-44px;align-items:flex-start;text-align:left}
+.vc .ph{display:none}
+.vc .facts{align-items:flex-start}
+.vc .credit2{display:block}
+.vc .grid{display:none}
+.vc .strip{display:flex}
+.web .blur{aspect-ratio:21/9}
+.web .lead{margin-top:-236px;padding:0 24px}
+.web .round{width:200px;height:200px}
+.web .facts h1{font-size:34px}
+.web .line{font-size:16px}
+.web .body{padding:20px 24px 0}
+.web .acts{justify-content:center}
+.web .btn{flex:none;height:40px;font-size:14px}
+.web .sec{max-width:720px;width:100%;align-self:center}
+.web .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.web.vb .lead{flex-direction:row;align-items:flex-end;text-align:left;gap:28px;margin-top:-250px}
+.web.vb .ph{width:360px;flex:none}
+.web.vb .facts{align-items:flex-start;padding-bottom:6px}
+.web.vb .acts{justify-content:flex-start}
+.web.vb .sec{max-width:none}
+.web.vc .blur{aspect-ratio:21/9}
+.web.vc .lead{margin-top:-120px}
+.web.vc .acts{justify-content:flex-start}
+.web.vc .sec{max-width:none}
+.web .strip{margin:0;padding:0}
+.web .strip li{width:150px}
+.web .strip img{width:150px;height:150px}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="6">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Back</a>
+<div class="blur"><img src="/_blob/1317496f4b7636e3141f303e3ab3ab68" alt=""></div>
+<div class="lead">
+<figure class="ph">
+<img class="round" src="/_blob/1317496f4b7636e3141f303e3ab3ab68" alt="Океан Ельзи">
+<img class="wide" src="/_blob/1317496f4b7636e3141f303e3ab3ab68" alt="Океан Ельзи">
+<figcaption><a class="credit" href="https://commons.wikimedia.org/wiki/File:OkeanElzi25.jpg">Photo: Alexander Khanin · CC BY-SA 4.0 · Wikimedia Commons</a></figcaption>
+</figure>
+<div class="facts">
+<h1>Океан Ельзи</h1>
+<span class="line">Group · Ukraine · 1994–</span>
+<a class="src" href="https://musicbrainz.org/artist/87a417d3-f118-43e0-bece-3de1bd90fce0">On MusicBrainz<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+<a class="credit credit2" href="https://commons.wikimedia.org/wiki/File:OkeanElzi25.jpg">Photo: Alexander Khanin · CC BY-SA 4.0 · Wikimedia Commons</a>
+</div>
+</div>
+<div class="body">
+<div class="acts">
+<button class="btn on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>In Favourites</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<section class="sec">
+<h2>In your Collections</h2>
+<ul class="card">
+<li><a class="go" href="#"><span class="hb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></span><span class="nm">Favourite artists<small>1st of 10</small></span><svg class="ic next" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a></li>
+<li><a class="go" href="#"><img src="/_blob/aabb6ee0bbc15365e92eff1ac8422d9b" alt=""><span class="nm">Bands to show a friend<small>6 artists</small></span><svg class="ic next" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a></li>
+</ul>
+</section>
+<section class="sec">
+<h2>Albums and EPs <small>11</small></h2>
+<ul class="grid">
+<sc-for list="{{albums}}" as="a" hint-placeholder-count="6"><li><a href="#"><img src="{{a.src}}" alt="">{{a.title}}<small>{{a.year}}</small></a></li></sc-for>
+</ul>
+<ul class="card rows">
+<sc-for list="{{albums}}" as="a" hint-placeholder-count="6"><li><a class="go" href="#"><img src="{{a.src}}" alt=""><span class="nm">{{a.title}}<small>{{a.year}} · {{a.type}}</small></span><svg class="ic next" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a></li></sc-for>
+</ul>
+<ul class="strip">
+<sc-for list="{{albums}}" as="a" hint-placeholder-count="6"><li><a href="#"><img src="{{a.src}}" alt="">{{a.title}}<small>{{a.year}}</small></a></li></sc-for>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":5600}}'>
+class Component extends DCLogic {
+renderVals() {
+const al = (title, year, src, type) => ({ title, year, src: '/_blob/' + src, type: type || 'Album' });
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+albums: [
+al('Там, де нас нема', '1998', '0064a07da690c0d8970be8d558f2ed01'),
+al('Янанебібув', '2000', '01c81572280cbabd297a210448726cca'),
+al('Модель', '2001', '0fcfe3d63b469f218f9f6db281f29f36'),
+al('Суперсиметрія', '2003', 'd00ff8767024c938f3982290da6dbbd3'),
+al('GLORIA', '2005', '4c44e1c93ca03587c43a529d70856aa4'),
+al('Міра', '2007', 'c17e28878987f972b48f5d1f552a0afc'),
+al('Dolce Vita', '2010', '40388b0357bfdad5013ecb013eeff0aa'),
+al('Земля', '2013', '557f520ac23d97e1fe1b576ca42ca4d4'),
+al('Без меж', '2016', '086998c4dfdc81ee197bd1c8f06eb75d'),
+al('Той день', '2024', '64598a0ab6ea743716881aaa8ac64e21'),
+al('Lighthouse', '2024', 'b25dc29db631e0af6a7aa45eb2a5b5cb')
+],
+screens: [
+{ cap: 'A · a round photo over its blurred copy · albums in a grid', box: 'scr phone va' },
+{ cap: 'B · the whole photo, as Commons has it · albums as rows', box: 'scr phone vb' },
+{ cap: 'C · the photo the full width, fading · albums in a scrolling strip', box: 'scr phone vc' },
+{ cap: 'A on the web · the round photo centred', box: 'scr web va' },
+{ cap: 'B on the web · the whole photo at the left, as an album’s cover', box: 'scr web vb' },
+{ cap: 'C on the web · the photo as a wide banner', box: 'scr web vc' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

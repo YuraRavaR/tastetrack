@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search states for artists</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);--destr:oklch(0.7 0.19 25);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75);--destr:oklch(0.55 0.2 27)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;min-height:26px;max-width:390px}
+.scr{position:relative;background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;overflow:hidden;width:390px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fill{fill:currentColor}
+.field{height:48px;flex:none;border:1px solid var(--bd);background:var(--card);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:16px}
+.field.ph{color:var(--mf)}
+.bh{margin:4px 0 0;font-size:16px;font-weight:700;display:flex;gap:6px;align-items:baseline}
+.bh small{font-size:14px;font-weight:500;color:var(--mf)}
+.strip{display:flex;gap:12px}
+.kept{width:120px;display:flex;flex-direction:column;gap:3px;text-decoration:none}
+.kept img{width:120px;height:120px;border-radius:50%;object-fit:cover;display:block;margin-bottom:5px}
+.kept b{font-size:15px;line-height:1.25}
+.kept span{font-size:12px;color:var(--mf);display:flex;align-items:center;gap:4px}
+.kept span svg{width:13px;height:13px}
+.card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.row{display:flex;gap:12px;padding:12px;align-items:flex-start;border-bottom:1px solid var(--bd)}
+.row:last-child{border-bottom:0}
+.av{width:56px;height:56px;border-radius:50%;flex:none;background:var(--muted);color:var(--mf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;object-fit:cover}
+.rx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.t{font-size:16px;font-weight:600;line-height:1.3;text-decoration:none}
+.m{font-size:14px;line-height:1.35;color:var(--mf)}
+.in{display:flex;flex-wrap:wrap;align-items:center;gap:5px;color:var(--mf);font-size:12px;margin-top:2px}
+.in svg{width:14px;height:14px}
+.badge{border:1px solid var(--bd);border-radius:999px;padding:2px 8px;font-weight:500}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.btn{height:44px;flex:none;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px}
+.btn.on{background:var(--soft);border-color:var(--strong);color:var(--strong)}
+.btn.primary{background:var(--pri);color:var(--prif);border-color:transparent}
+.err{display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:1.35;color:var(--destr);margin-top:4px}
+.err svg{width:16px;height:16px;margin-top:1px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:36px 12px}
+.circle{width:56px;height:56px;border-radius:50%;background:var(--muted);color:var(--mf);display:flex;align-items:center;justify-content:center}
+.circle svg{width:26px;height:26px}
+.empty p{margin:0;font-size:15px;line-height:1.45}
+.empty .hint{font-size:14px;color:var(--mf)}
+.manual{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--mf)}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;border:1px solid var(--bd);border-radius:14px;background:var(--card);box-shadow:0 10px 30px oklch(0 0 0 / 25%);padding:14px;display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4}
+.toast svg{color:var(--destr);margin-top:1px}
+.toast a{font-weight:600;color:var(--strong)}
+.sp{height:96px}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+
+<div>
+<div class="cap">Kept artists 1 · a strip first, as for songs</div>
+<div class="scr">
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>kalush</span></label>
+<h2 class="bh">In your Collections <small>1</small></h2>
+<div class="strip">
+<a class="kept" href="#"><img src="/_blob/ce7595dde80b7d3ff5fa8fd6efdff11d" alt=""><b>Kalush Orchestra</b><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite artists · 4</span></a>
+</div>
+<h2 class="bh">From MusicBrainz <small>4</small></h2>
+<ul class="card">
+<li class="row"><span class="av" aria-hidden="true">K</span><div class="rx"><a class="t" href="#">KALUSH</a><span class="m">Group · Ukraine · 2019–</span><div class="acts"><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div></div></li>
+<li class="row"><span class="av" aria-hidden="true">K</span><div class="rx"><a class="t" href="#">Kalusha</a><span class="m">Person · Germany · 1980–</span><div class="acts"><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div></div></li>
+</ul>
+<p class="m" style="margin: 0">The User's own artists have their photo, as the strip shows Media Items the Worker already holds. Rows from MusicBrainz keep initials.</p>
+</div>
+</div>
+
+<div>
+<div class="cap">Kept artists 2 · left in the results, with where they are</div>
+<div class="scr">
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>kalush</span></label>
+<h2 class="bh">From MusicBrainz <small>5</small></h2>
+<ul class="card">
+<li class="row"><span class="av" aria-hidden="true">K</span><div class="rx"><a class="t" href="#">KALUSH</a><span class="m">Group · Ukraine · 2019–</span><div class="acts"><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div></div></li>
+<li class="row"><img class="av" src="/_blob/ce7595dde80b7d3ff5fa8fd6efdff11d" alt=""><div class="rx"><a class="t" href="#">Kalush Orchestra</a><span class="m">Group · Ukraine · 2021–</span><span class="in"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"></path></svg><span class="badge">Favourite artists · 4</span><span class="badge">Bands to show a friend</span></span><div class="acts"><button class="btn on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>In Favourites</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div></div></li>
+<li class="row"><span class="av" aria-hidden="true">K</span><div class="rx"><a class="t" href="#">Kalusha</a><span class="m">Person · Germany · 1980–</span><div class="acts"><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div></div></li>
+</ul>
+</div>
+</div>
+
+<div>
+<div class="cap">Nothing typed</div>
+<div class="scr">
+<label class="field ph"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>Artist or band</span></label>
+<div class="empty">
+<span class="circle"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"></path><circle cx="16" cy="7" r="5"></circle></svg></span>
+<p class="hint">Type an artist or band to search your Collections and MusicBrainz.</p>
+</div>
+</div>
+</div>
+
+<div>
+<div class="cap">Nothing found · “kazka plakala”, an artist and a song</div>
+<div class="scr">
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>kazka plakala</span></label>
+<div class="empty">
+<span class="circle"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"></path><circle cx="16" cy="7" r="5"></circle></svg></span>
+<p>No artists found for “kazka plakala”.</p>
+<p class="hint">Try the name as it is spelled on the album.</p>
+</div>
+<div class="manual">Can’t find it? <button class="btn">Add manually</button></div>
+</div>
+</div>
+
+<div>
+<div class="cap">Busy · MusicBrainz answered 503 twice</div>
+<div class="scr">
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>океан ельзи</span></label>
+<h2 class="bh">In your Collections <small>1</small></h2>
+<div class="strip">
+<a class="kept" href="#"><img src="/_blob/1317496f4b7636e3141f303e3ab3ab68" alt=""><b>Океан Ельзи</b><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite artists · 1</span></a>
+</div>
+<div class="empty">
+<span class="circle"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></span>
+<p>MusicBrainz is busy, try again in a moment.</p>
+<button class="btn">Try again</button>
+</div>
+</div>
+</div>
+
+<div>
+<div class="cap">Favourites full 1 · a toast after ♥</div>
+<div class="scr">
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>kalush</span></label>
+<h2 class="bh">From MusicBrainz <small>5</small></h2>
+<ul class="card">
+<li class="row"><span class="av" aria-hidden="true">K</span><div class="rx"><a class="t" href="#">KALUSH</a><span class="m">Group · Ukraine · 2019–</span><div class="acts"><button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div></div></li>
+</ul>
+<div class="sp"></div>
+<div class="toast" role="status"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg><div>Favourite artists is full (100). Remove one first. <a href="#">Open Favourite artists</a></div></div>
+</div>
+</div>
+
+<div>
+<div class="cap">Favourites full 2 · the message under the button</div>
+<div class="scr">
+<label class="field"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg><span>kalush</span></label>
+<h2 class="bh">From MusicBrainz <small>5</small></h2>
+<ul class="card">
+<li class="row"><span class="av" aria-hidden="true">K</span><div class="rx"><a class="t" href="#">KALUSH</a><span class="m">Group · Ukraine · 2019–</span><div class="acts"><button class="btn" aria-pressed="false" aria-describedby="full"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div><p class="err" id="full"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg><span>Favourite artists is full (100). Remove one first.</span></p></div></li>
+<li class="row"><span class="av" aria-hidden="true">K</span><div class="rx"><a class="t" href="#">Kalusha</a><span class="m">Person · Germany · 1980–</span><div class="acts"><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button><button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button></div></div></li>
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":2100}}'>
+class Component extends DCLogic {
+renderVals() {
+return { themes: [{ cls: 'tt dark' }, { cls: 'tt light' }] };
+}
+}
+</script>
+</body>
+</html>
