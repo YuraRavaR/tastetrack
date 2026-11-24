@@ -28,16 +28,26 @@ export function collectionMeta({ mediaType, metadata }: MediaItem, withYear = fa
     case "album":
     case "song":
       return withYear ? (metadata.year ?? undefined) : undefined;
+    // An artist's type is their byline, and their years are on their page.
+    case "artist":
+      return undefined;
   }
 }
 
 // The line under an album's or a song's title in a grid, its artist credit
-// (`docs/mockups/albums/`, `docs/mockups/songs/`); none for any other Media Type, whose meta line
-// names its maker if anyone.
+// (`docs/mockups/albums/`, `docs/mockups/songs/`), and under an artist's name their type, "Group"
+// (`docs/mockups/artists/`); none for any other Media Type, whose meta line names its maker if
+// anyone.
 export function gridByline(mediaItem: MediaItem): string | undefined {
-  return mediaItem.mediaType === "album" || mediaItem.mediaType === "song"
-    ? (mediaItem.metadata?.artistCredit ?? undefined)
-    : undefined;
+  switch (mediaItem.mediaType) {
+    case "album":
+    case "song":
+      return mediaItem.metadata?.artistCredit ?? undefined;
+    case "artist":
+      return mediaItem.metadata?.artistType ?? undefined;
+    default:
+      return undefined;
+  }
 }
 
 // One Media Item in a grid of posters: the poster, with optional marks in its corners, the title

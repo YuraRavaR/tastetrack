@@ -407,6 +407,7 @@ export const musicBrainzAlbums: CatalogSource<"album"> = {
     coverUrls: coverUrls(entry.coverRef),
     artistCredit: entry.extra.artistCredit,
     artists: entry.extra.artists.map((artist) => artist.name),
+    creditedArtists: entry.extra.artists,
     primaryType: entry.extra.primaryType,
     secondaryTypes: entry.extra.secondaryTypes,
     url: entry.extra.url,

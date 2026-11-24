@@ -1321,6 +1321,7 @@ describe("a read", () => {
       },
       artistCredit: "The Beatles",
       artists: ["The Beatles"],
+      creditedArtists: [{ name: "The Beatles", mbid: "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d" }],
       primaryType: "Album",
       secondaryTypes: ["Live"],
       url: "https://musicbrainz.org/release-group/eabb68b3-d57c-359a-8215-91f38d365da5",

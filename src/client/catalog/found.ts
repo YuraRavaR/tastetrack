@@ -7,6 +7,7 @@ import type {
 import * as api from "../api";
 import { mediaWord } from "../i18n/media-words";
 import { artistYearAndType } from "./album-label";
+import { artistFacts } from "./artist-label";
 import { authorsAndYear } from "./book-label";
 import { filmLabel, filmName, filmYearAndRuntime } from "./film-label";
 import { yearAndPlatforms } from "./game-label";
@@ -63,8 +64,10 @@ export function foundMediaItemId(found: Found): number | null {
   return found.kind === "manual" ? found.mediaItem.id : found.mediaItemId;
 }
 
-// "Alien (1979)", as filmLabel writes it.
+// "Alien (1979)", as filmLabel writes it, and an artist's name alone, as their year is when they
+// began.
 export function foundLabel(found: Found): string {
+  if (foundMediaType(found) === "artist") return foundName(found);
   if (found.kind === "catalog") return filmLabel(found);
   const { metadata, mediaType } = found.mediaItem;
   return metadata ? filmLabel(metadata) : mediaWord(mediaType, "unknown");
@@ -95,7 +98,8 @@ export function mediaItemYearAndRuntime(mediaItem: MediaItem): string | null {
 // authorsAndYear writes it, a game's year and platforms, "2015 · PC, PS4, PS5 +4", as
 // yearAndPlatforms does, an album's artist, year and type, "The Beatles · 2012 · Remix", as
 // artistYearAndType does, and a song's artist, year and album, "Океан Ельзи · 2013 · from Земля",
-// as artistYearAndAlbum does. Null for a film or a series, whose year is in its title.
+// as artistYearAndAlbum does, and an artist's type, country and years, "Group · Ukraine · 1994–", as
+// artistFacts does. Null for a film or a series, whose year is in its title.
 export function foundSubtitle(found: Found): string | null {
   if (found.kind === "catalog") {
     switch (found.externalReference.mediaType) {
@@ -116,6 +120,13 @@ export function foundSubtitle(found: Found): string | null {
           artistCredit: found.artistCredit ?? null,
           album: found.album ?? null,
         });
+      case "artist":
+        return artistFacts({
+          artistType: found.artistType ?? null,
+          country: found.country ?? null,
+          year: found.year,
+          endYear: found.endYear ?? null,
+        });
       default:
         return null;
     }
@@ -131,12 +142,14 @@ export function foundSubtitle(found: Found): string | null {
       return artistYearAndType(mediaItem.metadata);
     case "song":
       return artistYearAndAlbum(mediaItem.metadata);
+    case "artist":
+      return artistFacts(mediaItem.metadata);
     default:
       return null;
   }
 }
 
-// A song's disambiguation, as disambiguationOf says it.
+// A song's or an artist's disambiguation, as disambiguationOf says it.
 export function foundDisambiguation(found: Found): string | null {
   return found.kind === "catalog"
     ? (found.disambiguation ?? null)

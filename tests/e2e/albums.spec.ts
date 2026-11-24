@@ -204,9 +204,11 @@ test("an album found in Search opens its page, with its cover over a blurred cop
   await expect(filmPage.musicBrainzLink).toHaveAttribute("href", musicBrainzPage(zemlyaId));
   await expect(filmPage.musicBrainzLink).toHaveAttribute("target", "_blank");
   await expect(filmPage.about.root).toHaveCount(0);
-  // Before a first Listened: Listened, Want to listen and Add to collection, and an empty History
-  // with Add a thought. An album is never In Progress.
+  // The artist in the facts line, who opens their page (`docs/mockups/artists/`). Then, before a
+  // first Listened: Listened, Want to listen and Add to collection, and an empty History with Add a
+  // thought. An album is never In Progress.
   await expect(filmPage.buttons).toHaveText([
+    "Океан Ельзи",
     "Listened",
     "Want to listen",
     "Add to collection",
@@ -426,7 +428,7 @@ test("on a phone an album's row has a square cover, its page the cover edge to e
   await expect(savedPage.tile("Albums").coverImages).toHaveCount(1);
   await searchPage.goto(undefined, "album");
   const chips = await Promise.all(
-    (["Films", "Books", "Series", "Games", "Albums", "Songs"] as const).map((name) =>
+    (["Films", "Books", "Series", "Games", "Albums", "Songs", "Artists"] as const).map((name) =>
       box(searchPage.mediaTypeChip(name)),
     ),
   );

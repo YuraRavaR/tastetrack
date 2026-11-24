@@ -328,7 +328,8 @@ test("a song's page has its cover over a blurred copy, its facts, the link to Mu
   expect(cover.x + cover.width / 2).toBeCloseTo(main.x + main.width / 2, 0);
   await expect(filmPage.musicBrainzLink).toHaveAttribute("href", recordingPage(obiimyId));
   await expect(filmPage.musicBrainzLink).toHaveAttribute("target", "_blank");
-  await expect(filmPage.buttons).toHaveText(["Add to collection"]);
+  // The artist in the facts line opens their page (`docs/mockups/artists/`).
+  await expect(filmPage.buttons).toHaveText(["Океан Ельзи", "Add to collection"]);
   await expect(filmPage.historyHeading).toHaveCount(0);
   await expect(filmPage.about.root).toHaveCount(0);
   // The Collection last added to first, each with its first cover and its count.
@@ -384,10 +385,10 @@ test("on a phone a song's row has a square cover and its button under the words,
   expect(add.height).toBe(48);
   await expect(filmPage.backLink).toHaveAttribute("href", "/collections?type=song");
 
-  // Six chips fit a 320 px phone without a sideways scroll.
+  // Seven chips fit a 320 px phone without a sideways scroll (`docs/mockups/artists/`).
   await page.setViewportSize({ width: 320, height: 640 });
   await searchPage.goto(undefined, "song");
-  await expect(searchPage.mediaTypeChip("Songs")).toHaveCSS("font-size", "12px");
+  await expect(searchPage.mediaTypeChip("Songs")).toHaveCSS("font-size", "11px");
   const sideways = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );

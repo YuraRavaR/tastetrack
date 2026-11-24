@@ -91,6 +91,7 @@ export const musicBrainzSongs: CatalogSource<"song"> = {
     coverUrls: coverUrls(entry.coverRef),
     artistCredit: entry.extra.artistCredit,
     artists: entry.extra.artists.map((artist) => artist.name),
+    creditedArtists: entry.extra.artists,
     album: entry.extra.album?.title ?? null,
     disambiguation: entry.extra.disambiguation,
     url: entry.extra.url,

@@ -28,8 +28,10 @@ export function songFacts(song: SongFacts): string | null {
   return factsLine([yearOf(song.year), song.artistCredit, fromAlbum(song.album)]);
 }
 
-// MusicBrainz's short note that tells two versions of a song apart, "original version"; null for
-// any other Media Type, and for a song without one.
+// MusicBrainz's short note that tells two versions of a song apart, "original version", or two
+// artists of one name, "German rapper"; null for any other Media Type, and for one without it.
 export function disambiguationOf(mediaItem: MediaItem): string | null {
-  return mediaItem.mediaType === "song" ? (mediaItem.metadata?.disambiguation ?? null) : null;
+  return mediaItem.mediaType === "song" || mediaItem.mediaType === "artist"
+    ? (mediaItem.metadata?.disambiguation ?? null)
+    : null;
 }

@@ -293,6 +293,37 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
     const named = this.page.getByText(listName, { exact: true });
     return this.collectionRows.filter({ has: named }).locator("img");
   }
+  // An artist's page: their photo, whole, with its credit linked to its file on Commons, their
+  // albums list, each album a button that opens its page, and, for an artist the User added
+  // themselves, Edit and Delete.
+  readonly artistPhoto = this.main.locator("figure").getByRole("img");
+  // The blurred copy behind it, which has no name.
+  readonly artistPhotoCopy = this.main.locator("img[alt='']").first();
+  readonly photoCreditLink = this.main.getByRole("link", { name: /^Photo: / });
+  readonly albumsList = this.main.getByRole("list", { name: "Albums and EPs" });
+  readonly albums = this.albumsList.getByRole("listitem");
+  readonly albumsHeading = this.main.getByRole("heading", { level: 2, name: /^Albums and EPs/ });
+  readonly noAlbumsMessage = this.main.getByText(
+    "MusicBrainz has no albums or EPs by this artist yet.",
+  );
+  readonly editArtistButton = this.main.getByRole("button", { name: "Edit artist" });
+  readonly deleteArtistButton = this.main.getByRole("button", { name: "Delete artist" });
+
+  // An artist's initials, in their photo's place, named with the artist's name.
+  initials(name: string) {
+    return this.main.getByRole("img", { name, exact: true });
+  }
+
+  // One album of an artist's albums list, by its title, which its year follows in its name.
+  album(title: string) {
+    return this.albumsList.getByRole("button", { name: title });
+  }
+
+  // One artist an album's or a song's credit names, which opens their page.
+  creditedArtist(name: string) {
+    return this.main.getByRole("button", { name, exact: true });
+  }
+
   // Only for a book the User added themselves.
   readonly editBookButton = this.main.getByRole("button", { name: "Edit book" });
   readonly deleteBookButton = this.main.getByRole("button", { name: "Delete book" });

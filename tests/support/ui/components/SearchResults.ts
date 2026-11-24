@@ -48,6 +48,11 @@ export class SearchResultRow extends ScopedComponent {
   readonly listsIcon = this.root.getByRole("img", { name: "Collections" });
   readonly addedByYouLabel = this.root.getByText("Added by you");
 
+  // An artist's initials, in their photo's place, named with the artist's name.
+  initials(name: string) {
+    return this.root.getByRole("img", { name, exact: true });
+  }
+
   // Clicks the middle of the poster, or of its placeholder. The title's link or button stretches
   // over it, so the click goes to the row there, as a User's does, not to the image.
   @step

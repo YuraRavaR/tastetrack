@@ -11,6 +11,7 @@ import { expectBody } from "../support/api/responses";
 import { at, minutesAgo } from "../support/clock";
 import { test as base, expect } from "../support/fixtures";
 import { callsRealMusicBrainz, coverArt, zemlya } from "../support/scenarios/albums";
+import { okeanElzyId } from "../support/scenarios/artists";
 import {
   karmaPolice,
   manualSong,
@@ -168,7 +169,7 @@ test("the marks need a login", async ({ api }) => {
 // Обійми and the merged recording are taken out of the cache by these tests alone, which run one
 // after another. Out of the cache, adding them makes the details call, whatever earlier runs left
 // in local D1.
-test("adding a song stores its title, year, artists, album, disambiguation and MusicBrainz page", async ({
+test("adding a song stores its title, year, artists with their MBIDs, album, disambiguation and MusicBrainz page", async ({
   loggedInApi,
 }) => {
   const evicted = await loggedInApi.testHooks.evictFromCatalogCache(songReference(obiimyId));
@@ -189,6 +190,7 @@ test("adding a song stores its title, year, artists, album, disambiguation and M
       coverUrls: { small: coverArt(zemlyaGroupId, 250), large: coverArt(zemlyaGroupId, 500) },
       artistCredit: "Океан Ельзи",
       artists: ["Океан Ельзи"],
+      creditedArtists: [{ name: "Океан Ельзи", mbid: okeanElzyId }],
       album: "Земля",
       disambiguation: null,
       url: recordingPage(obiimyId),
@@ -474,6 +476,7 @@ test("a User adds a song by hand with a title, an Original Title, its artists an
       coverUrls: null,
       artistCredit: "Сусіди, Друзі сусідів",
       artists: ["Сусіди", "Друзі сусідів"],
+      creditedArtists: [],
       album: null,
       disambiguation: null,
       url: null,

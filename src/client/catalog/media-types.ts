@@ -28,7 +28,7 @@ export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
 }
 
 // The Media Types each section offers, in the one order they all keep (ADR-0005). Saved never
-// offers a light one, a song or an artist, which has no Library. Artists come with their UI (#302).
+// offers a light one, a song or an artist, which has no Library.
 export const searchMediaTypes: readonly MediaType[] = [
   "film",
   "book",
@@ -36,6 +36,7 @@ export const searchMediaTypes: readonly MediaType[] = [
   "game",
   "album",
   "song",
+  "artist",
 ];
 export const listsMediaTypes: readonly MediaType[] = [
   "film",
@@ -44,6 +45,7 @@ export const listsMediaTypes: readonly MediaType[] = [
   "game",
   "album",
   "song",
+  "artist",
 ];
 export const savedMediaTypes: readonly BacklogMediaType[] = [
   "film",

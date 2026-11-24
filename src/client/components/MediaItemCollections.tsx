@@ -2,9 +2,10 @@ import { ChevronRight, ListPlus } from "lucide-react";
 import { useCallback, useEffect, useId, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { MediaItem, MediaItemList } from "../../shared/api";
 import * as api from "../api";
-import { filmLabel } from "../catalog/film-label";
+import { filmLabel, filmName } from "../catalog/film-label";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { listPath } from "../navigation/paths";
@@ -16,18 +17,24 @@ type HoldingState =
   | { status: "loaded"; lists: MediaItemList[] }
   | { status: "failed" };
 
-// What a Media Item that lives only in Collections, a song, has on its page in place of the
-// Library's actions (`docs/mockups/songs/`): Add to collection, which opens the picker, and "In
-// your Collections", a row for each Collection holding it, with its first cover, its name and how
-// many it holds, opening the Collection, or a dashed box while none does. On a phone the button
-// is the full width; from `sm` it is as wide as its label, and all of it is centred. The rows are
-// read again as the picker closes.
+// What a Media Item that lives only in Collections, a song or an artist, has on its page in place
+// of the Library's actions (`docs/mockups/songs/`, `docs/mockups/artists/`): Add to collection,
+// which opens the picker, and "In your Collections", a row for each Collection holding it, with
+// its first cover, its name and how many it holds, opening the Collection, or a dashed box while
+// none does. On a phone the button is the full width; from `sm` it is as wide as its label. A
+// song's are centred, under its centred cover, and an artist's at the left, as their page is,
+// where the button is an outline beside the photo's facts. The rows are read again as the picker
+// closes.
 export function MediaItemCollections({ mediaItem }: { mediaItem: MediaItem }) {
   const headingId = useId();
   const { mediaType } = mediaItem;
-  const label = mediaItem.metadata
-    ? filmLabel(mediaItem.metadata)
-    : mediaWord(mediaType, "unknown");
+  const centred = mediaType === "song";
+  // An artist is named without their year, which is when they began.
+  const label = !mediaItem.metadata
+    ? mediaWord(mediaType, "unknown")
+    : mediaType === "artist"
+      ? filmName(mediaItem.metadata)
+      : filmLabel(mediaItem.metadata);
   const [state, setState] = useState<HoldingState>({ status: "loading" });
   const [listing, setListing] = useState<ListsFilm | null>(null);
 
@@ -47,9 +54,13 @@ export function MediaItemCollections({ mediaItem }: { mediaItem: MediaItem }) {
   const holding = state.status === "loaded" ? state.lists.filter((list) => list.listItem) : [];
 
   return (
-    <div className="flex flex-col gap-5 sm:items-center">
+    <div className={cn("flex flex-col gap-5", centred && "sm:items-center")}>
       <Button
-        className="h-12 w-full font-semibold text-base sm:h-10 sm:w-auto sm:px-4 sm:text-sm"
+        variant={centred ? "default" : "outline"}
+        className={cn(
+          "h-12 w-full font-semibold text-base sm:h-10 sm:w-auto sm:px-4 sm:text-sm",
+          !centred && "sm:self-start",
+        )}
         onClick={() => setListing({ label, mediaType, mediaItem: async () => mediaItem })}
       >
         <ListPlus aria-hidden />
@@ -58,7 +69,10 @@ export function MediaItemCollections({ mediaItem }: { mediaItem: MediaItem }) {
       <section aria-labelledby={headingId} className="flex w-full flex-col gap-2.5 sm:max-w-140">
         <h2
           id={headingId}
-          className="font-semibold text-lg tracking-tight sm:text-center sm:text-xl"
+          className={cn(
+            "font-semibold text-lg tracking-tight sm:text-xl",
+            centred && "sm:text-center",
+          )}
         >
           {t("song.inCollections")}
         </h2>

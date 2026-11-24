@@ -9,6 +9,8 @@ import * as api from "../api";
 import { filmTitleAndYear } from "../catalog/film-label";
 import { can } from "../catalog/media-types";
 import { About, aboutIsEmpty, aboutProps, SourceLink } from "../components/About";
+import { ArtistAlbums } from "../components/ArtistAlbums";
+import { ArtistBanner } from "../components/ArtistBanner";
 import { BackLink } from "../components/BackLink";
 import { DeleteLogEntryDialog } from "../components/DeleteLogEntryDialog";
 import { DeleteManualMediaItemDialog } from "../components/DeleteManualMediaItemDialog";
@@ -54,7 +56,9 @@ async function loadHistory(mediaItemId: number): Promise<HistoryState> {
 // Current Rating are always the Worker's. A Media Item the User added manually can be edited too,
 // or deleted with everything that goes with it. A Media Type that can't be logged has the banner
 // and its actions alone; a song, which lives only in Collections, has Add to collection and the
-// Collections holding it in place of the Library's actions (`docs/mockups/songs/`).
+// Collections holding it in place of the Library's actions (`docs/mockups/songs/`). An artist, who
+// lives only in Collections too, has their photo over its blurred copy, and their albums list
+// under their Collections (`docs/mockups/artists/`).
 export function ItemHistoryPage() {
   const mediaItemId = Number(useParams().mediaItemId);
   const navigate = useNavigate();
@@ -68,8 +72,14 @@ export function ItemHistoryPage() {
   const [editingMediaItem, setEditingMediaItem] = useState(false);
   const [deletingMediaItem, setDeletingMediaItem] = useState(false);
   // The page belongs to no section, so until the film is known the tab shows the app's name alone.
-  const metadata = state.status === "loaded" ? state.history.mediaItem.metadata : null;
-  usePageTitle(metadata ? [filmTitleAndYear(metadata)] : []);
+  // An artist is named without their year.
+  const mediaItemShown = state.status === "loaded" ? state.history.mediaItem : null;
+  const metadata = mediaItemShown?.metadata ?? null;
+  usePageTitle(
+    metadata
+      ? [mediaItemShown?.mediaType === "artist" ? metadata.title : filmTitleAndYear(metadata)]
+      : [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -102,33 +112,45 @@ export function ItemHistoryPage() {
   const manual = mediaItem.externalReference === null;
   const loggable = can(mediaItem.mediaType, "log");
   const light = isLight(mediaItem.mediaType);
-  // A game's source links to its page on IGDB, an album's to its release group on MusicBrainz and a
-  // song's to its recording there. With nothing else to show, the About block gives way to that
-  // link under the facts line, as an album or a song, which has none, always has it
-  // (`docs/mockups/games/`, `docs/mockups/albums/`, `docs/mockups/songs/`).
-  const onMusicBrainz = mediaItem.mediaType === "album" || mediaItem.mediaType === "song";
+  // A game's source links to its page on IGDB, an album's to its release group on MusicBrainz, a
+  // song's to its recording there and an artist's to the artist. With nothing else to show, the
+  // About block gives way to that link under the facts line, as an album, a song or an artist,
+  // which has none, always has it (`docs/mockups/games/`, `docs/mockups/albums/`,
+  // `docs/mockups/songs/`, `docs/mockups/artists/`).
+  const onMusicBrainz =
+    mediaItem.mediaType === "album" ||
+    mediaItem.mediaType === "song" ||
+    mediaItem.mediaType === "artist";
   const sourceUrl =
     mediaItem.mediaType === "game" || onMusicBrainz ? (mediaItem.metadata?.url ?? null) : null;
   const sourceName = t(onMusicBrainz ? "about.onMusicBrainz" : "about.fromIgdb");
   const shownAbout = about && aboutProps(about);
   const aboutShown = shownAbout && !(sourceUrl && aboutIsEmpty(shownAbout)) ? shownAbout : null;
+  const artistAlbums = about?.mediaType === "artist" ? about.albums : null;
   return (
     <div className="flex flex-col gap-4.5 sm:gap-5.5">
       <div className="flex flex-col gap-1">
         <BackLink mediaType={mediaItem.mediaType} />
-        <FilmBanner
-          mediaItem={mediaItem}
-          sourceLink={
-            sourceUrl &&
-            !aboutShown && (
-              <SourceLink
-                source={sourceName}
-                url={sourceUrl}
-                className={cn("-ml-2.5 self-start", light && "sm:ml-0 sm:self-center")}
-              />
-            )
-          }
-        />
+        {mediaItem.mediaType === "artist" ? (
+          <ArtistBanner
+            mediaItem={mediaItem}
+            sourceLink={sourceUrl && <SourceLink source={sourceName} url={sourceUrl} />}
+          />
+        ) : (
+          <FilmBanner
+            mediaItem={mediaItem}
+            sourceLink={
+              sourceUrl &&
+              !aboutShown && (
+                <SourceLink
+                  source={sourceName}
+                  url={sourceUrl}
+                  className={cn("-ml-2.5 self-start", light && "sm:ml-0 sm:self-center")}
+                />
+              )
+            }
+          />
+        )}
       </div>
       <div className="flex flex-col gap-4.5 sm:gap-5 sm:px-6">
         {aboutShown && <About {...aboutShown} sourceUrl={sourceUrl} />}
@@ -149,7 +171,12 @@ export function ItemHistoryPage() {
           />
         )}
         {manual && (
-          <div className={cn("flex flex-col gap-3", light && "sm:items-center sm:text-center")}>
+          <div
+            className={cn(
+              "flex flex-col gap-3",
+              mediaItem.mediaType === "song" && "sm:items-center sm:text-center",
+            )}
+          >
             <p className="text-muted-foreground text-sm">
               {mediaWord(mediaItem.mediaType, "manualAddedByYou")}
             </p>
@@ -163,6 +190,7 @@ export function ItemHistoryPage() {
             </div>
           </div>
         )}
+        {artistAlbums && <ArtistAlbums albums={artistAlbums} artistName={metadata?.title ?? ""} />}
         {loggable && (
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between gap-3">
