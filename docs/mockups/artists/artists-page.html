@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Artists · An artist's page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from src/client/styles.css. */
+:root {
+  --background: oklch(0.97 0.012 80); --foreground: oklch(0.2 0.01 50); --card: oklch(0.995 0.006 85);
+  --primary: oklch(0.82 0.16 88); --primary-foreground: oklch(0.22 0.02 60); --primary-strong: oklch(0.52 0.11 80);
+  --primary-soft: oklch(0.96 0.037 87); --muted: oklch(0.935 0.016 75); --muted-foreground: oklch(0.47 0.02 60);
+  --border: oklch(0.88 0.015 75); --input: oklch(0.85 0.015 75);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.01 60); --foreground: oklch(0.96 0.004 75); --card: oklch(0.22 0.012 60);
+    --primary: oklch(0.84 0.16 90); --primary-foreground: oklch(0.17 0.006 50); --primary-strong: oklch(0.84 0.16 90);
+    --primary-soft: oklch(0.31 0.034 85); --muted: oklch(0.28 0.014 60); --muted-foreground: oklch(0.74 0.02 70);
+    --border: oklch(1 0 0 / 11%); --input: oklch(1 0 0 / 15%);
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic14 { width: 14px; height: 14px; }
+[data-for] { display: none; }
+[data-for].shown { display: block; }
+
+/* Header: logo and account; the section nav joins from md, the bottom tab bar leaves. */
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo svg { width: 34px; height: 34px; color: var(--foreground); }
+.wm { font-family: Sora, sans-serif; font-weight: 700; font-size: 16px; line-height: 0.95; letter-spacing: -0.035em; }
+.nav { display: none; gap: 4px; }
+.nav a { height: 36px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.nav a[aria-current] { background: var(--primary-soft); color: var(--foreground); }
+.account { margin-left: auto; width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--muted); display: grid; place-items: center; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 12px 22px; background: var(--card); border-top: 1px solid var(--border); z-index: 5; }
+.tabbar a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.tabbar a[aria-current] { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.tabbar a[aria-current] .fill { fill: currentColor; }
+.tabbar .ic { width: 24px; height: 24px; }
+
+/* Footer: the TMDB notice, then the Open Library, IGDB and MusicBrainz credits. */
+footer { border-top: 1px solid var(--border); margin-top: 40px; }
+.foot { max-width: 1152px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; line-height: 1.45; color: var(--muted-foreground); }
+.foot .row { display: flex; flex-direction: column; gap: 6px; }
+.tmdb { align-self: flex-start; font-weight: 800; font-size: 11px; letter-spacing: 0.02em; padding: 1px 6px; border-radius: 4px; background: var(--foreground); color: var(--background); }
+.foot a { color: var(--foreground); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Buttons. */
+.btn { height: 44px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; font-weight: 600; border: 1px solid var(--border); background: transparent; cursor: pointer; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+
+@media (min-width: 768px) {
+  body { padding-bottom: 0; }
+  .bar { padding: 0 24px; height: 64px; }
+  .logo svg { width: 36px; height: 36px; }
+  .wm { font-size: 17px; }
+  .nav { display: flex; }
+  .tabbar { display: none; }
+  .foot { padding: 16px 24px; }
+  .foot .row { flex-direction: row; align-items: center; gap: 16px; }
+  .foot .version { margin-left: auto; }
+}
+
+
+:root { --destructive: oklch(0.46 0.18 25); }
+@media (prefers-color-scheme: dark) { :root { --destructive: oklch(0.66 0.2 22); } }
+[data-for].shown.stack { display: flex; }
+main { margin: 0 auto; width: 100%; padding: 24px 16px; position: relative; }
+footer { margin-top: 16px; }
+h1 { margin: 0; font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; }
+h2 { margin: 0; font-size: 18px; font-weight: 600; }
+.stack { flex-direction: column; gap: 14px; }
+.btn { background: var(--background); }
+.btn.sm { height: 36px; font-size: 14px; padding: 0 12px; font-weight: 500; }
+.btn.pill { border-radius: 999px; background: var(--card); }
+.btn.pill.primary { background: var(--primary); }
+.btn[aria-pressed="true"] { background: var(--primary-soft); border-color: var(--primary-strong); color: var(--primary-strong); }
+.fill { fill: currentColor; }
+.ic14 { width: 14px; height: 14px; }
+
+/* Media Type chips, pick A: seven equal segments, the icon over the label. 12 px labels on a phone; below 360 px 11 px, tracked -0.02em, with 1 px gaps and 3 px padding; 13 px from md. */
+.types { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; background: var(--muted); border-radius: 14px; padding: 4px; border: 0; margin: 0; min-width: 0; }
+.types button { height: 56px; min-width: 0; padding: 0; border-radius: 10px; border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.types button[aria-pressed="true"] { background: var(--card); font-weight: 600; box-shadow: 0 1px 3px oklch(0 0 0 / 18%); }
+.types button[aria-pressed="true"] .ic { color: var(--primary-strong); }
+@media (max-width: 359px) { .types { gap: 1px; padding: 3px; } .types button { font-size: 11px; letter-spacing: -0.02em; } }
+@media (min-width: 768px) { .types button { font-size: 13px; } }
+
+/* Photos are round, except the whole photo on an artist's page. No photo: initials, quiet, on muted. */
+.face { display: block; flex: none; object-fit: cover; border-radius: 999px; background: var(--muted); }
+.ini { display: grid; place-items: center; flex: none; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); border: 1px solid var(--border); font-weight: 600; letter-spacing: .02em; }
+.in-row { width: 56px; height: 56px; font-size: 18px; }
+.in-list { width: 48px; height: 48px; font-size: 16px; }
+.in-strip, .in-grid { width: 100%; aspect-ratio: 1; font-size: 34px; }
+.in-page { width: 136px; height: 136px; font-size: 44px; }
+.sq { display: block; flex: none; object-fit: cover; background: var(--muted); }
+
+.empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 72px 24px 40px; text-align: center; }
+.circle { width: 56px; height: 56px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-strong); display: grid; place-items: center; }
+.circle .ic { width: 24px; height: 24px; }
+.empty > div { display: flex; flex-direction: column; gap: 6px; }
+.empty p, .empty small { margin: 0; max-width: 300px; font-size: 16px; line-height: 1.375; }
+.empty small { font-size: 14px; color: var(--muted-foreground); }
+.empty .btn { height: 48px; padding: 0 22px; }
+.empty .btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+@media (min-width: 640px) {
+  .in-page { width: 176px; height: 176px; font-size: 56px; }
+}
+@media (min-width: 768px) {
+  main { padding: 24px; }
+  h1 { font-size: 34px; }
+  .in-row { width: 48px; height: 48px; font-size: 16px; }
+  .empty { padding: 96px 24px; }
+  .empty p { max-width: none; font-size: 18px; }
+  .empty small { max-width: none; font-size: 16px; }
+  .empty .btn { height: 44px; }
+}
+
+
+main { max-width: 1008px; }
+[data-for].shown.artist { display: flex; flex-direction: column; gap: 20px; }
+.top { display: flex; flex-direction: column; }
+.backlink { align-self: flex-start; height: 36px; margin: 0 0 4px -8px; padding: 0 8px; display: flex; align-items: center; gap: 2px; color: var(--muted-foreground); }
+/* Pick B: the whole photo, as Commons has it, over its blurred copy. */
+.pic { margin: 0 -16px; aspect-ratio: 16 / 9; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent); mask-image: linear-gradient(to bottom, #000 40%, transparent); }
+.pic img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.3); filter: blur(30px) saturate(1.3); }
+.lead { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-top: -44%; }
+.lead.flat { margin-top: 0; flex-direction: row; align-items: flex-end; text-align: left; gap: 14px; }
+.whole { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 100%; }
+.whole img { display: block; max-width: 100%; max-height: 420px; border-radius: 14px; box-shadow: 0 10px 24px oklch(0 0 0 / 30%); background: var(--muted); }
+.whole figcaption { font-size: 12px; line-height: 1.35; color: var(--muted-foreground); }
+.whole figcaption a:hover { text-decoration: underline; }
+.facts { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.flat .facts { align-items: flex-start; }
+.facts h1 { font-size: 26px; overflow-wrap: anywhere; }
+.flat h1 { font-size: 22px; }
+.line { font-size: 14px; line-height: 1.35; color: var(--muted-foreground); }
+.dis { font-size: 13px; line-height: 1.35; font-style: italic; color: var(--muted-foreground); }
+.src { min-height: 44px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--primary-strong); }
+.acts { display: flex; gap: 8px; }
+.keep { flex: 1; height: 48px; padding: 0 10px; }
+.held, .albums { display: flex; flex-direction: column; gap: 10px; }
+.albums h2 { display: flex; align-items: baseline; gap: 6px; }
+.albums h2 span { font-size: 14px; font-weight: 500; color: var(--muted-foreground); }
+.holding { margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.holding li + li { border-top: 1px solid var(--border); }
+.holding a { min-height: 68px; padding: 10px 12px; display: flex; align-items: center; gap: 12px; }
+.holding a > .ic { color: var(--muted-foreground); }
+.holding .sq { border-radius: 6px; }
+.tile { width: 48px; height: 48px; border-radius: 6px; flex: none; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary-strong); }
+.nm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 600; }
+.nm small { font-size: 13px; font-weight: 400; color: var(--muted-foreground); }
+.dash { margin: 0; padding: 18px 16px; border: 1px dashed var(--input); border-radius: 14px; text-align: center; font-size: 14px; line-height: 1.4; color: var(--muted-foreground); }
+.grid { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 12px; }
+.grid a { display: flex; flex-direction: column; gap: 3px; }
+.grid .sq { width: 100%; aspect-ratio: 1; border-radius: 6px; margin-bottom: 5px; }
+.grid b { font-size: 14px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.grid small { font-size: 13px; color: var(--muted-foreground); }
+.manual { display: flex; flex-direction: column; gap: 12px; }
+.manual p { margin: 0; font-size: 14px; color: var(--muted-foreground); }
+.manual div { display: flex; flex-wrap: wrap; gap: 8px; }
+/* From sm: the whole photo at the left, the facts beside it, as an album's cover on the web. */
+@media (min-width: 640px) {
+  main { padding: 24px; }
+  .pic { margin: 0; aspect-ratio: 21 / 9; border-radius: 0; }
+  .lead { flex-direction: row; align-items: flex-end; text-align: left; gap: 28px; margin-top: -26%; padding: 0 24px; }
+  .lead.flat { margin-top: 8px; padding: 0; gap: 24px; }
+  .whole { width: 360px; flex: none; align-items: flex-start; }
+  .whole img { max-height: 360px; }
+  .facts { align-items: flex-start; padding-bottom: 28px; }
+  .flat .facts { padding-bottom: 6px; }
+  .facts h1, .flat h1 { font-size: 34px; line-height: 1.12; }
+  .line { font-size: 16px; }
+  .keep { flex: none; height: 40px; padding: 0 16px; font-size: 14px; }
+  .held { max-width: 560px; }
+}
+@media (min-width: 768px) {
+  .backlink { display: none; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 16px; }
+}
+
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="logo" href="#" aria-label="TasteTrack"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(-14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" transform="rotate(14 16 25.5)" style="fill: var(--primary-soft); stroke: currentColor; stroke-width: 1.75"></rect><rect x="9.5" y="6.5" width="13" height="19" rx="2.5" style="fill: var(--primary); stroke: currentColor; stroke-width: 1.75"></rect><path d="M16 11.5L16.94 14.21L19.8 14.26L17.52 15.99L18.35 18.74L16 17.1L13.65 18.74L14.48 15.99L12.2 14.26L15.06 14.21Z" style="fill: var(--primary-foreground)"></path></svg><span class="wm">Taste<br>Track</span></a><nav class="nav" aria-label="Sections"><a href="#">Saved</a><a href="#">Collections</a><a href="#">Search</a></nav><button class="account" aria-label="Account menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></button></div></header><main><div class="artist" data-for="default"><div class="top"><a class="backlink" href="#"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</a><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/OkeanElzi25.jpg?width=500" alt=""></div><div class="lead"><figure class="whole"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/OkeanElzi25.jpg?width=500" alt="Океан Ельзи"><figcaption><a href="https://commons.wikimedia.org/wiki/File:OkeanElzi25.jpg" target="_blank" rel="noreferrer">Photo: Alexander Khanin · CC BY-SA 4.0 · Wikimedia Commons</a></figcaption></figure><div class="facts"><h1>Океан Ельзи</h1><span class="line">Group · Ukraine · 1994–</span><a class="src" href="https://musicbrainz.org/artist/87a417d3-f118-43e0-bece-3de1bd90fce0" target="_blank" rel="noreferrer">On MusicBrainz<svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></div></div></div>
+<div class="acts"><button class="btn keep" aria-pressed="true"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>In Favourites</button><button class="btn keep"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/></svg>Add to collection</button></div>
+<section class="held"><h2>In your Collections</h2><ul class="holding"><li><a href="#"><span class="tile"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><span class="nm">Favourite artists<small>1st of 10</small></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li><li><a href="#"><img class="sq in-list" src="https://commons.wikimedia.org/wiki/Special:FilePath/DakhaBrakha%20in%20Lviv.JPG?width=500" alt=""><span class="nm">Bands to show a friend<small>6 artists</small></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li></ul></section>
+<section class="albums"><h2>Albums and EPs <span>11</span></h2><ul class="grid"><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/09973323-973e-3b4c-af61-a579f2c201d0/front-250" alt=""><b>Там, де нас нема</b><small>1998</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/c6426fc3-8f24-481b-aa69-6ad27326b378/front-250" alt=""><b>Янанебібув</b><small>2000</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/a887b784-8dbc-3094-b9b0-e924af50e0b4/front-250" alt=""><b>Модель</b><small>2001</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/a39a1436-498a-36ef-8c7b-780eac439b07/front-250" alt=""><b>Суперсиметрія</b><small>2003</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/573c612a-4599-379f-a3f8-c365aec20bcd/front-250" alt=""><b>GLORIA</b><small>2005</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/be150046-3587-3e47-9d18-a6d89fb61d51/front-250" alt=""><b>Міра</b><small>2007</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/086ad18e-9e88-4869-b361-cf5e832e5c22/front-250" alt=""><b>Dolce Vita</b><small>2010</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/080f0c63-6e0b-42d0-917d-e22d1d4bdaf8/front-250" alt=""><b>Земля</b><small>2013</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/1a83bef9-cb9d-491b-bc9d-f9a696204c7d/front-250" alt=""><b>Без меж</b><small>2016</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/9a94fc90-68a4-4dc8-a063-3b83517ef7fc/front-250" alt=""><b>Той день</b><small>2024</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/66785e5c-8806-4f08-b7c5-30797af49ead/front-250" alt=""><b>Lighthouse</b><small>2024</small></a></li></ul></section></div>
+<div class="artist" data-for="no-photo"><div class="top"><a class="backlink" href="#"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</a><div class="lead flat"><span class="ini in-page" role="img" aria-label="Ігор Діденчук">ІД</span><div class="facts"><h1>Ігор Діденчук</h1><span class="line">Person · Ukraine · 1998–</span><span class="dis">Kalush &amp; Go_A</span><a class="src" href="https://musicbrainz.org/artist/4008a0b3-fe6d-4b71-8f4d-5c5df4f77744" target="_blank" rel="noreferrer">On MusicBrainz<svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></div></div></div>
+<div class="acts"><button class="btn keep" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>Favourite</button><button class="btn keep"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/></svg>Add to collection</button></div>
+<section class="held"><h2>In your Collections</h2><p class="dash">Not in Favourites or any of your Collections yet.</p></section>
+<section class="albums"><h2>Albums and EPs <span>0</span></h2><p class="dash">MusicBrainz has no albums or EPs by this artist yet.</p></section></div>
+<div class="artist" data-for="ended"><div class="top"><a class="backlink" href="#"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</a><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pink%20Floyd%2C%201971%20(HQ).jpg?width=500" alt=""></div><div class="lead"><figure class="whole"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pink%20Floyd%2C%201971%20(HQ).jpg?width=500" alt="Pink Floyd"><figcaption><a href="https://commons.wikimedia.org/wiki/File:Pink_Floyd,_1971_(HQ).jpg" target="_blank" rel="noreferrer">Photo: Capitol Records · Public domain · Wikimedia Commons</a></figcaption></figure><div class="facts"><h1>Pink Floyd</h1><span class="line">Group · United Kingdom · 1965–2014</span><a class="src" href="https://musicbrainz.org/artist/83d91898-7763-47d7-b03b-b92132375c47" target="_blank" rel="noreferrer">On MusicBrainz<svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></div></div></div>
+<div class="acts"><button class="btn keep" aria-pressed="true"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>In Favourites</button><button class="btn keep"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/></svg>Add to collection</button></div>
+<section class="held"><h2>In your Collections</h2><ul class="holding"><li><a href="#"><span class="tile"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><span class="nm">Favourite artists<small>9th of 10</small></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li></ul></section>
+<section class="albums"><h2>Albums and EPs <span>19</span></h2><ul class="grid"><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/6792b6d1-4e65-3c3c-9d20-d08aa1dcfc60/front-250" alt=""><b>The Piper at the Gates of Dawn</b><small>1967</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/8a9caa40-b7c6-33eb-a13c-6c15f09b1c44/front-250" alt=""><b>A Saucerful of Secrets</b><small>1968</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/43d42d00-46fb-3d9c-9612-03d30fb20307/front-250" alt=""><b>More</b><small>1969</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/b7aa61ae-3572-32c0-8b93-6af78ea83760/front-250" alt=""><b>Ummagumma</b><small>1969</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/e2f503d7-5488-3fe1-b3ac-f236d9f1b44c/front-250" alt=""><b>Atom Heart Mother</b><small>1970</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/4e98c9b4-92f6-3049-b9da-a1088b623672/front-250" alt=""><b>Meddle</b><small>1971</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/a6f0826e-9b27-3d75-b30c-e5d33235777a/front-250" alt=""><b>Obscured by Clouds</b><small>1972</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/f5093c06-23e3-404f-aeaa-40f72885ee3a/front-250" alt=""><b>The Dark Side of the Moon</b><small>1973</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/1a272023-10d3-38ee-bab3-317b55fcc21d/front-250" alt=""><b>Wish You Were Here</b><small>1975</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/20c77fb4-1c9f-33c8-9d7e-c4977f11e847/front-250" alt=""><b>Animals</b><small>1977</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/f2026101-945b-3d05-9ef4-aa718fc3feef/front-250" alt=""><b>The Wall</b><small>1979</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/cb3bae49-d624-4dd9-b0a4-b4dfc4f3cefa/front-250" alt=""><b>The Final Cut: Video EP</b><small>1983 · EP</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/e8b7e7a3-ef56-34a5-bedf-085783c9a076/front-250" alt=""><b>The Final Cut</b><small>1983</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/4940b8aa-898b-3e60-9992-94e073bab6f6/front-250" alt=""><b>A Momentary Lapse of Reason</b><small>1987</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/1ac6af64-25af-3ccb-a913-a7890ae8035c/front-250" alt=""><b>Tonite Let’s All Make Love in London… Plus</b><small>1991 · EP</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/90878b63-f639-3c8b-aefb-190bdf3d1790/front-250" alt=""><b>The Division Bell</b><small>1994</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/981911ba-b43a-312a-a1b7-afb819a3d223/front-250" alt=""><b>London 1966/1967</b><small>1995 · EP</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/38b4c840-16ce-40fa-b7c0-a354b7c87178/front-250" alt=""><b>The Endless River</b><small>2014</small></a></li><li><a href="#"><img class="sq" src="https://coverartarchive.org/release-group/8cfe1674-1fd4-45d4-ad2d-b30951d07a59/front-250" alt=""><b>1965: Their First Recordings</b><small>2015 · EP</small></a></li></ul></section></div>
+<div class="artist" data-for="portrait"><div class="top"><a class="backlink" href="#"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</a><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/%D0%A5%D1%80%D0%B8%D1%81%D1%82%D0%B8%D0%BD%D0%B0%20%D0%A1%D0%BE%D0%BB%D0%BE%D0%B2%D1%96%D0%B9%20-%20Atlas%20Weekend%202016%20-%20230359.jpg?width=500" alt=""></div><div class="lead"><figure class="whole"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/%D0%A5%D1%80%D0%B8%D1%81%D1%82%D0%B8%D0%BD%D0%B0%20%D0%A1%D0%BE%D0%BB%D0%BE%D0%B2%D1%96%D0%B9%20-%20Atlas%20Weekend%202016%20-%20230359.jpg?width=500" alt="Христина Соловій"><figcaption><a href="https://commons.wikimedia.org/wiki/File:%D0%A5%D1%80%D0%B8%D1%81%D1%82%D0%B8%D0%BD%D0%B0_%D0%A1%D0%BE%D0%BB%D0%BE%D0%B2%D1%96%D0%B9_-_Atlas_Weekend_2016_-_230359.jpg" target="_blank" rel="noreferrer">Photo: Andriy Makukha (Amakuha) · CC BY-SA 4.0 · Wikimedia Commons</a></figcaption></figure><div class="facts"><h1>Христина Соловій</h1><span class="line">Person · Ukraine · 1993–</span><a class="src" href="https://musicbrainz.org/artist/7e45e150-46b2-4da7-9243-db510a8ce54f" target="_blank" rel="noreferrer">On MusicBrainz<svg class="ic ic14" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></div></div></div>
+<div class="acts"><button class="btn keep" aria-pressed="true"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>In Favourites</button><button class="btn keep"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/></svg>Add to collection</button></div>
+<section class="held"><h2>In your Collections</h2><ul class="holding"><li><a href="#"><span class="tile"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><span class="nm">Favourite artists<small>5th of 10</small></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li></ul></section>
+<section class="albums"><h2>Albums and EPs <span>0</span></h2><p class="dash">MusicBrainz has no albums or EPs by this artist yet.</p></section></div>
+<div class="artist" data-for="manual"><div class="top"><a class="backlink" href="#"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</a><div class="lead flat"><span class="ini in-page" role="img" aria-label="Сусіди знизу">СЗ</span><div class="facts"><h1>Сусіди знизу</h1><span class="line">Group</span></div></div></div>
+<div class="acts"><button class="btn keep" aria-pressed="false"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>Favourite</button><button class="btn keep"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/></svg>Add to collection</button></div>
+<section class="held"><h2>In your Collections</h2><ul class="holding"><li><a href="#"><img class="sq in-list" src="https://commons.wikimedia.org/wiki/Special:FilePath/DakhaBrakha%20in%20Lviv.JPG?width=500" alt=""><span class="nm">Bands to show a friend<small>6 artists</small></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li></ul></section>
+<div class="manual"><p>You added this artist manually. Only you can see it.</p><div><button class="btn sm">Edit artist</button><button class="btn sm">Delete artist</button></div></div></div></main><footer><div class="foot"><div class="row"><span class="tmdb">TMDB</span><span>This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</span></div><div class="row"><span>Book data and covers from <a href="https://openlibrary.org/">Open Library</a>.</span></div><div class="row"><span>Game data and covers from <a href="https://www.igdb.com/">IGDB</a>.</span></div><div class="row"><span>Music data from <a href="https://musicbrainz.org/">MusicBrainz</a>.</span><span class="version">v0.19.0</span></div></div></footer><nav class="tabbar" aria-label="Sections"><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>Saved</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Collections</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</a></nav>
+
+<script>function show(){const s=location.hash.slice(1)||"default";document.querySelectorAll("[data-for]").forEach(e=>e.classList.toggle("shown",e.dataset.for.split(" ").includes(s)));}addEventListener("hashchange",show);show();</script>
+</body>
+</html>

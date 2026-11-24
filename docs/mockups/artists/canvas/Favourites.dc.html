@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Favourite artists</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);--ov:oklch(0.15 0.01 60 / 72%);--ovf:oklch(0.98 0 0);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;min-height:26px;max-width:390px}
+.scr{position:relative;background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.phone{width:390px}.web{width:960px;padding:24px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fill{fill:currentColor}
+.top{display:flex;align-items:center;justify-content:space-between}
+.toback{min-height:44px;display:flex;align-items:center;gap:6px;color:var(--mf);font-size:15px;text-decoration:none}
+.more{width:44px;height:44px;border-radius:50%;border:1px solid var(--bd);background:var(--card);color:inherit;display:flex;align-items:center;justify-content:center}
+.title{display:flex;align-items:center;gap:8px;margin:0;font-size:30px;font-weight:700;line-height:1.15}
+.title svg{width:26px;height:26px;color:var(--strong)}
+.meta{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--mf);margin:-4px 0 0}
+.meta svg{width:16px;height:16px}
+.add{height:48px;border:0;border-radius:999px;background:var(--pri);color:var(--prif);font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.web .add{align-self:flex-start;padding:0 20px;height:40px;font-size:14px}
+.full{border:1px solid var(--strong);background:var(--soft);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.4}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px;margin:0;padding:0;list-style:none}
+.web .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:24px 16px}
+.cell{display:flex;flex-direction:column;gap:3px;text-decoration:none;position:relative}
+.cell .pic{position:relative;margin-bottom:6px}
+.cell img,.cell .ini{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;display:flex}
+.cell .ini{background:var(--muted);color:var(--mf);align-items:center;justify-content:center;font-size:28px;font-weight:600;border:1px solid var(--bd)}
+.num{position:absolute;left:0;top:0;min-width:30px;height:30px;padding:0 6px;border-radius:999px;background:var(--ov);color:var(--ovf);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.num.gold{background:var(--pri);color:var(--prif)}
+.dots{position:absolute;right:0;top:0;width:30px;height:30px;border-radius:50%;border:0;background:var(--ov);color:var(--ovf);display:flex;align-items:center;justify-content:center;padding:0}
+.cell b{font-size:15px;line-height:1.25;text-align:center}
+.cell small{font-size:13px;color:var(--mf);text-align:center}
+.note{display:flex;gap:6px;font-size:13px;line-height:1.35;color:var(--mf);font-style:italic;border-top:1px solid var(--bd);padding-top:6px;margin-top:4px}
+.note svg{width:15px;height:15px;margin-top:1px}
+.list{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.list li+li{border-top:1px solid var(--bd)}
+.r{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 10px}
+.r .n{width:30px;flex:none;text-align:center;font-size:20px;font-weight:700;color:var(--mf);font-variant-numeric:tabular-nums}
+.r .n.gold{color:var(--strong)}
+.r img,.r .ini{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
+.r .ini{background:var(--muted);color:var(--mf);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;border:1px solid var(--bd)}
+.r .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-decoration:none}
+.r .tx b{font-size:16px;line-height:1.25}
+.r .tx small{font-size:13px;color:var(--mf)}
+.r .tx i{font-size:13px;color:var(--mf);display:flex;gap:5px;line-height:1.35;margin-top:2px}
+.r .tx i svg{width:14px;height:14px;margin-top:1px}
+.mv{display:flex;flex-direction:column}
+.mv button{width:44px;height:36px;border:0;background:transparent;color:var(--fg);display:flex;align-items:center;justify-content:center;border-radius:10px}
+.mv button[disabled]{color:var(--bd)}
+.rdots{width:44px;height:44px;border:0;background:transparent;color:var(--mf);display:flex;align-items:center;justify-content:center}
+.menu{position:absolute;right:16px;top:64px;width:240px;border:1px solid var(--bd);border-radius:14px;background:var(--card);box-shadow:0 12px 30px oklch(0 0 0 / 28%);padding:6px;display:flex;flex-direction:column}
+.menu button{min-height:44px;border:0;background:transparent;color:inherit;font:inherit;font-size:15px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:9px;text-align:left}
+.menu p{margin:4px 10px 6px;font-size:12px;line-height:1.4;color:var(--mf)}
+.shade{position:absolute;inset:0;background:oklch(0 0 0 / 18%)}
+.v1 .r2,.v2 .r1{display:none}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+<sc-for list="{{screens}}" as="s" hint-placeholder-count="6">
+<div>
+<div class="cap">{{s.cap}}</div>
+<div class="{{s.box}}">
+<div class="top"><a class="toback" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7M19 12H5"></path></svg>All Collections</a><button class="more" aria-label="Favourite artists actions"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button></div>
+<h1 class="title"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite artists</h1>
+<p class="meta">{{s.count}} · <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"></path></svg>Shared by link</p>
+<sc-if value="{{s.full}}" hint-placeholder-val="{{false}}"><div class="full">Favourite artists is full (100). Remove one first, then ♥ another artist.</div></sc-if>
+<button class="add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM21 21l-4.3-4.3"></path></svg>Find artists</button>
+<ol class="grid r1">
+<sc-for list="{{favs}}" as="f" hint-placeholder-count="6">
+<li class="cell"><a href="#" class="cell"><span class="pic"><img src="{{f.src}}" alt=""><span class="{{f.numCls}}">{{f.n}}</span><button class="dots" aria-label="More for {{f.name}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button></span><b>{{f.name}}</b><small>{{f.facts}}</small></a>
+<sc-if value="{{f.note}}" hint-placeholder-val="{{false}}"><span class="note"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>{{f.note}}</span></sc-if>
+</li>
+</sc-for>
+</ol>
+<ol class="list r2">
+<sc-for list="{{favs}}" as="f" hint-placeholder-count="6">
+<li class="r">
+<span class="{{f.rowNumCls}}">{{f.n}}</span>
+<img src="{{f.src}}" alt="">
+<a class="tx" href="#"><b>{{f.name}}</b><small>{{f.facts}}</small><sc-if value="{{f.note}}" hint-placeholder-val="{{false}}"><i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>{{f.note}}</i></sc-if></a>
+<span class="mv"><button aria-label="Move {{f.name}} up" disabled="{{f.first}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg></button><button aria-label="Move {{f.name}} down" disabled="{{f.last}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></span>
+<button class="rdots" aria-label="More for {{f.name}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button>
+</li>
+</sc-for>
+</ol>
+<sc-if value="{{s.menu}}" hint-placeholder-val="{{false}}">
+<div class="shade"></div>
+<div class="menu" role="menu">
+<button role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16"></path></svg>Reorder</button>
+<button role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"></path></svg>Share link</button>
+<button role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Edit description</button>
+<p>Favourite artists can't be renamed or deleted. Take an artist out with ♥ on their page.</p>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":3500}}'>
+class Component extends DCLogic {
+renderVals() {
+const raw = [
+['Океан Ельзи', 'Group · Ukraine · 1994–', '1317496f4b7636e3141f303e3ab3ab68', 'Every summer since school.'],
+['DakhaBrakha', 'Group · Ukraine · 2004–', 'aabb6ee0bbc15365e92eff1ac8422d9b', 'For anyone who thinks folk is boring.'],
+['Jamala', 'Person · Ukraine · 1983–', 'cdec6de6e6c5d7b105fd501cd34731cc'],
+['Kalush Orchestra', 'Group · Ukraine · 2021–', 'ce7595dde80b7d3ff5fa8fd6efdff11d'],
+['Христина Соловій', 'Person · Ukraine · 1993–', '36444a6f4d042178f34ad1dd04aad017'],
+['Скрябін', 'Group · Ukraine · 1989–', 'be639675dd6440e84c505641613ee29e'],
+['Radiohead', 'Group · United Kingdom · 1991–', 'edc9de62b9a995152e046dd1b137bf79', 'In Rainbows, on repeat.'],
+['Björk', 'Person · Iceland · 1965–', 'cde8d31d0fb8c5edc8c2b08ee31c51bb'],
+['Pink Floyd', 'Group · United Kingdom · 1965–2014', '888d7b70c44a8acabf87ade95b073952'],
+['Бумбокс', 'Group · Ukraine · 2004–', '50aa9a471ba085c0dc1215514773865c']
+];
+const favs = raw.map(([name, facts, id, note], i) => ({
+n: String(i + 1), name, facts, note: note || '', src: '/_blob/' + id,
+numCls: i < 3 ? 'num gold' : 'num', rowNumCls: i < 3 ? 'n gold' : 'n',
+first: i === 0, last: i === raw.length - 1
+}));
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+favs,
+screens: [
+{ cap: '1 · today’s Collection grid, round photos, the top three in gold', box: 'scr phone v1', count: '10 artists' },
+{ cap: '2 · numbered rows, the arrows always there', box: 'scr phone v2', count: '10 artists' },
+{ cap: 'The ⋯ menu: no Rename and no Delete (drawn on 1; 2 needs no Reorder)', box: 'scr phone v1', count: '10 artists', menu: true },
+{ cap: '1 on the web', box: 'scr web v1', count: '10 artists' },
+{ cap: '2 on the web', box: 'scr web v2', count: '10 artists' },
+{ cap: 'Full: 100 of 100 (drawn on 2)', box: 'scr phone v2', count: '100 artists', full: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>

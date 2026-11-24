@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>An artist's page, other states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.tt{--bg:oklch(0.18 0.01 60);--fg:oklch(0.96 0.004 75);--card:oklch(0.22 0.012 60);--pri:oklch(0.84 0.16 90);--prif:oklch(0.17 0.006 50);--strong:oklch(0.84 0.16 90);--soft:oklch(0.31 0.034 85);--muted:oklch(0.28 0.014 60);--mf:oklch(0.74 0.02 70);--bd:oklch(1 0 0 / 11%);--destr:oklch(0.7 0.19 25);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.tt.light{--bg:oklch(0.97 0.012 80);--fg:oklch(0.2 0.01 50);--card:oklch(0.995 0.006 85);--pri:oklch(0.82 0.16 88);--prif:oklch(0.22 0.02 60);--strong:oklch(0.52 0.11 80);--soft:oklch(0.96 0.037 87);--muted:oklch(0.935 0.016 75);--mf:oklch(0.47 0.02 60);--bd:oklch(0.88 0.015 75);--destr:oklch(0.55 0.2 27)}
+.tt *{box-sizing:border-box}
+.col{width:1290px;display:flex;flex-wrap:wrap;gap:40px 60px;align-items:flex-start}
+.cap{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#8a8378;min-height:26px;max-width:390px}
+.scr{background:var(--bg);border:1px solid var(--bd);border-radius:20px;overflow:hidden;padding-bottom:24px}
+.phone{width:390px}.web{width:960px}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fill{fill:currentColor}
+.back{height:44px;padding:0 12px;display:flex;align-items:center;gap:4px;color:var(--mf);font-size:14px;text-decoration:none}
+.blur{aspect-ratio:16/9;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 45%,transparent);mask-image:linear-gradient(to bottom,#000 45%,transparent)}
+.blur img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.3);filter:blur(30px) saturate(1.3)}
+.plain{height:64px}
+.lead{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:0 16px;margin-top:-170px}
+.plain+.lead{margin-top:0}
+.ph{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.round{width:176px;height:176px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 10px 24px oklch(0 0 0 / 30%)}
+.ini{width:176px;height:176px;border-radius:50%;background:var(--muted);color:var(--mf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:600;letter-spacing:.02em}
+.credit{font-size:12px;line-height:1.35;color:var(--mf);text-decoration:none}
+.facts{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:center}
+.facts h1{margin:0;font-size:26px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.line{font-size:14px;line-height:1.35;color:var(--mf)}
+.dis{font-size:13px;line-height:1.35;color:var(--mf);font-style:italic}
+.src{min-height:44px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--strong);text-decoration:none}
+.src svg{width:15px;height:15px}
+.body{padding:14px 16px 0;display:flex;flex-direction:column;gap:24px}
+.acts{display:flex;gap:8px}
+.btn{height:48px;flex:1;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:inherit;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;padding:0 14px;white-space:nowrap}
+.btn.on{background:var(--soft);border-color:var(--strong);color:var(--strong)}
+.btn.danger{color:var(--destr)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec h2{margin:0;font-size:18px;font-weight:600;display:flex;gap:6px;align-items:baseline}
+.sec h2 small{font-size:14px;font-weight:500;color:var(--mf)}
+.card{margin:0;padding:0;list-style:none;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.card li+li{border-top:1px solid var(--bd)}
+.go{min-height:68px;padding:10px 12px;display:flex;align-items:center;gap:12px;text-decoration:none}
+.go img{width:48px;height:48px;border-radius:7px;object-fit:cover;flex:none}
+.nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:600}
+.nm small{font-size:13px;font-weight:400;color:var(--mf)}
+.next{color:var(--mf);transform:rotate(180deg)}
+.dash{border:1px dashed var(--bd);border-radius:14px;padding:16px;font-size:14px;color:var(--mf);text-align:center}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;margin:0;padding:0;list-style:none}
+.grid a{display:flex;flex-direction:column;gap:3px;text-decoration:none;font-size:14px;font-weight:600;line-height:1.25}
+.grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block;margin-bottom:5px}
+.grid small{font-size:13px;font-weight:400;color:var(--mf)}
+.own{font-size:14px;line-height:1.45;color:var(--mf);margin:0}
+.web .lead{padding:0 24px}
+.web .facts h1{font-size:34px}
+.web .line{font-size:16px}
+.web .body{padding:20px 24px 0}
+.web .acts{justify-content:center}
+.web .btn{flex:none;height:40px;font-size:14px}
+.web .sec{max-width:720px;width:100%;align-self:center}
+.web .ini{width:200px;height:200px;font-size:64px}
+</style>
+</helmet>
+<div style="width: 2660px; display: flex; gap: 80px; align-items: flex-start">
+<sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+<div class="{{th.cls}}">
+<div class="col">
+
+<div>
+<div class="cap">No photo · Wikidata has no P18 · no albums on MusicBrainz · in no Collection</div>
+<div class="scr phone">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Back</a>
+<div class="plain"></div>
+<div class="lead">
+<span class="ini" role="img" aria-label="No photo">ІД</span>
+<div class="facts">
+<h1>Ігор Діденчук</h1>
+<span class="line">Person · Ukraine · 1998–</span>
+<span class="dis">Kalush &amp; Go_A</span>
+<a class="src" href="https://musicbrainz.org/artist/4008a0b3-fe6d-4b71-8f4d-5c5df4f77744">On MusicBrainz<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+</div>
+</div>
+<div class="body">
+<div class="acts">
+<button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<section class="sec"><h2>In your Collections</h2><div class="dash">Not in Favourites or any of your Collections yet.</div></section>
+<section class="sec"><h2>Albums and EPs</h2><div class="dash">MusicBrainz has no albums or EPs by this artist yet.</div></section>
+</div>
+</div>
+</div>
+
+<div>
+<div class="cap">An ended group · a wide photo cropped round · EPs and soundtracks in the list (12 of 19 drawn)</div>
+<div class="scr phone">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Back</a>
+<div class="blur"><img src="/_blob/888d7b70c44a8acabf87ade95b073952" alt=""></div>
+<div class="lead">
+<figure class="ph"><img class="round" src="/_blob/888d7b70c44a8acabf87ade95b073952" alt="Pink Floyd"><figcaption><a class="credit" href="https://commons.wikimedia.org/wiki/File:Pink_Floyd,_1971_(HQ).jpg">Photo: Capitol Records · Public domain · Wikimedia Commons</a></figcaption></figure>
+<div class="facts">
+<h1>Pink Floyd</h1>
+<span class="line">Group · United Kingdom · 1965–2014</span>
+<a class="src" href="https://musicbrainz.org/artist/83d91898-7763-47d7-b03b-b92132375c47">On MusicBrainz<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+</div>
+</div>
+<div class="body">
+<div class="acts">
+<button class="btn on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>In Favourites</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<section class="sec">
+<h2>Albums and EPs <small>19</small></h2>
+<ul class="grid">
+<sc-for list="{{floyd}}" as="a" hint-placeholder-count="6"><li><a href="#"><img src="{{a.src}}" alt="">{{a.title}}<small>{{a.line}}</small></a></li></sc-for>
+</ul>
+</section>
+</div>
+</div>
+</div>
+
+<div>
+<div class="cap">Added by hand · in one Collection</div>
+<div class="scr phone">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Back</a>
+<div class="plain"></div>
+<div class="lead">
+<span class="ini" role="img" aria-label="No photo">СЗ</span>
+<div class="facts">
+<h1>Сусіди знизу</h1>
+</div>
+</div>
+<div class="body">
+<div class="acts">
+<button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<section class="sec">
+<h2>In your Collections</h2>
+<ul class="card"><li><a class="go" href="#"><img src="/_blob/aabb6ee0bbc15365e92eff1ac8422d9b" alt=""><span class="nm">Bands to show a friend<small>6 artists</small></span><svg class="ic next" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a></li></ul>
+</section>
+<p class="own">You added this artist manually. Only you can see it.</p>
+<div class="acts">
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Edit artist</button>
+<button class="btn danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete artist</button>
+</div>
+</div>
+</div>
+</div>
+
+<div>
+<div class="cap">No photo on the web</div>
+<div class="scr web">
+<a class="back" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Back</a>
+<div class="plain"></div>
+<div class="lead">
+<span class="ini" role="img" aria-label="No photo">ІД</span>
+<div class="facts">
+<h1>Ігор Діденчук</h1>
+<span class="line">Person · Ukraine · 1998–</span>
+<span class="dis">Kalush &amp; Go_A</span>
+<a class="src" href="https://musicbrainz.org/artist/4008a0b3-fe6d-4b71-8f4d-5c5df4f77744">On MusicBrainz<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+</div>
+</div>
+<div class="body">
+<div class="acts">
+<button class="btn" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>Favourite</button>
+<button class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"></path></svg>Add to collection</button>
+</div>
+<section class="sec"><h2>In your Collections</h2><div class="dash">Not in Favourites or any of your Collections yet.</div></section>
+<section class="sec"><h2>Albums and EPs</h2><div class="dash">MusicBrainz has no albums or EPs by this artist yet.</div></section>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":2900}}'>
+class Component extends DCLogic {
+renderVals() {
+const al = (title, line, src) => ({ title, line, src: '/_blob/' + src });
+return {
+themes: [{ cls: 'tt dark' }, { cls: 'tt light' }],
+floyd: [
+al('The Piper at the Gates of Dawn', '1967', 'bbaa4340615f162bf66b58b1f36bc9c4'),
+al('A Saucerful of Secrets', '1968', '48df218169fd7774d389384606ba3b82'),
+al('More', '1969', 'a1e4e84cb31a25d4764523e12fe989b5'),
+al('Ummagumma', '1969', 'f2e955b8bfc75021dfdb8450351e4d5f'),
+al('Atom Heart Mother', '1970', 'c17a710205ca5ba8b7b533663eae177e'),
+al('Meddle', '1971', '5507045240c5bd8792078fe7d3ba8024'),
+al('Obscured by Clouds', '1972', 'd2578309cc3a00110d5543950f720553'),
+al('The Dark Side of the Moon', '1973', 'd966888545038dcad9988253e6c94091'),
+al('Wish You Were Here', '1975', 'de7be1b5d2728e332ccf379a5caed9f0'),
+al('Animals', '1977', '0a44109cdff446581bbb3add4c9c57d6'),
+al('The Wall', '1979', '757e955cf209d8420b7cf65af085d4f0'),
+al('The Final Cut: Video EP', '1983 · EP', '3967440cd96310708a897cc960f28346')
+]
+};
+}
+}
+</script>
+</body>
+</html>
