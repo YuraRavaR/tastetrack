@@ -106,6 +106,11 @@ function isStudio(group: ReleaseGroup): boolean {
   return (group["secondary-types"] ?? []).every((type) => type === "Soundtrack");
 }
 
+// A plain release group: one with no secondary type.
+function isPlain(group: ReleaseGroup): boolean {
+  return (group["secondary-types"] ?? []).length === 0;
+}
+
 // The primary types a song's album and cover prefer, in this order, before any other.
 const primaryTypeOrder = ["Album", "EP", "Single"];
 
@@ -116,9 +121,10 @@ function primaryTypeRank(group: ReleaseGroup): number {
 }
 
 // The release group a song's album and cover come from, among its Official releases: a studio one
-// before the rest; then Album, EP, Single and any other type; then the earliest release, a missing
-// month or day counting as the end of its period; then the release's MBID, so a tie is always
-// broken alike. Null for a song on no Official release.
+// before the rest; then Album, EP, Single and any other type, a plain one before a soundtrack of
+// the same type; then the earliest release, a missing month or day counting as the end of its
+// period; then the release's MBID, so a tie is always broken alike. Null for a song on no Official
+// release.
 function firstRelease(recording: Recording): ReleaseGroup | null {
   const official = (recording.releases ?? []).flatMap((release) => {
     const group = release["release-group"];
@@ -130,6 +136,7 @@ function firstRelease(recording: Recording): ReleaseGroup | null {
   ) =>
     Number(isStudio(b.group)) - Number(isStudio(a.group)) ||
     primaryTypeRank(a.group) - primaryTypeRank(b.group) ||
+    Number(isPlain(b.group)) - Number(isPlain(a.group)) ||
     dateKey(a.release.date).localeCompare(dateKey(b.release.date)) ||
     a.release.id.localeCompare(b.release.id);
   return official.sort(compare)[0]?.group ?? null;

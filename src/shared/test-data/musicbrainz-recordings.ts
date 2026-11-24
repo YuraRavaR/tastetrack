@@ -651,6 +651,108 @@ export const timeOfMyLifeWithoutIveHad: Recording = {
   ],
 };
 
+// The Time of My Life on the most releases, from the search for
+// "rid:b0e451f4-efc9-473d-a4dc-43bb3be9839c" (checked 2026-11-24), cut to its first compilation and
+// its releases on no compilation: a promotional soundtrack EP, which is no Official release, a
+// soundtrack Album, a plain Single and a plain Album.
+export const bevergemSoundtrack: Group = {
+  id: "00f48f73-92e2-4114-8d68-3155da3818c9",
+  title: "Bevergem: Soundtrack",
+  "primary-type": "Album",
+  "secondary-types": ["Soundtrack"],
+};
+export const no1EightiesMovieHits: Group = {
+  id: "7af097d6-3749-4192-8641-29b9f06743b9",
+  title: "No.1 80s Movie Hits 1980–1990",
+  "primary-type": "Album",
+};
+export const timeOfMyLifeOnASoundtrackAndAPlainAlbum: Recording = {
+  ...timeOfMyLifeWithAnd,
+  releases: [
+    {
+      id: "cf33c818-9f1d-46c1-a7fe-b044a73d29bc",
+      status: "Official",
+      date: "2026-06-12",
+      "release-group": {
+        id: "76b06180-7097-4ded-b7aa-8180c6786120",
+        title: "NOW That's What I Call An 80s Summer",
+        "primary-type": "Album",
+        "secondary-types": ["Compilation"],
+      },
+    },
+    {
+      id: "bd06e17b-c719-47ba-8b4b-ab0fb81ec399",
+      status: "Promotion",
+      date: "1988",
+      "release-group": {
+        id: "8414236e-6c12-4897-9f89-41b34c67ab52",
+        title: "20 Million Dirty Dancing Fans Can’t Be Wrong",
+        "primary-type": "EP",
+        "secondary-types": ["Soundtrack"],
+      },
+    },
+    {
+      id: "1c42c78d-3d94-491a-8f53-462885f1296a",
+      status: "Official",
+      date: "2015-11-20",
+      "release-group": bevergemSoundtrack,
+    },
+    {
+      id: "0826eefb-e35f-45cb-b1e5-9f189927fdc9",
+      status: "Official",
+      date: "1987",
+      "release-group": {
+        id: "fa1b26f2-2f42-4ab6-833c-64bb344a724d",
+        title: "(I've Had) The Time Of My Life",
+        "primary-type": "Single",
+      },
+    },
+    {
+      id: "78aa4807-6764-477d-8c40-b17bac0c1edc",
+      status: "Official",
+      date: "2022-04-27",
+      "release-group": no1EightiesMovieHits,
+    },
+  ],
+};
+
+// The Beatles' Help! in its stereo studio mix, from the search for "Help!" by the Beatles first
+// released in 1965 (checked 2026-11-24), cut to its first release on the soundtrack Album Help!
+// and its plain Single.
+export const helpSoundtrack: Group = {
+  id: "0d44e1cb-c6e0-3453-8b68-4d2082f05421",
+  title: "Help!",
+  "primary-type": "Album",
+  "secondary-types": ["Soundtrack"],
+};
+export const help: Recording = {
+  id: "73674fc7-4e76-480e-8240-d3fe312af45e",
+  title: "Help!",
+  "artist-credit": [
+    { name: "The Beatles", artist: { id: "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d" } },
+  ],
+  disambiguation: "original stereo studio mix, without intro",
+  "first-release-date": "1965-08-06",
+  releases: [
+    {
+      id: "40825ca0-0568-3de0-bbe7-d5e07ed9a191",
+      status: "Official",
+      date: "1965-08-06",
+      "release-group": helpSoundtrack,
+    },
+    {
+      id: "04e193eb-2ce1-400c-a6e9-936eee54b8a5",
+      status: "Official",
+      date: "1994-01",
+      "release-group": {
+        id: "3e953cf0-3b12-32e5-a9aa-d46c067bb567",
+        title: "Help! / I’m Down",
+        "primary-type": "Single",
+      },
+    },
+  ],
+};
+
 // Two of Beyoncé's recordings of one Déjà Vu remix, from the search for "deja vu beyonce" (checked
 // 2026-11-23): its title with accents and in two pairs of brackets, on singles, cut to three
 // releases, and without accents, a comma between the remix and "no rap", on one promotion.

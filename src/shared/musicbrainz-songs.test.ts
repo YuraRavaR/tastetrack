@@ -4,12 +4,15 @@ import {
   dejaVuNoRapAccented,
   dejaVuNoRapUnaccented,
   glitchgirlRemix,
+  help,
+  helpSoundtrack,
   johnVanderslice,
   karmaPolice,
   karmaPolice91,
   karmaPolice91Bracketed,
   karmaPoliceBracketedTakes,
   karmaPoliceEarly,
+  no1EightiesMovieHits,
   obiimy,
   onACompilation,
   onTheSingle,
@@ -18,6 +21,7 @@ import {
   runningUpThatHillOnACompilation,
   stefania,
   symphonyOfBritishMusic,
+  timeOfMyLifeOnASoundtrackAndAPlainAlbum,
   timeOfMyLifeStraightApostrophe,
   timeOfMyLifeWithAmpersand,
   timeOfMyLifeWithAnd,
@@ -266,6 +270,23 @@ describe("song search", () => {
       posterUrl: cover("e715b41e-d879-4c25-aeed-3962ca2a0425"),
       disambiguation: "Ukraine, Eurovision 2022 entry",
     });
+  });
+
+  it("takes a plain studio Album, and its cover, before a soundtrack and a plain Single", () => {
+    const [result] = search("time of my life bill medley jennifer warnes", [
+      timeOfMyLifeOnASoundtrackAndAPlainAlbum,
+    ]);
+
+    expect(result).toMatchObject({
+      album: "No.1 80s Movie Hits 1980–1990",
+      posterUrl: cover(no1EightiesMovieHits.id),
+    });
+  });
+
+  it("keeps a soundtrack Album, and its cover, before a plain Single", () => {
+    const [result] = search("Help! The Beatles", [help]);
+
+    expect(result).toMatchObject({ album: "Help!", posterUrl: cover(helpSoundtrack.id) });
   });
 
   it("counts a soundtrack as a studio Album, before a remix single", () => {

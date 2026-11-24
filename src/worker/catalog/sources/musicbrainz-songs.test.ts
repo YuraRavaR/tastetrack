@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  no1EightiesMovieHits,
   obiimy,
   runningUpThatHill,
   symphonyOfBritishMusic,
+  timeOfMyLifeOnASoundtrackAndAPlainAlbum,
   zemlya,
 } from "../../../shared/test-data/musicbrainz-recordings";
 import type { CatalogEnv } from "../source";
@@ -84,6 +86,17 @@ describe("a song's details", () => {
       `/ws/2/recording/${runningUpThatHill.id}`,
     ]);
     expect(entry.extra.album?.title).toBe(symphonyOfBritishMusic.title);
+  });
+
+  it("store a plain studio Album, and its cover, before a soundtrack", async () => {
+    stubFetch(() => Response.json(timeOfMyLifeOnASoundtrackAndAPlainAlbum));
+
+    const entry = await musicBrainzSongs.details(env, timeOfMyLifeOnASoundtrackAndAPlainAlbum.id);
+
+    expect(entry.extra).toMatchObject({
+      album: { title: "No.1 80s Movie Hits 1980–1990", mbid: no1EightiesMovieHits.id },
+      coverMbid: no1EightiesMovieHits.id,
+    });
   });
 
   it("take a recording MusicBrainz answers 404 for as gone", async () => {

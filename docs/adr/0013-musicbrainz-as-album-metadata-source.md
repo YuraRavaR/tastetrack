@@ -63,7 +63,7 @@ A catalog-backed song is a MusicBrainz **recording**, and its External Reference
 - **Facts.** The year is the year of the recording's `first-release-date`. The artist credit is shown as for albums, in its original script, and the disambiguation as MusicBrainz gives it ("original version"). The album ("from Земля") and the cover follow the next rule. A song has no length.
 - **The album and the cover** are chosen among the recording's Official releases, in this order:
   1. a studio release group before the rest: one with no secondary type, or only Soundtrack ("Help!");
-  2. Album, then EP, then Single, then any other primary type;
+  2. Album, then EP, then Single, then any other primary type, and of one type a plain release group, with no secondary type, before a soundtrack. "(I’ve Had) The Time of My Life" read "from Bevergem: Soundtrack" while it has a plain Album (#296). Putting plain first in rule 1 instead would put the plain Single "Help! / I’m Down" before the soundtrack Album Help!, and the song would show no album;
   3. the earliest release date, a missing month or day counting as the end of its year or month, and no date as last;
   4. the release's MBID, the lowest first, so that a tie is always broken alike.
 
