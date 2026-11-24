@@ -426,7 +426,7 @@ test("on a phone an album's row has a square cover, its page the cover edge to e
   await expect(savedPage.tile("Albums").coverImages).toHaveCount(1);
   await searchPage.goto(undefined, "album");
   const chips = await Promise.all(
-    (["Films", "Books", "Series", "Games", "Albums", "Songs"] as const).map((name) =>
+    (["Films", "Books", "Series", "Games", "Albums", "Songs", "Artists"] as const).map((name) =>
       box(searchPage.mediaTypeChip(name)),
     ),
   );

@@ -12,6 +12,11 @@ export class PosterGridItem extends ScopedComponent {
   readonly watchedBeforeMark = this.root.getByRole("img", { name: "Watched before" });
   readonly readBeforeMark = this.root.getByRole("img", { name: "Read before" });
 
+  // An artist's initials, in their photo's place, named with the artist's name.
+  initials(name: string) {
+    return this.root.getByRole("img", { name, exact: true });
+  }
+
   // The Current Rating under a Watched poster, read out as e.g. "4.5 stars".
   rating(stars: string) {
     return this.root.getByRole("img", { name: stars, exact: true });

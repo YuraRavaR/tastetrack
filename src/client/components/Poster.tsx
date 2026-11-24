@@ -1,6 +1,7 @@
 import { Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
+import { artistInitials } from "../catalog/artist-label";
 import {
   type CoverImageSize,
   type CoverShape,
@@ -156,6 +157,27 @@ const noteSizes: Record<PosterSize, string> = {
   collage: "size-6.5",
 };
 
+// An artist's photo is round in a Search row and a grid, 56 px in a phone's row and 48 px from md,
+// and their initials on their page, 136 px and 176 px from sm (`docs/mockups/artists/`). It is
+// square where it stands for a Collection, in a dialog's row, a fan or a collage. Their initials
+// take a size to match.
+const faceSizes: Partial<Record<PosterSize, string>> = {
+  thumbnail: "size-14 rounded-full",
+  large: "size-34 rounded-full sm:size-44",
+  search: "size-14 rounded-full md:size-12",
+  grid: "aspect-square w-full rounded-full",
+};
+
+const initialsSizes: Record<PosterSize, string> = {
+  dialog: "text-base",
+  thumbnail: "text-lg",
+  search: "text-lg md:text-base",
+  large: "text-[44px] sm:text-[56px]",
+  grid: "text-[34px]",
+  fan: "text-lg",
+  collage: "text-[26px]",
+};
+
 const typesets: Record<CoverShape, Record<PosterSize, Typeset>> = {
   "2:3": posterTypesets,
   "1:1": squareTypesets,
@@ -166,9 +188,9 @@ const typesets: Record<CoverShape, Record<PosterSize, Typeset>> = {
 // (the film page's) only from `sm`, and `showCaption={false}` leaves it out, as under controls
 // laid over the poster. A book's, a game's or an album's is a cover set in type: its title at the
 // top and its first author, its developer or its artist credit at the foot, inside a thin frame.
-// A song's is a quiet note on muted, with no caption. An album's or a song's image that doesn't
-// load counts as none, since its cover is linked whether or not the Cover Art Archive has one
-// (ADR-0013).
+// A song's is a quiet note on muted, with no caption, and an artist's their initials, in the same
+// quiet way. An album's, a song's or an artist's image that doesn't load counts as none, since its
+// cover or photo is linked whether or not the Cover Art Archive or Commons has one (ADR-0013).
 export function Poster({
   subject,
   size,
@@ -180,7 +202,8 @@ export function Poster({
 }) {
   const cover = coverOf(subject, imageSizes[size]);
   const shape = coverShape(cover.mediaType);
-  const sizeClass = sizeClasses[shape][size];
+  const sizeClass =
+    (cover.mediaType === "artist" ? faceSizes[size] : undefined) ?? sizeClasses[shape][size];
   const [url, failed] = useImageFailure(cover.url);
   if (url) {
     return (
@@ -195,6 +218,24 @@ export function Poster({
   }
 
   const missing = missingCover(cover.mediaType);
+  if (missing === "initials") {
+    const name = typesetCoverOf(subject).title;
+    return (
+      <div
+        role="img"
+        aria-label={name ?? mediaWord(cover.mediaType, "noCover")}
+        className={cn(
+          "flex shrink-0 items-center justify-center bg-muted font-semibold text-muted-foreground tracking-[0.02em]",
+          size !== "collage" && "border border-border",
+          sizeClass,
+          initialsSizes[size],
+          size === "large" && "shadow-none",
+        )}
+      >
+        {name && artistInitials(name)}
+      </div>
+    );
+  }
   if (missing === "note") {
     return (
       <div

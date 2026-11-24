@@ -28,7 +28,7 @@ import { isLight } from "../../shared/catalog";
 import { maxListItems, maxListNameLength } from "../../shared/lists";
 import * as api from "../api";
 import { mediaWord } from "../i18n/media-words";
-import { t } from "../i18n/t";
+import { type MessageId, t } from "../i18n/t";
 import { listsPathOf } from "../navigation/paths";
 import { listErrorMessage } from "./ListFormDialog";
 
@@ -47,10 +47,16 @@ export type ListsFilm = {
 // the film at the end, unticking takes it off. A List unticked and ticked again before the dialog
 // closes gets the film back where it was, with its Note. The dialog is open while `film` is set.
 //
-// A song, which goes into Collections in one step, gets the picker drawn for it
+// A song or an artist, which goes into Collections in one step, gets the picker drawn for a song
 // (`docs/mockups/songs/`): its Collections come last used first, as the Worker orders them, each
 // row toggling all of it, and New collection under them makes one in place, adds the song and puts
-// the new one first, ticked. With none yet, the form shows at once.
+// the new one first, ticked. With none yet, the form shows at once, saying so.
+// What the picker of a light Media Type says while the User has no Collection of it yet.
+const noneYet: Partial<Record<MediaType, MessageId>> = {
+  song: "filmLists.songsNone",
+  artist: "filmLists.artistsNone",
+};
+
 export function FilmListsDialog({
   film,
   onClose,
@@ -177,7 +183,7 @@ function FilmLists({ film }: { film: ListsFilm }) {
         film={film}
         mediaItemId={state.mediaItemId}
         heading={none ? t("filmLists.title", { film: film.label }) : t("filmLists.new")}
-        intro={none ? t("filmLists.songsNone") : null}
+        intro={none ? t(noneYet[film.mediaType] ?? "filmLists.songsNone") : null}
         onBack={none ? null : () => setMaking(false)}
         onMade={(list, listItem, failed) => {
           made(list, listItem);

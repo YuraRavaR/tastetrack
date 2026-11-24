@@ -1508,6 +1508,8 @@ export const ArtistAbout = z
   })
   .openapi("ArtistAbout");
 
+export type ArtistAbout = z.infer<typeof ArtistAbout>;
+
 // What a Media Item's page shows in its About block, by its Media Type, and for an artist their
 // albums.
 export const About = z

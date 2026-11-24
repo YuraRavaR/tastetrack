@@ -22,10 +22,10 @@ export class UserMediaItemMatches extends ScopedComponent {
 }
 
 // A Media Type chip's name.
-type MediaTypeChip = "Films" | "Books" | "Series" | "Games" | "Albums" | "Songs";
+type MediaTypeChip = "Films" | "Books" | "Series" | "Games" | "Albums" | "Songs" | "Artists";
 
 // A Media Type in Search's address, unless it is films.
-type SearchMediaType = "book" | "series" | "game" | "album" | "song";
+type SearchMediaType = "book" | "series" | "game" | "album" | "song" | "artist";
 
 // The Search section: the search of one Media Type, its results and what can be done with them.
 export class SearchPage extends BasePage<[query?: string, mediaType?: SearchMediaType]> {
@@ -48,7 +48,7 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: SearchMedi
   readonly userMediaItems = new UserMediaItemMatches(
     this.page.getByRole("list", { name: "In your Saved" }),
   );
-  // On Songs, which only Collections hold: "In your Collections".
+  // On Songs and Artists, which only Collections hold: "In your Collections".
   readonly collectionsMatches = new UserMediaItemMatches(
     this.page.getByRole("list", { name: "In your Collections" }),
   );
@@ -93,6 +93,8 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: SearchMedi
   readonly songArtistHint = this.page.getByText(
     "Try adding the artist: MusicBrainz finds a song best by its title and artist together.",
   );
+  readonly noArtistsMessage = this.page.getByText(/^No artists found for “.*”\.$/);
+  readonly artistNameHint = this.page.getByText("Try the name as it is spelled on the album.");
   // What Search says in place of MusicBrainz's results when MusicBrainz is busy.
   readonly musicBrainzBusy = this.page
     .getByRole("alert")
@@ -116,6 +118,9 @@ export class SearchPage extends BasePage<[query?: string, mediaType?: SearchMedi
   );
   readonly addSongManuallyDialog = new ManualMediaItemDialog(
     this.page.getByRole("dialog", { name: "Add a song manually" }),
+  );
+  readonly addArtistManuallyDialog = new ManualMediaItemDialog(
+    this.page.getByRole("dialog", { name: "Add an artist manually" }),
   );
   readonly toast = new Toast(this.page.getByRole("status"));
   readonly errorMessage = this.page.getByRole("alert");

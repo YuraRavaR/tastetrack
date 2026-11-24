@@ -384,10 +384,10 @@ test("on a phone a song's row has a square cover and its button under the words,
   expect(add.height).toBe(48);
   await expect(filmPage.backLink).toHaveAttribute("href", "/collections?type=song");
 
-  // Six chips fit a 320 px phone without a sideways scroll.
+  // Seven chips fit a 320 px phone without a sideways scroll (`docs/mockups/artists/`).
   await page.setViewportSize({ width: 320, height: 640 });
   await searchPage.goto(undefined, "song");
-  await expect(searchPage.mediaTypeChip("Songs")).toHaveCSS("font-size", "12px");
+  await expect(searchPage.mediaTypeChip("Songs")).toHaveCSS("font-size", "11px");
   const sideways = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );

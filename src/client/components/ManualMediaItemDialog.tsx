@@ -31,8 +31,8 @@ import {
 // The item to edit, or the Media Type of a new one, which starts from a title.
 type Editing = { mediaItem: MediaItem } | { mediaType: MediaType; title?: string };
 
-// Adds a film, a book, a series, a game, an album or a song by hand as a Manual Media Item, or
-// edits one, in a sheet on a phone and a centred dialog from `md`. The dialog is open while `open`
+// Adds a film, a book, a series, a game, an album, a song or an artist by hand as a Manual Media
+// Item, or edits one, in a sheet on a phone and a centred dialog from `md`. The dialog is open while `open`
 // is set, and stays open until the item is saved.
 export function ManualMediaItemDialog({
   open,
@@ -213,7 +213,9 @@ function ManualMediaItemForm({
       />
       <div className={sheetBodyClasses}>
         <div className="flex flex-col gap-2">
-          <Label htmlFor={ids.title}>{t("manualItem.title")}</Label>
+          <Label htmlFor={ids.title}>
+            {t(mediaType === "artist" ? "manualItem.name" : "manualItem.title")}
+          </Label>
           <Input
             id={ids.title}
             required
@@ -247,29 +249,32 @@ function ManualMediaItemForm({
             {t("manualItem.originalTitleHint")}
           </p>
         </div>
-        <div className="flex flex-wrap gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={ids.year}>
-              {t("manualItem.year")}{" "}
-              <span className="font-normal text-muted-foreground">
-                ({t("manualItem.optional")})
-              </span>
-            </Label>
-            <Input
-              id={ids.year}
-              type="number"
-              inputMode="numeric"
-              min={earliestYears[mediaType]}
-              max={latestFilmYear(new Date())}
-              step={1}
-              value={year}
-              onChange={(event) => {
-                setYear(event.target.value);
-                clearWarning();
-              }}
-              className="w-28"
-            />
-          </div>
+        {/* An artist has a name and an Original Title alone (ADR-0013, Artists). */}
+        <div className="flex flex-wrap gap-4 empty:hidden">
+          {mediaType !== "artist" && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={ids.year}>
+                {t("manualItem.year")}{" "}
+                <span className="font-normal text-muted-foreground">
+                  ({t("manualItem.optional")})
+                </span>
+              </Label>
+              <Input
+                id={ids.year}
+                type="number"
+                inputMode="numeric"
+                min={earliestYears[mediaType]}
+                max={latestFilmYear(new Date())}
+                step={1}
+                value={year}
+                onChange={(event) => {
+                  setYear(event.target.value);
+                  clearWarning();
+                }}
+                className="w-28"
+              />
+            </div>
+          )}
           {mediaType === "film" && (
             <div className="flex flex-col gap-2">
               <Label htmlFor={ids.runtime}>

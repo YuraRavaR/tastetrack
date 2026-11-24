@@ -393,7 +393,7 @@ export const en = {
   "mediaType.artist.count": "{count, plural, one {# artist} other {# artists}}",
   "mediaType.artist.searchPlaceholder": "Artist or band",
   "mediaType.artist.searchHint":
-    "Type an artist or a band to search your Collections and MusicBrainz.",
+    "Type an artist or band to search your Collections and MusicBrainz.",
   "mediaType.artist.searchSource": "From MusicBrainz",
   "mediaType.artist.searchNoMatch": "No artists found for “{query}”.",
   "mediaType.artist.unknown": "Artist details unavailable",
@@ -632,6 +632,9 @@ export const en = {
     "Try adding the artist: MusicBrainz finds a song best by its title and artist together.",
   "search.tryAgain": "Try again",
   "search.openFailed": "Couldn't open {film}. Please try again.",
+  // What an artist search that finds nothing adds: MusicBrainz knows an artist by the name on their
+  // records (`docs/mockups/artists/`).
+  "search.artistNameHint": "Try the name as it is spelled on the album.",
   "dialog.close": "Close",
   "rating.label": "Rating",
   "rating.stars": "{stars, plural, one {# star} other {# stars}}",
@@ -758,6 +761,8 @@ export const en = {
   "filmLists.creating": "Creating…",
   "filmLists.songsNone":
     "You have no Collections of songs yet. Make one, and this song goes into it.",
+  "filmLists.artistsNone":
+    "You have no Collections of artists yet. Make one, and this artist goes into it.",
   "filmLists.nameTaken":
     "You already have a Collection of {mediaType, select, film {films} book {books} series {series} game {games} album {albums} other {songs}} with this name.",
   "share.share": "Share",
@@ -852,6 +857,8 @@ export const en = {
   "about.genres": "Genres",
   "manualItem.editTitle": "Edit {film}",
   "manualItem.title": "Title",
+  // An artist's, who has a name where a work has a title.
+  "manualItem.name": "Name",
   "manualItem.originalTitle": "Original Title",
   "manualItem.originalTitleHint": "Its title in its original language, if that's different.",
   "manualItem.year": "Year",
@@ -1012,6 +1019,22 @@ export const en = {
   "song.inCollections": "In your Collections",
   "song.notInCollections": "Not in any of your Collections yet.",
   "game.platformsAndMore": "{platforms} +{more, number}",
+  // The areas MusicBrainz gives codes of its own, which Intl doesn't know or names otherwise (SU
+  // as Russia), on an artist's row and page (ADR-0013, Artists).
+  "artist.country.XW": "Worldwide",
+  "artist.country.XE": "Europe",
+  "artist.country.SU": "Soviet Union",
+  "artist.country.XC": "Czechoslovakia",
+  "artist.country.XG": "East Germany",
+  "artist.country.YU": "Yugoslavia",
+  "artist.country.CS": "Serbia and Montenegro",
+  // Under an artist's photo on their page, linked to its file on Commons (ADR-0013, Artists).
+  "artist.photoCredit": "Photo: {author} · {licence} · Wikimedia Commons",
+  "artist.photoCreditNoAuthor": "Photo: {licence} · Wikimedia Commons",
+  // An artist's albums list on their page (ADR-0013, Artists).
+  "artist.albums": "Albums and EPs",
+  "artist.ep": "EP",
+  "artist.noAlbums": "MusicBrainz has no albums or EPs by this artist yet.",
   "poster.caption.popcorn": "Eaten with the popcorn.",
   "poster.caption.ghost": "This poster is a ghost.",
   "poster.caption.makeup": "Still in makeup.",

@@ -85,12 +85,14 @@ const noMatchIcons: Record<MediaType, LucideIcon> = {
   artist: MicVocal,
 };
 
-// What Search adds when it finds nothing: IGDB knows games by their English names alone, and
-// MusicBrainz finds an album or a song best by its title and artist together.
+// What Search adds when it finds nothing: IGDB knows games by their English names alone,
+// MusicBrainz finds an album or a song best by its title and artist together, and an artist by the
+// name on their records.
 const noMatchHints: Partial<Record<MediaType, MessageId>> = {
   game: "search.englishTitleHint",
   album: "search.artistHint",
   song: "search.songArtistHint",
+  artist: "search.artistNameHint",
 };
 
 // What Search finds of one Media Type as the User types, with no button, for the query in the URL.
@@ -110,7 +112,9 @@ const noMatchHints: Partial<Record<MediaType, MessageId>> = {
 // off the User's Lists. Below the results, a film search doesn't find can be added by hand, and
 // then shows first. A Media Type offers only what it can do (catalog/media-types.ts). When the
 // source is busy, as MusicBrainz can be, its results give way to a box that says so, with Try
-// again (`docs/mockups/albums/`). A song has one button, Add to collection (`docs/mockups/songs/`).
+// again (`docs/mockups/albums/`). A song has one button, Add to collection (`docs/mockups/songs/`),
+// and so has an artist, whose row shows their initials, their type, country and years and their
+// disambiguation (`docs/mockups/artists/`).
 export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   const navigate = useNavigate();
   const backlogName = mediaWord(mediaType, "backlog");
@@ -453,7 +457,8 @@ function ResultsBlock({
 // the User acts on it, and remembers the place in the results for coming Back. A square cover is
 // shorter, so an album's is wider in the strip, 120 px (`docs/mockups/albums/`). A song, which
 // only Collections hold, comes "In your Collections", with its artist under its title
-// (`docs/mockups/songs/`).
+// (`docs/mockups/songs/`), and an artist too, with their round photo and their type
+// (`docs/mockups/artists/`).
 function UserMediaItemMatches({
   mediaType,
   items,
@@ -555,8 +560,8 @@ function StatusLine({
 // One of the External Source's results. Its title opens its page and stretches over the whole
 // row, so on a phone a tap on the cover or around the title opens it too; the row's other controls
 // sit above. A book is named without its year, which follows its authors on the next line. The
-// row has the controls its Media Type can use so far. A song's disambiguation follows quietly,
-// in italics.
+// row has the controls its Media Type can use so far. A song's or an artist's disambiguation
+// follows quietly, in italics.
 function SearchResult({
   found,
   mediaItemId,
@@ -590,7 +595,8 @@ function SearchResult({
   const name = foundRowTitle(found);
   const subtitle = foundSubtitle(found);
   const disambiguation = foundDisambiguation(found);
-  // A song, which can only be collected, has the one button, labelled (`docs/mockups/songs/`).
+  // A song or an artist, which can only be collected, has the one button, labelled
+  // (`docs/mockups/songs/`).
   const collectOnly = !can(mediaType, "log") && !can(mediaType, "plan");
 
   return (

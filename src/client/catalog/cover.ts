@@ -28,7 +28,8 @@ const coverShapes: Record<MediaType, CoverShape> = {
   game: "2:3",
   album: "1:1",
   song: "1:1",
-  // An artist's photo is cropped to a square, or shown whole on their page (#302).
+  // An artist's photo is cropped to a square, round in a row or a grid, and shown whole on their
+  // page (`docs/mockups/artists/`).
   artist: "1:1",
 };
 
@@ -101,9 +102,10 @@ const placeholders: readonly Placeholder[] = [
 ];
 
 // What stands in for a Media Type's missing cover: a film's or a series' placeholder icon with a
-// caption, a book's, a game's or an album's cover set in type, or a song's quiet note on muted
-// (`docs/mockups/songs/`). A new Media Type doesn't compile until it says.
-export type MissingCover = "placeholder" | "typeset" | "note";
+// caption, a book's, a game's or an album's cover set in type, a song's quiet note on muted
+// (`docs/mockups/songs/`), or an artist's initials (`docs/mockups/artists/`). A new Media Type
+// doesn't compile until it says.
+export type MissingCover = "placeholder" | "typeset" | "note" | "initials";
 
 const missingCovers: Record<MediaType, MissingCover> = {
   film: "placeholder",
@@ -112,8 +114,7 @@ const missingCovers: Record<MediaType, MissingCover> = {
   game: "typeset",
   album: "typeset",
   song: "note",
-  // Until the artist's initials come with their UI (#302).
-  artist: "note",
+  artist: "initials",
 };
 
 export function missingCover(mediaType: MediaType): MissingCover {

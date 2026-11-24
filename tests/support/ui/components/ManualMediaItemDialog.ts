@@ -5,6 +5,8 @@ import { ScopedComponent } from "./ScopedComponent";
 export class ManualMediaItemDialog extends ScopedComponent {
   // Exact, as "Original Title" holds the word too.
   readonly titleInput = this.root.getByLabel("Title", { exact: true });
+  // An artist's, who has a name in a title's place.
+  readonly nameInput = this.root.getByLabel("Name", { exact: true });
   readonly originalTitleInput = this.root.getByLabel("Original Title");
   readonly yearInput = this.root.getByLabel("Year");
   readonly minutesInput = this.root.getByLabel("Minutes");
