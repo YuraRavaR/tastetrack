@@ -93,6 +93,9 @@ function detailsOf(
     case "series":
     case "game":
       return { mediaType, ...titles };
+    // An artist has a name and an Original Title alone (#302 asks for no year).
+    case "artist":
+      return { mediaType, title: titles.title, originalTitle: titles.originalTitle };
   }
 }
 
@@ -104,6 +107,7 @@ const earliestYears: Record<MediaType, number> = {
   game: earliestFilmYear,
   album: earliestFilmYear,
   song: earliestFilmYear,
+  artist: earliestFilmYear,
 };
 
 // A number field's value, or null when it is empty.

@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  type ArtistCacheExtra,
   type CacheExtra,
   catalogCache,
   inProgress,
@@ -23,7 +24,13 @@ import type {
 import { userLog } from "../log/log-entries";
 import { openTestDatabase, type TestDatabase } from "../test-database";
 import { dueForRefresh, refreshCache } from "./cache-refresh";
-import { addFromSearch, catalogMediaItems } from "./media-items";
+import {
+  addFromSearch,
+  cacheOfMediaItem,
+  catalogMediaItems,
+  mediaItemColumns,
+  toMediaItem,
+} from "./media-items";
 import { sourceOf } from "./registry";
 import { SourceUnavailable } from "./source";
 import { storeToken } from "./source-tokens";
@@ -35,6 +42,7 @@ import {
 } from "./sources/musicbrainz-fake";
 import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
+import { wikimediaFake } from "./sources/wikimedia-fake";
 
 const day = 24 * 60 * 60 * 1000;
 const now = new Date("2026-10-20T12:00:00Z");
@@ -76,7 +84,7 @@ beforeEach(async () => {
     .returning();
   if (!user) throw new Error("no user");
   userId = user.id;
-  const [films, books, series, games, albums, songs] = await db
+  const [films, books, series, games, albums, songs, artists] = await db
     .insert(lists)
     .values([
       { userId, kind: "list", mediaType: "film", name: "F", nameKey: "f", createdAt: now },
@@ -85,9 +93,12 @@ beforeEach(async () => {
       { userId, kind: "list", mediaType: "game", name: "G", nameKey: "g", createdAt: now },
       { userId, kind: "list", mediaType: "album", name: "A", nameKey: "a", createdAt: now },
       { userId, kind: "list", mediaType: "song", name: "M", nameKey: "m", createdAt: now },
+      { userId, kind: "list", mediaType: "artist", name: "R", nameKey: "r", createdAt: now },
     ])
     .returning();
-  if (!films || !books || !series || !games || !albums || !songs) throw new Error("no lists");
+  if (!films || !books || !series || !games || !albums || !songs || !artists) {
+    throw new Error("no lists");
+  }
   listIds = {
     film: films.id,
     book: books.id,
@@ -95,6 +106,7 @@ beforeEach(async () => {
     game: games.id,
     album: albums.id,
     song: songs.id,
+    artist: artists.id,
   };
 });
 
@@ -202,6 +214,38 @@ async function song(id: string, options: Work = {}): Promise<void> {
   await work({ source: "musicbrainz", mediaType: "song", id }, `Song ${id}`, extra, options);
 }
 
+// Adds a catalog-backed artist with artist MBID `id`, their entry's `extra` as given.
+async function artist(
+  id: string,
+  options: Work = {},
+  extra: Partial<ArtistCacheExtra> = {},
+): Promise<void> {
+  const full = { ...sourceOf("artist").emptyExtra, ...extra };
+  await work({ source: "musicbrainz", mediaType: "artist", id }, `Artist ${id}`, full, options);
+}
+
+// Artists the MusicBrainz fake has, each with a photo the Wikimedia fake has.
+const artistIds = {
+  okeanElzy: "87a417d3-f118-43e0-bece-3de1bd90fce0",
+  radiohead: "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+  pinkFloyd: "83d91898-7763-47d7-b03b-b92132375c47",
+  kalushOrchestra: "45d9e75f-cbdf-47df-b4e6-1578d8a17e25",
+  // The fakes fail for Alice Cooper's Wikidata entity, and the 1960s UK Nirvana's has no image.
+  aliceCooper: "ee58c59f-8e7f-4430-b8ca-236c4d3745ae",
+  nirvanaUk: "9282c8b4-ca0b-4c6b-b7e3-4f7762dfc4d6",
+};
+
+// A photo an artist's entry kept, read `days` ago.
+function photoRead(days: number): ArtistCacheExtra["photo"] {
+  return {
+    file: "Old photo.jpg",
+    author: "Someone",
+    licence: "CC BY 4.0",
+    url: "https://commons.wikimedia.org/wiki/File:Old_photo.jpg",
+    readAt: daysAgo(days).toISOString(),
+  };
+}
+
 // Recordings the MusicBrainz fake has, each a Media Item.
 const songIds = [
   "d8d55f18-0c4b-4036-a16d-e273ac8953fc",
@@ -228,6 +272,15 @@ const albumIds = [
   "4513c7b9-854e-457f-81d6-3dbeb001beb8",
   "67210625-2acc-4689-8b76-a43181af8a10",
 ];
+
+// Every Media Item as a page reads it, with what the cache shows of it, filling nothing.
+async function shownMediaItems(): Promise<MediaItem[]> {
+  const rows = await db
+    .select(mediaItemColumns)
+    .from(mediaItems)
+    .leftJoin(catalogCache, cacheOfMediaItem(now));
+  return rows.map(toMediaItem);
+}
 
 // A film's metadata, of a Media Item that should be one.
 function filmMetadata(mediaItem: MediaItem | undefined): FilmMetadata | null {
@@ -413,6 +466,8 @@ const env = {
   TWITCH_CLIENT_SECRET: "fake-twitch-client-secret",
   MUSICBRAINZ_BASE_URL: "http://musicbrainz.test/ws/2",
   COVER_ART_ARCHIVE_BASE_URL: "http://coverartarchive.test",
+  WIKIDATA_BASE_URL: "http://wikidata.test",
+  COMMONS_BASE_URL: "http://commons.test",
   MUSICBRAINZ_INTERVAL_MS: "20",
   get DB() {
     return database.binding;
@@ -423,6 +478,9 @@ const env = {
 // that were under way at once.
 let musicBrainzCalls: { start: number; end: number }[] = [];
 let musicBrainzAtOnce = 0;
+
+// The calls made to Wikidata and Commons.
+let wikimediaCalls = 0;
 
 // The metadata titles the User's Log shows, in Log Order.
 async function loggedTitles(): Promise<(string | null)[]> {
@@ -446,6 +504,7 @@ function useSourceFakes(): void {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     musicBrainzCalls = [];
     musicBrainzAtOnce = 0;
+    wikimediaCalls = 0;
     let underWay = 0;
     vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
       subrequests += 1;
@@ -460,6 +519,15 @@ function useSourceFakes(): void {
         call.end = Date.now();
         musicBrainzCalls.push(call);
         return response;
+      }
+      for (const [base, path] of [
+        [env.WIKIDATA_BASE_URL, "/wikidata"],
+        [env.COMMONS_BASE_URL, "/commons"],
+      ] as const) {
+        if (url.startsWith(base)) {
+          wikimediaCalls += 1;
+          return wikimediaFake.request(`${path}${url.slice(base.length)}`, init);
+        }
       }
       const fakes = [
         [env.OPEN_LIBRARY_BASE_URL, openLibraryFake],
@@ -813,6 +881,141 @@ describe("a cron run", () => {
       "album",
       "song",
       "song",
+    ]);
+  });
+
+  it("refreshes at most 10 MusicBrainz calls of artists, albums and songs together a run, and the film behind them", async () => {
+    // Oldest first: three artists, two MusicBrainz calls each, two albums and two songs, then one
+    // more album, then the film.
+    const { okeanElzy, radiohead, pinkFloyd } = artistIds;
+    for (const [index, id] of [okeanElzy, radiohead, pinkFloyd].entries()) {
+      await artist(id, { in: "list", cached: { updated: daysAgo(29 - index) } });
+    }
+    for (const [index, id] of (albumIds.slice(0, 3) as string[]).entries()) {
+      await album(id, { in: "log", cached: { updated: daysAgo(20 - 2 * index) } });
+    }
+    await song(songIds[0] ?? "", { in: "list", cached: { updated: daysAgo(19) } });
+    await song(songIds[1] ?? "", { in: "list", cached: { updated: daysAgo(17) } });
+    await film("348", { in: "log", cached: { updated: daysAgo(8) } });
+    const refused = musicBrainzFakeCalls.rateLimited();
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 8, failed: 0, deleted: 0 });
+    expect(musicBrainzCalls).toHaveLength(10);
+    expect(musicBrainzAtOnce).toBe(1);
+    expect(musicBrainzFakeCalls.rateLimited()).toBe(refused);
+    // Each artist's photo takes two Wikimedia calls, which MusicBrainz's 10 don't count.
+    expect(wikimediaCalls).toBe(6);
+    expect(subrequests).toBe(17);
+    const placeholders = (await db.select().from(catalogCache)).filter((entry) =>
+      /^(Artist|Album|Song) /.test(entry.originalTitle),
+    );
+    // The newest album waits for the next run.
+    expect(placeholders.map((entry) => entry.externalId)).toEqual([albumIds[2]]);
+  });
+
+  it("refreshes an artist with MusicBrainz's facts and albums, and their photo and credit from Wikimedia", async () => {
+    await artist(artistIds.okeanElzy, { in: "list", cached: { updated: daysAgo(8) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    expect(musicBrainzCalls).toHaveLength(2);
+    expect(wikimediaCalls).toBe(2);
+    const [entry] = await db.select().from(catalogCache);
+    expect(entry).toMatchObject({
+      englishTitle: null,
+      ukrainianTitle: null,
+      originalTitle: "Океан Ельзи",
+      year: 1994,
+      coverRef: "http://commons.test/wiki/Special:FilePath/OkeanElzi25.jpg",
+      extra: {
+        artistType: "Group",
+        country: "UA",
+        endYear: null,
+        disambiguation: null,
+        url: "https://musicbrainz.org/artist/87a417d3-f118-43e0-bece-3de1bd90fce0",
+        wikidataId: "Q1008489",
+        photo: {
+          file: "OkeanElzi25.jpg",
+          author: "Alexander Khanin",
+          licence: "CC BY-SA 4.0",
+          url: "https://commons.wikimedia.org/wiki/File:OkeanElzi25.jpg",
+          readAt: now.toISOString(),
+        },
+      },
+    });
+    const albums = (entry?.extra as ArtistCacheExtra | undefined)?.albums;
+    expect(albums).toHaveLength(11);
+    expect(albums?.[0]).toEqual({
+      mbid: "09973323-973e-3b4c-af61-a579f2c201d0",
+      title: "Там, де нас нема",
+      year: 1998,
+      primaryType: "Album",
+      coverRef: "http://coverartarchive.test/release-group/09973323-973e-3b4c-af61-a579f2c201d0",
+    });
+  });
+
+  it("refreshes an artist entry past its 30-day maximum age, which no read shows", async () => {
+    await artist(artistIds.radiohead, { in: "list", cached: { updated: daysAgo(31) } });
+    const [listed] = (await shownMediaItems()).map((item) => item.metadata);
+    expect(listed).toBeNull();
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    const [entry] = await db.select().from(catalogCache);
+    expect(entry).toMatchObject({ originalTitle: "Radiohead", updatedAt: now });
+    expect((await shownMediaItems())[0]?.metadata).toMatchObject({ title: "Radiohead" });
+  });
+
+  it("deletes an artist entry past its maximum age that it couldn't refresh", async () => {
+    await artist(musicBrainzFakeFailing.serverError, {
+      in: "list",
+      cached: { updated: daysAgo(31) },
+    });
+    await artist(musicBrainzFakeFailing.busy, { in: "list", cached: { updated: daysAgo(29) } });
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 0, failed: 2, deleted: 1 });
+    const left = await db.select().from(catalogCache);
+    expect(left.map((entry) => entry.externalId)).toEqual([musicBrainzFakeFailing.busy]);
+  });
+
+  it("keeps an artist's photo through a failed Wikimedia call for 30 days after it was read, never as a failure", async () => {
+    await artist(
+      artistIds.aliceCooper,
+      { in: "list", cached: { updated: daysAgo(8) } },
+      { photo: photoRead(29) },
+    );
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 1, failed: 0, deleted: 0 });
+    const [entry] = await db.select().from(catalogCache);
+    expect(entry).toMatchObject({
+      originalTitle: "Alice Cooper",
+      coverRef: "http://commons.test/wiki/Special:FilePath/Old%20photo.jpg",
+      extra: { artistType: "Person", wikidataId: "Q332032", photo: photoRead(29) },
+    });
+    const failures = vi
+      .mocked(console.error)
+      .mock.calls.flat()
+      .filter((logged) => logged instanceof SourceUnavailable);
+    expect(failures).toEqual([]);
+  });
+
+  it("drops a photo read more than 30 days ago when Wikimedia fails, and one whose P18 is gone", async () => {
+    await artist(
+      artistIds.aliceCooper,
+      { in: "list", cached: { updated: daysAgo(9) } },
+      { photo: photoRead(31) },
+    );
+    await artist(
+      artistIds.nirvanaUk,
+      { in: "list", cached: { updated: daysAgo(8) } },
+      { photo: photoRead(8) },
+    );
+
+    expect(await refreshCache(db, env, now)).toEqual({ refreshed: 2, failed: 0, deleted: 0 });
+    const entries = await db.select().from(catalogCache);
+    expect(
+      entries.map((entry) => [entry.coverRef, (entry.extra as ArtistCacheExtra).photo]),
+    ).toEqual([
+      [null, null],
+      [null, null],
     ]);
   });
 

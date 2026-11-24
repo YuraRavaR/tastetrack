@@ -36,7 +36,8 @@ export function FilmBanner({
   const backdrop =
     mediaItem.mediaType === "book" ||
     mediaItem.mediaType === "album" ||
-    mediaItem.mediaType === "song"
+    mediaItem.mediaType === "song" ||
+    mediaItem.mediaType === "artist"
       ? null
       : mediaItem.metadata?.backdropUrls;
   const [posterUrl, posterFailed] = useImageFailure(coverOf(mediaItem, "large").url);

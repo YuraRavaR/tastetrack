@@ -2,9 +2,9 @@
 // all its editions, and a search or an album's details are one MusicBrainz request each. Covers
 // come from the Cover Art Archive by release-group MBID, linked and never fetched. MusicBrainz
 // allows about one request a second, so every call of this isolate waits its turn in one queue.
-// The queue, the calls and the covers are shared with songs' lookups (./musicbrainz-songs.ts), and
-// the rules both kinds of search use are in src/shared/musicbrainz.ts, as the browser searches
-// songs (ADR-0013).
+// The queue, the calls and the covers are shared with songs' lookups (./musicbrainz-songs.ts) and
+// artists (./musicbrainz-artists.ts), and the rules the searches use are in src/shared/, as the
+// browser searches songs (ADR-0013).
 import { z } from "zod";
 import type { AlbumCacheExtra } from "../../../db/schema";
 import type { CoverUrls } from "../../../shared/api";
@@ -46,9 +46,13 @@ export function coverRefFor(env: CatalogEnv, id: string): string {
 }
 
 // Square covers, 250 pixels wide for a thumbnail and 500 for a grid or the album's page.
-export function coverUrls(coverRef: string | null): CoverUrls | null {
-  if (!coverRef) return null;
+export function coversOf(coverRef: string): CoverUrls {
   return { small: smallCoverOf(coverRef), large: `${coverRef}/front-500` };
+}
+
+// The covers of a reference, or none without one.
+export function coverUrls(coverRef: string | null): CoverUrls | null {
+  return coverRef ? coversOf(coverRef) : null;
 }
 
 // The cover reference back out of a thumbnail URL this module made, or null for any other URL.
@@ -215,6 +219,12 @@ interface Answer {
   body: unknown;
 }
 
+// Who is asking, as MusicBrainz and Wikimedia both ask to be told: TasteTrack, its version and how
+// to reach its Operator.
+export function userAgentOf(env: CatalogEnv): string {
+  return `TasteTrack/${appVersion} (${env.OPEN_LIBRARY_CONTACT})`;
+}
+
 // One GET, through the queue, read to the end before the next call may start. Redirects aren't
 // followed by fetch, which would make the second request at once, without the interval.
 async function getOnce(env: CatalogEnv, url: URL): Promise<Answer> {
@@ -224,7 +234,7 @@ async function getOnce(env: CatalogEnv, url: URL): Promise<Answer> {
         redirect: "manual",
         signal: AbortSignal.timeout(callTimeout),
         headers: {
-          "User-Agent": `TasteTrack/${appVersion} (${env.OPEN_LIBRARY_CONTACT})`,
+          "User-Agent": userAgentOf(env),
           Accept: "application/json",
         },
       });
@@ -254,7 +264,7 @@ export async function get(env: CatalogEnv, path: string, params: Record<string, 
 }
 
 // The answer's body, unless MusicBrainz answered with an error.
-function bodyOf(path: string, answer: Answer): unknown {
+export function bodyOf(path: string, answer: Answer): unknown {
   if (answer.status < 200 || answer.status > 299) {
     throw new SourceUnavailable(
       `MusicBrainz ${path} answered ${answer.status}`,
@@ -315,12 +325,12 @@ async function searchAlbums(env: CatalogEnv, query: string): Promise<CatalogSear
   }));
 }
 
-// One lookup of a release group or a recording by MBID, and its body. A merged one answers 301 to
-// the one it became, which is looked up in its place, through the queue, so its refresh costs two
-// calls; the entry stays under the MBID asked for.
+// One lookup of a release group, a recording or an artist by MBID, and its body. A merged one
+// answers 301 to the one it became, which is looked up in its place, through the queue, so its
+// lookup costs two calls; the entry stays under the MBID asked for.
 export async function lookUp(
   env: CatalogEnv,
-  entity: "release-group" | "recording",
+  entity: "release-group" | "recording" | "artist",
   id: string,
   params: Record<string, string>,
 ): Promise<unknown> {
@@ -373,9 +383,9 @@ async function albumDetails(env: CatalogEnv, id: string): Promise<CatalogEntry<"
 }
 
 // MusicBrainz's albums, kept with no maximum age: its data is CC0, and a cover's URL is keyed by
-// the MBID. Each costs the cron one call, two for a merged one, and albums and songs together take
-// at most 10 of a run's subrequests, which with the queue's interval is about 11 seconds of
-// waiting.
+// the MBID. Each costs the cron one call, two for a merged one, and albums, songs and artists
+// together take at most 10 of a run's subrequests, which with the queue's interval is about 11
+// seconds of waiting.
 export const musicBrainzRefreshShare = 10;
 
 export const musicBrainzAlbums: CatalogSource<"album"> = {

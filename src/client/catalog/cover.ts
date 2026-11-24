@@ -28,6 +28,8 @@ const coverShapes: Record<MediaType, CoverShape> = {
   game: "2:3",
   album: "1:1",
   song: "1:1",
+  // An artist's photo is cropped to a square, or shown whole on their page (#302).
+  artist: "1:1",
 };
 
 export function coverShape(mediaType: MediaType): CoverShape {
@@ -56,6 +58,8 @@ function coverUrlsOf(mediaItem: MediaItem): CoverUrls | null {
     case "album":
     case "song":
       return mediaItem.metadata?.coverUrls ?? null;
+    case "artist":
+      return mediaItem.metadata?.photoUrls ?? null;
   }
 }
 
@@ -108,6 +112,8 @@ const missingCovers: Record<MediaType, MissingCover> = {
   game: "typeset",
   album: "typeset",
   song: "note",
+  // Until the artist's initials come with their UI (#302).
+  artist: "note",
 };
 
 export function missingCover(mediaType: MediaType): MissingCover {

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "../../shared/api";
+import { artistYears } from "../../shared/musicbrainz-artists";
 import { albumFacts } from "../catalog/album-label";
 import { authorNames } from "../catalog/book-label";
 import { filmFacts, filmLabel, filmName } from "../catalog/film-label";
@@ -81,5 +82,8 @@ function factsOf(mediaItem: MediaItem): string | null {
       return albumFacts(mediaItem.metadata);
     case "song":
       return songFacts(mediaItem.metadata);
+    // Their years until the artist's facts come with their UI (#302).
+    case "artist":
+      return artistYears(mediaItem.metadata.year, mediaItem.metadata.endYear);
   }
 }

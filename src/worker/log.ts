@@ -50,8 +50,8 @@ const experiencedRoute = createRoute({
       description:
         "The request body is malformed, the Rating isn't 0.5–5 in half stars, the date isn't a " +
         "calendar date, is before 1900-01-01 or after today in the User's time zone, or the Media " +
-        "Item doesn't exist or is of a light Media Type, a song, which is never logged " +
-        "(`invalid_request`, `invalid_date`, `date_too_early`, `date_in_future`, " +
+        "Item doesn't exist or is of a light Media Type, a song or an artist, which is never " +
+        "logged (`invalid_request`, `invalid_date`, `date_too_early`, `date_in_future`, " +
         "`unknown_media_item`, `wrong_media_type`)",
     },
     401: unauthenticatedResponse,

@@ -59,7 +59,10 @@ const searchRoute = createRoute({
     "DLC, bundles, mods or cancelled games. MusicBrainz has one title for an album, in its " +
     "original script, and finds only albums and EPs, never singles or spoken word; it ranks " +
     "albums before EPs, and plain ones before live albums, soundtracks, compilations and the " +
-    "like, and is called one request at a time, about a second apart. Songs aren't searched " +
+    "like, and is called one request at a time, about a second apart. It finds artists of any " +
+    "type in their original script, under their name, sort name or aliases, in its own order, never " +
+    "Various Artists or another special-purpose artist, each with their type, country code, " +
+    "years and disambiguation, and no photo. Songs aren't searched " +
     "here: the browser searches MusicBrainz for them itself, and asks " +
     "`/catalog/search/marks` for the marks (ADR-0013). Results come in the " +
     "source's order, titled in that language, with their Media " +
@@ -136,7 +139,9 @@ const addRoute = createRoute({
   summary: "Add a search result to the catalog, or find it there",
   description:
     "Makes the catalog-backed Media Item for the result's External Reference, or finds the one " +
-    "that exists, and fills its metadata with one details call to its External Source. If that " +
+    "that exists, and fills its metadata with one details call to its External Source: for an " +
+    "artist, MusicBrainz's lookup and albums list, then their photo and its credit from " +
+    "Wikidata and Wikimedia Commons, which leaves no photo when Wikimedia fails. If that " +
     "call fails, the result is added anyway, with the metadata the search result carries; " +
     "but a game isn't added while the Worker lacks the Twitch credentials IGDB takes.",
   middleware: [requireUser] as const,

@@ -264,9 +264,9 @@ export async function deleteList(
 
 // The User's own Lists of the Media Item's Media Type, each with the List Item that holds it there
 // and its first Media Item, in four queries however many Lists there are; null when the User can't
-// see the Media Item. They come oldest first, but for a light Media Type, a song, which goes into
-// Lists in one step: the List last added to first, by its newest List Item, so the usual one is a
-// tap away, then the empty ones, oldest first. Another User's Manual Media Item is as unknown as
+// see the Media Item. They come oldest first, but for a light Media Type, a song or an artist,
+// which goes into Lists in one step: the List last added to first, by its newest List Item, so the
+// usual one is a tap away, then the empty ones, oldest first. Another User's Manual Media Item is as unknown as
 // one that doesn't exist.
 export async function mediaItemLists(
   db: DrizzleD1Database,

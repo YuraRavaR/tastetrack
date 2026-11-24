@@ -8,20 +8,29 @@ import { catalogCache, inProgress, listItems, logEntries, mediaItems } from "../
 import type { SeriesStatus } from "../../shared/api";
 import { type CacheKey, cacheKeyId, fetchDetails, storeDetails } from "./media-items";
 import { expiredEntries, sourceOf } from "./registry";
-import type { CatalogEnv } from "./source";
+import type { CatalogEntry, CatalogEnv } from "./source";
 
 // Workers Free allows 50 external subrequests per invocation, cron runs included (ADR-0004), so
 // one run makes at most this many across all sources, with room to spare (ADR-0011).
 export const refreshBudget = 40;
 
-// What refreshing an entry costs, in subrequests, and the most of a run its External Source's
-// entries may take, if it limits them: its source says.
+// What refreshing an entry costs, in subrequests; the most of a run its External Source's entries
+// may take, if it limits them; and how much of that share refreshing it takes: its source says.
 function sourceRefreshCost(key: CacheKey): number {
   return sourceOf(key.mediaType).refreshCost;
 }
 
-function sourceRefreshShare(key: CacheKey): number | undefined {
-  return sourceOf(key.mediaType).refreshShare;
+function sourceRefreshShare(key: CacheKey): RefreshShare | undefined {
+  const source = sourceOf(key.mediaType);
+  if (source.refreshShare === undefined) return undefined;
+  return { limit: source.refreshShare, cost: source.refreshShareCost ?? source.refreshCost };
+}
+
+// The most of a run an External Source's entries may take, in its subrequests, and what one entry
+// takes of it.
+export interface RefreshShare {
+  limit: number;
+  cost: number;
 }
 
 const day = 24 * 60 * 60 * 1000;
@@ -132,16 +141,17 @@ function queue(db: DrizzleD1Database, where: SQL | undefined, budget: number): P
 // The second queue then gets what the third leaves. A queue stops at its first entry that doesn't
 // fit, so none jumps the order, and the batch ends there, but for the second queue's share. An
 // entry whose External Source has spent its share of the run, as MusicBrainz has after 10
-// subrequests for albums and songs together, is passed over instead, so the other sources' entries
-// behind it still fit. An entry in two queues is refreshed once. A referenced Media Item with no
-// entry isn't due: the first page to show it fills it.
+// subrequests for albums, songs and artists together, is passed over instead, so the other
+// sources' entries behind it still fit; an artist's Wikimedia calls count toward the budget alone.
+// An entry in two queues is refreshed once. A referenced Media Item with no entry isn't due: the
+// first page to show it fills it.
 // Nothing reads an unreferenced entry, so it is never refreshed.
 export async function dueForRefresh(
   db: DrizzleD1Database,
   now: Date,
   budget = refreshBudget,
   refreshCost: (key: CacheKey) => number = sourceRefreshCost,
-  refreshShare: (key: CacheKey) => number | undefined = sourceRefreshShare,
+  refreshShare: (key: CacheKey) => RefreshShare | undefined = sourceRefreshShare,
 ): Promise<CacheKey[]> {
   const [searchResults, dailySeries, weekOld] = await Promise.all([
     queue(db, untried, budget),
@@ -177,10 +187,10 @@ export async function dueForRefresh(
       const cost = refreshCost(key);
       const share = refreshShare(key);
       const sourceSpent = spentBySource.get(key.externalSource) ?? 0;
-      if (share !== undefined && sourceSpent + cost > share) continue;
+      if (share !== undefined && sourceSpent + share.cost > share.limit) continue;
       if (spent + cost > limit) return true;
       spent += cost;
-      spentBySource.set(key.externalSource, sourceSpent + cost);
+      spentBySource.set(key.externalSource, sourceSpent + (share?.cost ?? cost));
       picked.add(id);
       due.push(key);
     }
@@ -191,6 +201,25 @@ export async function dueForRefresh(
   if (take(weekOld, budget)) return due;
   take(dailySeries, budget);
   return due;
+}
+
+// The entries a refresh of these keys replaces, by cacheKeyId, for the sources that refresh from
+// them, in one query; none when no key is of such a source.
+async function previousEntries(
+  db: DrizzleD1Database,
+  keys: CacheKey[],
+): Promise<Map<string, CatalogEntry>> {
+  const wanted = keys.filter((key) => sourceOf(key.mediaType).refreshesFromPrevious);
+  if (wanted.length === 0) return new Map();
+  const rows = await db
+    .select()
+    .from(catalogCache)
+    .where(
+      sql`(external_source, media_type, external_id) in
+        (select value ->> 'externalSource', value ->> 'mediaType', value ->> 'externalId'
+          from json_each(${JSON.stringify(wanted)}))`,
+    );
+  return new Map(rows.map((row) => [cacheKeyId(row), row]));
 }
 
 // Records that their source didn't answer for these entries now, in one query, as storeDetails
@@ -222,7 +251,7 @@ export async function refreshCache(
   now: Date,
 ): Promise<CacheRefresh> {
   const due = await dueForRefresh(db, now);
-  const fetched = await fetchDetails(env, due);
+  const fetched = await fetchDetails(env, due, now, await previousEntries(db, due));
   const answered = new Set(fetched.map(cacheKeyId));
   await storeDetails(db, fetched, now);
   const failed = due.filter((key) => !answered.has(cacheKeyId(key)));

@@ -83,9 +83,10 @@ export type CreatedLogEntry =
 // Records that the User experienced the Media Item, and takes it off their Backlog in the same
 // batch; `removedFromBacklog` says where it was, so the client can offer to undo that. It answers
 // with the Media Item's Current Rating and number of Log Entries now. A first entry may be a
-// Revisit, and an empty Review counts as none. A Media Item of a light Media Type, a song, is never
-// logged. Another User's Manual Media Item is as unknown as one that doesn't exist. `finishing`
-// records it only for a Media Item the User has In Progress, and ends that in the same batch.
+// Revisit, and an empty Review counts as none. A Media Item of a light Media Type, a song or an
+// artist, is never logged. Another User's Manual Media Item is as unknown as one that doesn't
+// exist. `finishing` records it only for a Media Item the User has In Progress, and ends that in
+// the same batch.
 export async function createLogEntry(
   db: DrizzleD1Database,
   userId: number,

@@ -113,8 +113,8 @@ export type Planned =
 // given and at the end otherwise, with its Note. A Media Item already there keeps its place and
 // Note; `created` is false then. Planning a Media Item back where logging took it from, with its
 // Note, undoes that. A Backlog holds at most `maxListItems`, and one the User lacks is made first.
-// A Media Item of a light Media Type, a song, has no Backlog to go in. Another User's Manual Media
-// Item is as unknown as one that doesn't exist.
+// A Media Item of a light Media Type, a song or an artist, has no Backlog to go in. Another User's
+// Manual Media Item is as unknown as one that doesn't exist.
 export async function plan(
   db: DrizzleD1Database,
   userId: number,

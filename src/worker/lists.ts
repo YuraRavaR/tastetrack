@@ -69,7 +69,7 @@ const backlogRoute = createRoute({
     400: {
       content: { "application/json": { schema: ErrorResponse } },
       description:
-        "The Media Type is unknown, or a light one, a song, which has no Backlog " +
+        "The Media Type is unknown, or a light one, a song or an artist, which has no Backlog " +
         "(`invalid_request`)",
     },
     401: unauthenticatedResponse,
@@ -101,8 +101,8 @@ const planRoute = createRoute({
       content: { "application/json": { schema: ErrorResponse } },
       description:
         "The request body is malformed, the Media Item doesn't exist, or it is of a light Media " +
-        "Type, a song, which has no Backlog (`invalid_request`, `unknown_media_item`, " +
-        "`wrong_media_type`)",
+        "Type, a song or an artist, which has no Backlog (`invalid_request`, " +
+        "`unknown_media_item`, `wrong_media_type`)",
     },
     401: unauthenticatedResponse,
     409: {
@@ -391,8 +391,8 @@ const mediaItemListsRoute = createRoute({
   description:
     "The User's Lists of the Media Item's Media Type, each with the List Item that holds the " +
     "Media Item there, or null, and its first Media Item, for its cover, or null while it is " +
-    "empty. They come oldest first, but for a song: the List last added to first, then the " +
-    "empty ones, oldest first. The Backlog isn't one.",
+    "empty. They come oldest first, but for a song or an artist: the List last added to first, " +
+    "then the empty ones, oldest first. The Backlog isn't one.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: { params: MediaItemParams },

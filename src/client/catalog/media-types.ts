@@ -1,4 +1,13 @@
-import { BookOpen, Clapperboard, Disc3, Gamepad2, type LucideIcon, Music, Tv } from "lucide-react";
+import {
+  BookOpen,
+  Clapperboard,
+  Disc3,
+  Gamepad2,
+  type LucideIcon,
+  MicVocal,
+  Music,
+  Tv,
+} from "lucide-react";
 import type { BacklogMediaType, MediaType } from "../../shared/api";
 import type { ProgressMediaType as WorkerProgressMediaType } from "../../shared/catalog";
 import type { Progress } from "../../shared/progress";
@@ -11,6 +20,7 @@ const mediaTypeIcons: Record<MediaType, LucideIcon> = {
   game: Gamepad2,
   album: Disc3,
   song: Music,
+  artist: MicVocal,
 };
 
 export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
@@ -18,7 +28,7 @@ export function mediaTypeIcon(mediaType: MediaType): LucideIcon {
 }
 
 // The Media Types each section offers, in the one order they all keep (ADR-0005). Saved never
-// offers a light one, a song, which has no Library.
+// offers a light one, a song or an artist, which has no Library. Artists come with their UI (#302).
 export const searchMediaTypes: readonly MediaType[] = [
   "film",
   "book",
@@ -56,6 +66,8 @@ const keepings: Record<MediaType, readonly Keeping[]> = {
   album: ["plan", "log", "collect", "addByHand"],
   // A song lives only in Collections (ADR-0005).
   song: ["collect", "addByHand"],
+  // An artist too, and in Favourites (#303).
+  artist: ["collect", "addByHand"],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {
@@ -71,8 +83,9 @@ const revisitsByDefault: Record<MediaType, boolean> = {
   series: false,
   game: true,
   album: true,
-  // Never asked: a song has no Log Entries.
+  // Never asked: a song or an artist has no Log Entries.
   song: false,
+  artist: false,
 };
 
 export function startsAsRevisit(mediaType: MediaType): boolean {

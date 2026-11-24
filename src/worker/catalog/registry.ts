@@ -6,6 +6,7 @@ import type { About, MediaItem, MediaType } from "../../shared/api";
 import type { AnyCatalogSource, CatalogEntry, CatalogSource } from "./source";
 import { igdbGames } from "./sources/igdb";
 import { musicBrainzAlbums } from "./sources/musicbrainz";
+import { musicBrainzArtists } from "./sources/musicbrainz-artists";
 import { musicBrainzSongs } from "./sources/musicbrainz-songs";
 import { openLibraryBooks } from "./sources/open-library";
 import { tmdbFilms } from "./sources/tmdb";
@@ -19,6 +20,7 @@ const sources: { [M in MediaType]: CatalogSource<M> } = {
   game: igdbGames,
   album: musicBrainzAlbums,
   song: musicBrainzSongs,
+  artist: musicBrainzArtists,
 };
 
 // The source of a Media Type's catalog-backed Media Items.

@@ -15,7 +15,7 @@ import type { Progress } from "../shared/progress";
 import { thoughtStates } from "../shared/thoughts";
 
 // The Media Types and External Sources, as the columns that hold them name them (src/shared/api.ts).
-const mediaTypes = ["film", "book", "series", "game", "album", "song"] as const;
+const mediaTypes = ["film", "book", "series", "game", "album", "song", "artist"] as const;
 const externalSources = ["tmdb", "openlibrary", "igdb", "musicbrainz"] as const;
 
 // Deployment-wide settings as key/value pairs. The health check reads it to
@@ -243,6 +243,39 @@ export interface SongCacheExtra {
   url: string | null;
 }
 
+// What only an artist's cache entry has, from their MusicBrainz lookup, the release-group search
+// for their albums and the Wikimedia calls for their photo (ADR-0013, Artists): MusicBrainz's type,
+// country code, end year and disambiguation, as ArtistMetadata has them, the begin year being the
+// entry's year; their page on MusicBrainz; their Wikidata ID; their photo's Commons file name,
+// author, licence and file page, with when they were read, which coverRef also names; and their
+// albums list, each album with its cover's reference, as an album's coverRef. A refresh whose
+// Wikimedia call fails keeps the photo it had for up to 30 days after it was read. A row filled
+// from a search result alone has none of these, and an albums list of null.
+export interface ArtistCacheExtra {
+  artistType: string | null;
+  country: string | null;
+  endYear: number | null;
+  disambiguation: string | null;
+  url: string | null;
+  wikidataId: string | null;
+  photo: {
+    file: string;
+    author: string | null;
+    licence: string;
+    url: string;
+    readAt: string;
+  } | null;
+  albums:
+    | {
+        mbid: string;
+        title: string;
+        year: number | null;
+        primaryType: "Album" | "EP";
+        coverRef: string;
+      }[]
+    | null;
+}
+
 // What a cache entry's `extra` holds, by its Media Type.
 export interface CacheExtras {
   film: FilmCacheExtra;
@@ -251,6 +284,7 @@ export interface CacheExtras {
   game: GameCacheExtra;
   album: AlbumCacheExtra;
   song: SongCacheExtra;
+  artist: ArtistCacheExtra;
 }
 
 export type CacheExtra = CacheExtras[keyof CacheExtras];
