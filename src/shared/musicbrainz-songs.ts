@@ -158,13 +158,19 @@ function creditWordsOf(recording: Recording): string[] {
   return wordsOf(creditOf(recording["artist-credit"]) ?? "").filter((word) => word !== "and");
 }
 
+// The words of a title and of a recording's artist credit as one key: recordings with the same key
+// are one row.
+function rowKey(title: string, recording: Recording): string {
+  return JSON.stringify([wordsOf(title), creditWordsOf(recording)]);
+}
+
 // Recordings with the same words in the title and in the artist credit, as one row each, in the
 // order of each row's first recording. A row is represented by its recording on the most
 // releases, then the one first released, then the first in MusicBrainz's order.
 function collapsed(recordings: Recording[]): Row[] {
   const rows = new Map<string, Row>();
   for (const [order, recording] of recordings.entries()) {
-    const key = JSON.stringify([wordsOf(recording.title), creditWordsOf(recording)]);
+    const key = rowKey(recording.title, recording);
     const row = rows.get(key);
     if (!row) {
       rows.set(key, { recording, order });
@@ -183,12 +189,36 @@ function collapsed(recordings: Recording[]): Row[] {
 const bracketedAtStart = /^\s*(\([^()]*\)|\[[^[\]]*\]|\{[^{}]*\})/;
 const bracketedAtEnd = /(\([^()]*\)|\[[^[\]]*\]|\{[^{}]*\})\s*$/;
 
-// The ways a query can name a title in full: as it is, then without the bracketed part at its
-// start, at its end, or both. A bracketed part in the middle is never left out.
-function titleVariants(title: string): string[] {
+// A title without the bracketed part at its start, at its end, or both. A bracketed part in the
+// middle is never left out.
+function withoutBracketedParts(title: string): string[] {
   const withoutStart = title.replace(bracketedAtStart, "");
   const withoutEnd = title.replace(bracketedAtEnd, "");
-  return [title, withoutStart, withoutEnd, withoutStart.replace(bracketedAtEnd, "")];
+  return [withoutStart, withoutEnd, withoutStart.replace(bracketedAtEnd, "")];
+}
+
+// The ways a query can name a title in full: as it is, then without its bracketed parts.
+function titleVariants(title: string): string[] {
+  return [title, ...withoutBracketedParts(title)];
+}
+
+// The rows less one-release takes: a row whose recording is on one release, and whose title
+// without the bracketed part at its start, at its end or both, and credit, have the words of
+// another row's on more releases ("Karma Police {MD122}" beside the studio "Karma Police"). A take
+// with no such row beside it stays.
+function withoutTakes(rows: Row[]): Row[] {
+  const onMoreReleases = new Set(
+    rows
+      .filter((row) => releasesOf(row.recording) > 1)
+      .map((row) => rowKey(row.recording.title, row.recording)),
+  );
+  return rows.filter(
+    ({ recording }) =>
+      releasesOf(recording) !== 1 ||
+      !withoutBracketedParts(recording.title).some((title) =>
+        onMoreReleases.has(rowKey(title, recording)),
+      ),
+  );
 }
 
 // How much of a song the query names: one for its title, with or without a bracketed part at its
@@ -232,7 +262,7 @@ export function songSearchMatches(
     return recording.success && !isHidden(recording.data) ? [recording.data] : [];
   });
   const titleLanguage = searchLanguage(query) === "uk-UA" ? "uk" : "en";
-  return ranked(query, collapsed(recordings)).map(({ recording }) => {
+  return ranked(query, withoutTakes(collapsed(recordings))).map(({ recording }) => {
     const { album, cover } = albumAndCover(recording);
     return {
       externalReference: { source: "musicbrainz", mediaType: "song", id: recording.id },

@@ -191,6 +191,79 @@ export const johnVanderslice: Recording = {
   ],
 };
 
+// Radiohead's takes of Karma Police from the search for "karma police radiohead" (checked
+// 2026-11-23) that no rule hid before #297, the studio recording aside.
+
+// An early take with a bracketed part, on three bootlegs.
+export const karmaPoliceEarly: Recording = {
+  id: "033887ea-984b-474b-addf-2bd379b9be50",
+  title: "Karma Police (early)",
+  "artist-credit": [radiohead],
+  disambiguation: "",
+  "first-release-date": "2004",
+  releases: [
+    "70f80946-d618-496f-8384-4e6c5f0578a5",
+    "aa1e6810-906c-4d4d-b40b-01f277f6fbd2",
+    "71989dd8-89af-45de-87dc-d3d0b798f972",
+  ].map((id) => ({ id, status: "Bootleg", date: "2004", "release-group": towering })),
+};
+
+export const minidiscsHacked: Group = {
+  id: "1af3fda4-4281-4ed9-ba38-389ed83d9ab2",
+  title: "MINIDISCS [HACKED]",
+  "primary-type": "Album",
+  "secondary-types": ["Compilation", "Demo"],
+};
+
+// A 2019 take on one of the bootlegs of MINIDISCS [HACKED].
+function onMinidiscs(id: string, title: string, releaseId: string): Recording {
+  return {
+    id,
+    title,
+    "artist-credit": [radiohead],
+    disambiguation: "",
+    "first-release-date": "2019-06-11",
+    releases: [
+      { id: releaseId, status: "Bootleg", date: "2019-06-11", "release-group": minidiscsHacked },
+    ],
+  };
+}
+
+const minidiscsRelease1 = "0c282baf-5d74-4485-aa4e-cc8d65ae5713";
+const minidiscsRelease2 = "ddbf1fc9-2993-4bac-a488-e542f38cdd20";
+
+export const karmaPolice91Bracketed = onMinidiscs(
+  "83d1490d-55d2-464a-889a-581785036760",
+  "Karma Police (9.1)",
+  minidiscsRelease1,
+);
+
+// Seven takes whose titles are "Karma Police" and a bracketed part at the end, each on one release.
+export const karmaPoliceBracketedTakes: Recording[] = [
+  karmaPolice91Bracketed,
+  onMinidiscs("60bb7934-ef43-489b-8a4d-f19979e6ff9b", "Karma Police {MD122}", minidiscsRelease2),
+  onMinidiscs(
+    "7ad1e1af-6d60-4574-b07b-b768a29a4244",
+    "Karma Police (Pittsburgh)",
+    minidiscsRelease2,
+  ),
+  onMinidiscs("05802329-81c4-45ae-a453-45f74e54899f", "Karma Police (9.2)", minidiscsRelease1),
+  onMinidiscs("672e2a04-4da0-427d-bc93-164031864436", "Karma Police {MD117}", minidiscsRelease2),
+  onMinidiscs(
+    "b8a3a412-91e7-419c-aa52-cfe5bf6b7d68",
+    "Karma Police (Mansfield)",
+    minidiscsRelease2,
+  ),
+  onMinidiscs("857e6b60-8b57-4a9f-8474-63107aa68f60", "Karma Police {MD120}", minidiscsRelease2),
+];
+
+// A take on one release with no brackets, whose title has the words of "Karma Police (9.1)".
+export const karmaPolice91 = onMinidiscs(
+  "9812dfa3-85b2-472f-ab0a-00dfc77a051e",
+  "Karma Police 9.1",
+  minidiscsRelease2,
+);
+
 export const zemlya: Group = {
   id: "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8",
   title: "Земля",
