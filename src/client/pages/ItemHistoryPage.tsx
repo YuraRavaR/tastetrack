@@ -156,7 +156,7 @@ export function ItemHistoryPage() {
         {aboutShown && <About {...aboutShown} sourceUrl={sourceUrl} />}
         {logEntries.length > 0 && <ItemHistoryStats history={state.history} />}
         {light ? (
-          <MediaItemCollections mediaItem={mediaItem} centred={mediaItem.mediaType === "song"} />
+          <MediaItemCollections mediaItem={mediaItem} />
         ) : (
           <FilmActions
             history={state.history}

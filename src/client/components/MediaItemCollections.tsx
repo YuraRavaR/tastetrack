@@ -25,15 +25,10 @@ type HoldingState =
 // song's are centred, under its centred cover, and an artist's at the left, as their page is,
 // where the button is an outline beside the photo's facts. The rows are read again as the picker
 // closes.
-export function MediaItemCollections({
-  mediaItem,
-  centred,
-}: {
-  mediaItem: MediaItem;
-  centred: boolean;
-}) {
+export function MediaItemCollections({ mediaItem }: { mediaItem: MediaItem }) {
   const headingId = useId();
   const { mediaType } = mediaItem;
+  const centred = mediaType === "song";
   // An artist is named without their year, which is when they began.
   const label = !mediaItem.metadata
     ? mediaWord(mediaType, "unknown")

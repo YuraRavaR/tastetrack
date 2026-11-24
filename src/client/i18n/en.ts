@@ -764,7 +764,7 @@ export const en = {
   "filmLists.artistsNone":
     "You have no Collections of artists yet. Make one, and this artist goes into it.",
   "filmLists.nameTaken":
-    "You already have a Collection of {mediaType, select, film {films} book {books} series {series} game {games} album {albums} other {songs}} with this name.",
+    "You already have a Collection of {mediaType, select, film {films} book {books} series {series} game {games} album {albums} song {songs} other {artists}} with this name.",
   "share.share": "Share",
   "share.sharing": "Sharing…",
   "share.title": "Shared by link",
@@ -1019,15 +1019,6 @@ export const en = {
   "song.inCollections": "In your Collections",
   "song.notInCollections": "Not in any of your Collections yet.",
   "game.platformsAndMore": "{platforms} +{more, number}",
-  // The areas MusicBrainz gives codes of its own, which Intl doesn't know or names otherwise (SU
-  // as Russia), on an artist's row and page (ADR-0013, Artists).
-  "artist.country.XW": "Worldwide",
-  "artist.country.XE": "Europe",
-  "artist.country.SU": "Soviet Union",
-  "artist.country.XC": "Czechoslovakia",
-  "artist.country.XG": "East Germany",
-  "artist.country.YU": "Yugoslavia",
-  "artist.country.CS": "Serbia and Montenegro",
   // Under an artist's photo on their page, linked to its file on Commons (ADR-0013, Artists).
   "artist.photoCredit": "Photo: {author} · {licence} · Wikimedia Commons",
   "artist.photoCreditNoAuthor": "Photo: {licence} · Wikimedia Commons",

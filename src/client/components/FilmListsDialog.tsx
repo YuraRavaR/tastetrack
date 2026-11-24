@@ -43,6 +43,12 @@ export type ListsFilm = {
   onHeld?: (lists: HoldingList[]) => void;
 };
 
+// What the picker of a light Media Type says while the User has no Collection of it yet.
+const noneYet: Partial<Record<MediaType, MessageId>> = {
+  song: "filmLists.songsNone",
+  artist: "filmLists.artistsNone",
+};
+
 // Every one of the User's Lists with a checkbox, ticked where the film is already: ticking adds
 // the film at the end, unticking takes it off. A List unticked and ticked again before the dialog
 // closes gets the film back where it was, with its Note. The dialog is open while `film` is set.
@@ -51,12 +57,6 @@ export type ListsFilm = {
 // (`docs/mockups/songs/`): its Collections come last used first, as the Worker orders them, each
 // row toggling all of it, and New collection under them makes one in place, adds the song and puts
 // the new one first, ticked. With none yet, the form shows at once, saying so.
-// What the picker of a light Media Type says while the User has no Collection of it yet.
-const noneYet: Partial<Record<MediaType, MessageId>> = {
-  song: "filmLists.songsNone",
-  artist: "filmLists.artistsNone",
-};
-
 export function FilmListsDialog({
   film,
   onClose,

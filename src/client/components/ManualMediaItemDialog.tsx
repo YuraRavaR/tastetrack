@@ -32,8 +32,8 @@ import {
 type Editing = { mediaItem: MediaItem } | { mediaType: MediaType; title?: string };
 
 // Adds a film, a book, a series, a game, an album, a song or an artist by hand as a Manual Media
-// Item, or edits one, in a sheet on a phone and a centred dialog from `md`. The dialog is open while `open`
-// is set, and stays open until the item is saved.
+// Item, or edits one, in a sheet on a phone and a centred dialog from `md`. The dialog is open
+// while `open` is set, and stays open until the item is saved.
 export function ManualMediaItemDialog({
   open,
   onClose,

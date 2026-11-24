@@ -328,7 +328,8 @@ test("a song's page has its cover over a blurred copy, its facts, the link to Mu
   expect(cover.x + cover.width / 2).toBeCloseTo(main.x + main.width / 2, 0);
   await expect(filmPage.musicBrainzLink).toHaveAttribute("href", recordingPage(obiimyId));
   await expect(filmPage.musicBrainzLink).toHaveAttribute("target", "_blank");
-  await expect(filmPage.buttons).toHaveText(["Add to collection"]);
+  // The artist in the facts line opens their page (`docs/mockups/artists/`).
+  await expect(filmPage.buttons).toHaveText(["Океан Ельзи", "Add to collection"]);
   await expect(filmPage.historyHeading).toHaveCount(0);
   await expect(filmPage.about.root).toHaveCount(0);
   // The Collection last added to first, each with its first cover and its count.

@@ -2,7 +2,11 @@ import { useId } from "react";
 import type { ArtistAbout } from "../../shared/api";
 import type { Found } from "../catalog/found";
 import { factsLine } from "../catalog/game-label";
-import { albumResult, useOpenThroughCatalog } from "../catalog/use-open-through-catalog";
+import {
+  albumResult,
+  useOpenThroughCatalog,
+  withNoMarks,
+} from "../catalog/use-open-through-catalog";
 import { t } from "../i18n/t";
 import { Poster } from "./Poster";
 
@@ -10,17 +14,8 @@ type ArtistAlbum = ArtistAbout["albums"][number];
 
 // An album of the list as a search result not yet in the catalog, for its cover: the Cover Art
 // Archive's, or the album's cover set in type where the archive has none.
-function foundOf(album: ArtistAlbum, artistName: string): Found {
-  return {
-    kind: "catalog",
-    ...albumResult(album, artistName),
-    mediaItemId: null,
-    inLog: false,
-    inBacklog: false,
-    currentRating: null,
-    logEntryCount: 0,
-    lists: [],
-  };
+function albumFound(album: ArtistAlbum, artistName: string): Found {
+  return { kind: "catalog", ...withNoMarks(albumResult(album, artistName)) };
 }
 
 // "Albums and EPs" on an artist's page (`docs/mockups/artists/`): their albums list, oldest first
@@ -62,7 +57,7 @@ export function ArtistAlbums({
                 className="flex w-full cursor-pointer flex-col gap-0.75 text-left disabled:cursor-wait"
               >
                 <span className="mb-1.25 block">
-                  <Poster subject={foundOf(album, artistName)} size="grid" />
+                  <Poster subject={albumFound(album, artistName)} size="grid" />
                 </span>
                 <span className="line-clamp-2 break-words font-semibold text-sm leading-tight">
                   {album.title}

@@ -1,7 +1,7 @@
 // What the app says of an artist (`docs/mockups/artists/`). Pure functions with no I/O.
 import type { AlbumMetadata, ArtistMetadata } from "../../shared/api";
 import { artistYears, specialPurposeArtists } from "../../shared/musicbrainz-artists";
-import { type MessageId, t } from "../i18n/t";
+import { t } from "../i18n/t";
 import { factsLine } from "./game-label";
 
 // What stands in for an artist's photo: the first letter of each of their first two words, upper
@@ -14,35 +14,26 @@ export function artistInitials(name: string): string {
     .join("");
 }
 
-// The codes MusicBrainz gives areas of its own, by the catalogue's name for each.
-const musicBrainzAreas: Record<string, MessageId> = {
-  XW: "artist.country.XW",
-  XE: "artist.country.XE",
-  SU: "artist.country.SU",
-  XC: "artist.country.XC",
-  XG: "artist.country.XG",
-  YU: "artist.country.YU",
-  CS: "artist.country.CS",
-};
-
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 
-// A country by its name, "Ukraine" for MusicBrainz's UA; a code no one names stays a code.
-function countryName(code: string): string {
-  const own = musicBrainzAreas[code];
-  if (own) return t(own);
+// A country by its name, "Ukraine" for MusicBrainz's UA; null for a code that names no country, as
+// MusicBrainz's XW (worldwide) or XE (Europe), which Intl gives back as it is, and SU, the Soviet
+// Union, which Intl names Russia (ADR-0013, Artists).
+function countryName(code: string): string | null {
+  if (code === "SU") return null;
   try {
-    return regionNames.of(code) ?? code;
+    const name = regionNames.of(code);
+    return name && name !== code ? name : null;
   } catch {
-    return code;
+    return null;
   }
 }
 
 type ArtistFactsOf = Pick<ArtistMetadata, "artistType" | "country" | "year" | "endYear">;
 
 // What an artist's row and page say under their name: their type, their country and their years,
-// "Group · Ukraine · 1994–", leaving out whichever MusicBrainz doesn't know. Null when it knows
-// none of it.
+// "Group · Ukraine · 1994–", leaving out whichever MusicBrainz doesn't know and a code that names
+// no country. Null when none of it is known.
 export function artistFacts(artist: ArtistFactsOf): string | null {
   return factsLine([
     artist.artistType,

@@ -37,11 +37,11 @@ describe("an artist's facts", () => {
     expect(artistFacts({ artistType: null, country: null, year: null, endYear: null })).toBeNull();
   });
 
-  it("name MusicBrainz's own codes as MusicBrainz does", () => {
-    expect(artistFacts({ ...okeanElzy, country: "XW" })).toBe("Group · Worldwide · 1994–");
-    expect(artistFacts({ ...okeanElzy, country: "XE" })).toBe("Group · Europe · 1994–");
-    // Not Russia, as Intl names SU.
-    expect(artistFacts({ ...okeanElzy, country: "SU" })).toBe("Group · Soviet Union · 1994–");
+  it("leave out a code that names no country, as MusicBrainz's worldwide", () => {
+    expect(artistFacts({ ...okeanElzy, country: "XW" })).toBe("Group · 1994–");
+    expect(artistFacts({ ...okeanElzy, country: "XE" })).toBe("Group · 1994–");
+    // Not Russia, as Intl names SU, the Soviet Union.
+    expect(artistFacts({ ...okeanElzy, country: "SU" })).toBe("Group · 1994–");
   });
 });
 
