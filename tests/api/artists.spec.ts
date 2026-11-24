@@ -49,6 +49,7 @@ const test = base.extend<{ visitor: ApiClient }>({
   },
 });
 
+// A new, empty List of the User's.
 async function createList(api: ApiClient, name: string, mediaType: "artist" | "album") {
   return (await expectBody(api.lists.createList({ name, mediaType }), 201)).list;
 }

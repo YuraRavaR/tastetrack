@@ -59,8 +59,8 @@ const searchRoute = createRoute({
     "DLC, bundles, mods or cancelled games. MusicBrainz has one title for an album, in its " +
     "original script, and finds only albums and EPs, never singles or spoken word; it ranks " +
     "albums before EPs, and plain ones before live albums, soundtracks, compilations and the " +
-    "like, and is called one request at a time, about a second apart. It finds artists of any type " +
-    "in their original script, under their name, sort name or aliases, in its own order, never " +
+    "like, and is called one request at a time, about a second apart. It finds artists of any " +
+    "type in their original script, under their name, sort name or aliases, in its own order, never " +
     "Various Artists or another special-purpose artist, each with their type, country code, " +
     "years and disambiguation, and no photo. Songs aren't searched " +
     "here: the browser searches MusicBrainz for them itself, and asks " +

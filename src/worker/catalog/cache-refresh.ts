@@ -142,8 +142,9 @@ function queue(db: DrizzleD1Database, where: SQL | undefined, budget: number): P
 // fit, so none jumps the order, and the batch ends there, but for the second queue's share. An
 // entry whose External Source has spent its share of the run, as MusicBrainz has after 10
 // subrequests for albums, songs and artists together, is passed over instead, so the other
-// sources' entries behind it still fit; an artist's Wikimedia calls count toward the budget alone. An entry in two queues is refreshed once. A referenced Media Item with no
-// entry isn't due: the first page to show it fills it.
+// sources' entries behind it still fit; an artist's Wikimedia calls count toward the budget alone.
+// An entry in two queues is refreshed once. A referenced Media Item with no entry isn't due: the
+// first page to show it fills it.
 // Nothing reads an unreferenced entry, so it is never refreshed.
 export async function dueForRefresh(
   db: DrizzleD1Database,

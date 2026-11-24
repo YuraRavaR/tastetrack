@@ -263,6 +263,8 @@ function tokensOf(text: string): string[] {
     .filter(Boolean);
 }
 
+// An artist's life-span, as a lookup gives it, every field set, or as a search row does, with only
+// what it has.
 function lifeSpanOf(artist: FakeArtist, lookup: boolean) {
   return lookup
     ? { begin: artist.begin ?? null, end: artist.end ?? null, ended: artist.ended ?? false }

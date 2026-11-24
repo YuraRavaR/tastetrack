@@ -418,7 +418,7 @@ export const en = {
   "mediaType.artist.collectionAlreadyIn": "That artist is in this Collection already.",
   "mediaType.artist.collectionFull":
     "This Collection is full: it holds up to {max, number} artists. Remove some to make room.",
-  "mediaType.artist.collectionReorder": "Reorder songs",
+  "mediaType.artist.collectionReorder": "Reorder artists",
   "mediaType.artist.collectionReorderHint":
     "Use the arrows on each cover to move it earlier or later, or to the top.",
   "mediaType.artist.collectionTick":

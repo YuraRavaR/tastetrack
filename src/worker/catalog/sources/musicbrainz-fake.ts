@@ -1332,6 +1332,7 @@ api.get("/ws/2/release-group/:mbid", (c) => {
   return group ? c.json(lookupResult(group)) : c.json(notFound, 404);
 });
 
+// An artist search, which MusicBrainz takes with or without the trailing slash.
 const artistSearchHandler = (c: Context) => {
   const limit = Number(c.req.query("limit") ?? 25);
   return c.json(artistSearch(c.req.query("query") ?? "", limit));

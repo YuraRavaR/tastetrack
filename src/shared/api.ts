@@ -384,7 +384,7 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
         mediaType: z.literal("album"),
         id: z
           .string()
-          .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+          .regex(new RegExp(`^${mbidPattern}$`))
           .openapi({ example: "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8" }),
       }),
       z.object({
@@ -392,7 +392,7 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
         mediaType: z.literal("song"),
         id: z
           .string()
-          .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+          .regex(new RegExp(`^${mbidPattern}$`))
           .openapi({ example: "d8d55f18-0c4b-4036-a16d-e273ac8953fc" }),
       }),
       z.object({
@@ -400,7 +400,7 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
         mediaType: z.literal("artist"),
         id: z
           .string()
-          .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+          .regex(new RegExp(`^${mbidPattern}$`))
           .openapi({ example: "87a417d3-f118-43e0-bece-3de1bd90fce0" }),
       }),
     ]),

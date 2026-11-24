@@ -50,6 +50,7 @@ export function coversOf(coverRef: string): CoverUrls {
   return { small: smallCoverOf(coverRef), large: `${coverRef}/front-500` };
 }
 
+// The covers of a reference, or none without one.
 export function coverUrls(coverRef: string | null): CoverUrls | null {
   return coverRef ? coversOf(coverRef) : null;
 }
@@ -218,6 +219,12 @@ interface Answer {
   body: unknown;
 }
 
+// Who is asking, as MusicBrainz and Wikimedia both ask to be told: TasteTrack, its version and how
+// to reach its Operator.
+export function userAgentOf(env: CatalogEnv): string {
+  return `TasteTrack/${appVersion} (${env.OPEN_LIBRARY_CONTACT})`;
+}
+
 // One GET, through the queue, read to the end before the next call may start. Redirects aren't
 // followed by fetch, which would make the second request at once, without the interval.
 async function getOnce(env: CatalogEnv, url: URL): Promise<Answer> {
@@ -227,7 +234,7 @@ async function getOnce(env: CatalogEnv, url: URL): Promise<Answer> {
         redirect: "manual",
         signal: AbortSignal.timeout(callTimeout),
         headers: {
-          "User-Agent": `TasteTrack/${appVersion} (${env.OPEN_LIBRARY_CONTACT})`,
+          "User-Agent": userAgentOf(env),
           Accept: "application/json",
         },
       });

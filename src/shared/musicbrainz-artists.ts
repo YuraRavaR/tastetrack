@@ -93,6 +93,7 @@ export interface ArtistFacts {
   disambiguation: string | null;
 }
 
+// An artist's facts from their search row or lookup.
 export function artistFacts(artist: Artist): ArtistFacts {
   const year = yearOfDate(artist["life-span"]?.begin);
   const country = artist.country ?? "";

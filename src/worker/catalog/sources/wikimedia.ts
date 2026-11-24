@@ -4,8 +4,8 @@
 // MusicBrainz's queue. A Wikimedia failure never fails an add or a refresh, and never counts
 // toward unavailability: the artist shows their initials, or keeps a photo read before.
 import { z } from "zod";
-import { appVersion } from "../../version";
 import type { CatalogEnv } from "../source";
+import { userAgentOf } from "./musicbrainz";
 
 // Wikidata's P18 claims of one entity, from wbgetclaims: each with its rank and file name.
 const Claims = z.object({
@@ -140,6 +140,7 @@ const callTimeout = 10_000;
 // The end of the last Wikimedia call, so this isolate makes one at a time.
 let queueTail: Promise<void> = Promise.resolve();
 
+// Runs `call` once every Wikimedia call queued before it has ended.
 async function oneAtATime<T>(call: () => Promise<T>): Promise<T> {
   const previous = queueTail;
   let release = () => {};
@@ -162,7 +163,7 @@ async function getJson(env: CatalogEnv, url: URL): Promise<unknown> {
       const response = await fetch(url, {
         signal: AbortSignal.timeout(callTimeout),
         headers: {
-          "User-Agent": `TasteTrack/${appVersion} (${env.OPEN_LIBRARY_CONTACT})`,
+          "User-Agent": userAgentOf(env),
           Accept: "application/json",
         },
       });
