@@ -13,7 +13,12 @@ import type {
 } from "../../shared/api";
 import { maxMetadataFills } from "../../shared/catalog";
 import { expiredEntries, isShown, metadataOf, shownEntries, sourceOf } from "./registry";
-import { type CatalogEntry, type CatalogEnv, SourceUnavailable } from "./source";
+import {
+  type CatalogEntry,
+  type CatalogEnv,
+  type CatalogSource,
+  SourceUnavailable,
+} from "./source";
 
 // Joins a Media Item to its cache entry, if any and not past its source's maximum entry age:
 // `.leftJoin(catalogCache, cacheOfMediaItem(now))`. An expired entry reads as a miss, which the
@@ -155,6 +160,19 @@ function fromManual(
         url: null,
       };
     }
+    case "artist":
+      return {
+        ...titles,
+        ukrainianTitle: null,
+        year: null,
+        endYear: null,
+        artistType: null,
+        country: null,
+        disambiguation: null,
+        photoUrls: null,
+        photoCredit: null,
+        url: null,
+      };
   }
 }
 
@@ -242,13 +260,21 @@ export interface FetchedEntry extends CacheKey {
   entry: CatalogEntry;
 }
 
-// One details fetch for each entry from its source, all at once. An entry its source doesn't
-// answer for is left out.
-export async function fetchDetails(env: CatalogEnv, keys: CacheKey[]): Promise<FetchedEntry[]> {
+// One details fetch for each entry from its source, all at once, read at `now`; a source that
+// refreshes from the entry it replaces gets it from `previous`, by cacheKeyId. An entry its source
+// doesn't answer for is left out.
+export async function fetchDetails(
+  env: CatalogEnv,
+  keys: CacheKey[],
+  now: Date,
+  previous: ReadonlyMap<string, CatalogEntry> = new Map(),
+): Promise<FetchedEntry[]> {
   const fetched = await Promise.all(
     keys.map(async (key) => {
+      const source = sourceOf(key.mediaType) as CatalogSource<MediaType>;
       try {
-        return { ...key, entry: await sourceOf(key.mediaType).details(env, key.externalId) };
+        const entry = await source.details(env, key.externalId, now, previous.get(cacheKeyId(key)));
+        return { ...key, entry };
       } catch (error) {
         if (!(error instanceof SourceUnavailable)) throw error;
         console.error(error);
@@ -331,7 +357,7 @@ export async function addFromSearch(
   let metadata: CatalogEntry | undefined = shown;
   if (!shown?.detailedAt) {
     try {
-      const details = await source.details(env, reference.id);
+      const details = await source.details(env, reference.id, now);
       const columns = { ...details, updatedAt: now, detailedAt: now, checkedAt: null };
       await db
         .insert(catalogCache)
@@ -386,7 +412,7 @@ export async function fillMissingMetadata(
     }
   }
   if (missing.size === 0) return filledFrom;
-  const fetched = await fetchDetails(env, [...missing.values()]);
+  const fetched = await fetchDetails(env, [...missing.values()], now);
   await storeDetails(db, fetched, now);
   const entries = new Map(fetched.map(({ entry, ...key }) => [cacheKeyId(key), entry]));
   for (const item of items) {

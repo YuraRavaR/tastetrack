@@ -4,7 +4,8 @@
 // recording search's, with the hiding inside it, and looks a release group or a recording up by
 // MBID, answering a merged one's old MBID with a 301. Its release groups mirror real MusicBrainz
 // data (checked 2026-11-21), and its recordings real answers of the recording search check
-// (2026-11-22), so the same tests pass here and against MusicBrainz on staging.
+// (2026-11-22), so the same tests pass here and against MusicBrainz on staging. Its artists, their
+// lookups and their albums lists are in ./musicbrainz-artists-fake.ts.
 //
 // It enforces MusicBrainz's rate limit: a call sooner than MUSICBRAINZ_INTERVAL_MS after the one
 // before gets a 503, as the real one answers, so a test sees a call the Worker didn't pace. A test
@@ -13,6 +14,12 @@
 // <id> too, which is how a test asks for MusicBrainz busy (X-Test-MusicBrainz-Busy for the
 // Worker's calls), without another test's calls taking its 503s.
 import { type Context, Hono } from "hono";
+import {
+  artistAlbumsSearch,
+  artistLookup,
+  artistSearch,
+  mergedArtists,
+} from "./musicbrainz-artists-fake";
 
 interface FakeCredit {
   name: string;
@@ -1268,6 +1275,8 @@ const api = new Hono<{ Bindings: Partial<Pick<Env, "MUSICBRAINZ_INTERVAL_MS">> }
 const searchHandler = (c: Context) => {
   const query = c.req.query("query") ?? "";
   const limit = Number(c.req.query("limit") ?? 25);
+  const albumsList = artistAlbumsSearch(query, limit);
+  if (albumsList) return c.json(albumsList);
   const found = search(query);
   return c.json({
     created: "2026-11-21T09:38:48.318Z",
@@ -1321,6 +1330,28 @@ api.get("/ws/2/release-group/:mbid", (c) => {
   }
   const group = releaseGroups.find((each) => each.id === id);
   return group ? c.json(lookupResult(group)) : c.json(notFound, 404);
+});
+
+const artistSearchHandler = (c: Context) => {
+  const limit = Number(c.req.query("limit") ?? 25);
+  return c.json(artistSearch(c.req.query("query") ?? "", limit));
+};
+
+api.get("/ws/2/artist", artistSearchHandler);
+api.get("/ws/2/artist/", artistSearchHandler);
+
+api.get("/ws/2/artist/:mbid", (c) => {
+  const id = c.req.param("mbid");
+  if (id === musicBrainzFakeFailing.serverError) return c.json({ error: "Server error" }, 500);
+  if (id === musicBrainzFakeFailing.busy) return c.json({ error: "Service unavailable" }, 503);
+  const target = mergedArtists.get(id);
+  if (target) {
+    const url = new URL(c.req.url);
+    url.pathname = url.pathname.replace(id, target);
+    return c.redirect(url.toString(), 301);
+  }
+  const artist = artistLookup(id);
+  return artist ? c.json(artist) : c.json(notFound, 404);
 });
 
 // Under /busy/<times>/<id>/ the first <times> calls with that id are answered 503.

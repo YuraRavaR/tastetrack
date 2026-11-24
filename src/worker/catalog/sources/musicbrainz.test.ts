@@ -8,6 +8,8 @@ import { musicBrainzAlbums } from "./musicbrainz";
 const env = {
   MUSICBRAINZ_BASE_URL: "https://musicbrainz.test/ws/2",
   COVER_ART_ARCHIVE_BASE_URL: "https://coverartarchive.test",
+  WIKIDATA_BASE_URL: "https://wikidata.test",
+  COMMONS_BASE_URL: "https://commons.test",
   OPEN_LIBRARY_CONTACT: "https://example.test/contact",
   MUSICBRAINZ_INTERVAL_MS: "0",
 } as unknown as CatalogEnv;

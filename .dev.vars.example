@@ -25,3 +25,8 @@
 # MUSICBRAINZ_BASE_URL=https://musicbrainz.org/ws/2
 # COVER_ART_ARCHIVE_BASE_URL=https://coverartarchive.org
 # MUSICBRAINZ_INTERVAL_MS=1100
+
+# The `local` env calls a Wikimedia fake for artists' photos. To call Wikidata and Wikimedia Commons
+# locally, set both; they take no key.
+# WIKIDATA_BASE_URL=https://www.wikidata.org
+# COMMONS_BASE_URL=https://commons.wikimedia.org

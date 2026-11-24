@@ -14,7 +14,10 @@
 // (ADR-0012). Album search calls MUSICBRAINZ_BASE_URL, and album covers are linked from
 // COVER_ART_ARCHIVE_BASE_URL, both the real ones everywhere except `local`, which calls their
 // fakes and waits MUSICBRAINZ_INTERVAL_MS between calls instead of 1.1 s, which the fake holds it
-// to; MusicBrainz takes no key, so albums have no secret (ADR-0013). The Worker
+// to; MusicBrainz takes no key, so albums have no secret (ADR-0013). Artists' photos and their
+// credits come from WIKIDATA_BASE_URL and COMMONS_BASE_URL, Wikidata's and Wikimedia Commons' APIs,
+// which take no key either: the real ones everywhere except `local`, which calls the Wikimedia
+// fake (ADR-0013, Artists). The Worker
 // runs first for the API and for Share Link pages (/s/*), whose <head> it fills in on the app's
 // HTML from the ASSETS binding (ADR-0008); everything else is served as static assets. The Cron
 // Trigger refreshes the catalog cache every 15 minutes (ADR-0004) and clears login failures that no
@@ -40,7 +43,9 @@
     "IGDB_BASE_URL": "https://api.igdb.com/v4",
     "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token",
     "MUSICBRAINZ_BASE_URL": "https://musicbrainz.org/ws/2",
-    "COVER_ART_ARCHIVE_BASE_URL": "https://coverartarchive.org"
+    "COVER_ART_ARCHIVE_BASE_URL": "https://coverartarchive.org",
+    "WIKIDATA_BASE_URL": "https://www.wikidata.org",
+    "COMMONS_BASE_URL": "https://commons.wikimedia.org"
   },
   "d1_databases": [
     {
@@ -76,7 +81,9 @@
         "TWITCH_CLIENT_SECRET": "fake-twitch-client-secret",
         "MUSICBRAINZ_BASE_URL": "http://localhost:8787/api/test/musicbrainz/ws/2",
         "COVER_ART_ARCHIVE_BASE_URL": "http://localhost:8787/api/test/coverartarchive",
-        "MUSICBRAINZ_INTERVAL_MS": "50"
+        "MUSICBRAINZ_INTERVAL_MS": "50",
+        "WIKIDATA_BASE_URL": "http://localhost:8787/api/test/wikimedia/wikidata",
+        "COMMONS_BASE_URL": "http://localhost:8787/api/test/wikimedia/commons"
       }
     },
     "staging": {
@@ -98,7 +105,9 @@
         "IGDB_BASE_URL": "https://api.igdb.com/v4",
         "TWITCH_TOKEN_URL": "https://id.twitch.tv/oauth2/token",
         "MUSICBRAINZ_BASE_URL": "https://musicbrainz.org/ws/2",
-        "COVER_ART_ARCHIVE_BASE_URL": "https://coverartarchive.org"
+        "COVER_ART_ARCHIVE_BASE_URL": "https://coverartarchive.org",
+        "WIKIDATA_BASE_URL": "https://www.wikidata.org",
+        "COMMONS_BASE_URL": "https://commons.wikimedia.org"
       }
     }
   }

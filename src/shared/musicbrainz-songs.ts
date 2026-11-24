@@ -7,10 +7,12 @@ import type { CatalogSearchMatch } from "./api";
 import {
   ArtistCredit,
   creditOf,
-  escaped,
+  dateKey,
+  isStudio,
   mbid,
   namedIn,
   releaseGroupCoverRef,
+  searchWordsOf,
   smallCoverOf,
   wordsOf,
   yearOfDate,
@@ -81,29 +83,13 @@ function isHidden(recording: Recording): boolean {
 // "NOT" are never operators, and a word with no letter or digit ("&") is dropped. Null when no
 // word is left, and then no request is made.
 export function recordingQuery(query: string): string | null {
-  const words = query
-    .split(/\s+/)
-    .map((word) => word.toLowerCase())
-    .filter((word) => /[\p{L}\p{N}]/u.test(word))
-    .map(escaped);
+  const words = searchWordsOf(query);
   if (words.length === 0) return null;
   const everyWord = words.map((word) => `(recording:${word} OR artist:${word})`).join(" AND ");
   const hidden = "NOT video:true AND NOT comment:live AND NOT comment:karaoke AND reid:*";
   const boosts =
     "secondarytype:compilation^5 secondarytype:soundtrack^5 primarytype:single^5 primarytype:album^5";
   return `+(${everyWord} AND ${hidden}) ${boosts}`;
-}
-
-// A date MusicBrainz writes as YYYY, YYYY-MM or YYYY-MM-DD, to sort by: a missing month or day
-// counts as the end of its year or month, and no date sorts after every date.
-function dateKey(date: string | null | undefined): string {
-  const [year, month = "99", day = "99"] = (date ?? "").split("-");
-  return year ? `${year}-${month}-${day}` : "~";
-}
-
-// A studio release group: one with no secondary type, or only Soundtrack ("Help!").
-function isStudio(group: ReleaseGroup): boolean {
-  return (group["secondary-types"] ?? []).every((type) => type === "Soundtrack");
 }
 
 // A plain release group: one with no secondary type.

@@ -14,6 +14,8 @@ interface __BaseEnv_Env {
 	MUSICBRAINZ_BASE_URL: string;
 	COVER_ART_ARCHIVE_BASE_URL: string;
 	MUSICBRAINZ_INTERVAL_MS?: string;
+	WIKIDATA_BASE_URL: string;
+	COMMONS_BASE_URL: string;
 	TMDB_ACCESS_TOKEN: string;
 	TWITCH_CLIENT_ID: string;
 	TWITCH_CLIENT_SECRET: string;
@@ -35,6 +37,8 @@ declare namespace Cloudflare {
 		MUSICBRAINZ_BASE_URL: string;
 		COVER_ART_ARCHIVE_BASE_URL: string;
 		MUSICBRAINZ_INTERVAL_MS: string;
+		WIKIDATA_BASE_URL: string;
+		COMMONS_BASE_URL: string;
 		TMDB_ACCESS_TOKEN: string;
 		TWITCH_CLIENT_ID: string;
 		TWITCH_CLIENT_SECRET: string;
@@ -49,6 +53,8 @@ declare namespace Cloudflare {
 		TWITCH_TOKEN_URL: string;
 		MUSICBRAINZ_BASE_URL: string;
 		COVER_ART_ARCHIVE_BASE_URL: string;
+		WIKIDATA_BASE_URL: string;
+		COMMONS_BASE_URL: string;
 		TMDB_ACCESS_TOKEN: string;
 		TWITCH_CLIENT_ID: string;
 		TWITCH_CLIENT_SECRET: string;
@@ -60,7 +66,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "TEST_HOOKS" | "TEST_HOOKS_SECRET" | "TMDB_BASE_URL" | "OPEN_LIBRARY_BASE_URL" | "OPEN_LIBRARY_CONTACT" | "IGDB_BASE_URL" | "TWITCH_TOKEN_URL" | "MUSICBRAINZ_BASE_URL" | "COVER_ART_ARCHIVE_BASE_URL" | "MUSICBRAINZ_INTERVAL_MS" | "TMDB_ACCESS_TOKEN" | "TWITCH_CLIENT_ID" | "TWITCH_CLIENT_SECRET">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "TEST_HOOKS" | "TEST_HOOKS_SECRET" | "TMDB_BASE_URL" | "OPEN_LIBRARY_BASE_URL" | "OPEN_LIBRARY_CONTACT" | "IGDB_BASE_URL" | "TWITCH_TOKEN_URL" | "MUSICBRAINZ_BASE_URL" | "COVER_ART_ARCHIVE_BASE_URL" | "MUSICBRAINZ_INTERVAL_MS" | "WIKIDATA_BASE_URL" | "COMMONS_BASE_URL" | "TMDB_ACCESS_TOKEN" | "TWITCH_CLIENT_ID" | "TWITCH_CLIENT_SECRET">> {}
 }
 declare module "*.txt" {
 	const value: string;

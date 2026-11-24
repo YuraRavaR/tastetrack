@@ -16,6 +16,8 @@ import { musicBrainzSongs } from "./musicbrainz-songs";
 const env = {
   MUSICBRAINZ_BASE_URL: "https://musicbrainz.test/ws/2",
   COVER_ART_ARCHIVE_BASE_URL: "https://coverartarchive.test",
+  WIKIDATA_BASE_URL: "https://wikidata.test",
+  COMMONS_BASE_URL: "https://commons.test",
   OPEN_LIBRARY_CONTACT: "https://example.test/contact",
   MUSICBRAINZ_INTERVAL_MS: "0",
 } as unknown as CatalogEnv;
@@ -41,7 +43,7 @@ describe("a song's details", () => {
   it("are one lookup of the recording with its artists and releases", async () => {
     const asked = stubFetch(() => Response.json(obiimy));
 
-    const entry = await musicBrainzSongs.details(env, obiimy.id);
+    const entry = await musicBrainzSongs.details(env, obiimy.id, new Date());
 
     expect(asked).toHaveLength(1);
     expect(asked[0]?.pathname).toBe(`/ws/2/recording/${obiimy.id}`);
@@ -79,7 +81,7 @@ describe("a song's details", () => {
       return Response.json(runningUpThatHill);
     });
 
-    const entry = await musicBrainzSongs.details(env, old);
+    const entry = await musicBrainzSongs.details(env, old, new Date());
 
     expect(asked.map((url) => url.pathname)).toEqual([
       `/ws/2/recording/${old}`,
@@ -91,7 +93,11 @@ describe("a song's details", () => {
   it("store a plain studio Album, and its cover, before a soundtrack", async () => {
     stubFetch(() => Response.json(timeOfMyLifeOnASoundtrackAndAPlainAlbum));
 
-    const entry = await musicBrainzSongs.details(env, timeOfMyLifeOnASoundtrackAndAPlainAlbum.id);
+    const entry = await musicBrainzSongs.details(
+      env,
+      timeOfMyLifeOnASoundtrackAndAPlainAlbum.id,
+      new Date(),
+    );
 
     expect(entry.extra).toMatchObject({
       album: { title: "No.1 80s Movie Hits 1980–1990", mbid: no1EightiesMovieHits.id },
@@ -103,7 +109,7 @@ describe("a song's details", () => {
     stubFetch(() => Response.json({ error: "Not Found" }, { status: 404 }));
 
     await expect(
-      musicBrainzSongs.details(env, "00000000-0000-4000-8000-000000000404"),
+      musicBrainzSongs.details(env, "00000000-0000-4000-8000-000000000404", new Date()),
     ).rejects.toMatchObject({ failure: "gone" });
   });
 });

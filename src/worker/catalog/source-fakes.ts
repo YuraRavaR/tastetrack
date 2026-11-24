@@ -12,6 +12,7 @@ import {
 } from "./sources/musicbrainz-fake";
 import { openLibraryFake } from "./sources/open-library-fake";
 import { tmdbFake } from "./sources/tmdb-fake";
+import { wikimediaFake } from "./sources/wikimedia-fake";
 
 export const sourceFakes = new Hono<AppEnv>();
 
@@ -55,6 +56,12 @@ sourceFakes.use("/coverartarchive/*", async (c, next) => {
   await next();
 });
 sourceFakes.route("/coverartarchive", coverArtArchiveFake);
+
+sourceFakes.use("/wikimedia/*", async (c, next) => {
+  if (!c.env.WIKIDATA_BASE_URL.includes("/api/test/wikimedia/")) return c.notFound();
+  await next();
+});
+sourceFakes.route("/wikimedia", wikimediaFake);
 
 // What a test can see and change of the IGDB fake's tokens, and see of the MusicBrainz fake's
 // calls, through the test hooks.

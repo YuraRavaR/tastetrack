@@ -41,7 +41,7 @@ function manualColumns(fields: ManualMediaItemEditRequest) {
 // Whether `fields` are details a Media Item of the type can have: a year no more than five years
 // from now, and none before films for any but a book; a runtime and genres only for a film, and
 // authors only for a book, an album or a song, whose artists they are. A series or a game has a
-// title and a year alone.
+// title and a year alone, and an artist a title alone, with no year.
 function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest, now: Date) {
   const { year } = fields;
   if (year != null && year > latestFilmYear(now)) return false;
@@ -64,6 +64,13 @@ function fitsMediaType(mediaType: MediaType, fields: ManualMediaItemEditRequest,
         fields.runtime === undefined &&
         fields.genres === undefined &&
         (year == null || year >= earliestFilmYear)
+      );
+    case "artist":
+      return (
+        fields.year === undefined &&
+        fields.runtime === undefined &&
+        fields.genres === undefined &&
+        fields.authors === undefined
       );
   }
 }
@@ -117,6 +124,8 @@ export async function createManualMediaItem(
     return { ok: false, error: "invalid_request" };
   }
   const film = request.mediaType === "film" ? request : null;
+  // An artist has no year, which two of the User's artists of one name share, as no year.
+  const year = "year" in request ? request.year : null;
   // A book's authors, or an album's or a song's artists, which share the column.
   const credited =
     request.mediaType === "book" || request.mediaType === "album" || request.mediaType === "song"
@@ -125,7 +134,9 @@ export async function createManualMediaItem(
   const columns = manualColumns(request);
   // The item is inserted only while the User has room, and no other of theirs has its title and
   // year, if that matters.
-  const unique = request.allowDuplicate ? sql`1` : sql`not ${sameTitlesAndYear(userId, request)}`;
+  const unique = request.allowDuplicate
+    ? sql`1`
+    : sql`not ${sameTitlesAndYear(userId, { ...request, year })}`;
   const [created] = await db
     .insert(mediaItems)
     .select(
@@ -143,7 +154,7 @@ export async function createManualMediaItem(
           originalTitleKey: sql<string | null>`${columns.originalTitleKey}`.as(
             "original_title_key",
           ),
-          year: sql<number | null>`${request.year}`.as("year"),
+          year: sql<number | null>`${year}`.as("year"),
           runtime: sql<number | null>`${film?.runtime ?? null}`.as("runtime"),
           genres: sql<string | null>`${film ? JSON.stringify(film.genres) : null}`.as("genres"),
           createdAt: sql<number>`${now.getTime()}`.as("created_at"),

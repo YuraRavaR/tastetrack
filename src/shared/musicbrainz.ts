@@ -1,7 +1,8 @@
-// What MusicBrainz's albums and songs share, as pure rules (ADR-0013): the shape of an MBID and an
-// artist credit, a query's words and Lucene escaping, and covers by release group. Both the Worker,
-// which searches albums and looks albums and songs up, and the browser, which searches songs, use
-// them. Zod Mini, so the client bundle stays small.
+// What MusicBrainz's albums, songs and artists share, as pure rules (ADR-0013): the shape of an
+// MBID and an artist credit, a query's words and Lucene escaping, dates, studio release groups and
+// covers by release group. Both the Worker, which searches albums and artists and looks them and
+// songs up, and the browser, which searches songs, use them. Zod Mini, so the client bundle stays
+// small.
 import * as z from "zod/mini";
 
 // A MusicBrainz identifier, as it writes them: a lowercase UUID.
@@ -63,6 +64,28 @@ export function yearOfDate(date: string | null | undefined): number | null {
 // Lucene's special characters, which a query would otherwise use as its syntax.
 export function escaped(query: string): string {
   return query.replace(/[+\-&|!(){}[\]^"~*?:\\/]/g, (char) => `\\${char}`);
+}
+
+// The words a search sends MusicBrainz: the query split at whitespace, lowercased, so "AND", "OR"
+// and "NOT" are never operators, less those with no letter or digit ("&"), each escaped.
+export function searchWordsOf(query: string): string[] {
+  return query
+    .split(/\s+/)
+    .map((word) => word.toLowerCase())
+    .filter((word) => /[\p{L}\p{N}]/u.test(word))
+    .map(escaped);
+}
+
+// A date MusicBrainz writes as YYYY, YYYY-MM or YYYY-MM-DD, to sort by: a missing month or day
+// counts as the end of its year or month, and no date sorts after every date.
+export function dateKey(date: string | null | undefined): string {
+  const [year, month = "99", day = "99"] = (date ?? "").split("-");
+  return year ? `${year}-${month}-${day}` : "~";
+}
+
+// A studio release group: one with no secondary type, or only Soundtrack ("Help!").
+export function isStudio(group: { "secondary-types"?: string[] | null | undefined }): boolean {
+  return (group["secondary-types"] ?? []).every((type) => type === "Soundtrack");
 }
 
 // A release group's address on the Cover Art Archive, under its base URL, which answers with the

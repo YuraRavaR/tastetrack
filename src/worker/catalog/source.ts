@@ -31,6 +31,10 @@ export interface CatalogEnv {
   MUSICBRAINZ_BASE_URL: string;
   COVER_ART_ARCHIVE_BASE_URL: string;
   MUSICBRAINZ_INTERVAL_MS?: string | undefined;
+  // Where artists' photos and their credits come from (ADR-0013, Artists): Wikidata's and
+  // Wikimedia Commons' APIs, which take no key.
+  WIKIDATA_BASE_URL: string;
+  COMMONS_BASE_URL: string;
   // Where a source keeps the access token it was given (source_tokens).
   DB: AnyD1Database;
 }
@@ -88,6 +92,9 @@ export interface CatalogSource<M extends MediaType> {
   mediaType: M;
   // How many subrequests refreshing one entry makes, for the cron's budget.
   refreshCost: number;
+  // How many of those are its External Source's, which its share counts, when not all of them: an
+  // artist's Wikimedia calls count toward the budget but not toward MusicBrainz's share.
+  refreshShareCost?: number;
   // For a source that must be called slowly, the most of a cron run's budget its External Source's
   // entries may take, whichever of its Media Types they are, so each of them gives the same; the
   // rest is left to the other sources (ADR-0013). Without it, its entries take what they need.
@@ -98,8 +105,18 @@ export interface CatalogSource<M extends MediaType> {
   // The first page of the source's matches, in its order. Throws SourceUnavailable. A Media Type
   // the browser searches itself, as songs are (ADR-0013), has none.
   search?(env: CatalogEnv, query: string): Promise<CatalogSearchMatch[]>;
-  // One External Reference's details, as its cache entry holds them. Throws SourceUnavailable.
-  details(env: CatalogEnv, externalId: string): Promise<CatalogEntry<M>>;
+  // One External Reference's details, as its cache entry holds them, read at `now`. A source that
+  // refreshes from the entry it replaces gets it as `previous` from the cron. Throws
+  // SourceUnavailable.
+  details(
+    env: CatalogEnv,
+    externalId: string,
+    now: Date,
+    previous?: CatalogEntry<M>,
+  ): Promise<CatalogEntry<M>>;
+  // Whether the cron passes `details` the entry it refreshes: an artist keeps a photo it read
+  // before when Wikimedia fails (ADR-0013, Artists).
+  refreshesFromPrevious?: boolean;
   // What a search result alone says, for when the details call fails: its cover reference back
   // out of the cover URL search gave, or null for any other URL, so a client can't make the app
   // show images from elsewhere, and an empty `extra`.

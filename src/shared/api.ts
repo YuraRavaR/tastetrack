@@ -169,10 +169,10 @@ export const InviteCodesResponse = z
 export type InviteCodesResponse = z.infer<typeof InviteCodesResponse>;
 
 // The catalog is searched through the External Source of each Media Type: TMDB for films and
-// series, Open Library for books, IGDB for games, MusicBrainz for albums and songs. A song is a
-// light Media Type, kept only in Lists (ADR-0005).
+// series, Open Library for books, IGDB for games, MusicBrainz for albums, songs and artists. A song
+// and an artist are light Media Types, kept only in Lists (ADR-0005).
 export const MediaType = z
-  .enum(["film", "book", "series", "game", "album", "song"])
+  .enum(["film", "book", "series", "game", "album", "song", "artist"])
   .openapi({ example: "film" });
 
 export type MediaType = z.infer<typeof MediaType>;
@@ -248,9 +248,10 @@ const SearchMarkFields = {
 // cover's thumbnail, whatever the Media Type calls its cover. authors are a book's, as names in
 // the source's order; a film has none. platforms are a game's, each by its abbreviation, in the
 // source's order; a result of any other Media Type leaves them out. artistCredit is an album's or
-// a song's, primaryType and secondaryTypes an album's, as AlbumMetadata has them, and album and
-// disambiguation a song's, as SongMetadata has them; a result of any other Media Type leaves them
-// out.
+// a song's, primaryType and secondaryTypes an album's, as AlbumMetadata has them, album a song's,
+// as SongMetadata has it, disambiguation a song's or an artist's, and artistType, country and
+// endYear an artist's, as ArtistMetadata has them, whose year is their begin year; a result of any
+// other Media Type leaves them out. An artist's row has no photo.
 export const CatalogSearchResult = z
   .object({
     externalReference: ExternalReference,
@@ -288,7 +289,22 @@ export const CatalogSearchResult = z
       .string()
       .nullable()
       .optional()
-      .openapi({ example: null, description: "A song's alone" }),
+      .openapi({ example: null, description: "A song's or an artist's alone" }),
+    artistType: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "Group", description: "An artist's alone" }),
+    country: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "UA", description: "An artist's alone" }),
+    endYear: z
+      .int()
+      .nullable()
+      .optional()
+      .openapi({ example: null, description: "An artist's alone" }),
     ...SearchMarkFields,
   })
   .openapi("CatalogSearchResult");
@@ -308,8 +324,9 @@ export type SearchMarks = z.infer<typeof SearchMarks>;
 // A search result as the client got it, to add its work to the catalog. The details call
 // replaces what it says; it stands in only when that call fails. Its External Reference names a
 // Media Type's own External Source, with an id as that source writes them. authors, platforms,
-// an album's or a song's credit, an album's types, a song's album and disambiguation,
-// mediaItemId and the User's marks, if sent, are ignored.
+// an album's or a song's credit, an album's types, a song's album, a song's or an artist's
+// disambiguation, an artist's type, country and end year, mediaItemId and the User's marks, if
+// sent, are ignored.
 export const AddCatalogItemRequest = CatalogSearchResult.omit({
   authors: true,
   platforms: true,
@@ -318,6 +335,9 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
   secondaryTypes: true,
   album: true,
   disambiguation: true,
+  artistType: true,
+  country: true,
+  endYear: true,
   mediaItemId: true,
   inLog: true,
   inBacklog: true,
@@ -374,6 +394,14 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
           .string()
           .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
           .openapi({ example: "d8d55f18-0c4b-4036-a16d-e273ac8953fc" }),
+      }),
+      z.object({
+        source: z.literal("musicbrainz"),
+        mediaType: z.literal("artist"),
+        id: z
+          .string()
+          .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+          .openapi({ example: "87a417d3-f118-43e0-bece-3de1bd90fce0" }),
       }),
     ]),
     title: z.string().trim().min(1).max(500).openapi({ example: "Чужий" }),
@@ -632,6 +660,54 @@ export const SongMetadata = z
 
 export type SongMetadata = z.infer<typeof SongMetadata>;
 
+// An artist's metadata from the External Source, where an artist is a MusicBrainz artist of any
+// type (ADR-0013, Artists). Their name, in its original script, is the title and the Original
+// Title, and never a Ukrainian one. year and endYear are the years of their life-span: the begin
+// year, and the end year when MusicBrainz has one, both null without a begin year. artistType is
+// MusicBrainz's (Person, Group, Orchestra, Choir, Character, Other), country an ISO 3166-1 code,
+// such as UA, or XW for worldwide, for the client to name, and disambiguation MusicBrainz's note
+// that tells two artists of one name apart. The photo is the Wikidata entity's image on Wikimedia
+// Commons, in a width for a thumbnail and one for the artist's page, credited by its author, when
+// Commons names one, and its licence, linked to its file's page; with no photo the client shows
+// the artist's initials, as it does when the image doesn't load. url is the artist on MusicBrainz.
+// All but the name and the years are unknown until the details call succeeds.
+export const ArtistMetadata = z
+  .object({
+    title: z.string().openapi({ example: "Океан Ельзи" }),
+    originalTitle: z.string().openapi({ example: "Океан Ельзи" }),
+    ukrainianTitle: z.null(),
+    year: z.int().nullable().openapi({ example: 1994 }),
+    endYear: z.int().nullable().openapi({ example: null }),
+    artistType: z.string().nullable().openapi({ example: "Group" }),
+    country: z.string().nullable().openapi({ example: "UA" }),
+    disambiguation: z.string().nullable().openapi({ example: null }),
+    photoUrls: z
+      .object({
+        small: z.url().openapi({
+          example: "https://commons.wikimedia.org/wiki/Special:FilePath/OkeanElzi25.jpg?width=250",
+        }),
+        large: z.url().openapi({
+          example: "https://commons.wikimedia.org/wiki/Special:FilePath/OkeanElzi25.jpg?width=500",
+        }),
+      })
+      .nullable(),
+    photoCredit: z
+      .object({
+        author: z.string().nullable().openapi({ example: "Alexander Khanin" }),
+        licence: z.string().openapi({ example: "CC BY-SA 4.0" }),
+        url: z
+          .url()
+          .openapi({ example: "https://commons.wikimedia.org/wiki/File:OkeanElzi25.jpg" }),
+      })
+      .nullable(),
+    url: z.url().nullable().openapi({
+      example: "https://musicbrainz.org/artist/87a417d3-f118-43e0-bece-3de1bd90fce0",
+    }),
+  })
+  .openapi("ArtistMetadata");
+
+export type ArtistMetadata = z.infer<typeof ArtistMetadata>;
+
 // A Media Item. A catalog-backed one's metadata comes from the disposable cache, so it is null
 // while the cache has no entry for it. A Manual Media Item has no External Reference, and its
 // metadata is what its User gave: never a poster, a backdrop or a Ukrainian title, and the title
@@ -694,6 +770,16 @@ export const SongMediaItem = z
   })
   .openapi("SongMediaItem");
 
+// An artist's Media Item, its metadata an artist's.
+export const ArtistMediaItem = z
+  .object({
+    id: z.int().openapi({ example: 48 }),
+    mediaType: z.literal("artist"),
+    externalReference: ExternalReference.nullable(),
+    metadata: ArtistMetadata.nullable(),
+  })
+  .openapi("ArtistMediaItem");
+
 export const MediaItem = z
   .discriminatedUnion("mediaType", [
     FilmMediaItem,
@@ -702,6 +788,7 @@ export const MediaItem = z
     GameMediaItem,
     AlbumMediaItem,
     SongMediaItem,
+    ArtistMediaItem,
   ])
   .openapi("MediaItem");
 
@@ -912,6 +999,21 @@ export const NewManualSongRequest = z
 
 export type NewManualSongRequest = z.input<typeof NewManualSongRequest>;
 
+// An artist has a name, as its title, and an optional Original Title, and no year (ADR-0013,
+// Artists). Two of the User's artists with one name are possible duplicates, as two of their
+// works with one title and no year are.
+export const NewManualArtistRequest = z
+  .object({
+    mediaType: z.literal("artist"),
+    title: ManualTitle.openapi({ example: "Сусіди" }),
+    originalTitle: ManualOriginalTitle.default(null).openapi({ example: null }),
+    allowDuplicate: z.boolean().default(false),
+  })
+  .strict()
+  .openapi("NewManualArtistRequest");
+
+export type NewManualArtistRequest = z.input<typeof NewManualArtistRequest>;
+
 export const NewManualMediaItemRequest = z
   .discriminatedUnion("mediaType", [
     NewManualFilmRequest,
@@ -920,6 +1022,7 @@ export const NewManualMediaItemRequest = z
     NewManualGameRequest,
     NewManualAlbumRequest,
     NewManualSongRequest,
+    NewManualArtistRequest,
   ])
   .openapi("NewManualMediaItemRequest");
 
@@ -931,7 +1034,8 @@ export type NewManualMediaItem = z.output<typeof NewManualMediaItemRequest>;
 // or a null year or runtime, clears it. The Media Type can't change, and the Worker refuses the
 // details of another Media Type: a book's or an album's runtime or genres, a film's, a series' or
 // a game's authors, a series', a game's, an album's or a song's runtime or genres, or a year
-// before films for any but a book. An album's or a song's authors are its artists.
+// before films for any but a book. An album's or a song's authors are its artists. An artist takes
+// a title and an Original Title alone.
 export const ManualMediaItemEditRequest = z
   .object({
     title: ManualTitle.optional(),
@@ -1370,9 +1474,29 @@ export const GameAbout = z
   })
   .openapi("GameAbout");
 
-// What a Media Item's page shows in its About block, by its Media Type.
+// What an artist's page shows of them beside their metadata, with no About block of its own: their
+// albums list (ADR-0013, Artists), the studio Albums and EPs MusicBrainz has of them, at most 100,
+// oldest first by first release, a missing date last, then by title. Each opens its album's page
+// by its release-group MBID and shows its cover, as an album's coverUrls do.
+export const ArtistAbout = z
+  .object({
+    mediaType: z.literal("artist"),
+    albums: z.array(
+      z.object({
+        mbid: z.string().openapi({ example: "080f0c63-6e0b-42d0-917d-e22d1d4bdaf8" }),
+        title: z.string().openapi({ example: "Земля" }),
+        year: z.int().nullable().openapi({ example: 2013 }),
+        primaryType: z.enum(["Album", "EP"]).openapi({ example: "Album" }),
+        coverUrls: AlbumMetadata.shape.coverUrls.unwrap(),
+      }),
+    ),
+  })
+  .openapi("ArtistAbout");
+
+// What a Media Item's page shows in its About block, by its Media Type, and for an artist their
+// albums.
 export const About = z
-  .discriminatedUnion("mediaType", [FilmAbout, SeriesAbout, BookAbout, GameAbout])
+  .discriminatedUnion("mediaType", [FilmAbout, SeriesAbout, BookAbout, GameAbout, ArtistAbout])
   .openapi("About");
 
 export type About = z.infer<typeof About>;
@@ -1412,7 +1536,7 @@ export const PlanRequest = z
 
 export type PlanRequest = z.infer<typeof PlanRequest>;
 
-// The Media Types that have a Backlog: all but the light ones, such as a song (ADR-0005).
+// The Media Types that have a Backlog: all but the light ones, a song and an artist (ADR-0005).
 export const BacklogMediaType = MediaType.exclude(lightMediaTypes).openapi({ example: "film" });
 
 export type BacklogMediaType = z.infer<typeof BacklogMediaType>;

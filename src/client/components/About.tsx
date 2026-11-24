@@ -161,8 +161,9 @@ export function aboutIsEmpty({ tagline, overview, credits }: AboutProps): boolea
   );
 }
 
-// What a Media Item's page passes its About block, by its Media Type.
-export function aboutProps(about: AboutData): AboutProps {
+// What a Media Item's page passes its About block, by its Media Type. An artist's page has none:
+// it shows their albums list instead (#302).
+export function aboutProps(about: AboutData): AboutProps | null {
   switch (about.mediaType) {
     case "film":
       return {
@@ -203,5 +204,7 @@ export function aboutProps(about: AboutData): AboutProps {
         credits: [{ label: t("about.genres"), names: about.genres }],
         source: t("about.fromIgdb"),
       };
+    case "artist":
+      return null;
   }
 }

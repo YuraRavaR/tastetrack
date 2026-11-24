@@ -420,6 +420,8 @@ For the Beatles, the 22 official studio Albums are their UK and US albums, 1963â
 
 This is the home IP of the recording check, which got 22% after one retry too. Artist searches run in the Worker, like album searches, which got 5% from a Worker on 2026-11-21. How artist searches fare from the Worker is _not checked_.
 
+**Merges and Commons' limit (checked later on 2026-11-24, for #301).** `e3329ebf-a7ee-45a0-98d5-c84a482a4611` and `e32597f9-b2f8-4a9c-a5d8-6b06f61124f4`, which Wikidata marks as deprecated MusicBrainz artist IDs with the reason "redirect", answered a lookup with 301, the first to `24dad84a-2918-48aa-9337-07b675443f0d` (Taylor Dee), its `Location` keeping the query. Fetching test fixtures, about ten image-info calls over a few minutes, the last ones half a second apart, Commons answered one with the plain text "You are making too many requests to the API.", which isn't JSON, so the Worker reads it as a failed call.
+
 **Sizes.** The AND form's answers were at most 111 KB at `limit=25` ("Various Artists", whose artists carry many aliases). The median was 135 ms and the slowest 563 ms. A lookup with URL relations was at most 27 KB.
 
 ## Raw live results (2026-11-16)
