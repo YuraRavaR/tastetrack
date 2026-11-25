@@ -10,7 +10,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import type { SeriesStatus } from "../shared/api";
-import { visibilities } from "../shared/lists";
+import { listKinds, visibilities } from "../shared/lists";
 import type { Progress } from "../shared/progress";
 import { thoughtStates } from "../shared/thoughts";
 
@@ -407,7 +407,9 @@ export const thoughts = sqliteTable(
 // A List: an ordered collection of Media Items of one Media Type, owned by a User. The Backlog is
 // the system List of what the User plans to experience: every User has exactly one per Media Type,
 // made with their account. It has no name, since its name is the UI's word for its Media Type
-// ("Watchlist"), so there is nothing to rename. Every other List, of kind "list", has a name,
+// ("Watchlist"), so there is nothing to rename. Favourites is the other system List, of the Media
+// Items the User Likes, at most one per Media Type that has them, made on their first Like, and
+// nameless too ("Favourite artists"). Every other List, of kind "list", has a name,
 // unique for its User by nameKey (src/shared/lists.ts), which SQLite's ASCII-only lower()
 // couldn't decide for Ukrainian names; the Backlog's null nameKey repeats freely in the unique
 // index. The Media Type is the List's, not a rule of the table: its items' Media Type is checked
@@ -420,7 +422,7 @@ export const lists = sqliteTable(
     userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    kind: text("kind", { enum: ["backlog", "list"] }).notNull(),
+    kind: text("kind", { enum: listKinds }).notNull(),
     mediaType: text("media_type", { enum: mediaTypes }).notNull(),
     name: text("name"),
     nameKey: text("name_key"),
@@ -434,6 +436,9 @@ export const lists = sqliteTable(
     uniqueIndex("lists_backlog_unique")
       .on(table.userId, table.mediaType)
       .where(sql`${table.kind} = 'backlog'`),
+    uniqueIndex("lists_favourites_unique")
+      .on(table.userId, table.mediaType)
+      .where(sql`${table.kind} = 'favourites'`),
   ],
 );
 

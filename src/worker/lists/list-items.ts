@@ -66,14 +66,15 @@ export async function ownListItem(
 }
 
 // Adds a Media Item at the end of a List with its Note, an empty one counting as none, unless it
-// is there already or the List holds `maxListItems`. `created` is the new item; `existing` is the
-// one already there, so neither means the List is full.
+// is there already or the List holds `maxItems`, `maxListItems` unless given. `created` is the new
+// item; `existing` is the one already there, so neither means the List is full.
 export async function appendListItem(
   db: DrizzleD1Database,
   listId: number,
   mediaItemId: number,
   note: string | null | undefined,
   now: Date,
+  { maxItems = maxListItems }: { maxItems?: number } = {},
 ): Promise<{ created?: { id: number }; existing?: { id: number } }> {
   // The item is inserted only while the List has room, and only once.
   const itemCount = sql`(select count(*) from ${listItems} where list_id = ${listId})`;
@@ -95,7 +96,7 @@ export async function appendListItem(
             createdAt: sql<number>`${now.getTime()}`.as("created_at"),
           })
           .from(lists)
-          .where(and(eq(lists.id, listId), sql`${itemCount} < ${maxListItems}`)),
+          .where(and(eq(lists.id, listId), sql`${itemCount} < ${maxItems}`)),
       )
       .onConflictDoNothing()
       .returning({ id: listItems.id }),

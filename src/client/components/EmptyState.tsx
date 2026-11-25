@@ -11,17 +11,20 @@ type EmptyStateAction = { label: string; icon?: LucideIcon; outline?: boolean } 
 );
 
 // The one quiet pattern of every empty page or tab: an icon in a circle, one line, a muted `hint`
-// under it where one helps, and one button, where there is something to do about it.
+// under it where one helps, and one button, where there is something to do about it, with an
+// outline `secondaryAction` under it where there are two ways in.
 export function EmptyState({
   icon: Icon,
   message,
   hint,
   action,
+  secondaryAction,
 }: {
   icon: LucideIcon;
   message: string;
   hint?: string | undefined;
   action?: EmptyStateAction | undefined;
+  secondaryAction?: EmptyStateAction | undefined;
 }) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 pt-18 pb-10 text-center md:py-24">
@@ -36,12 +39,23 @@ export function EmptyState({
           </p>
         )}
       </div>
-      {action && <EmptyStateButton action={action} />}
+      {(action || secondaryAction) && (
+        <div className="flex flex-col gap-2.5">
+          {action && <EmptyStateButton action={action} />}
+          {secondaryAction && <EmptyStateButton action={secondaryAction} secondary />}
+        </div>
+      )}
     </div>
   );
 }
 
-function EmptyStateButton({ action }: { action: EmptyStateAction }) {
+function EmptyStateButton({
+  action,
+  secondary = false,
+}: {
+  action: EmptyStateAction;
+  secondary?: boolean;
+}) {
   const ActionIcon = action.icon;
   const content = (
     <>
@@ -50,10 +64,11 @@ function EmptyStateButton({ action }: { action: EmptyStateAction }) {
     </>
   );
   const buttonProps = {
-    variant: action.outline ? "outline" : "default",
+    variant: action.outline || secondary ? "outline" : "default",
     className: cn(
       "h-12 px-5.5 font-semibold md:h-11 md:px-5",
       action.outline ? "rounded-full bg-card" : "rounded-xl",
+      secondary && "bg-card",
     ),
   } as const;
   return "to" in action ? (

@@ -67,6 +67,23 @@ describe("matching the User's Media Items", () => {
     expect(titles(matchUserMediaItems(items, "амел"))).toEqual(["Amélie"]);
   });
 
+  it("finds an artist only in Favourites, with their place there", () => {
+    const okean = film("Океан Ельзи");
+
+    const items = userMediaItems([], [{ mediaItem: okean, lists: [], favouritePosition: 0 }]);
+
+    expect(items).toEqual([
+      {
+        mediaItem: okean,
+        inBacklog: false,
+        inProgress: false,
+        currentRating: null,
+        lists: [],
+        favouritePosition: 0,
+      },
+    ]);
+  });
+
   it("finds a film only on a List, and a film both in the Library and on a List once, by title", () => {
     const paris = film("Paris, Texas");
     const parasite = film("Parasite");
@@ -75,8 +92,8 @@ describe("matching the User's Media Items", () => {
     const items = userMediaItems(
       [planned(parasite)],
       [
-        { mediaItem: paris, lists: [roadMovies] },
-        { mediaItem: parasite, lists: [roadMovies] },
+        { mediaItem: paris, lists: [roadMovies], favouritePosition: null },
+        { mediaItem: parasite, lists: [roadMovies], favouritePosition: null },
       ],
     );
 
@@ -87,6 +104,7 @@ describe("matching the User's Media Items", () => {
         inProgress: false,
         currentRating: null,
         lists: [roadMovies],
+        favouritePosition: null,
       },
       {
         mediaItem: paris,
@@ -94,6 +112,7 @@ describe("matching the User's Media Items", () => {
         inProgress: false,
         currentRating: null,
         lists: [roadMovies],
+        favouritePosition: null,
       },
     ]);
   });
@@ -154,7 +173,7 @@ describe("matching the User's songs", () => {
         url: null,
       },
     };
-    return { mediaItem, lists: [{ id: 1, name: "Favourite songs" }] };
+    return { mediaItem, lists: [{ id: 1, name: "Favourite songs" }], favouritePosition: null };
   }
 
   it("finds a song by its title and its artist together, as song search is typed", () => {
@@ -177,6 +196,7 @@ describe("a User's Media Item's status line", () => {
     inProgress: false,
     currentRating: null,
     lists: [],
+    favouritePosition: null,
   };
 
   it.each([
@@ -206,6 +226,11 @@ describe("a User's Media Item's status line", () => {
       { lists: [roadMovies, horror] },
       { kind: "list", name: "Road movies" },
     ],
+    [
+      "an artist in Favourites and on Lists: their place in Favourites, from 1",
+      { lists: [roadMovies], favouritePosition: 3 },
+      { kind: "favourite", place: 4 },
+    ],
   ])("says, for %s", (_, film, status) => {
     expect(userMediaItemStatus({ ...base, ...film })).toEqual(status);
   });
@@ -225,6 +250,7 @@ describe("search results beside the User's Media Items", () => {
       mediaItemId,
       inLog: false,
       inBacklog: false,
+      inFavourites: false,
       currentRating: null,
       logEntryCount: 0,
       lists: [],

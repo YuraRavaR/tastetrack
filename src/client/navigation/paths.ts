@@ -17,6 +17,11 @@ export function listPath(listId: number | string): string {
   return `${listsPath}/${listId}`;
 }
 
+// The User's Favourites of a Media Type, among Collections: "Favourite artists".
+export function favouritesPath(mediaType: MediaType | ":mediaType"): string {
+  return `${listsPath}/favourites/${mediaType}`;
+}
+
 // A Media Item's page: its film, and the User's Viewings of it.
 export function itemPath(mediaItemId: number | string): string {
   return `/items/${mediaItemId}`;

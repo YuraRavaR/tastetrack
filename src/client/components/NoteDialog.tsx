@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ListItem } from "../../shared/api";
 import { maxNoteLength } from "../../shared/lists";
 import * as api from "../api";
-import { filmLabel } from "../catalog/film-label";
+import { filmLabel, filmName } from "../catalog/film-label";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 
@@ -59,7 +59,12 @@ function NoteForm({ item, onSaved }: { item: ListItem; onSaved: () => void }) {
       <DialogHeader>
         <DialogTitle>
           {t("note.title", {
-            film: metadata ? filmLabel(metadata) : mediaWord(item.mediaItem.mediaType, "unknown"),
+            // An artist is named without their year, which is when they began.
+            film: !metadata
+              ? mediaWord(item.mediaItem.mediaType, "unknown")
+              : item.mediaItem.mediaType === "artist"
+                ? filmName(metadata)
+                : filmLabel(metadata),
           })}
         </DialogTitle>
         <DialogDescription>{t("note.description")}</DialogDescription>

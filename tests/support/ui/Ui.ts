@@ -1,5 +1,6 @@
 import type { Page, Response } from "@playwright/test";
 import { step } from "../step";
+import { FavouritesPage } from "./pages/FavouritesPage";
 import { FilmPage } from "./pages/FilmPage";
 import { InvitesPage } from "./pages/InvitesPage";
 import { LibraryPage } from "./pages/LibraryPage";
@@ -16,6 +17,7 @@ import { SharedPage } from "./pages/SharedPage";
 // The app as one browser tab shows it: one field per page. The frame every page shares, such as
 // the header, is reached through the page the test is on: ui.listsPage.header.
 export class Ui {
+  readonly favouritesPage: FavouritesPage;
   readonly filmPage: FilmPage;
   readonly invitesPage: InvitesPage;
   readonly libraryPage: LibraryPage;
@@ -30,6 +32,7 @@ export class Ui {
   readonly sharedPage: SharedPage;
 
   constructor(private readonly page: Page) {
+    this.favouritesPage = new FavouritesPage(page);
     this.filmPage = new FilmPage(page);
     this.invitesPage = new InvitesPage(page);
     this.libraryPage = new LibraryPage(page);

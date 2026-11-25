@@ -2,7 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes, useParams, useSearchParams } fr
 import { AuthProvider, RequireAuth } from "./auth";
 import { AppLayout } from "./components/AppLayout";
 import { libraryPath } from "./library/library-tabs";
-import { itemPath, listPath, listsPath, searchPath } from "./navigation/paths";
+import { favouritesPath, itemPath, listPath, listsPath, searchPath } from "./navigation/paths";
+import { FavouritesPage } from "./pages/FavouritesPage";
 import { InvitesPage } from "./pages/InvitesPage";
 import { ItemHistoryPage } from "./pages/ItemHistoryPage";
 import { LibraryPage } from "./pages/LibraryPage";
@@ -33,6 +34,7 @@ export function App() {
               <Route path="/saved/:type/:tab?" element={<LibraryPage />} />
               <Route path={listsPath} element={<ListsPage />} />
               <Route path={listPath(":listId")} element={<ListPage />} />
+              <Route path={favouritesPath(":mediaType")} element={<FavouritesPage />} />
               <Route path={searchPath} element={<SearchPage />} />
               <Route path={itemPath(":mediaItemId")} element={<ItemHistoryPage />} />
               <Route path="/invites" element={<InvitesPage />} />

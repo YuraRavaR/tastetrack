@@ -73,6 +73,16 @@ export function isLight(mediaType: string): mediaType is LightMediaType {
   return (lightMediaTypes as readonly string[]).includes(mediaType);
 }
 
+// The Media Types a User can Like, which have Favourites: a system List of the Media Items they
+// Like, ranked by its order (ADR-0005). For now only artists.
+export const favouritesMediaTypes = ["artist"] as const;
+
+export type FavouritesMediaType = (typeof favouritesMediaTypes)[number];
+
+export function hasFavourites(mediaType: string): mediaType is FavouritesMediaType {
+  return (favouritesMediaTypes as readonly string[]).includes(mediaType);
+}
+
 // The Media Types a User can have In Progress: started and not yet finished (ADR-0005). A film is
 // watched in one sitting, so it has none. A game has one without Progress.
 export const progressMediaTypes = ["book", "series", "game"] as const;

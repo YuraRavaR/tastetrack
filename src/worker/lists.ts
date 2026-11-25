@@ -1,5 +1,5 @@
-// The logged-in User's Backlog and own Lists: reading them, marking Media Items Planned and taking
-// them off again, making, renaming and deleting Lists and adding to them, reordering, noting and
+// The logged-in User's Backlog, Favourites and own Lists: reading them, marking Media Items Planned
+// and taking them off again, Liking them and taking the Like back, making, renaming and deleting Lists and adding to them, reordering, noting and
 // removing List Items, and sharing any of them through a Share Link, which anyone can open without
 // logging in.
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
@@ -7,6 +7,10 @@ import {
   BacklogQuery,
   BacklogResponse,
   ErrorResponse,
+  FavouritesEditRequest,
+  FavouritesQuery,
+  FavouritesResponse,
+  LikeRequest,
   ListEditRequest,
   ListedMediaItemsQuery,
   ListedMediaItemsResponse,
@@ -28,11 +32,12 @@ import {
   ShareLinkResponse,
   ShareTokenParams,
 } from "../shared/api";
-import { maxListItems, maxLists } from "../shared/lists";
+import { maxFavourites, maxListItems, maxLists } from "../shared/lists";
 import { requireUser, unauthenticatedResponse } from "./auth";
 import { fillMissingMetadata } from "./catalog/media-items";
 import type { AppEnv } from "./env";
 import { plan, removeFromBacklog, userBacklog } from "./lists/backlog";
+import { editFavourites, like, unlike, userFavourites } from "./lists/favourites";
 import { editListItem, removeListItem } from "./lists/list-items";
 import {
   createShareLink,
@@ -137,6 +142,118 @@ const unplanRoute = createRoute({
   },
 });
 
+const favouritesRoute = createRoute({
+  method: "get",
+  path: "/favourites",
+  summary: "Show the logged-in User's Favourites of a Media Type, ranked in their order",
+  description:
+    "Favourites is a system List of the Media Items the User Likes, made on their first Like, " +
+    "which can be neither deleted nor renamed. For now only artists have Favourites.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { query: FavouritesQuery },
+  responses: {
+    200: {
+      content: { "application/json": { schema: FavouritesResponse } },
+      description: "The Favourites and their List Items in order, or null before the first Like",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Media Type is unknown, or has no Favourites (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
+  },
+});
+
+const editFavouritesRoute = createRoute({
+  method: "patch",
+  path: "/favourites",
+  summary: "Change the description of the logged-in User's Favourites of a Media Type",
+  description: "A null or empty description clears it. Favourites can't be renamed.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: {
+    query: FavouritesQuery,
+    body: { content: { "application/json": { schema: FavouritesEditRequest } }, required: true },
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: FavouritesResponse } },
+      description: "The Favourites as they now are",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "The Media Type has no Favourites, or the body is malformed or names a field other than " +
+        "the description, such as a name (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
+    404: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The User has no Favourites of the Media Type yet (`unknown_list`)",
+    },
+  },
+});
+
+const likeRoute = createRoute({
+  method: "post",
+  path: "/favourites/items",
+  summary: "Like a Media Item, putting it at the end of the Favourites of its Media Type",
+  description:
+    "The User's first Like of a Media Type makes their Favourites of it. A Media Item already " +
+    "liked keeps its place. For now only artists can be liked.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: {
+    body: { content: { "application/json": { schema: LikeRequest } }, required: true },
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: ListItemResponse } },
+      description: "The Media Item was liked already, and keeps its place",
+    },
+    201: {
+      content: { "application/json": { schema: ListItemResponse } },
+      description: "The Media Item's new List Item in the Favourites",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description:
+        "The request body is malformed, the Media Item doesn't exist, or its Media Type has no " +
+        "Favourites (`invalid_request`, `unknown_media_item`, `wrong_media_type`)",
+    },
+    401: unauthenticatedResponse,
+    409: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: `The Favourites already hold ${maxFavourites} items (\`favourites_full\`)`,
+    },
+  },
+});
+
+const unlikeRoute = createRoute({
+  method: "delete",
+  path: "/favourites/items/{mediaItemId}",
+  summary: "Take back the Like of a Media Item, removing it from the Favourites",
+  description:
+    "Removes only its List Item in the logged-in User's Favourites: the Media Item and its place " +
+    "on the User's other Lists stay. The items after it move up one place.",
+  middleware: [requireUser] as const,
+  security: [{ session: [] }],
+  request: { params: MediaItemParams },
+  responses: {
+    204: { description: "The Media Item is no longer liked" },
+    400: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The Media Item id isn't a positive integer (`invalid_request`)",
+    },
+    401: unauthenticatedResponse,
+    404: {
+      content: { "application/json": { schema: ErrorResponse } },
+      description: "The User hasn't liked the Media Item (`unknown_list_item`)",
+    },
+  },
+});
+
 const unknownListItemResponse = {
   content: { "application/json": { schema: ErrorResponse } },
   description: "The User has no such List Item (`unknown_list_item`)",
@@ -195,10 +312,12 @@ const removeRoute = createRoute({
 const listsRoute = createRoute({
   method: "get",
   path: "/lists",
-  summary: "Show the logged-in User's own Lists, oldest first",
+  summary: "Show the logged-in User's own Lists, oldest first, and their Favourites",
   description:
     "Each List comes without its items, with how many it holds, its first four Media Items in " +
-    "List order for a collage, and whether it has a Share Link. The Backlog isn't one.",
+    "List order for a collage, and whether it has a Share Link. The Backlog isn't one. The " +
+    "User's Favourites of each Media Type they have liked one of come apart, as `favourites`, " +
+    "in the same form.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   responses: {
@@ -215,8 +334,9 @@ const listedMediaItemsRoute = createRoute({
   path: "/lists/media-items",
   summary: "Show the Media Items of a Media Type on the logged-in User's own Lists",
   description:
-    "Every Media Item of the type on at least one of the User's Lists, each once, with the " +
-    "Lists holding it, oldest first. The Backlog isn't one. In no particular order, and not paged.",
+    "Every Media Item of the type on at least one of the User's Lists or in their Favourites, " +
+    "each once, with the Lists holding it, oldest first, and its place in the Favourites. The " +
+    "Backlog isn't one. In no particular order, and not paged.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: { query: ListedMediaItemsQuery },
@@ -392,7 +512,9 @@ const mediaItemListsRoute = createRoute({
     "The User's Lists of the Media Item's Media Type, each with the List Item that holds the " +
     "Media Item there, or null, and its first Media Item, for its cover, or null while it is " +
     "empty. They come oldest first, but for a song or an artist: the List last added to first, " +
-    "then the empty ones, oldest first. The Backlog isn't one.",
+    "then the empty ones, oldest first. The Backlog isn't one, and neither are the Favourites, " +
+    "which come apart with how many they hold and the List Item holding the Media Item there, " +
+    "or null before the User's first Like of the Media Type.",
   middleware: [requireUser] as const,
   security: [{ session: [] }],
   request: { params: MediaItemParams },
@@ -426,7 +548,9 @@ const invalidListIdResponse = {
 const createShareLinkRoute = createRoute({
   method: "post",
   path: "/lists/{listId}/share-link",
-  summary: "Share one of the logged-in User's Lists, the Backlog included, through a Share Link",
+  summary:
+    "Share one of the logged-in User's Lists, the Backlog and Favourites included, through a " +
+    "Share Link",
   description:
     "Gives the List a Share Link, an unguessable URL that shows the List, its Notes and the " +
     "owner's Display Name to anyone holding it, without login, and never their Ratings or Log " +
@@ -500,8 +624,10 @@ const sharedListRoute = createRoute({
   summary: "Show the List behind a Share Link, to anyone, without login",
   description:
     "The List's title, description, owner's Display Name and List Items with their Notes, in " +
-    "order. A shared Backlog is titled \"<Display Name>'s Watchlist\". Nothing of the owner's " +
-    "Log, Ratings included, is shown. Responses carry `X-Robots-Tag: noindex`.",
+    'order. A shared Backlog is titled "<Display Name>\'s Watchlist", and shared Favourites ' +
+    '"<Display Name>\'s Favourite artists", with `favourites` true, so the client shows each ' +
+    "item's place. Nothing of the owner's Log, Ratings included, is shown. Responses carry " +
+    "`X-Robots-Tag: noindex`.",
   request: { params: ShareTokenParams },
   responses: {
     200: {
@@ -554,6 +680,41 @@ listRoutes.openapi(unplanRoute, async (c) => {
   return c.body(null, 204);
 });
 
+listRoutes.openapi(favouritesRoute, async (c) => {
+  const { mediaType } = c.req.valid("query");
+  const origin = originOf(c.req.url);
+  const favourites = await userFavourites(c.var.db, c.var.userId, mediaType, origin, c.var.now);
+  if (favourites)
+    await fillMissingMetadata(c.var.db, c.env, mediaItemsOf(favourites.items), c.var.now);
+  return c.json({ favourites }, 200);
+});
+
+listRoutes.openapi(editFavouritesRoute, async (c) => {
+  const { mediaType } = c.req.valid("query");
+  const { db, userId, now } = c.var;
+  if (!(await editFavourites(db, userId, mediaType, c.req.valid("json")))) {
+    return c.json({ error: "unknown_list" }, 404);
+  }
+  const favourites = await userFavourites(db, userId, mediaType, originOf(c.req.url), now);
+  if (favourites) await fillMissingMetadata(db, c.env, mediaItemsOf(favourites.items), now);
+  return c.json({ favourites }, 200);
+});
+
+listRoutes.openapi(likeRoute, async (c) => {
+  const { mediaItemId } = c.req.valid("json");
+  const liked = await like(c.var.db, c.var.userId, mediaItemId, c.var.now);
+  if (!liked.ok)
+    return c.json({ error: liked.error }, liked.error === "favourites_full" ? 409 : 400);
+  return c.json({ listItem: liked.listItem }, liked.created ? 201 : 200);
+});
+
+listRoutes.openapi(unlikeRoute, async (c) => {
+  if (!(await unlike(c.var.db, c.var.userId, c.req.valid("param").mediaItemId))) {
+    return c.json({ error: "unknown_list_item" }, 404);
+  }
+  return c.body(null, 204);
+});
+
 listRoutes.openapi(editRoute, async (c) => {
   const { listItemId } = c.req.valid("param");
   const edited = await editListItem(
@@ -587,14 +748,14 @@ const listErrorStatus = {
 } as const;
 
 listRoutes.openapi(listsRoute, async (c) => {
-  return c.json({ lists: await listPreviews(c.var.db, c.var.userId, c.var.now) }, 200);
+  return c.json(await listPreviews(c.var.db, c.var.userId, c.var.now), 200);
 });
 
 listRoutes.openapi(mediaItemListsRoute, async (c) => {
   const { mediaItemId } = c.req.valid("param");
-  const lists = await mediaItemLists(c.var.db, c.var.userId, mediaItemId, c.var.now);
-  if (!lists) return c.json({ error: "unknown_media_item" }, 404);
-  return c.json({ lists }, 200);
+  const held = await mediaItemLists(c.var.db, c.var.userId, mediaItemId, c.var.now);
+  if (!held) return c.json({ error: "unknown_media_item" }, 404);
+  return c.json(held, 200);
 });
 
 listRoutes.openapi(createListRoute, async (c) => {

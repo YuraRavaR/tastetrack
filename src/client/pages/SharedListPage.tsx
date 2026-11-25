@@ -1,15 +1,18 @@
-import { LayoutGrid, Link2Off } from "lucide-react";
+import { Heart, LayoutGrid, Link2Off } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import type { SharedList } from "../../shared/api";
 import * as api from "../api";
 import { useAuth } from "../auth";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
+import { factsOf, Place, rankedName } from "../components/FavouriteRow";
 import { NoteBubble } from "../components/NoteBubble";
+import { Poster } from "../components/Poster";
 import { collectionMeta, gridByline, PosterGridItem } from "../components/PosterGridItem";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { usePageTitle } from "../navigation/page-title";
+import { itemPath } from "../navigation/paths";
 
 type SharedListState =
   | { status: "loading" }
@@ -35,7 +38,8 @@ function titleNames(state: SharedListState): string[] | null {
 
 // The List behind a Share Link, for anyone holding it, logged in or not: its title, description,
 // owner and items in order with their Notes, as a grid of posters, and nothing more: under a book,
-// its first author and year. A poster opens its item's page only for a logged-in viewer, the one
+// its first author and year. Favourites are a ranked list instead, each item in a card with its
+// place, photo, facts and Note (`docs/mockups/artists/`). A poster opens its item's page only for a logged-in viewer, the one
 // who can see that page. A link that doesn't work says so the same way whether it was revoked,
 // replaced or never existed. A visitor without a session is told how to get an account.
 export function SharedListPage() {
@@ -84,6 +88,13 @@ export function SharedListPage() {
           {mediaWord(list.mediaType, "collection")}
         </p>
         <h1 className="break-words font-bold text-3xl leading-tight tracking-tight md:text-[2.5rem]">
+          {/* Inline, so that a long name still breaks beside it. */}
+          {list.favourites && (
+            <Heart
+              aria-hidden
+              className="mr-2 inline-block size-7 fill-current align-[-0.15em] text-primary-strong md:size-9"
+            />
+          )}
           {list.title}
         </h1>
         {list.description && (
@@ -107,6 +118,43 @@ export function SharedListPage() {
       </div>
       {list.items.length === 0 ? (
         <p className="text-muted-foreground text-sm">{mediaWord(list.mediaType, "sharedEmpty")}</p>
+      ) : list.favourites ? (
+        <ol aria-label={list.title} className="grid gap-3 md:grid-cols-2 md:gap-4">
+          {list.items.map((item, index) => {
+            const mediaItem = fill.filled(item.mediaItem);
+            const name = rankedName(mediaItem);
+            const facts = factsOf(mediaItem);
+            return (
+              <li
+                key={item.position}
+                className="relative flex items-center gap-3.5 rounded-xl border bg-card p-3.5 md:p-4"
+              >
+                <Place place={index + 1} className="w-9 font-extrabold text-[26px]" />
+                <Poster subject={mediaItem} size="rankedShared" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  {authStatus === "authenticated" ? (
+                    <Link
+                      to={itemPath(mediaItem.id)}
+                      className="break-words font-semibold text-[17px] underline-offset-4 after:absolute after:inset-0 hover:underline focus-visible:underline"
+                    >
+                      {name}
+                    </Link>
+                  ) : (
+                    <span className="break-words font-semibold text-[17px]">{name}</span>
+                  )}
+                  {facts && (
+                    <span className="break-words text-muted-foreground text-sm">{facts}</span>
+                  )}
+                  {item.note && (
+                    <p className="mt-1 whitespace-pre-line break-words rounded-lg bg-muted px-3 py-2 text-[15px]">
+                      {item.note}
+                    </p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       ) : (
         <ol
           aria-label={list.title}

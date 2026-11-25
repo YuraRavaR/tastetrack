@@ -1026,6 +1026,37 @@ export const en = {
   "artist.albums": "Albums and EPs",
   "artist.ep": "EP",
   "artist.noAlbums": "MusicBrainz has no albums or EPs by this artist yet.",
+  // Favourite artists: the ♥ that Likes an artist, and the system List of those liked, ranked by
+  // their order (ADR-0005, `docs/mockups/artists/`). Places are ordinals: "1st", "4th".
+  "artist.like": "Favourite",
+  "artist.liked": "In Favourites",
+  "artist.likeFailed": "Couldn't update your Favourite artists. Please try again.",
+  "artist.favouritesFull": "Favourite artists is full ({max, number}). Remove one first.",
+  "artist.favourites": "Favourite artists",
+  "artist.favouritesPlace":
+    "{place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {count, number}",
+  "artist.favouritesStatus":
+    "Favourites · {place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+  "artist.ranked": "Ranked",
+  "artist.notKept": "Not in Favourites or any of your Collections yet.",
+  "artist.collectionsEmpty":
+    "Rank your Favourite artists, or gather them into Collections, like Bands to show a friend",
+  "artist.findArtists": "Find artists",
+  "artist.favouritesLoading": "Loading your Favourite artists…",
+  "artist.favouritesUnavailable": "Couldn't load your Favourite artists. Please try again.",
+  "artist.favouritesNone": "No Favourite artists yet. Tap ♥ on an artist to add them.",
+  "artist.favouritesActions": "Favourite artists actions",
+  "artist.favouritesFixed":
+    "Favourite artists can’t be renamed or deleted. Take an artist out with ♥ on their page.",
+  "artist.favouritesFullNotice":
+    "Favourite artists is full ({max, number}). Remove one first, then ♥ another artist.",
+  "artist.editDescription": "Edit description",
+  "artist.descriptionHint": "Optional. Leave it empty to remove the description.",
+  "artist.description": "Description",
+  "artist.moveUp": "Move {name} up",
+  "artist.moveDown": "Move {name} down",
+  "artist.unlike": "Remove from Favourites",
+  "artist.removed": "Removed {name} from Favourite artists.",
   "poster.caption.popcorn": "Eaten with the popcorn.",
   "poster.caption.ghost": "This poster is a ghost.",
   "poster.caption.makeup": "Still in makeup.",

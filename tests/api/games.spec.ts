@@ -510,6 +510,7 @@ test("anyone with the link sees a List of games: covers, titles, years and Notes
     title: "Zone and the Path",
     description: null,
     mediaType: "game",
+    favourites: false,
     owner: { displayName: loggedInUser.username },
     items: [
       { mediaItem: first, position: 0, note: "Start here." },
@@ -577,6 +578,7 @@ test("a User adds a game by hand with a title, an Original Title and a year", as
       mediaItem,
       inLog: false,
       inBacklog: false,
+      inFavourites: false,
       currentRating: null,
       logEntryCount: 0,
       lists: [],

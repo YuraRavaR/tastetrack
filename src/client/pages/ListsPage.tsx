@@ -1,31 +1,33 @@
-import { LayoutGrid, Plus } from "lucide-react";
+import { LayoutGrid, Plus, Search } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { ListPreview } from "../../shared/api";
+import type { ListsResponse } from "../../shared/api";
 import { isLight } from "../../shared/catalog";
 import * as api from "../api";
-import { listsMediaTypes } from "../catalog/media-types";
+import { can, listsMediaTypes, mediaTypeIcon } from "../catalog/media-types";
 import { useMediaTypeParam } from "../catalog/use-media-type-param";
 import { EmptyState } from "../components/EmptyState";
-import { ListCard } from "../components/ListCard";
+import { FavouritesCard, ListCard } from "../components/ListCard";
 import { ListFormDialog } from "../components/ListFormDialog";
 import { MediaTypeChips } from "../components/MediaTypeChips";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { usePageTitle } from "../navigation/page-title";
-import { listPath } from "../navigation/paths";
+import { listPath, searchPathOf } from "../navigation/paths";
 
 type ListsState =
   | { status: "loading" }
-  | { status: "loaded"; lists: ListPreview[] }
+  | ({ status: "loaded" } & ListsResponse)
   | { status: "failed" };
 
 // Collections: the User's own Lists of the Media Type the chips are on, which `?type=` names,
 // oldest first, as cards with a collage of their first covers, and the way to make a new one of
-// that type, which then opens. With none yet, the quiet empty state offers the same; for songs,
-// which only Collections hold, it says what they are for (`docs/mockups/songs/`).
+// that type, which then opens. Their Favourites of the type, once they have liked one, comes first,
+// as Favourite artists does (`docs/mockups/artists/`). With none yet, the quiet empty state offers
+// the same; for songs, which only Collections hold, it says what they are for
+// (`docs/mockups/songs/`), and for artists, it offers Find artists too.
 export function ListsPage() {
   const headingId = useId();
   const [state, setState] = useState<ListsState>({ status: "loading" });
@@ -37,7 +39,7 @@ export function ListsPage() {
   useEffect(() => {
     let cancelled = false;
     api.fetchLists().then(
-      (lists) => !cancelled && setState({ status: "loaded", lists }),
+      (read) => !cancelled && setState({ status: "loaded", ...read }),
       () => !cancelled && setState({ status: "failed" }),
     );
     return () => {
@@ -47,7 +49,12 @@ export function ListsPage() {
 
   const lists =
     state.status === "loaded" ? state.lists.filter((list) => list.mediaType === mediaType) : [];
-  const noLists = state.status === "loaded" && lists.length === 0;
+  const favourites =
+    state.status === "loaded"
+      ? state.favourites.find((each) => each.mediaType === mediaType)
+      : undefined;
+  const noLists = state.status === "loaded" && lists.length === 0 && !favourites;
+  const likeable = can(mediaType, "like");
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
@@ -81,16 +88,36 @@ export function ListsPage() {
       )}
       {noLists && (
         <EmptyState
-          icon={LayoutGrid}
-          message={isLight(mediaType) ? mediaWord(mediaType, "collectionNew") : t("lists.empty")}
-          action={{ label: t("lists.new"), onClick: () => setCreating(true) }}
+          icon={likeable ? mediaTypeIcon(mediaType) : LayoutGrid}
+          message={
+            likeable
+              ? t("artist.collectionsEmpty")
+              : isLight(mediaType)
+                ? mediaWord(mediaType, "collectionNew")
+                : t("lists.empty")
+          }
+          action={
+            likeable
+              ? { label: t("artist.findArtists"), icon: Search, to: searchPathOf(mediaType) }
+              : { label: t("lists.new"), onClick: () => setCreating(true) }
+          }
+          secondaryAction={
+            likeable
+              ? { label: t("lists.new"), icon: Plus, onClick: () => setCreating(true) }
+              : undefined
+          }
         />
       )}
-      {lists.length > 0 && (
+      {(lists.length > 0 || favourites) && (
         <ul
           aria-labelledby={headingId}
           className="grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] md:gap-x-5 md:gap-y-7"
         >
+          {favourites && (
+            <li>
+              <FavouritesCard favourites={favourites} />
+            </li>
+          )}
           {lists.map((list) => (
             <li key={list.id}>
               <ListCard list={list} />

@@ -21,6 +21,11 @@ export const endpoints = {
     mediaItemLists: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/lists`,
     mediaItemThoughts: (mediaItemId: number) => `/api/catalog/items/${mediaItemId}/thoughts`,
   },
+  favourites: {
+    collection: "/api/favourites",
+    items: "/api/favourites/items",
+    itemByMediaItem: (mediaItemId: number) => `/api/favourites/items/${mediaItemId}`,
+  },
   inProgress: {
     collection: "/api/in-progress",
     byMediaItem: (mediaItemId: number) => `/api/in-progress/${mediaItemId}`,

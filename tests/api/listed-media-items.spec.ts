@@ -39,6 +39,7 @@ test("a film on two Lists comes once, with both Lists oldest first", async ({ lo
         { id: horror.id, name: "Horror nights" },
         { id: scifi.id, name: "Sci-fi" },
       ],
+      favouritePosition: null,
     },
   ]);
 });
@@ -62,7 +63,7 @@ test("another User's Lists never appear", async ({ loggedInApi, otherUserClient 
   await addToList(otherUserClient, theirList.id, mine.id);
 
   expect(await theListedFilms(loggedInApi)).toEqual([
-    { mediaItem: mine, lists: [{ id: myList.id, name: "Horror nights" }] },
+    { mediaItem: mine, lists: [{ id: myList.id, name: "Horror nights" }], favouritePosition: null },
   ]);
 });
 

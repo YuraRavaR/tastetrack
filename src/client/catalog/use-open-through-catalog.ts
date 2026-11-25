@@ -9,7 +9,13 @@ import { itemPath } from "../navigation/paths";
 // the External Reference, so the rest stands in only when that call fails.
 type UnmarkedResult = Omit<
   CatalogSearchResult,
-  "mediaItemId" | "inLog" | "inBacklog" | "currentRating" | "logEntryCount" | "lists"
+  | "mediaItemId"
+  | "inLog"
+  | "inBacklog"
+  | "inFavourites"
+  | "currentRating"
+  | "logEntryCount"
+  | "lists"
 >;
 
 // The work as a search result that is in neither the catalog nor any of the User's Lists.
@@ -19,6 +25,7 @@ export function withNoMarks(result: UnmarkedResult): CatalogSearchResult {
     mediaItemId: null,
     inLog: false,
     inBacklog: false,
+    inFavourites: false,
     currentRating: null,
     logEntryCount: 0,
     lists: [],

@@ -26,7 +26,9 @@ describe.each(BacklogMediaType.options)("the %s Backlog's name", (mediaType) => 
   });
 
   it("is what a shared Backlog is called", () => {
-    expect(sharedListTitle(null, mediaType, "Olena")).toBe(`Olena's ${backlogName}`);
+    expect(sharedListTitle({ kind: "backlog", name: null, mediaType }, "Olena")).toBe(
+      `Olena's ${backlogName}`,
+    );
   });
 });
 

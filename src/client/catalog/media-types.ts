@@ -55,9 +55,9 @@ export const savedMediaTypes: readonly BacklogMediaType[] = [
   "album",
 ];
 
-// What a User does to keep a Media Item: marks it Planned, logs it, puts it in Collections, or
-// adds one by hand.
-export type Keeping = "plan" | "log" | "collect" | "addByHand";
+// What a User does to keep a Media Item: marks it Planned, logs it, puts it in Collections, Likes
+// it into their Favourites, or adds one by hand.
+export type Keeping = "plan" | "log" | "collect" | "like" | "addByHand";
 
 // What a User can do with Media Items of each type so far.
 const keepings: Record<MediaType, readonly Keeping[]> = {
@@ -68,8 +68,8 @@ const keepings: Record<MediaType, readonly Keeping[]> = {
   album: ["plan", "log", "collect", "addByHand"],
   // A song lives only in Collections (ADR-0005).
   song: ["collect", "addByHand"],
-  // An artist too, and in Favourites (#303).
-  artist: ["collect", "addByHand"],
+  // An artist too, and in their Favourites (ADR-0005).
+  artist: ["collect", "like", "addByHand"],
 };
 
 export function can(mediaType: MediaType, keeping: Keeping): boolean {

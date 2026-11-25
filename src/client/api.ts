@@ -3,6 +3,9 @@ import type {
   CatalogSearchResponse,
   CatalogSearchResult,
   ErrorResponse,
+  Favourites,
+  FavouritesMediaType,
+  FavouritesResponse,
   FinishRequest,
   InProgressEditRequest,
   InProgressResponse,
@@ -20,7 +23,6 @@ import type {
   ListItemEditRequest,
   ListItemResponse,
   ListNameTakenResponse,
-  ListPreview,
   ListResponse,
   ListSummary,
   ListSummaryResponse,
@@ -32,7 +34,6 @@ import type {
   ManualMediaItemResponse,
   ManualSearchResult,
   MediaItem,
-  MediaItemList,
   MediaItemListsResponse,
   MediaItemResponse,
   MediaItemsResponse,
@@ -665,19 +666,77 @@ export async function removeListItem(listItemId: number): Promise<boolean> {
 }
 
 // The User's own Lists, oldest first, each with its first covers and whether it is shared.
-export async function fetchLists(): Promise<ListPreview[]> {
+// The User's own Lists, and their Favourites of each Media Type they have liked one of.
+export async function fetchLists(): Promise<ListsResponse> {
   const response = await fetch("/api/lists");
   if (!response.ok) throw new Error(`Loading the Lists failed: ${response.status}`);
-  return ((await response.json()) as ListsResponse).lists;
+  return (await response.json()) as ListsResponse;
 }
 
 // The User's Lists, each with the List Item holding the Media Item there or null; null when
 // there is no such Media Item.
-export async function fetchMediaItemLists(mediaItemId: number): Promise<MediaItemList[] | null> {
+export async function fetchMediaItemLists(
+  mediaItemId: number,
+): Promise<MediaItemListsResponse | null> {
   const response = await fetch(`/api/catalog/items/${mediaItemId}/lists`);
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Loading the film's Lists failed: ${response.status}`);
-  return ((await response.json()) as MediaItemListsResponse).lists;
+  return (await response.json()) as MediaItemListsResponse;
+}
+
+// The User's Favourites of a Media Type, null before their first Like.
+export async function fetchFavourites(mediaType: FavouritesMediaType): Promise<Favourites | null> {
+  const response = await fetch(`/api/favourites?${new URLSearchParams({ mediaType })}`);
+  if (!response.ok) throw new Error(`Loading the Favourites failed: ${response.status}`);
+  return ((await response.json()) as FavouritesResponse).favourites;
+}
+
+export type LikeResult =
+  | { ok: true; listItem: ListItem }
+  | { ok: false; error: "favourites_full" | "unavailable" };
+
+// Likes a Media Item, putting it at the end of the User's Favourites of its Media Type.
+export async function like(mediaItemId: number): Promise<LikeResult> {
+  try {
+    const response = await fetch("/api/favourites/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mediaItemId }),
+    });
+    if (response.ok) {
+      return { ok: true, listItem: ((await response.json()) as ListItemResponse).listItem };
+    }
+    return { ok: false, error: response.status === 409 ? "favourites_full" : "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+// Takes a Like back. A Media Item that wasn't liked counts as done.
+export async function unlike(mediaItemId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/favourites/items/${mediaItemId}`, { method: "DELETE" });
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+// Changes the description of the User's Favourites of a Media Type; false when that failed.
+export async function editFavourites(
+  mediaType: FavouritesMediaType,
+  description: string | null,
+): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/favourites?${new URLSearchParams({ mediaType })}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 // One of the User's Lists, or null when they have no such List.

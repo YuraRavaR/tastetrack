@@ -38,6 +38,7 @@ export function foundManual(mediaItem: MediaItem): Found {
     mediaItem,
     inLog: false,
     inBacklog: false,
+    inFavourites: false,
     currentRating: null,
     logEntryCount: 0,
     lists: [],

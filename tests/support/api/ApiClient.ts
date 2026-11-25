@@ -2,6 +2,7 @@ import type { APIRequestContext } from "@playwright/test";
 import { AuthController } from "./controllers/AuthController";
 import { BacklogController } from "./controllers/BacklogController";
 import { CatalogController } from "./controllers/CatalogController";
+import { FavouritesController } from "./controllers/FavouritesController";
 import { InProgressController } from "./controllers/InProgressController";
 import { InviteCodesController } from "./controllers/InviteCodesController";
 import { LibraryController } from "./controllers/LibraryController";
@@ -19,6 +20,7 @@ export class ApiClient {
   readonly auth: AuthController;
   readonly backlog: BacklogController;
   readonly catalog: CatalogController;
+  readonly favourites: FavouritesController;
   readonly inProgress: InProgressController;
   readonly inviteCodes: InviteCodesController;
   readonly library: LibraryController;
@@ -34,6 +36,7 @@ export class ApiClient {
     this.auth = new AuthController(requestContext);
     this.backlog = new BacklogController(requestContext);
     this.catalog = new CatalogController(requestContext);
+    this.favourites = new FavouritesController(requestContext);
     this.inProgress = new InProgressController(requestContext);
     this.inviteCodes = new InviteCodesController(requestContext);
     this.library = new LibraryController(requestContext);

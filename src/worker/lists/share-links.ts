@@ -142,6 +142,7 @@ function firstCoverRef(now: Date) {
 function selectHead(db: DrizzleD1Database, token: string, now: Date) {
   return db
     .select({
+      kind: lists.kind,
       name: lists.name,
       description: lists.description,
       mediaType: lists.mediaType,
@@ -156,9 +157,9 @@ function selectHead(db: DrizzleD1Database, token: string, now: Date) {
 
 type HeadRow = Awaited<ReturnType<typeof selectHead>>[number];
 
-function toHead({ name, ownerDisplayName, coverRef, ...rest }: HeadRow): SharedListHead {
+function toHead({ kind, name, ownerDisplayName, coverRef, ...rest }: HeadRow): SharedListHead {
   return {
-    title: sharedListTitle(name, rest.mediaType, ownerDisplayName),
+    title: sharedListTitle({ kind, name, mediaType: rest.mediaType }, ownerDisplayName),
     ownerDisplayName,
     posterUrl: sourceOf(rest.mediaType).coverUrls(coverRef)?.large ?? null,
     ...rest,
@@ -177,8 +178,8 @@ export async function sharedListHead(
 }
 
 // The List behind a Share Link as anyone may see it, in two queries however long it is: its
-// title, description, owner's Display Name and items with their Notes, and nothing of the owner's
-// Log. Null for a token that is unknown, revoked or replaced.
+// title, description, whether it is Favourites, owner's Display Name and items with their Notes,
+// and nothing of the owner's Log. Null for a token that is unknown, revoked or replaced.
 export async function sharedList(
   db: DrizzleD1Database,
   token: string,
@@ -201,6 +202,7 @@ export async function sharedList(
     title,
     description,
     mediaType,
+    favourites: row.kind === "favourites",
     owner: { displayName: ownerDisplayName },
     items: rows.map((item, index) => {
       return { mediaItem: toMediaItem(item), position: index, note: item.note };

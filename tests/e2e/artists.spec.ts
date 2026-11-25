@@ -99,7 +99,7 @@ test("an empty field on Artists asks for an artist or a band", async ({ loggedIn
   await expect(searchPage.currentChip("Artists")).toBeVisible();
 });
 
-test("an artist's row shows their initials, type, country and years, their disambiguation quietly, and one button", async ({
+test("an artist's row shows their initials, type, country and years, their disambiguation quietly, ♥ and Add to collection", async ({
   loggedInUi: ui,
 }) => {
   const { searchPage } = ui;
@@ -116,8 +116,8 @@ test("an artist's row shows their initials, type, country and years, their disam
     "font-style",
     "italic",
   );
-  // One button: an artist is only collected.
-  await expect(singer.actionButtons).toHaveText(["Add to collection"]);
+  // An artist is only liked or collected.
+  await expect(singer.actionButtons).toHaveText(["Favourite", "Add to collection"]);
   const band = results.result("Alice Cooper", "the band");
   await expect(band.text("Group · United States · 1964–1975")).toBeVisible();
   await expect(searchPage.main).not.toContainText(libraryWording);
@@ -277,7 +277,7 @@ test("an artist with no photo shows their initials and no blurred copy, and one 
   await expect(filmPage.photoCreditLink).toHaveCount(0);
   await expect(filmPage.text("Group · United Kingdom · 1967–")).toBeVisible();
   await expect(filmPage.text("60s band from the UK")).toHaveCSS("font-style", "italic");
-  await expect(filmPage.notInCollectionsMessage).toBeVisible();
+  await expect(filmPage.notKeptMessage).toBeVisible();
   await expect(filmPage.noAlbumsMessage).toBeVisible();
 });
 
@@ -412,7 +412,9 @@ test("a User makes a Collection of artists from its empty state and fills it, ro
   await listsPage.goto("artist");
 
   await expect(
-    listsPage.text("Gather artists into Collections, like Bands to show a friend"),
+    listsPage.text(
+      "Rank your Favourite artists, or gather them into Collections, like Bands to show a friend",
+    ),
   ).toBeVisible();
   await listsPage.emptyStateNewListButton.click();
   await listsPage.newListDialog.nameInput.fill("Bands to show a friend");
@@ -435,29 +437,26 @@ test("a User makes a Collection of artists from its empty state and fills it, ro
   ).toHaveText("СЗ");
 });
 
-// Besides its User, this journey writes one List and one List Item, and the artist's Media Item
-// and cache entry where no one has added them yet (ADR-0006). On staging it searches the real
-// MusicBrainz and Wikimedia: no other smoke test covers the artist search.
-test("search for an artist and add them to a Collection", {
+// Besides its User, this journey writes one List, Favourite artists, and one List Item, and the
+// artist's Media Item and cache entry where no one has added them yet (ADR-0006). On staging it
+// searches the real MusicBrainz and Wikimedia: no other smoke test covers the artist search or
+// Favourites.
+test("search for an artist and add them to Favourites", {
   tag: "@smoke",
 }, async ({ page, loggedInUi: ui }) => {
-  const { searchPage, listsPage, listPage } = ui;
+  const { searchPage, listsPage, favouritesPage } = ui;
   await searchPage.goto();
   await searchPage.mediaTypeChip("Artists").click();
   await searchPage.search("Океан Ельзи");
   // By their name and type alone: real MusicBrainz may change the rest.
   const result = searchPage.musicBrainzResults.result("Океан Ельзи", "Group");
 
-  await result.addToListButton.click();
-  await searchPage.filmListsDialog("Океан Ельзи").createAndAdd("Bands to show a friend");
+  await result.favouriteButton.click();
 
-  await expect(
-    searchPage.filmListsDialog("Океан Ельзи").checkbox("Bands to show a friend"),
-  ).toBeChecked();
-  await searchPage.filmListsDialog("Океан Ельзи").done();
+  await expect(result.inFavouritesButton).toBeVisible();
   await searchPage.mainNav.link("Collections").click();
   await listsPage.artistsChip.click();
-  await listsPage.listLink("Bands to show a friend").click();
-  await expect(page).toHaveURL(/\/collections\/\d+$/);
-  await expect(listPage.items("Bands to show a friend")).toHaveText([/^1?Океан Ельзи\s*Group/]);
+  await listsPage.listLink("Favourite artists").click();
+  await expect(page).toHaveURL(favouritesPage.path());
+  await expect(favouritesPage.rows).toHaveText([/^1Океан Ельзи\s*Group/]);
 });

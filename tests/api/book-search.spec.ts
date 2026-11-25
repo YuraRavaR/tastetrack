@@ -38,6 +38,7 @@ test("a Cyrillic query on Books finds the Ukrainian work first, with its authors
     authors: ["Іван Багряний"],
     inLog: false,
     inBacklog: false,
+    inFavourites: false,
     currentRating: null,
     logEntryCount: 0,
     lists: [],

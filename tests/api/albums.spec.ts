@@ -87,6 +87,7 @@ test("searching albums finds the album before the EP of one title, with its cove
     secondaryTypes: [],
     inLog: false,
     inBacklog: false,
+    inFavourites: false,
   });
   expect(ids(results)).toContain(jamala1944EpId);
   expect(
@@ -588,6 +589,7 @@ test("anyone with the link sees a List of albums: covers, titles, artists and No
     title: "For the road",
     description: null,
     mediaType: "album",
+    favourites: false,
     owner: { displayName: loggedInUser.username },
     items: [
       { mediaItem: first, position: 0, note: "Loud." },
@@ -657,6 +659,7 @@ test("a User adds an album by hand with a title, an Original Title, its artists 
       mediaItem,
       inLog: false,
       inBacklog: false,
+      inFavourites: false,
       currentRating: null,
       logEntryCount: 0,
       lists: [],

@@ -51,6 +51,8 @@ export class ListsPage extends BasePage<[mediaType?: ListsMediaType]> {
     this.page.getByRole("dialog", { name: "New collection" }),
   );
   readonly lists = this.main.getByRole("list", { name: "Collections" }).getByRole("listitem");
+  // On Artists with nothing kept yet: the empty state's way to Search.
+  readonly findArtistsLink = this.main.getByRole("link", { name: "Find artists" });
 
   // Any text on the page, such as what the empty state says.
   text(content: string) {

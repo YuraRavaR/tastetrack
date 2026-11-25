@@ -88,6 +88,7 @@ test("anyone with the link sees the List, its Notes and the owner's Display Name
       title: "Space horror",
       description: "Lights off.",
       mediaType: "film",
+      favourites: false,
       owner: { displayName: loggedInUser.username },
       items: [
         { mediaItem: first, position: 0, note: "Start here." },
@@ -215,6 +216,7 @@ test('a User shares their Backlog, titled "<Display Name>\'s Watchlist"', async 
       title: `${loggedInUser.username}'s Watchlist`,
       description: null,
       mediaType: "film",
+      favourites: false,
       owner: { displayName: loggedInUser.username },
       items: [{ mediaItem: film, position: 0, note: "Soon." }],
     },
@@ -276,6 +278,7 @@ test("anyone with the link sees a List of books: covers, titles, authors and Not
     title: "Ukrainian prose",
     description: null,
     mediaType: "book",
+    favourites: false,
     owner: { displayName: loggedInUser.username },
     items: [
       { mediaItem: first, position: 0, note: "Start here." },
