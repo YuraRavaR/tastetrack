@@ -270,9 +270,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
       ? { ok: false, error: "unavailable" }
       : adding
         ? await api.like(mediaItem.id)
-        : (await api.unlike(mediaItem.id))
-          ? { ok: true }
-          : { ok: false, error: "unavailable" };
+        : await api.unlike(mediaItem.id);
     setLikingOf(found, false);
     if (!outcome.ok) {
       setLikeError({ key: foundKey(found), error: outcome.error });

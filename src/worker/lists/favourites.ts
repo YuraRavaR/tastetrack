@@ -17,12 +17,14 @@ import { visibleTo } from "../catalog/media-items";
 import { appendListItem, listOrder, ownListItem, selectListItems, toListItem } from "./list-items";
 import { shareLinkOf } from "./share-links";
 
+// The User's Favourites of every Media Type.
+function anyFavourites(userId: number) {
+  return and(eq(lists.userId, userId), eq(lists.kind, "favourites"));
+}
+
+// The User's Favourites of one Media Type.
 function favouritesOf(userId: number, mediaType: MediaType) {
-  return and(
-    eq(lists.userId, userId),
-    eq(lists.kind, "favourites"),
-    eq(lists.mediaType, mediaType),
-  );
+  return and(anyFavourites(userId), eq(lists.mediaType, mediaType));
 }
 
 // The User's Favourites of the Media Type, its Share Link at `origin` while it has one, and its
@@ -78,14 +80,7 @@ export async function like(
     const [found] = await db
       .select({ favouritesId: lists.id, mediaType: mediaItems.mediaType })
       .from(mediaItems)
-      .leftJoin(
-        lists,
-        and(
-          eq(lists.userId, userId),
-          eq(lists.kind, "favourites"),
-          eq(lists.mediaType, mediaItems.mediaType),
-        ),
-      )
+      .leftJoin(lists, and(anyFavourites(userId), eq(lists.mediaType, mediaItems.mediaType)))
       .where(and(eq(mediaItems.id, mediaItemId), visibleTo(userId)));
     return found;
   };
@@ -129,10 +124,7 @@ export async function unlike(
         eq(listItems.mediaItemId, mediaItemId),
         inArray(
           listItems.listId,
-          db
-            .select({ id: lists.id })
-            .from(lists)
-            .where(and(eq(lists.userId, userId), eq(lists.kind, "favourites"))),
+          db.select({ id: lists.id }).from(lists).where(anyFavourites(userId)),
         ),
       ),
     )
@@ -167,12 +159,6 @@ export async function likedMediaItems(
     .select({ mediaItemId: listItems.mediaItemId })
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(
-      and(
-        eq(lists.userId, userId),
-        eq(lists.kind, "favourites"),
-        inArray(listItems.mediaItemId, mediaItemIds),
-      ),
-    );
+    .where(and(anyFavourites(userId), inArray(listItems.mediaItemId, mediaItemIds)));
   return new Set(rows.map((row) => row.mediaItemId));
 }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { MediaItem, MediaItemFavourites, MediaItemList } from "../../shared/api";
 import * as api from "../api";
-import { filmLabel, filmName } from "../catalog/film-label";
+import { mediaItemLabel } from "../catalog/artist-label";
 import { can } from "../catalog/media-types";
 import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
@@ -32,12 +32,7 @@ export function MediaItemCollections({ mediaItem }: { mediaItem: MediaItem }) {
   const headingId = useId();
   const { mediaType } = mediaItem;
   const centred = mediaType === "song";
-  // An artist is named without their year, which is when they began.
-  const label = !mediaItem.metadata
-    ? mediaWord(mediaType, "unknown")
-    : mediaType === "artist"
-      ? filmName(mediaItem.metadata)
-      : filmLabel(mediaItem.metadata);
+  const label = mediaItemLabel(mediaItem);
   const [state, setState] = useState<HoldingState>({ status: "loading" });
   const [listing, setListing] = useState<ListsFilm | null>(null);
   const likeable = can(mediaType, "like");
@@ -65,11 +60,7 @@ export function MediaItemCollections({ mediaItem }: { mediaItem: MediaItem }) {
   async function toggleLiked() {
     setLiking(true);
     setLikeError(null);
-    const outcome = liked
-      ? (await api.unlike(mediaItem.id))
-        ? ({ ok: true } as const)
-        : ({ ok: false, error: "unavailable" } as const)
-      : await api.like(mediaItem.id);
+    const outcome = liked ? await api.unlike(mediaItem.id) : await api.like(mediaItem.id);
     if (!outcome.ok) setLikeError(outcome.error);
     await load();
     setLiking(false);

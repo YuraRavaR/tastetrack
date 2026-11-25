@@ -1,7 +1,7 @@
 // The logged-in User's Backlog, Favourites and own Lists: reading them, marking Media Items Planned
-// and taking them off again, Liking them and taking the Like back, making, renaming and deleting Lists and adding to them, reordering, noting and
-// removing List Items, and sharing any of them through a Share Link, which anyone can open without
-// logging in.
+// and taking them off again, Liking them and taking the Like back, making, renaming and deleting
+// Lists and adding to them, reordering, noting and removing List Items, and sharing any of them
+// through a Share Link, which anyone can open without logging in.
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
   BacklogQuery,

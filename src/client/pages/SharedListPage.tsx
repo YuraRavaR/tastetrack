@@ -4,8 +4,9 @@ import { Link, useParams } from "react-router";
 import type { SharedList } from "../../shared/api";
 import * as api from "../api";
 import { useAuth } from "../auth";
+import { mediaItemFacts, mediaItemLabel } from "../catalog/artist-label";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
-import { factsOf, Place, rankedName } from "../components/FavouriteRow";
+import { Place } from "../components/FavouriteRow";
 import { NoteBubble } from "../components/NoteBubble";
 import { Poster } from "../components/Poster";
 import { collectionMeta, gridByline, PosterGridItem } from "../components/PosterGridItem";
@@ -39,9 +40,10 @@ function titleNames(state: SharedListState): string[] | null {
 // The List behind a Share Link, for anyone holding it, logged in or not: its title, description,
 // owner and items in order with their Notes, as a grid of posters, and nothing more: under a book,
 // its first author and year. Favourites are a ranked list instead, each item in a card with its
-// place, photo, facts and Note (`docs/mockups/artists/`). A poster opens its item's page only for a logged-in viewer, the one
-// who can see that page. A link that doesn't work says so the same way whether it was revoked,
-// replaced or never existed. A visitor without a session is told how to get an account.
+// place, photo, facts and Note (`docs/mockups/artists/`). A poster opens its item's page only for a
+// logged-in viewer, the one who can see that page. A link that doesn't work says so the same way
+// whether it was revoked, replaced or never existed. A visitor without a session is told how to get
+// an account.
 export function SharedListPage() {
   const token = useParams().token ?? "";
   const authStatus = useAuth().state.status;
@@ -122,8 +124,8 @@ export function SharedListPage() {
         <ol aria-label={list.title} className="grid gap-3 md:grid-cols-2 md:gap-4">
           {list.items.map((item, index) => {
             const mediaItem = fill.filled(item.mediaItem);
-            const name = rankedName(mediaItem);
-            const facts = factsOf(mediaItem);
+            const name = mediaItemLabel(mediaItem);
+            const facts = mediaItemFacts(mediaItem);
             return (
               <li
                 key={item.position}

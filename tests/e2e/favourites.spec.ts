@@ -3,6 +3,7 @@ import { expectBody } from "../support/api/responses";
 import {
   artist,
   kalushOrchestraId,
+  likeAll,
   okeanElzy,
   pinkFloydId,
   radiohead,
@@ -12,13 +13,6 @@ import { expect, test } from "../support/ui/fixtures";
 // Favourite artists (`docs/mockups/artists/`): the system List of the artists a User Likes,
 // ranked by its order (ADR-0005). Locally the Worker searches and looks up artists on a
 // MusicBrainz fake, and their photos on a Wikimedia fake.
-
-// Likes each artist in turn, so they are ranked in this order.
-async function likeAll(api: ApiClient, mediaItems: { id: number }[]) {
-  for (const { id } of mediaItems) {
-    await expectBody(api.favourites.like({ mediaItemId: id }), 201);
-  }
-}
 
 async function favouritesId(api: ApiClient) {
   const { favourites } = await expectBody(api.favourites.getFavourites({ mediaType: "artist" }));
@@ -147,7 +141,7 @@ test("Favourite artists can't be renamed or deleted, and keep a description", as
   await expect(favouritesPage.menu).toContainText(
     "Favourite artists can’t be renamed or deleted. Take an artist out with ♥ on their page.",
   );
-  await favouritesPage.actionItem("Edit description").click();
+  await favouritesPage.menuItem("Edit description").click();
   await favouritesPage.descriptionInput.fill("The ones I'd see live again.");
   await favouritesPage.saveDescriptionButton.click();
   await expect(favouritesPage.text("The ones I'd see live again.")).toBeVisible();

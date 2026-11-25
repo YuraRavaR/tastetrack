@@ -18,9 +18,10 @@ import type { Favourites, FavouritesMediaType, ListItem } from "../../shared/api
 import { hasFavourites } from "../../shared/catalog";
 import { maxFavourites, maxListDescriptionLength } from "../../shared/lists";
 import * as api from "../api";
+import { mediaItemLabel } from "../catalog/artist-label";
 import { useMetadataFill } from "../catalog/use-metadata-fill";
 import { EmptyState } from "../components/EmptyState";
-import { FavouriteRow, rankedName } from "../components/FavouriteRow";
+import { FavouriteRow } from "../components/FavouriteRow";
 import {
   MenuSheetContent,
   menuSheetIconClasses,
@@ -56,10 +57,10 @@ export function FavouritesPage() {
 
 // The User's Favourite artists (`docs/mockups/artists/`, "Favourite artists"): a ranked list of
 // rows, each with its place, the artist's photo, name, facts and Note, the ↑↓ arrows always there,
-// and a ⋯ that notes it or takes it out, with an undo. The ⋯ by the heading shares the Favourites or
-// edits their description; they can't be renamed or deleted. Find artists opens Search on artists,
-// and once they hold `maxFavourites`, a notice says to take one out first. After each change the
-// page reloads, so what it shows is the Worker's.
+// and a ⋯ that notes it or takes it out, with an undo. The ⋯ by the heading shares the Favourites
+// or edits their description; they can't be renamed or deleted. Find artists opens Search on
+// artists, and once they hold `maxFavourites`, a notice says to take one out first. After each
+// change the page reloads, so what it shows is the Worker's.
 function FavouritesOf({ mediaType }: { mediaType: FavouritesMediaType }) {
   const [state, setState] = useState<FavouritesState>({ status: "loading" });
   const [sharing, setSharing] = useState(false);
@@ -165,7 +166,7 @@ function FavouritesOf({ mediaType }: { mediaType: FavouritesMediaType }) {
           <div role="status" className="empty:hidden md:self-start">
             {removed && (
               <p className="flex items-center justify-between gap-2.5 rounded-xl bg-muted py-1 pr-1 pl-3.5 text-sm">
-                {t("artist.removed", { name: rankedName(removed.mediaItem) })}
+                {t("artist.removed", { name: mediaItemLabel(removed.mediaItem) })}
                 <Button
                   variant="ghost"
                   className="h-10 shrink-0 rounded-full px-3.5 font-bold text-primary-strong hover:bg-transparent hover:text-primary-strong hover:underline dark:hover:bg-transparent"

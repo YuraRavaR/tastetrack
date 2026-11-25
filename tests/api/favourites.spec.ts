@@ -16,6 +16,7 @@ import {
   artistReference,
   artistSearchResult,
   kalushOrchestraId,
+  likeAll,
   manualArtist,
   okeanElzy,
   okeanElzyId,
@@ -37,13 +38,6 @@ async function favouriteArtists(api: ApiClient) {
   const { favourites } = await expectBody(favouritesRead, 200, FavouritesResponse);
   if (!favourites) throw new Error("The User has no Favourite artists");
   return favourites;
-}
-
-// Likes each artist in turn, so they are ranked in this order.
-async function likeAll(api: ApiClient, mediaItems: { id: number }[]) {
-  for (const { id } of mediaItems) {
-    await expectBody(api.favourites.like({ mediaItemId: id }), 201);
-  }
 }
 
 function titlesOf(favourites: Favourites) {
@@ -203,7 +197,6 @@ test("Favourite artists can't be renamed or deleted, and keep a description of t
     { mediaType: "artist" },
     { description: "  The ones I'd see live again.  " },
   );
-  const reserved = loggedInApi.lists.createList({ name: "favourite ARTISTS", mediaType: "artist" });
 
   expect(await expectBody(renamed, 404)).toEqual({ error: "unknown_list" });
   expect(await expectBody(deleted, 404)).toEqual({ error: "unknown_list" });
@@ -212,7 +205,6 @@ test("Favourite artists can't be renamed or deleted, and keep a description of t
     id,
     description: "The ones I'd see live again.",
   });
-  expect(await expectBody(reserved, 400)).toEqual({ error: "list_name_reserved" });
   expect(await favouriteArtists(loggedInApi)).toMatchObject({ id, items: [{ position: 0 }] });
 });
 
@@ -358,7 +350,8 @@ test("Search marks a liked artist, and counts them among the User's artists with
 });
 
 // ADR-0009: a page loads in a fixed number of D1 queries, however much it holds, and filling what
-// the cache is missing writes it back in one. Each User has one Favourites, so each size has a User.
+// the cache is missing writes it back in one. Each User has one Favourites, so each size has a
+// User.
 test("Favourite artists of 1 and of 100 load in the same number of queries, on a cold cache", async ({
   loggedInApi,
   otherUserClient,

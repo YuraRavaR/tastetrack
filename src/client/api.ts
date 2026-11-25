@@ -665,8 +665,8 @@ export async function removeListItem(listItemId: number): Promise<boolean> {
   }
 }
 
-// The User's own Lists, oldest first, each with its first covers and whether it is shared.
-// The User's own Lists, and their Favourites of each Media Type they have liked one of.
+// The User's own Lists, oldest first, each with its first covers and whether it is shared, and
+// their Favourites of each Media Type they have liked one of, in the same form.
 export async function fetchLists(): Promise<ListsResponse> {
   const response = await fetch("/api/lists");
   if (!response.ok) throw new Error(`Loading the Lists failed: ${response.status}`);
@@ -713,12 +713,16 @@ export async function like(mediaItemId: number): Promise<LikeResult> {
 }
 
 // Takes a Like back. A Media Item that wasn't liked counts as done.
-export async function unlike(mediaItemId: number): Promise<boolean> {
+export async function unlike(
+  mediaItemId: number,
+): Promise<{ ok: true } | { ok: false; error: "unavailable" }> {
   try {
     const response = await fetch(`/api/favourites/items/${mediaItemId}`, { method: "DELETE" });
-    return response.ok || response.status === 404;
+    return response.ok || response.status === 404
+      ? { ok: true }
+      : { ok: false, error: "unavailable" };
   } catch {
-    return false;
+    return { ok: false, error: "unavailable" };
   }
 }
 

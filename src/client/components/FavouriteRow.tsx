@@ -4,29 +4,12 @@ import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { ListItem, MediaItem } from "../../shared/api";
-import { artistFacts } from "../catalog/artist-label";
-import { filmName } from "../catalog/film-label";
-import { mediaWord } from "../i18n/media-words";
+import type { ListItem } from "../../shared/api";
+import { mediaItemFacts, mediaItemLabel } from "../catalog/artist-label";
 import { t } from "../i18n/t";
 import { itemPath } from "../navigation/paths";
 import { MenuSheetContent, menuSheetIconClasses, menuSheetItemClasses } from "./MenuSheetContent";
 import { Poster } from "./Poster";
-
-// An artist's name alone, as their year is when they began.
-export function rankedName(mediaItem: MediaItem): string {
-  return mediaItem.metadata
-    ? filmName(mediaItem.metadata)
-    : mediaWord(mediaItem.mediaType, "unknown");
-}
-
-// "Group · Ukraine · 1994–" for an artist, as their Search row says it; null for another Media
-// Type, or where nothing is known.
-export function factsOf(mediaItem: MediaItem): string | null {
-  return mediaItem.mediaType === "artist" && mediaItem.metadata
-    ? artistFacts(mediaItem.metadata)
-    : null;
-}
 
 // A place in a ranking (`docs/mockups/artists/`): bold and tabular, the top three in
 // `primary-strong`.
@@ -63,8 +46,8 @@ export function FavouriteRow({
   onNote: () => void;
   onRemove: () => void;
 }) {
-  const name = rankedName(item.mediaItem);
-  const facts = factsOf(item.mediaItem);
+  const name = mediaItemLabel(item.mediaItem);
+  const facts = mediaItemFacts(item.mediaItem);
   return (
     <li className="relative flex min-h-20 items-center gap-2.5 py-2.5 pr-1.5 pl-2 md:gap-3.5 md:pl-3">
       <Place place={place} className="w-7 text-xl" />

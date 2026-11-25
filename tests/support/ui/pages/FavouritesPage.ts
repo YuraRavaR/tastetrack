@@ -50,12 +50,8 @@ export class FavouritesPage extends BasePage {
     return this.main.getByText(content);
   }
 
-  // One item of the open ⋯ menu by the heading.
-  actionItem(action: FavouritesAction) {
-    return this.menu.getByRole("menuitem", { name: action, exact: true });
-  }
-
-  rowMenuItem(action: FavouriteRowAction) {
+  // One item of the open ⋯ menu, by the heading or on a row.
+  menuItem(action: FavouritesAction | FavouriteRowAction) {
     return this.menu.getByRole("menuitem", { name: action, exact: true });
   }
 
@@ -73,13 +69,13 @@ export class FavouritesPage extends BasePage {
   @step
   async chooseAction(action: FavouritesAction): Promise<void> {
     await this.actionsButton.click();
-    await this.actionItem(action).click();
+    await this.menuItem(action).click();
   }
 
   // Opens a row's ⋯ and picks one of its actions.
   @step
   async chooseRowAction(name: string, action: FavouriteRowAction): Promise<void> {
     await this.row(name).moreButton.click();
-    await this.rowMenuItem(action).click();
+    await this.menuItem(action).click();
   }
 }

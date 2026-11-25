@@ -10,8 +10,8 @@ import { t } from "../i18n/t";
 export type LikeError = Extract<LikeResult, { ok: false }>["error"];
 
 // ♥ on an artist's search row and page (`docs/mockups/artists/`): "Favourite" as an outline, and
-// "In Favourites", filled, on `primary-soft` once liked. A refusal shows under it, in `LikeErrorLine`,
-// which `errorId` names.
+// "In Favourites", filled, on `primary-soft` once liked. A refusal shows under it, in
+// `LikeErrorLine`, which `errorId` names.
 export function LikeButton({
   liked,
   busy,

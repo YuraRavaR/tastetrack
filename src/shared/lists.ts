@@ -1,7 +1,7 @@
 // The rules of Lists and the Backlog. Pure functions and plain values with no I/O, shared by the
 // Worker, which enforces them, and the client, which keeps input within them.
 import type { BacklogMediaType, MediaType } from "./api";
-import { type FavouritesMediaType, isLight } from "./catalog";
+import { type FavouritesMediaType, hasFavourites, isLight } from "./catalog";
 import { textKey } from "./text";
 
 // Who may see a List, from least to most: each level includes the ones before it. Every List
@@ -68,15 +68,13 @@ const backlogNames: Record<BacklogMediaType, string> = {
 };
 
 // The UI's name for the Favourites of each Media Type that has them (ADR-0005).
-export const favouritesNames: Record<FavouritesMediaType, string> = {
+const favouritesNames: Record<FavouritesMediaType, string> = {
   artist: "Favourite artists",
 };
 
-// Names a List can't have, so that it can't be mistaken for a system List: the UI's name for the
-// Backlog and the Favourites of each Media Type.
-const reservedListNames = [...Object.values(backlogNames), ...Object.values(favouritesNames)].map(
-  listNameKey,
-);
+// Names a List can't have, so that it can't be mistaken for a Backlog: the UI's name for the
+// Backlog of each Media Type.
+const reservedListNames = Object.values(backlogNames).map(listNameKey);
 
 export function isReservedListName(name: string): boolean {
   return reservedListNames.includes(listNameKey(name));
@@ -97,8 +95,8 @@ export function sharedListTitle(
 ): string {
   if (name !== null) return name;
   if (kind === "favourites") {
-    if (!(mediaType in favouritesNames)) throw new Error(`${mediaType} has no Favourites`);
-    return `${ownerDisplayName}'s ${favouritesNames[mediaType as FavouritesMediaType]}`;
+    if (!hasFavourites(mediaType)) throw new Error(`${mediaType} has no Favourites`);
+    return `${ownerDisplayName}'s ${favouritesNames[mediaType]}`;
   }
   // Only a system List has no name, and a light Media Type has no Backlog.
   if (isLight(mediaType)) throw new Error(`A List of ${mediaType} has no name`);
