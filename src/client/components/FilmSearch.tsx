@@ -723,7 +723,8 @@ function SearchResult({
         <div
           className={cn(
             "relative flex shrink-0 gap-1.5 md:gap-2",
-            likeable && "basis-full md:basis-auto",
+            // Under 340 px or so the two buttons may not fit side by side, so the second wraps.
+            likeable && "basis-full flex-wrap md:basis-auto",
           )}
         >
           {can(mediaType, "log") && (
