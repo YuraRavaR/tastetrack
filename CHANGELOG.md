@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.20.0](https://github.com/YuraRavaR/tastetrack/compare/v0.19.0...v0.20.0) (2026-11-26)
+
+
+### Features
+
+* **artists:** artists in the API, kept in Collections ([#315](https://github.com/YuraRavaR/tastetrack/issues/315)) ([1d579c2](https://github.com/YuraRavaR/tastetrack/commit/1d579c276d14dd94abc96517141fd9274935d0cb))
+* **artists:** artists in the UI, kept in Collections ([#317](https://github.com/YuraRavaR/tastetrack/issues/317)) ([9d4ae19](https://github.com/YuraRavaR/tastetrack/commit/9d4ae19fef84dd58db15d785e6f1e1e2e2d5806c))
+* **artists:** favourite artists, liked, ranked and shared ([#318](https://github.com/YuraRavaR/tastetrack/issues/318)) ([eac296f](https://github.com/YuraRavaR/tastetrack/commit/eac296f9d1e390f5251784cebcf5fca0e6be6630))
+
 ## [0.19.0](https://github.com/YuraRavaR/tastetrack/compare/v0.18.0...v0.19.0) (2026-11-24)
 
 
