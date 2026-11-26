@@ -91,6 +91,7 @@ test("searching artists finds Океан Ельзи in Cyrillic and by a Latin a
     disambiguation: null,
     inLog: false,
     inBacklog: false,
+    inFavourites: false,
     currentRating: null,
     logEntryCount: 0,
     lists: [],
@@ -441,6 +442,7 @@ test("anyone with the link sees a Collection of artists, in its order, with its 
     title: "Bands to show a friend",
     description: null,
     mediaType: "artist",
+    favourites: false,
     owner: { displayName: loggedInUser.username },
     items: [
       { mediaItem: second, position: 0, note: null },
@@ -540,6 +542,7 @@ test("a User adds an artist by hand with a name and an Original Title, and no ye
       mediaItem,
       inLog: false,
       inBacklog: false,
+      inFavourites: false,
       currentRating: null,
       logEntryCount: 0,
       lists: [],

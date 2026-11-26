@@ -9,7 +9,7 @@ export class SearchResultRow extends ScopedComponent {
   readonly noCoverPlaceholder = this.root.getByRole("img", { name: "No cover" });
   // Every control but the title.
   readonly actionButtons = this.root.getByRole("button", {
-    name: /^(Mark|Watched|Read|Played|Listened|Want to|Add to)/,
+    name: /^(Mark|Watched|Read|Played|Listened|Want to|Add to|Favourite|In Favourites)/,
   });
   readonly markWatchedButton = this.root.getByRole("button", { name: "Mark watched" });
   readonly watchedAgainButton = this.root.getByRole("button", { name: "Watched again" });
@@ -42,6 +42,14 @@ export class SearchResultRow extends ScopedComponent {
     pressed: true,
   });
   readonly addToListButton = this.root.getByRole("button", { name: "Add to collection" });
+  // An artist's ♥, and the same one pressed, "In Favourites": the artist is liked. Why a Like was
+  // refused shows under it.
+  readonly favouriteButton = this.root.getByRole("button", { name: "Favourite", exact: true });
+  readonly inFavouritesButton = this.root.getByRole("button", {
+    name: "In Favourites",
+    pressed: true,
+  });
+  readonly errorMessage = this.root.getByRole("alert");
   // On a List's page: adds the film to that List, which then says so.
   readonly addButton = this.root.getByRole("button", { name: "Add", exact: true });
   readonly inThisListLabel = this.root.getByText("In this Collection");

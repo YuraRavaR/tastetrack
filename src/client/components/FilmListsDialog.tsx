@@ -79,9 +79,9 @@ type ListsState =
 async function loadLists(film: ListsFilm): Promise<ListsState> {
   try {
     const mediaItem = await film.mediaItem();
-    const lists = mediaItem && (await api.fetchMediaItemLists(mediaItem.id));
-    return mediaItem && lists
-      ? { status: "loaded", mediaItemId: mediaItem.id, lists }
+    const held = mediaItem && (await api.fetchMediaItemLists(mediaItem.id));
+    return mediaItem && held
+      ? { status: "loaded", mediaItemId: mediaItem.id, lists: held.lists }
       : { status: "failed" };
   } catch {
     return { status: "failed" };

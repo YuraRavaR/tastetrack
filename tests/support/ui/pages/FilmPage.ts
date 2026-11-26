@@ -287,6 +287,17 @@ export class FilmPage extends BasePage<[mediaItemId: number]> {
   readonly inCollections = this.main.getByRole("region", { name: "In your Collections" });
   readonly collectionRows = this.inCollections.getByRole("listitem");
   readonly notInCollectionsMessage = this.main.getByText("Not in any of your Collections yet.");
+  // An artist's: their ♥, and the same one pressed, "In Favourites", with why a Like was refused
+  // under it, and the box that says none of their Collections nor Favourites holds them.
+  readonly favouriteButton = this.main.getByRole("button", { name: "Favourite", exact: true });
+  readonly inFavouritesButton = this.main.getByRole("button", {
+    name: "In Favourites",
+    pressed: true,
+  });
+  readonly likeErrorMessage = this.main.getByRole("alert");
+  readonly notKeptMessage = this.main.getByText(
+    "Not in Favourites or any of your Collections yet.",
+  );
 
   // The cover of a Collection's row, its first Media Item's, by the Collection's name.
   collectionCover(listName: string) {

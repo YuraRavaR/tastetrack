@@ -5,7 +5,8 @@ import type { HoldingList, LibraryItem, ListedMediaItem, MediaItem } from "../..
 import { textKey } from "../../shared/text";
 import { type Found, foundMediaItemId } from "./found";
 
-// A Media Item in the User's Library or on one of their Lists: what Search's status line needs.
+// A Media Item in the User's Library, on one of their Lists or in their Favourites: what Search's
+// status line needs.
 export interface UserMediaItem {
   mediaItem: MediaItem;
   inBacklog: boolean;
@@ -14,6 +15,8 @@ export interface UserMediaItem {
   currentRating: number | null;
   // The User's own Lists holding it, oldest first. The Backlog isn't one.
   lists: HoldingList[];
+  // Its place in the User's Favourites, counted from 0, or null.
+  favouritePosition: number | null;
 }
 
 // The Media Items in the Library and on the User's Lists, each once, by title.
@@ -29,11 +32,12 @@ export function userMediaItems(
       inProgress: item.inProgress !== null,
       currentRating: item.log?.currentRating ?? null,
       lists: [],
+      favouritePosition: null,
     });
   }
-  for (const { mediaItem, lists } of listed) {
+  for (const { mediaItem, lists, favouritePosition } of listed) {
     const item = items.get(mediaItem.id);
-    if (item) item.lists = lists;
+    if (item) Object.assign(item, { lists, favouritePosition });
     else {
       items.set(mediaItem.id, {
         mediaItem,
@@ -41,6 +45,7 @@ export function userMediaItems(
         inProgress: false,
         currentRating: null,
         lists,
+        favouritePosition,
       });
     }
   }
@@ -49,12 +54,13 @@ export function userMediaItems(
 }
 
 // The one status line under a User's Media Item's cover, the first that applies: its Current
-// Rating, and whether it is planned again; that it is In Progress; that it is in the Backlog; the
-// oldest List holding it.
+// Rating, and whether it is planned again; that it is In Progress; that it is in the Backlog; its
+// place in Favourites, counted from 1; the oldest List holding it.
 export type UserMediaItemStatus =
   | { kind: "rated"; rating: number; inBacklog: boolean }
   | { kind: "inProgress" }
   | { kind: "backlog" }
+  | { kind: "favourite"; place: number }
   | { kind: "list"; name: string };
 
 export function userMediaItemStatus(item: UserMediaItem): UserMediaItemStatus | null {
@@ -63,6 +69,8 @@ export function userMediaItemStatus(item: UserMediaItem): UserMediaItemStatus | 
   }
   if (item.inProgress) return { kind: "inProgress" };
   if (item.inBacklog) return { kind: "backlog" };
+  if (item.favouritePosition !== null)
+    return { kind: "favourite", place: item.favouritePosition + 1 };
   const [oldest] = item.lists;
   return oldest ? { kind: "list", name: oldest.name } : null;
 }

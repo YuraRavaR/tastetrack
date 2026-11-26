@@ -1,7 +1,9 @@
 // What the app says of an artist (`docs/mockups/artists/`). Pure functions with no I/O.
-import type { AlbumMetadata, ArtistMetadata } from "../../shared/api";
+import type { AlbumMetadata, ArtistMetadata, MediaItem } from "../../shared/api";
 import { artistYears, specialPurposeArtists } from "../../shared/musicbrainz-artists";
+import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
+import { filmLabel, filmName } from "./film-label";
 import { factsLine } from "./game-label";
 
 // What stands in for an artist's photo: the first letter of each of their first two words, upper
@@ -40,6 +42,22 @@ export function artistFacts(artist: ArtistFactsOf): string | null {
     artist.country === null ? null : countryName(artist.country),
     artistYears(artist.year, artist.endYear),
   ]);
+}
+
+// What a Media Item is called in a row or a dialog: "Alien (1979)", as filmLabel writes it, but an
+// artist by name alone, as their year is when they began.
+export function mediaItemLabel(mediaItem: MediaItem): string {
+  const { metadata, mediaType } = mediaItem;
+  if (!metadata) return mediaWord(mediaType, "unknown");
+  return mediaType === "artist" ? filmName(metadata) : filmLabel(metadata);
+}
+
+// An artist's facts, as artistFacts says them, for their Media Item; null for another Media Type,
+// or where nothing is known.
+export function mediaItemFacts(mediaItem: MediaItem): string | null {
+  return mediaItem.mediaType === "artist" && mediaItem.metadata
+    ? artistFacts(mediaItem.metadata)
+    : null;
 }
 
 type PhotoCredit = NonNullable<ArtistMetadata["photoCredit"]>;

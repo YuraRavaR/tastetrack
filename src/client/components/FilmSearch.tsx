@@ -4,6 +4,7 @@ import {
   Clock,
   Disc3,
   Gamepad2,
+  Heart,
   List,
   ListPlus,
   type LucideIcon,
@@ -52,6 +53,7 @@ import { type MessageId, t } from "../i18n/t";
 import { itemPath, listPath } from "../navigation/paths";
 import { EmptyState } from "./EmptyState";
 import { FilmListsDialog, type ListsFilm } from "./FilmListsDialog";
+import { LikeButton, type LikeError, LikeErrorLine } from "./LikeButton";
 import { LogEntryDialog } from "./LogEntryDialog";
 import { ManualMediaItemDialog } from "./ManualMediaItemDialog";
 import { Poster } from "./Poster";
@@ -144,12 +146,18 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   // Results put on or taken off the Watchlist since the search ran, by whether they are on it.
   const [plannedNow, setPlannedNow] = useState<ReadonlyMap<string, boolean>>(new Map());
   const [planning, setPlanning] = useState<ReadonlySet<string>>(new Set());
+  // Results liked or taken out of Favourites since the search ran, by whether they are liked, the
+  // ones whose Like is saving, and why the last one failed, by its result.
+  const [likedNow, setLikedNow] = useState<ReadonlyMap<string, boolean>>(new Map());
+  const [liking, setLiking] = useState<ReadonlySet<string>>(new Set());
+  const [likeError, setLikeError] = useState<{ key: string; error: LikeError } | null>(null);
   // Results that joined the catalog since the search ran, by their Media Item's id.
   const [catalogedNow, setCatalogedNow] = useState<ReadonlyMap<string, number>>(new Map());
 
   const logOf = (found: Found) => loggedNow.get(foundKey(found)) ?? found;
   const inLog = (found: Found) => logOf(found).logEntryCount > 0;
   const inBacklog = (found: Found) => plannedNow.get(foundKey(found)) ?? found.inBacklog;
+  const inFavourites = (found: Found) => likedNow.get(foundKey(found)) ?? found.inFavourites;
   const mediaItemIdOf = (found: Found) => {
     return catalogedNow.get(foundKey(found)) ?? foundMediaItemId(found);
   };
@@ -191,6 +199,7 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
   function clearErrors() {
     setPlanError(null);
     setOpenFailure(null);
+    setLikeError(null);
   }
 
   // Opens the page of a result with no Media Item yet, adding it to the catalog first. One at a
@@ -240,6 +249,35 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
     markPlanned(found, adding);
     userItems.changed();
     setLastAction({ kind: adding ? "planned" : "unplanned", found });
+  }
+
+  function setLikingOf(found: Found, busy: boolean) {
+    setLiking((current) => {
+      const next = new Set(current);
+      if (busy) next.add(foundKey(found));
+      else next.delete(foundKey(found));
+      return next;
+    });
+  }
+
+  // Likes a result, adding it to the catalog first, or takes its Like back.
+  async function toggleLiked(found: Found) {
+    const adding = !inFavourites(found);
+    clearErrors();
+    setLikingOf(found, true);
+    const mediaItem = await addToCatalog(found);
+    const outcome: { ok: true } | { ok: false; error: LikeError } = !mediaItem
+      ? { ok: false, error: "unavailable" }
+      : adding
+        ? await api.like(mediaItem.id)
+        : await api.unlike(mediaItem.id);
+    setLikingOf(found, false);
+    if (!outcome.ok) {
+      setLikeError({ key: foundKey(found), error: outcome.error });
+      return;
+    }
+    setLikedNow((current) => new Map(current).set(foundKey(found), adding));
+    userItems.changed();
   }
 
   function logged(found: Found, entry: api.SavedLogEntry) {
@@ -367,6 +405,10 @@ export function FilmSearch({ mediaType }: { mediaType: MediaType }) {
                   lists={listedNow.get(foundKey(found)) ?? found.lists}
                   inBacklog={inBacklog(found)}
                   planning={planning.has(foundKey(found))}
+                  liked={inFavourites(found)}
+                  liking={liking.has(foundKey(found))}
+                  likeError={likeError?.key === foundKey(found) ? likeError.error : null}
+                  onToggleLiked={() => toggleLiked(found)}
                   onExperienced={() => setLogging(found)}
                   onTogglePlanned={() => togglePlanned(found)}
                   onListed={() =>
@@ -533,6 +575,15 @@ function UserMediaItemStatusLine({ item }: { item: UserMediaItem }) {
       </StatusLine>
     );
   }
+  if (status.kind === "favourite") {
+    return (
+      <StatusLine
+        icon={<Heart aria-hidden className="size-3.5 fill-current text-primary-strong" />}
+      >
+        {t("artist.favouritesStatus", { place: status.place })}
+      </StatusLine>
+    );
+  }
   return (
     <StatusLine icon={<List role="img" aria-label={t("search.savedList")} className="size-3.5" />}>
       {status.name}
@@ -572,8 +623,12 @@ function SearchResult({
   lists,
   inBacklog,
   planning,
+  liked,
+  liking,
+  likeError,
   onExperienced,
   onTogglePlanned,
+  onToggleLiked,
   onListed,
 }: {
   found: Found;
@@ -585,10 +640,15 @@ function SearchResult({
   lists: HoldingList[];
   inBacklog: boolean;
   planning: boolean;
+  liked: boolean;
+  liking: boolean;
+  likeError: LikeError | null;
   onExperienced: () => void;
   onTogglePlanned: () => void;
+  onToggleLiked: () => void;
   onListed: () => void;
 }) {
+  const likeErrorId = useId();
   const mediaType = foundMediaType(found);
   const { currentRating, logEntryCount } = log;
   const inLog = logEntryCount > 0;
@@ -598,11 +658,21 @@ function SearchResult({
   // A song or an artist, which can only be collected, has the one button, labelled
   // (`docs/mockups/songs/`).
   const collectOnly = !can(mediaType, "log") && !can(mediaType, "plan");
+  // An artist has ♥ beside Add to collection, both under the whole row on a phone and at its right
+  // from md, with a refused Like's error under them (`docs/mockups/artists/`).
+  const likeable = can(mediaType, "like");
 
   return (
-    <li className="relative flex items-start gap-3 p-3 md:items-center">
+    <li
+      className={cn("relative flex items-start gap-3 p-3 md:items-center", likeable && "flex-wrap")}
+    >
       <Poster subject={found} size="search" />
-      <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-3">
+      <div
+        className={cn(
+          "min-w-0 flex-1 gap-2 md:flex md:flex-row md:items-center md:gap-3",
+          likeable ? "contents" : "flex flex-col",
+        )}
+      >
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           {mediaItemId !== null ? (
             <Link
@@ -650,7 +720,13 @@ function SearchResult({
           </span>
           <ListChips lists={lists} onOpened={onOpened} />
         </div>
-        <div className="relative flex shrink-0 gap-1.5 md:gap-2">
+        <div
+          className={cn(
+            "relative flex shrink-0 gap-1.5 md:gap-2",
+            // Under 340 px or so the two buttons may not fit side by side, so the second wraps.
+            likeable && "basis-full flex-wrap md:basis-auto",
+          )}
+        >
           {can(mediaType, "log") && (
             <Button
               variant={inLog ? "pressed" : "outline"}
@@ -674,6 +750,15 @@ function SearchResult({
             >
               <Bookmark aria-hidden className={cn(inBacklog && "fill-current")} />
             </Button>
+          )}
+          {likeable && (
+            <LikeButton
+              liked={liked}
+              busy={liking}
+              errorId={likeError ? likeErrorId : undefined}
+              className="h-11 px-3 has-[>svg]:px-3 md:h-9"
+              onClick={onToggleLiked}
+            />
           )}
           {can(mediaType, "collect") && collectOnly && (
             <Button
@@ -699,6 +784,11 @@ function SearchResult({
           )}
         </div>
       </div>
+      {likeError && (
+        <div className="relative basis-full md:pl-15">
+          <LikeErrorLine id={likeErrorId} error={likeError} />
+        </div>
+      )}
     </li>
   );
 }

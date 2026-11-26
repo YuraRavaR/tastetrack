@@ -45,6 +45,7 @@ import {
 } from "./catalog/source";
 import type { AppEnv } from "./env";
 import { plannedExternalIds } from "./lists/backlog";
+import { likedMediaItems } from "./lists/favourites";
 import { listsHolding } from "./lists/user-lists";
 import { loggedMediaItems } from "./log/log-entries";
 
@@ -344,9 +345,10 @@ async function searchMarks(
     ...manualMatches.map(({ mediaItem }) => mediaItem.id),
     ...mediaItemIds.values(),
   ];
-  const [logged, listed] = await Promise.all([
+  const [logged, listed, liked] = await Promise.all([
     loggedMediaItems(db, userId, shownIds),
     listsHolding(db, userId, shownIds),
+    likedMediaItems(db, userId, shownIds),
   ]);
   const userMarksOf = (mediaItemId: number | null) => {
     const item = mediaItemId === null ? undefined : logged.get(mediaItemId);
@@ -355,6 +357,7 @@ async function searchMarks(
       inLog: item !== undefined,
       currentRating: item?.currentRating ?? null,
       logEntryCount: item?.logEntryCount ?? 0,
+      inFavourites: mediaItemId !== null && liked.has(mediaItemId),
       lists: lists ?? [],
     };
   };

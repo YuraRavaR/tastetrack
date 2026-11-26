@@ -44,6 +44,13 @@ export async function manualArtist(
   return (await expectBody(created, 201)).mediaItem;
 }
 
+// Likes each artist in turn, so that Favourite artists rank them in this order.
+export async function likeAll(client: ApiClient, mediaItems: { id: number }[]) {
+  for (const { id } of mediaItems) {
+    await expectBody(client.favourites.like({ mediaItemId: id }), 201);
+  }
+}
+
 // Океан Ельзи, whose Latin aliases find them too, with a photo credited to its photographer.
 export const okeanElzyId = "87a417d3-f118-43e0-bece-3de1bd90fce0";
 export const okeanElzy = (client: ApiClient) => artist(client, "Океан Ельзи", okeanElzyId);

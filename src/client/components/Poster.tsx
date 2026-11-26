@@ -16,7 +16,16 @@ import { mediaWord } from "../i18n/media-words";
 import { t } from "../i18n/t";
 import { useImageFailure } from "./use-image-failure";
 
-type PosterSize = "dialog" | "thumbnail" | "search" | "large" | "grid" | "fan" | "collage";
+type PosterSize =
+  | "dialog"
+  | "thumbnail"
+  | "search"
+  | "large"
+  | "grid"
+  | "fan"
+  | "collage"
+  | "ranked"
+  | "rankedShared";
 
 // Fixed heights, not an aspect ratio: a row's flex stretch would pull an auto height out of shape.
 // A grid's poster is the exception: it fills its column's width, which a grid cell keeps fixed, and
@@ -31,6 +40,8 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
     grid: "aspect-2/3 w-full rounded-lg",
     fan: "size-full rounded-md",
     collage: "size-full",
+    ranked: "h-18 w-12 rounded-sm",
+    rankedShared: "h-24 w-16 rounded-sm",
   },
   // An album's cover (`docs/mockups/albums/`): 72 px in a phone's Search row and 56 px from `md`,
   // 136 px on a page without a picture and 176 px from `sm`.
@@ -42,6 +53,8 @@ const sizeClasses: Record<CoverShape, Record<PosterSize, string>> = {
     grid: "aspect-square w-full rounded-lg",
     fan: "size-full rounded-md",
     collage: "size-full",
+    ranked: "size-12 rounded-sm",
+    rankedShared: "size-16 rounded-sm",
   },
 };
 
@@ -55,6 +68,8 @@ const imageSizes: Record<PosterSize, CoverImageSize> = {
   grid: "large",
   fan: "large",
   collage: "large",
+  ranked: "small",
+  rankedShared: "small",
 };
 
 // What a cover set in type takes at each size: its padding and its title's size, how far in its
@@ -110,6 +125,8 @@ const posterTypesets: Record<PosterSize, Typeset> = {
     maker: `${titleOnly.maker} md:line-clamp-1 md:text-[9px]`,
   },
   collage: compact,
+  ranked: titleOnly,
+  rankedShared: titleOnly,
 };
 
 // A square is shorter than a poster of its width, so an album's cover set in type takes smaller
@@ -143,6 +160,8 @@ const squareTypesets: Record<PosterSize, Typeset> = {
     maker: "line-clamp-1 text-[8px] md:text-[9px]",
   },
   collage: compact,
+  ranked: titleOnly,
+  rankedShared: titleOnly,
 };
 
 // A song's note at each size (`docs/mockups/songs/`): 22 px in 48 and 56 px, 26 px in 72 px and a
@@ -155,10 +174,13 @@ const noteSizes: Record<PosterSize, string> = {
   grid: "size-10",
   fan: "size-6.5",
   collage: "size-6.5",
+  ranked: "size-5.5",
+  rankedShared: "size-6.5",
 };
 
 // An artist's photo is round in a Search row and a grid, 56 px in a phone's row and 48 px from md,
-// and their initials on their page, 136 px and 176 px from sm (`docs/mockups/artists/`). It is
+// 48 px in a row of Favourite artists and 64 px on its Share Link, and their initials on their
+// page, 136 px and 176 px from sm (`docs/mockups/artists/`). It is
 // square where it stands for a Collection, in a dialog's row, a fan or a collage. Their initials
 // take a size to match.
 const faceSizes: Partial<Record<PosterSize, string>> = {
@@ -166,6 +188,8 @@ const faceSizes: Partial<Record<PosterSize, string>> = {
   large: "size-34 rounded-full sm:size-44",
   search: "size-14 rounded-full md:size-12",
   grid: "aspect-square w-full rounded-full",
+  ranked: "size-12 rounded-full",
+  rankedShared: "size-16 rounded-full",
 };
 
 const initialsSizes: Record<PosterSize, string> = {
@@ -176,6 +200,8 @@ const initialsSizes: Record<PosterSize, string> = {
   grid: "text-[34px]",
   fan: "text-lg",
   collage: "text-[26px]",
+  ranked: "text-base",
+  rankedShared: "text-lg",
 };
 
 const typesets: Record<CoverShape, Record<PosterSize, Typeset>> = {

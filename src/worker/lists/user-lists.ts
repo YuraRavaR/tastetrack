@@ -1,10 +1,11 @@
 // A User's own Lists, beside the Backlog: making, reading, renaming and deleting them, and adding
 // Media Items to them. Route handlers only translate HTTP to these calls; the List rules are the
 // domain core's (src/shared/lists.ts).
-import { and, asc, count, eq, inArray, lte, max, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, lte, max, ne, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { catalogCache, listItems, lists, mediaItems, shareLinks, users } from "../../db/schema";
 import type {
+  FavouritesPreview,
   HoldingList,
   List,
   ListEditRequest,
@@ -13,12 +14,13 @@ import type {
   ListPreview,
   ListSummary,
   MediaItem,
+  MediaItemFavourites,
   MediaItemList,
   MediaType,
   NewListItemRequest,
   NewListRequest,
 } from "../../shared/api";
-import { isLight } from "../../shared/catalog";
+import { hasFavourites, isLight } from "../../shared/catalog";
 import {
   isReservedListName,
   isShared,
@@ -133,17 +135,25 @@ export async function createList(
   return { ok: false, error: "too_many_lists" };
 }
 
-// The User's own Lists, oldest first, each with how many items it holds, in one query.
-export async function userLists(db: DrizzleD1Database, userId: number): Promise<ListSummary[]> {
-  const rows = await selectSummaries(db)
-    .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
-    .groupBy(lists.id)
-    .orderBy(asc(lists.createdAt), asc(lists.id));
-  return rows.map(toSummary);
+// The User's own Lists and Favourites, never the Backlog.
+function ownListsAndFavourites(userId: number) {
+  return and(eq(lists.userId, userId), ne(lists.kind, "backlog"));
 }
 
-// The first `coverCount` Media Items of each of the User's own Lists, in List order, in one query
-// however many Lists and items there are. An empty List is left out.
+// The User's own Lists and Favourites, oldest first, each with how many items it holds and its
+// kind, in one query.
+function userListsAndFavourites(db: DrizzleD1Database, userId: number) {
+  return db
+    .select({ ...summaryColumns, kind: lists.kind, itemCount: count(listItems.id) })
+    .from(lists)
+    .leftJoin(listItems, eq(listItems.listId, lists.id))
+    .where(ownListsAndFavourites(userId))
+    .groupBy(lists.id)
+    .orderBy(asc(lists.createdAt), asc(lists.id));
+}
+
+// The first `coverCount` Media Items of each of the User's own Lists and Favourites, in List
+// order, in one query however many Lists and items there are. An empty List is left out.
 async function firstMediaItems(
   db: DrizzleD1Database,
   userId: number,
@@ -160,7 +170,7 @@ async function firstMediaItems(
     })
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
+    .where(ownListsAndFavourites(userId))
     .as("places");
   const rows = await db
     .select({ listId: listItems.listId, ...mediaItemColumns })
@@ -177,23 +187,28 @@ async function firstMediaItems(
   return firsts;
 }
 
-// The User's own Lists, oldest first, each with how many items it holds, its first
-// `listCoverCount` Media Items in List order and whether it has a Share Link, in two queries
-// however many Lists and items there are.
+// The User's own Lists, oldest first, and their Favourites of each Media Type, each with how many
+// items it holds, its first `listCoverCount` Media Items in List order and whether it has a Share
+// Link, in two queries however many Lists and items there are.
 export async function listPreviews(
   db: DrizzleD1Database,
   userId: number,
   now: Date,
-): Promise<ListPreview[]> {
-  const [summaries, covers] = await Promise.all([
-    userLists(db, userId),
+): Promise<{ lists: ListPreview[]; favourites: FavouritesPreview[] }> {
+  const [rows, covers] = await Promise.all([
+    userListsAndFavourites(db, userId),
     firstMediaItems(db, userId, listCoverCount, now),
   ]);
-  return summaries.map((summary) => ({
-    ...summary,
-    covers: covers.get(summary.id) ?? [],
-    shared: isShared(summary.visibility),
-  }));
+  const previews = { lists: [] as ListPreview[], favourites: [] as FavouritesPreview[] };
+  for (const { kind, ...row } of rows) {
+    const preview = { covers: covers.get(row.id) ?? [], shared: isShared(row.visibility) };
+    if (kind === "list") previews.lists.push({ ...toSummary(row), ...preview });
+    else if (hasFavourites(row.mediaType)) {
+      const { id, mediaType, itemCount } = row;
+      previews.favourites.push({ id, mediaType, itemCount, ...preview });
+    }
+  }
+  return previews;
 }
 
 export type EditedList =
@@ -263,8 +278,9 @@ export async function deleteList(
 }
 
 // The User's own Lists of the Media Item's Media Type, each with the List Item that holds it there
-// and its first Media Item, in four queries however many Lists there are; null when the User can't
-// see the Media Item. They come oldest first, but for a light Media Type, a song or an artist,
+// and its first Media Item, and their Favourites of it, if they have them, with the List Item that
+// holds it there, in four queries however many Lists there are; null when the User can't see the
+// Media Item. They come oldest first, but for a light Media Type, a song or an artist,
 // which goes into Lists in one step: the List last added to first, by its newest List Item, so the
 // usual one is a tap away, then the empty ones, oldest first. Another User's Manual Media Item is as unknown as
 // one that doesn't exist.
@@ -273,7 +289,7 @@ export async function mediaItemLists(
   userId: number,
   mediaItemId: number,
   now: Date,
-): Promise<MediaItemList[] | null> {
+): Promise<{ lists: MediaItemList[]; favourites: MediaItemFavourites | null } | null> {
   const [[mediaItem], held, summaries, firsts] = await Promise.all([
     db
       .select({ mediaType: mediaItems.mediaType })
@@ -288,23 +304,18 @@ export async function mediaItemLists(
       })
       .from(listItems)
       .innerJoin(lists, eq(listItems.listId, lists.id))
-      .where(
-        and(
-          eq(listItems.mediaItemId, mediaItemId),
-          eq(lists.userId, userId),
-          eq(lists.kind, "list"),
-        ),
-      ),
+      .where(and(eq(listItems.mediaItemId, mediaItemId), ownListsAndFavourites(userId))),
     db
       .select({
         ...summaryColumns,
+        kind: lists.kind,
         itemCount: count(listItems.id),
         createdAt: lists.createdAt,
         lastAddedAt: max(listItems.createdAt),
       })
       .from(lists)
       .leftJoin(listItems, eq(listItems.listId, lists.id))
-      .where(and(eq(lists.userId, userId), eq(lists.kind, "list")))
+      .where(ownListsAndFavourites(userId))
       .groupBy(lists.id),
     firstMediaItems(db, userId, 1, now),
   ]);
@@ -315,17 +326,30 @@ export async function mediaItemLists(
   // The newest List Item's time, as a number; 0 for an empty List, which comes last.
   const lastAdded = (list: (typeof summaries)[number]) =>
     isLight(mediaItem.mediaType) ? Number(list.lastAddedAt ?? 0) : 0;
-  return summaries
-    .filter((list) => list.mediaType === mediaItem.mediaType)
-    .sort(
-      (a, b) =>
-        lastAdded(b) - lastAdded(a) || a.createdAt.getTime() - b.createdAt.getTime() || a.id - b.id,
-    )
-    .map(({ createdAt: _created, lastAddedAt: _lastAdded, ...list }) => ({
-      ...toSummary(list),
-      listItem: places.get(list.id) ?? null,
-      firstMediaItem: firsts.get(list.id)?.[0] ?? null,
-    }));
+  const ofMediaType = summaries.filter((list) => list.mediaType === mediaItem.mediaType);
+  const favourites = ofMediaType.find((list) => list.kind === "favourites");
+  return {
+    lists: ofMediaType
+      .filter((list) => list.kind === "list")
+      .sort(
+        (a, b) =>
+          lastAdded(b) - lastAdded(a) ||
+          a.createdAt.getTime() - b.createdAt.getTime() ||
+          a.id - b.id,
+      )
+      .map(({ createdAt: _created, lastAddedAt: _lastAdded, kind: _kind, ...list }) => ({
+        ...toSummary(list),
+        listItem: places.get(list.id) ?? null,
+        firstMediaItem: firsts.get(list.id)?.[0] ?? null,
+      })),
+    favourites: favourites
+      ? {
+          id: favourites.id,
+          itemCount: favourites.itemCount,
+          listItem: places.get(favourites.id) ?? null,
+        }
+      : null,
+  };
 }
 
 // The User's own Lists holding each of these Media Items, oldest first, in one query. The Backlog
@@ -355,8 +379,9 @@ export async function listsHolding(
   return holding;
 }
 
-// Every Media Item of the Media Type on the User's own Lists, each once with the Lists holding it,
-// oldest first, in one query however many there are. The Backlog isn't one of them.
+// Every Media Item of the Media Type on the User's own Lists or in their Favourites, each once with
+// the Lists holding it, oldest first, and its place in the Favourites, in one query however many
+// there are. The Backlog isn't one of them.
 export async function listedMediaItems(
   db: DrizzleD1Database,
   userId: number,
@@ -364,20 +389,29 @@ export async function listedMediaItems(
   now: Date,
 ): Promise<ListedMediaItem[]> {
   const rows = await db
-    .select({ ...mediaItemColumns, listId: lists.id, listName: lists.name })
+    .select({
+      ...mediaItemColumns,
+      listId: lists.id,
+      listName: lists.name,
+      kind: lists.kind,
+      index: listIndex,
+    })
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .innerJoin(mediaItems, eq(listItems.mediaItemId, mediaItems.id))
     .leftJoin(catalogCache, cacheOfMediaItem(now))
-    .where(and(eq(lists.userId, userId), eq(lists.kind, "list"), eq(lists.mediaType, mediaType)))
+    .where(and(ownListsAndFavourites(userId), eq(lists.mediaType, mediaType)))
     .orderBy(asc(lists.createdAt), asc(lists.id));
   const listed = new Map<number, ListedMediaItem>();
   for (const row of rows) {
-    if (row.listName === null) throw new Error(`List ${row.listId} has no name`);
-    const list = { id: row.listId, name: row.listName };
-    const known = listed.get(row.mediaItemId);
-    if (known) known.lists.push(list);
-    else listed.set(row.mediaItemId, { mediaItem: toMediaItem(row), lists: [list] });
+    let known = listed.get(row.mediaItemId);
+    if (!known) {
+      known = { mediaItem: toMediaItem(row), lists: [], favouritePosition: null };
+      listed.set(row.mediaItemId, known);
+    }
+    if (row.kind === "favourites") known.favouritePosition = row.index;
+    else if (row.listName === null) throw new Error(`List ${row.listId} has no name`);
+    else known.lists.push({ id: row.listId, name: row.listName });
   }
   return [...listed.values()];
 }

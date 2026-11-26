@@ -5,6 +5,7 @@ import { maxDisplayNameLength, passwordLength, usernamePattern } from "./account
 import {
   earliestBookYear,
   earliestFilmYear,
+  favouritesMediaTypes,
   filmGenres,
   filmRuntime,
   lightMediaTypes,
@@ -227,11 +228,13 @@ export const HoldingList = z
 export type HoldingList = z.infer<typeof HoldingList>;
 
 // What a search result shows of the User's own: inLog marks a film they have a Log Entry for, with
-// its Current Rating and how many they have, inBacklog one in their Backlog, and lists their Lists
-// holding it, oldest first. A film not in the catalog has none of these.
+// its Current Rating and how many they have, inBacklog one in their Backlog, inFavourites one they
+// Like, and lists their Lists holding it, oldest first. A film not in the catalog has none of
+// these.
 const UserMarks = {
   inLog: z.boolean(),
   inBacklog: z.boolean(),
+  inFavourites: z.boolean(),
   currentRating: Rating.nullable(),
   logEntryCount: z.int().min(0).openapi({ example: 2 }),
   lists: z.array(HoldingList),
@@ -341,6 +344,7 @@ export const AddCatalogItemRequest = CatalogSearchResult.omit({
   mediaItemId: true,
   inLog: true,
   inBacklog: true,
+  inFavourites: true,
   currentRating: true,
   logEntryCount: true,
   lists: true,
@@ -1617,6 +1621,49 @@ export const BacklogResponse = z
 
 export type BacklogResponse = z.infer<typeof BacklogResponse>;
 
+// The Media Types that have Favourites: for now only artists (ADR-0005).
+export const FavouritesMediaType = z.enum(favouritesMediaTypes).openapi({ example: "artist" });
+
+export type FavouritesMediaType = z.infer<typeof FavouritesMediaType>;
+
+export const FavouritesQuery = z.object({
+  mediaType: FavouritesMediaType,
+});
+
+// A Like: puts a Media Item at the end of the User's Favourites of its Media Type.
+export const LikeRequest = z
+  .object({
+    mediaItemId: z.int().positive().openapi({ example: 42 }),
+  })
+  .openapi("LikeRequest");
+
+export type LikeRequest = z.infer<typeof LikeRequest>;
+
+// A User's Favourites of one Media Type, ranked by their order, and its Share Link while it has
+// one. It has no name: the UI calls it "Favourite artists". Its description is the User's, as a
+// List's is.
+export const Favourites = z
+  .object({
+    id: z.int().openapi({ example: 9 }),
+    mediaType: FavouritesMediaType,
+    description: z.string().nullable().openapi({ example: "The ones I'd see live again." }),
+    visibility: Visibility,
+    shareLink: ShareLink.nullable(),
+    items: z.array(ListItem),
+  })
+  .openapi("Favourites");
+
+export type Favourites = z.infer<typeof Favourites>;
+
+// The User's Favourites of a Media Type, null until their first Like makes it.
+export const FavouritesResponse = z
+  .object({
+    favourites: Favourites.nullable(),
+  })
+  .openapi("FavouritesResponse");
+
+export type FavouritesResponse = z.infer<typeof FavouritesResponse>;
+
 export const ListItemResponse = z
   .object({
     listItem: ListItem,
@@ -1678,6 +1725,16 @@ export const ListEditRequest = z
 
 export type ListEditRequest = z.infer<typeof ListEditRequest>;
 
+// Favourites can't be renamed, so only the description changes; a null or empty one clears it.
+export const FavouritesEditRequest = z
+  .object({
+    description: ListDescription.nullable(),
+  })
+  .strict()
+  .openapi("FavouritesEditRequest");
+
+export type FavouritesEditRequest = z.infer<typeof FavouritesEditRequest>;
+
 // One of the User's own Lists without its items, and how many it holds.
 export const ListSummary = z
   .object({
@@ -1709,9 +1766,25 @@ export const ListPreview = ListSummary.extend({
 
 export type ListPreview = z.infer<typeof ListPreview>;
 
+// The User's Favourites of one Media Type as the Lists read gives it: how many it holds, its first
+// Media Items in List order, and whether it has a Share Link.
+export const FavouritesPreview = z
+  .object({
+    id: z.int().openapi({ example: 9 }),
+    mediaType: FavouritesMediaType,
+    itemCount: z.int().min(0).openapi({ example: 10 }),
+    covers: z.array(MediaItem).max(listCoverCount),
+    shared: z.boolean().openapi({ description: "Whether the Favourites have a Share Link" }),
+  })
+  .openapi("FavouritesPreview");
+
+export type FavouritesPreview = z.infer<typeof FavouritesPreview>;
+
+// The User's own Lists, and their Favourites of each Media Type they have liked one of.
 export const ListsResponse = z
   .object({
     lists: z.array(ListPreview),
+    favourites: z.array(FavouritesPreview),
   })
   .openapi("ListsResponse");
 
@@ -1737,9 +1810,23 @@ export const MediaItemList = ListSummary.extend({
 
 export type MediaItemList = z.infer<typeof MediaItemList>;
 
+// The User's Favourites of a Media Item's Media Type: how many it holds and the List Item that
+// holds the Media Item there, or null.
+export const MediaItemFavourites = z
+  .object({
+    id: z.int().openapi({ example: 9 }),
+    itemCount: z.int().min(0).openapi({ example: 10 }),
+    listItem: ListItemPlace.nullable(),
+  })
+  .openapi("MediaItemFavourites");
+
+export type MediaItemFavourites = z.infer<typeof MediaItemFavourites>;
+
+// favourites is null while the User has no Favourites of the Media Item's Media Type.
 export const MediaItemListsResponse = z
   .object({
     lists: z.array(MediaItemList),
+    favourites: MediaItemFavourites.nullable(),
   })
   .openapi("MediaItemListsResponse");
 
@@ -1749,11 +1836,13 @@ export const ListedMediaItemsQuery = z.object({
   mediaType: MediaType,
 });
 
-// A Media Item on at least one of the User's own Lists, and those Lists, oldest first.
+// A Media Item on at least one of the User's own Lists or in their Favourites: those Lists, oldest
+// first, and its place in the Favourites, counted from 0, or null.
 export const ListedMediaItem = z
   .object({
     mediaItem: MediaItem,
-    lists: z.array(HoldingList).min(1),
+    lists: z.array(HoldingList),
+    favouritePosition: z.int().min(0).nullable().openapi({ example: null }),
   })
   .openapi("ListedMediaItem");
 
@@ -1817,13 +1906,15 @@ export const SharedListItem = z
 export type SharedListItem = z.infer<typeof SharedListItem>;
 
 // A List as its Share Link shows it to anyone: its title, which for a Backlog is "<Display
-// Name>'s Watchlist", its description, its owner's Display Name and its List Items with their
-// Notes. Never the owner's Ratings or Log Entries.
+// Name>'s Watchlist" and for Favourites "<Display Name>'s Favourite artists", its description,
+// whether it is the owner's Favourites, whose places the client shows as a ranking, its owner's
+// Display Name and its List Items with their Notes. Never the owner's Ratings or Log Entries.
 export const SharedList = z
   .object({
     title: z.string().openapi({ example: "Horror nights" }),
     description: z.string().nullable().openapi({ example: "Something to watch each Friday." }),
     mediaType: MediaType,
+    favourites: z.boolean().openapi({ example: false }),
     owner: z.object({ displayName: z.string().openapi({ example: "olena_k" }) }),
     items: z.array(SharedListItem),
   })

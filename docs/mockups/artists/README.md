@@ -156,4 +156,4 @@ Found in the code and the data on 2026-11-24.
 
 1. **Coverage of photos.** Of the 13 lesser-known artists in the check, one had a P18 image, so initials will be common outside well-known artists.
 2. **Soundtracks in the albums list.** ADR-0013's query keeps Soundtrack release groups (Pink Floyd's More and Obscured by Clouds); #301 says "no secondary type". The page shows them as albums.
-3. **Share Link title.** "Favourite artists" alone, or "admin1's Favourite artists" for a friend who opens it cold.
+3. **Share Link title.** "Favourite artists" alone, or "admin1's Favourite artists" for a friend who opens it cold. Settled in #303: "admin1's Favourite artists", as a shared Backlog is "admin1's Watchlist".
